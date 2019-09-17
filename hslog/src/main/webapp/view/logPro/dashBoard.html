@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="css/dashBoard.css"/>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				仪表盘
+			</div>
+			<button  class="btn btn-primary" id="creatDash"><i class="glyphicon glyphicon-plus" ></i> 新建</button>
+			<div class="dash_list">
+				<h5>
+					<span class="dash_group">分组名</span>
+					<span class="dash_element">包含元素</span>
+					<span class="dash_owner">所有者</span>
+					<span class="dash_tools">操作</span>
+				</h5>
+				<ul class="listBox">				
+					<li>
+						<span class="dash_group">group-1</span>
+						<span class="dash_element">alert multi control</span>
+						<span class="dash_owner">admin</span>
+						<span class="dash_tools">
+							<i class="glyphicon glyphicon-pencil dash_write" title="编写元素" onclick="changeDash()"></i>
+							<i class="glyphicon glyphicon-remove dash_remove" title="删除" onclick="removeDash()"></i>
+							<i class="glyphicon glyphicon-log-out dash_add" title="生成图表" onclick="addDashEcharts()"></i>
+						</span>
+					</li>
+					<li>
+						<span class="dash_group">group-2</span>
+						<span class="dash_element">alert zip</span>
+						<span class="dash_owner">admin</span>
+						<span class="dash_tools">
+							<i class="glyphicon glyphicon-pencil dash_write" title="编写元素"></i>
+							<i class="glyphicon glyphicon-remove dash_remove" title="删除"></i>
+							<i class="glyphicon glyphicon-log-out dash_add" title="生成图表"></i>
+						</span>
+					</li>
+					<li>
+						<span class="dash_group">group-3</span>
+						<span class="dash_element">alert_multi_verify</span>
+						<span class="dash_owner">admin</span>
+						<span class="dash_tools">
+							<i class="glyphicon glyphicon-pencil dash_write" title="编写元素"></i>
+							<i class="glyphicon glyphicon-remove dash_remove" title="删除"></i>
+							<i class="glyphicon glyphicon-log-out dash_add" title="生成图表"></i>
+						</span>
+					</li>
+					<li>
+						<span class="dash_group">group-4</span>
+						<span class="dash_element">cj test</span>
+						<span class="dash_owner">admin</span>
+						<span class="dash_tools">
+							<i class="glyphicon glyphicon-pencil dash_write" title="编写元素"></i>
+							<i class="glyphicon glyphicon-remove dash_remove" title="删除"></i>
+							<i class="glyphicon glyphicon-log-out dash_add" title="生成图表"></i>
+						</span>
+					</li>
+				</ul>
+			</div>
+			<div class="dash_report">
+		
+			</div>
+		</div>
+		
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		
+		<script type="text/javascript">
+			//用于图表计数
+			var e_Index = 1;
+			//var myChart = echarts.init(document.getElementById('aaa'));
+	        // 指定图表的配置项和数据
+	        var option = {};
+	        //charts option 初始化函数
+	        function resetOption(){
+	        	 option = {
+		            title: {
+		            },
+		            tooltip: {},
+		            toolbox: {
+				        show: true,
+				        feature: {
+				            dataView: { show: true, readOnly: false, title: '数据视图', lang: ['数据视图', '关闭', '刷新'] },
+				            magicType: { show: true, type: ['line', 'bar','pie'], title: { line: '切换为折线图', bar: '切换为柱状图' } },
+				            restore: { show: true, title: '还原' },
+				            saveAsImage: { show: true, type: 'jpeg', title: '保存为图片' }
+				        },
+				        orient:'vertical',
+				        right:5,
+				        top:40
+				    	
+				    },
+		            legend: {
+		                data:[]
+		            },
+		            xAxis: {
+		                data: ["20/7","21/7","22/7","23/7","24/7","25/7","26/7"]
+		            },
+		            yAxis: {},
+		            series: []
+		        };
+	        }
+	       
+	       // myChart.setOption(option);
+	        
+	        //修改按钮 点击函数   $this点击的对象
+	        function changeDash(ev){
+	        	var ev = event || window.event;
+	        	var $this =$(ev.target); 
+	        	//弹窗内容
+	        	var html = '<div class="layerBox">' 
+	        			+		'<h5><span>所有元素</span><span>显示元素</span></h5>'
+	        			+		'<ul id="radioBox">'
+	        			+			'<li>alert multi control</li>'
+	        			+			'<li>alert zip</li>'
+	        			+			'<li>alert_multi_verify</li>'
+	        			+			'<li>cj test</li>'
+	        			+			'<li>cur_yottabyte</li>'
+	        			+			'<li>share</li>'
+	        			+			'<li>serach_qq</li>'
+	        			+		'</ul>'
+	        			+		'<ul id="dragBox">'
+	        			+		'</ul>'
+	        			+	'</div>'
+	        	//显示弹窗
+	        	layer.open({
+			 		type: 1,
+			 		title:"包含元素 （拖拽选择）",//标题
+		  			area: ['660px', '490px'], //宽高
+		  			btn: ['确定','取消'], //按钮、
+		  			btn1:function(index){
+		  				//将显示的元素的li放到arr数组中
+		  				var liArr = $("#dragBox>li");
+		  				//获取liArr数组的长度
+		  				var liLength = liArr.length;
+		  				//清空原来的数据
+						$this.parent().prev().prev().html('');
+		  				var val = '';
+						//循环 取出数据 
+						for(var i = 0; i < liLength ; i++){	
+							//拼接数据
+							val +=liArr[i].innerHTML+";"
+						}
+						//将数据添加到页面中
+						$this.parent().prev().prev().append(val);	  				
+		  				//关闭弹窗
+		  				layer.close(index);
+		  			},
+		 	 		content: html
+				});
+				//拖拽显示
+				var foo = document.getElementById("radioBox");
+				Sortable.create(foo, { group:{
+						name:"omega"
+					}}
+				);
+				var foo2 = document.getElementById("dragBox");
+				Sortable.create(foo2, {
+						group:{
+							name:"omega"
+						}}
+				);
+	        }
+	        	        
+	        //点击 添加按钮 执行函数
+	        function addDashEcharts(ev){
+	        	var ev = event || window.event;
+	        	var $this =$(ev.target); 
+	        	//图表配置初始化
+	        	resetOption();
+	        	//获取包含元素值
+	        	var yVal = $this.parent().prev().prev().html();
+	        	//用；分割
+	        	var arr = yVal.split(';');
+	        	//ajax获取数据
+	        	$.ajax({
+	        		type:"get",
+	        		url:"dashBoard.json",
+	        		async:true,
+	        		success:function(data){
+	        			//获取数据
+	        			var obj = data;
+	        			//查找数据
+	        			//var yValue = obj[yVal];
+	        			
+				    	//新建Echart对象
+				    	//var myChart = echarts.init(document.getElementById('chartsMain'+e_Index));
+				    	//循环赋值
+				    	for(var i in arr){
+				    		//判断数据是否为空
+				    		if(arr[i] == ""){
+				    			break;
+				    		}
+				    		//单个标签
+				    		//创建echarts盒子
+					    	var htmls = '<div class="dragDiv" id="div'+e_Index+'" style="width:500px;height:300px;border:1px solid #ccc;">'
+					    				+	'<div id="chartsMain'+e_Index+'" style="width:100%;height:100%" class="echarts" ondragstart="return false;" unselectable="on" onselectstart="return false;" style="-moz-user-select:none;"></div>'
+					    				+	'<i class="glyphicon glyphicon-remove-sign closeEchart" title="关闭"></i>'
+					    				+'</div>'
+					    	//添加到页面中
+					    	$(htmls).appendTo($(".dash_report"));
+				    					    		
+				    	 	//	新建Echart对象
+				   			var myChart = echarts.init(document.getElementById('chartsMain'+e_Index));
+				   			option.legend.data[0] = arr[i];
+			    			var serObj = {
+				    			name:arr[i],
+				    			type: 'bar',
+				    			itemStyle:{
+			                        normal:{
+			                            color:'#1ab394'
+			                        }
+			                    },
+				    			data:obj[arr[i]]
+				    			
+				    		}
+				    		option.series[0]=serObj;
+				    		//重置图表 显示
+				    		myChart.setOption(option);
+				    		
+				    		e_Index++;
+				    		//多标签
+				    		/*option.legend.data.push(arr[i]);
+				    		var serObj = {
+				    			name:arr[i],
+				    			type: 'bar',
+				    			data:obj[arr[i]]
+				    			
+				    		}
+				    		option.series.push(serObj)*/
+				    	}
+				    	//重置图表 显示
+				    	//myChart.setOption(option);
+	        			//删除按钮
+	        			$(".closeEchart").click(function(){
+	        				//删除图表
+	        				$(this).parent().remove();
+	        			})
+	        			
+	        		},
+	        		error:function(err){
+	        			console.log(err)
+	        		}
+	        	});
+	        }
+	        
+	        //新建仪表盘分组
+        	$("#creatDash").click(function(){
+        		//弹窗内容
+	        	var html2 = '<p>分组名：<input type="text" class="groupName" /></p>'
+	        			+	'<div class="layerBox">'
+	        			+		'<h5><span>所有元素</span><span>显示元素</span></h5>'
+	        			+		'<ul id="radioBox">'
+	        			+			'<li>alert multi control</li>'
+	        			+			'<li>alert zip</li>'
+	        			+			'<li>alert_multi_verify</li>'
+	        			+			'<li>cj test</li>'
+	        			+			'<li>cur_yottabyte</li>'
+	        			+			'<li>share</li>'
+	        			+			'<li>serach_qq</li>'
+	        			+		'</ul>'
+	        			+		'<ul id="dragBox">'
+	        			+		'</ul>'
+	        			+	'</div>'		
+	        			+	'<p style="border-top: 1px solid #e7eaec;border-bottom:none;">所有者：<input type="text" class="owner"/></p>'	
+        		//弹窗
+        		layer.open({
+			 		type: 1,
+			 		title:"新建仪表盘",//标题
+		  			area: ['660px', '490px'], //宽高
+		  			btn: ['确定','取消'], //按钮、
+		  			btn1:function(index){
+		  				//获得分组名
+		  				var groupName = $(".groupName").val();	
+		  				//获得 拥有者
+		  				var owner = $(".owner").val();	
+		  				//将显示的元素的li放到arr数组中
+		  				var liArr = $("#dragBox>li");
+		  				//获取liArr数组的长度
+		  				var liLength = liArr.length;
+		  				var val = '';
+						//循环 取出数据 
+						for(var i = 0; i < liLength ; i++){	
+							//拼接数据
+							val +=liArr[i].innerHTML+";"
+						}
+		  				//将分组添加到表中
+		  				var html3 = '<li>'
+								+		'<span class="dash_group">'+groupName+'</span>'
+								+		'<span class="dash_element">'+val+'</span>'
+								+		'<span class="dash_owner">'+owner+'</span>'
+								+		'<span class="dash_tools">'
+								+			'<i class="glyphicon glyphicon-pencil dash_write" title="编写元素" onclick="changeDash()"></i> '
+								+			'<i class="glyphicon glyphicon-remove" title="删除" onclick="removeDash()"></i> '
+								+			'<i class="glyphicon glyphicon-log-out dash_add" title="生成图表" onclick="addDashEcharts()"></i>'
+								+		'</span>'
+								+	'</li>'
+		  				
+		  				$(".listBox").append(html3);
+		  				//关闭弹窗
+		  				layer.close(index);
+		  			},
+		 	 		content: html2
+				});
+				
+				//拖拽显示
+				var foo = document.getElementById("radioBox");
+				Sortable.create(foo, { group:{
+						name:"omega"
+					}}
+				);
+				var foo2 = document.getElementById("dragBox");
+				Sortable.create(foo2, {
+						group:{
+							name:"omega"
+						}}
+				);
+				 
+        	})
+        	
+        	
+        	//删除分组操作函数
+        	function removeDash(){
+        		//定义当前对象
+        		var ev = event || window.event;
+	        	var $this =$(ev.target); 
+	        	//删除li
+	        	$this.parent().parent().remove();
+        	}
+		</script>
+		
+	</body>
+</html>

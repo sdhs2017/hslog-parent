@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+		<style type="text/css">
+			.top_title{
+				width:auto;
+				margin-bottom:0;
+				background:#293947;
+				border-top: 4px solid #2d4356;
+			}
+			.content{
+				min-height: 810px;
+				position:relative;
+				border: 1px solid #2f4050;
+			}
+			#cy{
+				width: 100%;
+            	height:100%;
+            	position: absolute;
+	            left: 0;
+	            top:0;
+				background-image: linear-gradient(to bottom, #293846 0%, #456479 100%);
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				业务流分析
+			</div>
+			<div class="content">
+				<div id="cy"></div>
+			</div>
+		</div>
+	
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/cytoscape.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			//获取存放在标签页标题中的数据
+			var getDeviceObj = $('.page-tabs-content', parent.document).click().children("a.active").attr("data-obj");
+			//将获取的本地sessionstorage字符串转换为obj对象格式
+			var tagObj = JSON.parse(getDeviceObj.replace(/'/g,"\""));	
+			//参数集合
+			var url = '';
+			if(tagObj.complete_url == undefined){	
+				if(tagObj.ipv4_dst_addr == undefined){ //应用画像业务流
+					url = "../../log/getVisitCountGroupByHttpSourceIP.do"
+					$(".top_title").html("'"+tagObj.domain_url+"' 业务流")
+				}else{ //应用资产画像业务流
+					url = "../../log/getDstIPCountGroupByHTTPSrcIP.do";
+					$(".top_title").html("'"+tagObj.ipv4_dst_addr+"' 业务流")
+				}				
+			}else{ //功能业务流
+				url = "../../log/getVisitCountOfComUrlGroupByHttpSourceIP.do "
+				$(".top_title").html("'"+tagObj.complete_url+"' 业务流")
+			}
+			
+			//成功回调函数
+			var sfunc = function(dataArr){
+				var nodesArr = [];//节点数组
+    			var edgesArr = [];//线数组
+    			var nodesCountArr = [];//节点count数组
+    			var linksCountArr = [];//节点count数组
+    			//判断业务流类型   
+    			if(dataArr[0].complete_url == undefined){ 
+    				if(dataArr[0].ipv4_dst_addr == undefined){ //应用画像业务流
+    					//node节点
+            			for(var i in dataArr[0].source){
+            				var obj = {};
+            				obj.data = {};
+            				obj.data.id = dataArr[0].source[i].source_ip;
+            				obj.data.target = true;
+            				obj.data.count = dataArr[0].source[i].count;
+            				//obj.data.type = dataArr[i].node;
+            				nodesCountArr.push(dataArr[0].source[i].count);
+            				nodesArr.push(obj);
+            			}
+            			nodesCountArr.push(dataArr[0].domain.count)
+            			nodesArr.push({
+            				data:{id:dataArr[0].domain.domain_url,target:true,count:dataArr[0].domain.count}
+            			})
+            			//连接线
+            			for(var i in dataArr[0].source){
+            				var obj = {};
+            				obj.data = {};
+            				obj.data.source = dataArr[0].source[i].source_ip;
+            				obj.data.target = dataArr[0].domain.domain_url;
+            				obj.data.count = dataArr[0].source[i].count;
+            				obj.data.label = dataArr[0].source[i].count;
+            				linksCountArr.push(dataArr[0].source[i].count);
+            				edgesArr.push(obj);
+            			}
+    				}else{ //应用资产画像业务流
+    					//node节点
+            			for(var i in dataArr[0].source){
+            				var obj = {};
+            				obj.data = {};
+            				obj.data.id = dataArr[0].source[i].source_ip;
+            				obj.data.target = true;
+            				obj.data.count = dataArr[0].source[i].count;
+            				//obj.data.type = dataArr[i].node;
+            				nodesCountArr.push(dataArr[0].source[i].count);
+            				nodesArr.push(obj);
+            			}
+            			nodesCountArr.push(dataArr[0].ipv4_dst_addr.count)
+            			nodesArr.push({
+            				data:{id:dataArr[0].ipv4_dst_addr.ipv4_dst_addr,target:true,count:dataArr[0].ipv4_dst_addr.count}
+            			})
+            			//连接线
+            			for(var i in dataArr[0].source){
+            				var obj = {};
+            				obj.data = {};
+            				obj.data.source = dataArr[0].source[i].source_ip;
+            				obj.data.target = dataArr[0].ipv4_dst_addr.ipv4_dst_addr;
+            				obj.data.count = dataArr[0].source[i].count;
+            				obj.data.label = dataArr[0].source[i].count;
+            				linksCountArr.push(dataArr[0].source[i].count);
+            				edgesArr.push(obj);
+            			}
+    				}
+    				
+    			}else{  //功能 业务流
+    				//node节点
+        			for(var i in dataArr[0].source){
+        				var obj = {};
+        				obj.data = {};
+        				obj.data.id = dataArr[0].source[i].source_ip;
+        				obj.data.target = true;
+        				obj.data.count = dataArr[0].source[i].count;
+        				//obj.data.type = dataArr[i].node;
+        				nodesCountArr.push(dataArr[0].source[i].count);
+        				nodesArr.push(obj);
+        			}
+        			nodesCountArr.push(dataArr[0].complete_url.count)
+        			nodesArr.push({
+        				data:{id:dataArr[0].complete_url.complete_url,target:true,count:dataArr[0].complete_url.count}
+        			})
+        			//连接线
+        			for(var i in dataArr[0].source){
+        				var obj = {};
+        				obj.data = {};
+        				obj.data.source = dataArr[0].source[i].source_ip;
+        				obj.data.target = dataArr[0].complete_url.complete_url;
+        				obj.data.count = dataArr[0].source[i].count;
+        				obj.data.label = dataArr[0].source[i].count;
+        				linksCountArr.push(dataArr[0].source[i].count);
+        				edgesArr.push(obj);
+        			}
+    			}
+    			
+    			//node最大值
+    			var maxNodesCount = Math.max.apply(null,nodesCountArr);
+    			//链接线最大值
+    			var maxLinksCount = Math.max.apply(null,linksCountArr);
+    			//console.log(nodesArr)
+    			//渲染
+    			var cy = cytoscape({
+		            container: document.getElementById('cy'),
+//		            boxSelectionEnabled: true,
+		            autounselectify: true,//默认情况下节点是否应该是未分类的
+		            maxZoom:4,//最大缩放
+		            minZoom:0.7,//最小缩放 
+		            wheelSensitivity:.1,//滑动滚轮一次缩放大小
+		            style: cytoscape.stylesheet()
+		            	.selector('node')
+		            		.css({
+		            			"content": function (ele) { //文本内容
+		                            return ele.data('label') || ele.data('id')+'\n 活跃度:'+ele.data('count')
+		                        },
+		                        "text-valign": 'center', //文本对齐  center-居中
+		                        "width": function (a) { //宽度
+		                            var widthVal = 140;		                            
+		                            return Math.pow(a.data('count')/maxNodesCount,1/3) * widthVal;
+		                        },
+		                        "height": function (a) { //高度
+		                        	 var heightVal = 140;	
+		                            return  Math.pow(a.data('count')/maxNodesCount,1/3) * heightVal;;
+		                        },
+		                        "background-color": function (a) { //背景颜色
+		                        	return a.data('count') == maxNodesCount ? '#D76662' : '#59C9A5';
+		                        },
+		                        "color": '#fff', //文本颜色
+		                        "border-color": function (a) { //边框颜色
+		                            return '#3A4D5F'; 
+		                        },
+		                        "border-width":2, //边框宽度		                        
+		                        "text-wrap": "wrap", //文本换行
+		                        "font-size": 10, //字体大小
+		                        "font-weight":600,
+		                        "font-family": "microsoft yahei",//字体
+		                        "overlay-color": "#fff",
+		                        "overlay-opacity": 0,
+		                        'text-outline-width': 1,
+		                        'text-outline-color': '#316383',//颜色设置
+		                        "background-opacity": 1, //透明度
+		                        "shape": "ellipse",//节点形状    ellipse-圆形  rectangle-矩形
+		                        "z-index-compare": "manual",
+		                        "z-index": 20,
+		                        "padding": function (a) { 
+									return 20; 
+		                        }
+		            		})
+		            	.selector('edge')
+		            		.css({
+		            			"width": function(a){
+		            				var widthVal = 15;
+		            				return Math.pow(a.data('count')/maxLinksCount,1/3) * widthVal;
+		            			},
+		                        // 添加箭头
+		                        "line-style": function (a) {
+		                            return "solid"
+		                        },
+		                        "curve-style": "bezier",
+		                        "control-point-step-size": 20,
+		                        "target-arrow-shape": "triangle",
+		                        "target-arrow-color": function (a) {
+		                            return '#65F9FD'
+		                        },
+		                        "arrow-scale": .8,
+		                        "line-color": function (a) {//线颜色
+		                            return '#65F9FD'
+		                        },
+		                        "label": function (a) {
+		                            return a.data("label")
+		                        },
+		                        "text-opacity": 1,
+		                        "text-background-color": "#e4956d",
+		                    
+		                        "text-background-opacity": 0,
+		                        "text-background-padding": 2,
+		                        "font-size":0,
+		                        "color":"#fff",		                        
+		                        "font-weight":600,
+		                        "overlay-color": "#fff",
+		                        "overlay-opacity": 0,
+		                        "font-family": "microsoft yahei"
+		            		})
+		            	.selector(':selected')
+		            		.css({
+		            			"border-width": 3,
+		                        "border-color": '#333',
+		                        "background-color": 'black',
+		                        "line-color": 'black',
+		                        "target-arrow-color": 'black',
+		                        "source-arrow-color": 'black'
+		            		})
+		            	.selector('.nodeHover')
+		            		.css({
+		            			"shape": "ellipse",
+		                        "background-opacity": .8
+		            		})
+		            	.selector('.nodeActive')
+		            		.css({
+		            			"border-color": '#4EA2F0',
+		                        "border-width": 10,
+		                        "border-opacity": .5
+		            		})
+		            	.selector('.edgeShow')
+		            		.css({
+		            			/*"color": "#999",
+		                        "text-opacity": 1,
+		                        "font-weight": 400,
+		                        "label": function (a) {
+		                            return a.data("label")
+		                        },
+		                        "font-size": 10,
+		                        "arrow-scale": .8,
+		                        "width": 1.5,
+		                        "source-text-margin-y": 20,
+		                        "target-text-margin-y": 20,*/
+		            		})
+		            	.selector('.edgeActive')
+		            		.css({
+		            			"arrow-scale": .8,
+		                        //"width": 1.5,
+		                        "color": "#fff",
+		                        "text-opacity": 1,
+		                        "font-size": 12,
+		                        "text-background-color": "#e4956d",
+		                        "text-background-opacity": .8,
+		                        "text-background-padding": 2,		                       
+		                        "source-text-margin-y": 20,
+		                        "target-text-margin-y": 20,
+		                        "z-index-compare": "manual",
+		                        "z-index": 1,
+		                        "line-color": function (a) { //直线颜色
+		                            return "#4EA2F0"
+		                        },
+		                        "target-arrow-color": function (a) { //箭头颜色
+		                            return "#4EA2F0"
+		                        },
+		                        label: function (a) {
+		                            return a.data("label")
+		                        }
+		            		})
+		            	.selector('.dull')
+		            		.css({
+		            			"z-index": 1,
+		                        "opacity": .2
+		            		}),
+		            
+		            elements: {
+		                nodes:nodesArr,
+		                edges:edgesArr
+		            },
+		            layout: {
+		                name: 'cose',//用哪种方式排列，可选：breadthfirst(广度优先)、cose(缝制，乱交)、preset(预设)、circle(圆形)、grid(矩形)
+		                animate:true,//出来动画
+		                idealEdgeLength: 60,
+		                nodeOverlap: 20,
+		                refresh: 20,
+		                fit: true,
+		                padding: 30,
+		                randomize: false,
+		                componentSpacing: 20,
+		                nodeRepulsion: 400,
+		                edgeElasticity: 10,
+		                nestingFactor: 5,
+		                animate:true,//出来动画
+		                gravity: 80,
+		                numIter: 1000,
+		                initialTemp: 200,
+		                coolingFactor: 0.95,
+		                minTemp: 1.0
+		            }
+		        })
+		        cy.collection("edge").addClass("edgeShow");
+		        cy.on("mouseover", "node", function (a) {
+		           /*  $('#cy').css('cursor', 'move');
+		            let c = a.target;
+		            c.addClass("nodeHover");
+		            // cy.collection("edge").removeClass("edgeShow");
+		            cy.collection("edge").removeClass("edgeActive");
+		            c.neighborhood("edge").addClass("edgeActive"); */
+		            let c = a.target;
+		            cy.collection("edge").addClass('dull');
+		            cy.collection("node").addClass('dull');
+		            c.removeClass("dull");
+		            c.neighborhood("edge").removeClass("dull");
+		            c.neighborhood("edge").addClass("edgeActive");
+		            c.neighborhood("edge").connectedNodes().removeClass("dull"); //当前节点的邻域边的边缘节点！
+		            // c.neighborhood("node").removeClass("dull");//与上面意义相同
+		        })
+		        cy.on("mouseout", "node", function (a) {
+		           /*  $('#cy').css('cursor', 'default');
+		            let c = a.target;
+		            c.removeClass("nodeHover");
+		            cy.collection("edge").removeClass("edgeActive"); */
+		        	let c = a.target;
+		            cy.collection("edge").removeClass('dull');
+		            cy.collection("node").removeClass('dull');
+		            c.neighborhood("edge").removeClass("edgeActive");
+		            c.neighborhood("node").removeClass("nodeActive");
+		        })
+		        //线点击事件
+		        cy.on("click", "edge", function (a) {
+		        	var obj={};
+		        	obj.clickType = "link";
+		        	if(tagObj.ipv4_dst_addr == undefined){//应用画像
+		        		obj.type = "ip-url"
+		        		obj.ipv4_src_addr = a.target._private.data.source;
+			        	obj.targetVal = a.target._private.data.target;
+	        		}else{ //应用资产画像
+	        			obj.type = "ip-ip"
+	        			obj.ipv4_src_addr = a.target._private.data.source;
+			        	obj.targetVal = a.target._private.data.target;
+	        		}		        			           
+		            if(tagObj.complete_url == undefined){//应用画像
+	        			obj.kname = "domain_url"
+	    			}else{//功能画像
+	    				obj.kname = "complete_url"
+	    			}
+		            var objStr = JSON.stringify(obj);
+		            objStr = objStr.replace(/"/g,"'");
+		            //跳转到流量日志页面
+		            jumpHtml("logPro/flowLogs.html",obj.ipv4_src_addr+'-'+obj.targetVal,"日志",objStr)
+		        })
+		        //node点击事件
+		        cy.on("click", "node", function (a) {
+		        	var obj={};
+		        	//获得点击的值
+		            obj.val = a.target._private.data.id;
+		        	//点击的对象类型
+		            obj.clickType = "node"
+		        	//判断值得类型
+		        	if(obj.val.substring(0,4) == "http"){//点击的是url圆点
+		        		obj.type = "url";
+		        		if(tagObj.complete_url == undefined){	
+		        			obj.kname = "domain_url"
+		    			}else{
+		    				obj.kname = "complete_url"
+		    			}
+		        	}else{
+		        		obj.type = "ip";
+		        		if(tagObj.ipv4_dst_addr == obj.val){//目的ip节点
+		        			obj.kname = "ipv4_dst_addr";
+		        		}else{ //源ip节点
+		        			obj.kname = "multifield_ip";
+		        		}
+		        		
+		        	}
+		            var objStr = JSON.stringify(obj);
+		            objStr = objStr.replace(/"/g,"'");
+		            //跳转到流量日志页面
+		            jumpHtml("logPro/flowLogs.html",obj.val,"日志",objStr)
+		        })
+		        cy.on("vmousedown", "node", function (a) { //监听鼠标左键按下
+		           /*  let c = a.target;
+		            cy.collection("edge").addClass('dull');
+		            cy.collection("node").addClass('dull');
+		            c.removeClass("dull");
+		            c.neighborhood("edge").removeClass("dull");
+		            c.neighborhood("edge").addClass("edgeActive");
+		            c.neighborhood("edge").connectedNodes().removeClass("dull"); //当前节点的邻域边的边缘节点！
+		            // c.neighborhood("node").removeClass("dull");//与上面意义相同 */
+		        })
+		        cy.on("tapend", "node", function (a) { //监听鼠标左键释放
+		           /*  let c = a.target;
+		            cy.collection("edge").removeClass('dull');
+		            cy.collection("node").removeClass('dull');
+		            c.neighborhood("edge").removeClass("edgeActive");
+		            c.neighborhood("node").removeClass("nodeActive"); */
+		        })
+		
+		        //线
+		        cy.on("mouseover", "edge", function (a) {
+		            let c = a.target;
+		            cy.collection("edge").removeClass("edgeActive");
+		            c.addClass("edgeActive")
+		        })
+		        cy.on("mouseout", "edge", function (a) {
+		            let c = a.target;
+		            c.removeClass("edgeActive")
+		        })
+			}
+			//失败回调函数
+			var efunc = function(data){
+				layer.msg('操作失败',{icon: 5});
+			}
+			//发送请求
+			ajaxPost(url,tagObj,sfunc,"",efunc);
+		</script>
+	</body>
+</html>

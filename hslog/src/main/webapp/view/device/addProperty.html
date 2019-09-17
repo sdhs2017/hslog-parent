@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<style type="text/css">
+			.content .row{
+				padding: 10px;
+			}
+			.content .row>div{
+				padding-left:30px;
+			}
+			.content .row>div label{
+				width: 100px;
+				text-align: end;
+				float: left;
+				height:34px;
+				line-height: 34px;
+				margin-right: 20px;
+			}
+			.content .row>div>input{
+				float: left;
+				width: 74%;
+			}
+			.content .row>div>select{
+				float: left;
+				width: 74%;
+			}
+			.content .row>div textarea{
+				float: left;
+				width: 74%;
+			}
+			.add_tools{
+				text-align: center;
+			}
+			.add_tools button{
+				margin: 0 10px;
+			}
+			.propertyNav{
+				margin-bottom:10px;
+				/* display:none; */
+			}
+			.propertyNav a{
+				font-size:12px;
+				margin:10px;
+				color:#428bca;
+			}
+			.propertyNav a:hover{
+				text-decoration: underline;
+			}
+			.property_leavel{
+				/* display:none; */
+			}
+			.logLevelBox span{
+				display:inline-block;
+				margin:0 5px; 
+			}
+			.logLevelBox input{
+				width: 15px;
+				height:15px;	
+				margin-right:2px;
+			}
+		</style>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	</head>	
+	<body>
+		<div id="box">
+			<div class="top_title">
+				新增资产
+			</div>
+			<div class="propertyNav">
+				<a href="device.html">资产管理</a>><a class="secondA" href="javascript:void(0)">新增资产</a> <a href="device.html">返回上一级</a>
+			</div>
+			<!--  -->
+			<div class="content">
+				<div class="row">
+					<div class="col-sm-6">
+						<label>资产名称 <span style="color:red">*</span> ：</label>
+    					<input type="text" class="form-control eName"  placeholder="资产名称">
+					</div>
+					<div class="col-sm-6">
+						<label>资产IP<span style="color:red">*</span> ：</label>
+    					<input type="text" class="form-control eIp"  placeholder="资产IP">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>主机名 <span style="color:red">*</span> ：</label>
+    					<input type="text" class="form-control eHostName"  placeholder="主机名">
+					</div>
+					<div class="col-sm-6">
+						<label>日志类型 ：</label>
+    					<select class="form-control eLogType">
+    						<!-- <option disabled selected value=""></option>
+ 							<option value="syslog">syslog</option>
+ 							<option value="winlog">winlog</option>
+ 							<option value="snmp">snmp</option>
+ 							<option value="log4j">log4j</option>
+ 							<option value="mysql">mysql</option>
+ 							<option value="netflow">netflow</option>
+ 							<option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option> -->
+ 						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>日志级别：</label>
+						<div class="logLevelBox">
+							<span><input name="emergency" checked type="checkbox">emergency</span>
+							<span><input name="alert" checked type="checkbox">alert</span>
+							<span><input name="critical" checked type="checkbox">critical</span>
+							<span><input name="error" checked type="checkbox">error</span>
+							<span><input name="warn" checked type="checkbox">warn</span>
+							<span><input name="notice" checked type="checkbox">notice</span>
+							<span><input name="info" checked type="checkbox">info</span>
+							<span><input name="debug" checked type="checkbox">debug</span>
+						</div>						
+					</div>
+					<div class="col-sm-6">
+						<label>资产类型：</label>
+    					<div class="row" style="padding:0;width:74%;float: left;">  						
+    						<div class="col-sm-4" style="padding:0;">
+		 						<select class="form-control eBigType">
+		 							<option value="0">网络</option>
+		 							<option value="1">安全</option>
+		 							<option value="2">主机</option>
+		 							<option value="3">应用</option>
+		 						</select>
+		 					</div>
+		 					<div class="col-sm-8" style="padding:0;">
+		 						<select class="form-control eType" style="width:100%;">
+		 							<option value="0101">交换机</option>
+		 							<option value="0102">路由器</option>
+		 						</select>
+		 					</div>
+    					</div>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>根域名：</label>
+						<input type="text" class="form-control domain" placeholder="根域名">
+					</div>
+					<div class="col-sm-6">
+						<label>端口：</label>
+						<input type="text" class="form-control port" placeholder="端口号">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>系统：</label>
+    					<!-- <select class="form-control">
+    						<option disabled selected value></option>
+ 							<option value="1">AIX5</option>
+ 							<option value="2">Apache</option>
+ 							<option value="3">Big Iron</option>
+ 							<option value="4">Arcsight Express</option>
+ 							<option value="5">其他</option>
+ 						</select> -->
+ 						<input type="text" class="form-control eSystem"  placeholder="系统">
+					</div>		
+					<div class="col-sm-6">
+						<label>系统版本号 ：</label>
+    					<input type="text" class="form-control eSystemVersion"  placeholder="系统版本">
+					</div>
+					
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>资产编号：</label>
+    					<input type="text" class="form-control eAssetNum"  placeholder="资产编号">
+					</div>
+					<div class="col-sm-6">
+						<label>序列号：</label>
+    					<input type="text" class="form-control eSerialNum"  placeholder="序列号">
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>是否启用<span style="color:red">*</span> ：</label>
+						<div style="padding:0;width:74%;float: left;height:34px;line-height:34px;">  
+	    					<input type="radio" name="isWork" value="1" class="eStartUp" checked>是
+	    					<input type="radio" name="isWork" value="0" class="noStartUp">否
+    					</div>
+					</div>	
+					<div class="col-sm-6">
+						<label>MAC地址：</label>
+    					<input type="text" class="form-control eMacAdress"  placeholder="MAC地址">
+					</div>					
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>创建时间：</label>
+    					<input type="text" class="form-control eCreateTime"  disabled >
+					</div>
+					<div class="col-sm-6">
+						<label>更新时间：</label>
+    					<input type="text" class="form-control eUpDateTime" disabled >
+					</div>				
+				</div>
+				<div class="row">		
+					<div class="col-sm-6">
+						<label>截止时间：</label>
+    					<input type="text" class="form-control eEndTime" disabled >
+					</div>		
+					<div class="col-sm-6">
+						<label>描述 ：</label>
+    					<textarea class="form-control eDescribe" rows="4"></textarea>   					
+					</div>		
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>责任人：</label>
+						<input type="text" class="form-control eUsername" disabled >			
+					</div>	
+					<div class="col-sm-6">
+						<label>资产价值：</label>
+    					<input type="text" class="form-control eValuation"  placeholder="资产价值">   					
+					</div>	
+					
+					
+				</div>
+				<!-- <div class="row">
+					<div class="col-sm-6">
+						<label>保密性：</label>
+    					<input type="text" class="form-control eConfidentiality"  placeholder="">   					
+					</div>	
+					<div class="col-sm-6">
+						<label>完整性：</label>
+    					<input type="text" class="form-control eIntegrity"  placeholder="">   					
+					</div>						
+				</div>
+				<div class="row">
+					<div class="col-sm-6">
+						<label>可用性：</label>
+    					<input type="text" class="form-control eUsability"  placeholder="">   					
+					</div>				
+				</div> -->
+				<div class="row add_tools">
+					<button class="btn btn-primary property_add">保存</button>
+					<button class="btn btn-default property_leavel active">返回</button>
+				</div>
+			</div>
+		</div>
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			$(function(){
+				//加载日志类型数据下拉框
+				$.ajax({
+					url:'../../staticdata/staticData.json',
+					type:"get",  //提交方式  
+			        dataType:"json", //数据类型  
+					success:function(data){
+						//$(".eLogType")
+						var logTypeArr = data.logType;
+						for(var i in logTypeArr){
+							var logTypOpt = '';
+							logTypOpt = '<option value="'+logTypeArr[i]+'">'+logTypeArr[i]+'</option>'
+							$(".eLogType").append(logTypOpt)
+						}
+					}
+				});
+			});
+			//获得本地储存的资产Id
+			var getId = sessionStorage.getItem("propertyId");//获取本地存储的设备值 对象
+			//如果getId == null 说明不是从资产列表跳转过来的
+			if(getId != null){
+				/* $(".property_leavel").css("display","inline-block");
+				$(".propertyNav").css("display","block") */
+				
+				$(".secondA").html("修改资产信息")
+				
+				var sfunc = function(data){
+					var obj = data[0];
+					//时间分割  传来得时间数据 末尾有.0 将其分割出去
+					if(obj.createTime != null){
+						obj.createTime = obj.createTime.split(".")[0];
+					}
+					if(obj.upDateTime != null){
+						obj.upDateTime = obj.upDateTime.split(".")[0];
+					}
+					if(obj.endTime != null){
+						obj.endTime = obj.endTime.split(".")[0];
+					}
+				 
+					//填充已经存在的信息
+					$(".eName").val(obj.name);//资产名称
+					$(".eHostName").val(obj.hostName);//主机名
+					//$(".eType").val(obj.type);//资产类型
+					$(".eIp").val(obj.ip);//资产Ip
+					$(".eMacAdress").val(obj.macAdress)  ;//MAC地址
+					//$("input[name'isWork']:checked").val()  obj.startUp;//是否启用
+					$(".eLogType").val(obj.logType);//日志类型
+					$(".eSystem").val(obj.system);//系统
+					$(".eSystemVersion").val(obj.systemVersion);//系统版本号
+					$(".eAssetNum").val(obj.assetNum);//资产编号
+					$(".eSerialNum").val(obj.serialNum);//序列号
+					$(".eDescribe").val(obj.describe);//描述
+				    /* $(".eConfidentiality").val(obj.confidentiality);//保密性
+					$(".eIntegrity").val(obj.integrity);//完整性
+					$(".eUsability").val(obj.usability);//可用性 */
+					$(".eValuation").val(obj.valuation);//资产价值
+					$(".eUsername").val(obj.userName);//资产责任人
+					$(".eCreateTime").val(obj.createTime);//创建时间
+					$(".eUpDateTime").val(obj.upDateTime);//更新时间
+					$(".eEndTime").val(obj.endTime);//截止时间
+					$(".domain").val(obj.domain);//根域名
+					$(".port").val(obj.port);//端口
+					//日志级别数组
+					var logLevelArr = obj.log_level.split(',')
+					//获得日志级别多选框
+					var checkboxs = $(".logLevelBox input[type=checkbox]");
+	 				//循环清除未被选中的日志级别复选框
+	 				for(var i = 0; i< checkboxs.length;i++){
+	 					if($.inArray($(checkboxs[i]).attr("name"),logLevelArr) == "-1"){
+	 						$(checkboxs[i]).attr("checked",false)
+	 					}			
+					}
+					//修改标题
+					$(".top_title").html("修改'"+obj.name+"'信息");
+					//获取设备type值；
+					var type =  obj.type;
+					//截取type前两位字符
+					var str = type.substring(0,2);
+					//给第一级下拉框赋值
+					$(".eBigType").val(Number(str) - 1);
+					$(".eType").html('');
+				    //往二级下拉框中循环添加内容 
+				    for(var i in dTypeArr[Number(str) - 1]){
+				    	$(".eType").append(dTypeArr[Number(str) - 1][i]);
+				    }
+					//给第二级下拉框赋值
+					$(".eType").val(type);
+					//是否启用
+					if(obj.startUp == 1){
+						$(".eStartUp").attr("checked","checked");
+					}else if(obj.startUp == 0){							
+						$(".noStartUp").attr("checked","checked");
+					}
+					
+					
+				}
+				var  efunc = function(data){
+					layer.msg("获取资产信息失败",{icon:5});
+				}
+				//获取资产本身信息
+				ajaxPostWithOutLayer("../../equipment/selectEquipment.do",{id:getId},sfunc,"",efunc);
+				
+			
+				//删除本地存储
+				sessionStorage.removeItem("propertyId");
+			}
+			
+			//二级下拉框 联动 数据源 
+			var dTypeArr = [
+				['<option value="0101">交换机</option>','<option value="0102">路由器</option>'],
+				['<option value="0201">IPS</option>','<option value="0202">IDS</option>','<option value="0203">抗DDOS</option>','<option value="0204">防火墙</option>'],
+				['<option value="0301">Windows</option>','<option value="0302">Linux</option>','<option value="0303">虚拟化</option>'],
+				['<option value="0401">Tomcat</option>','<option value="0402">Apache</option>','<option value="0403">IIS</option>','<option value="0404">Weblogic</option>','<option value="0405">Mysql</option>','<option value="0406">Oracle</option>','<option value="0407">Sqlserver</option>','<option value="0408">Db2</option>']
+			]
+			//二级下拉框 函数
+			$(".eBigType").change(function(){
+				//获取一级下拉框中的值
+			    var opt=$(".eBigType").val();
+			    //清空二级下拉框中的内容
+			    $(".eType").html('');
+			    //往二级下拉框中循环添加内容 
+			    for(var i in dTypeArr[opt]){
+			    	$(".eType").append(dTypeArr[opt][i])
+			    }
+			   
+			});
+			
+			
+			//返回到资产列表
+			$(".property_leavel").click(function(){
+				location.href="device.html";
+			}) 
+			//保存提交 按钮
+			$(".property_add").click(function(){
+				//定义对象 存储资产数据 用于数据传递
+				var obj = {};
+				//获得数据
+				obj.name = $(".eName").val();//资产名称
+				obj.hostName = $(".eHostName").val();//主机名
+				obj.type = $(".eType").val();//资产类型
+				obj.ip = $(".eIp").val();//资产Ip
+				obj.macAdress = $(".eMacAdress").val();//MAC地址
+				obj.startUp = $("input[name='isWork']:checked").val();//是否启用
+				obj.logType = $(".eLogType").val();//日志类型
+				obj.system = $(".eSystem").val();//系统
+				obj.systemVersion = $(".eSystemVersion").val();//系统版本号
+				obj.assetNum = $(".eAssetNum").val();//资产编号
+				obj.serialNum = $(".eSerialNum").val();//序列号
+				obj.describe = $(".eDescribe").val();//描述
+				obj.domain = $(".domain").val();//根域名
+				obj.port = $(".port").val();//端口
+				/* obj.confidentiality = $(".eConfidentiality").val();//保密性
+				obj.integrity = $(".eIntegrity").val();//完整性
+				obj.usability = $(".eUsability").val();//可用性 */
+				obj.valuation = $(".eValuation").val();//资产价值
+/* 				obj.Username = $(".eUsername").val();//资产责任人 */
+ 				//日志级别
+ 				var logLevels = '';
+ 				//获得选中的日志级别复选框
+ 				var checkboxs = $(".logLevelBox input[type=checkbox]:checked");
+ 				//循环获取日志级别
+ 				for(var i = 0; i< checkboxs.length;i++){
+					var Level = $(checkboxs[i]).attr("name");
+					logLevels += Level+','				
+				}
+ 				obj.log_level = logLevels;
+ 				var isIp2 =/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+				if(obj.name == ''){
+					layer.msg("资产名称不能为空",{icon:5});
+				}else if(obj.startUp == undefined){
+					layer.msg("是否启用不能为空",{icon:5});
+				}else if(obj.hostName == ''){
+					layer.msg("主机名不能为空",{icon:5});
+				}else if(!isIp2.test(obj.ip)){
+					layer.msg("ip地址不能为空或格式不正确",{icon:5});
+				}else if(obj.log_level == ''){
+					layer.msg("未选中任何日志级别",{icon:5});
+				}else{
+					if(getId != null){//修改操作
+						obj.id = getId;
+						//发送数据
+						//成功回调函数
+						var sfunc = function(data){
+							layer.msg("修改成功",{icon:1});
+							//重新加载谁被列表
+							location.href="device.html";
+						}
+						//失败回调函数
+						var efunc = function(data){
+							layer.msg("修改失败",{icon:5});
+							console.log(data);
+						}
+						//发送请求
+						ajaxPostWithOutLayer("../../equipment/update.do",obj,sfunc,"",efunc);
+					}else{//添加操作
+						
+						//发送数据
+						//成功回调函数
+						var sfunc = function(data){
+							layer.msg("添加成功",{icon:1});
+							//重新加载谁被列表
+							location.href="device.html";
+						}
+						//失败回调函数
+						var efunc = function(data){
+							layer.msg("添加失败",{icon:5});
+							console.log(data);
+						}
+						console.log(obj);
+						//发送请求
+						ajaxPostWithOutLayer("../../equipment/insert.do",obj,sfunc,"",efunc);
+					}
+						
+					
+				}
+				
+				//跳转到资产列表
+				/* layer.msg("成功",{icon:"1"})
+				if(getId != null){
+					location.href="property.html";
+				} */
+				
+			})
+		</script>
+		
+	</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>源文件管理</title>
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>
+	<link src="css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="css/common.css"/>
+	<link rel="stylesheet" type="text/css" href="css/ssi-uploader.min.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		.propertyNav{
+			margin-bottom:10px;
+			/* display:none; */
+		}
+		.propertyNav a{
+			font-size:12px;
+			margin:10px;
+			color:#428bca;
+		}
+		.propertyNav a:hover{
+			text-decoration: underline;
+		}
+		.content{
+			padding-left:30px;
+		}
+		.content p{
+			margin-bottom:10px;
+			font-size: 14px;
+		}
+		.content form{
+			margin-bottom:20px;
+		}
+		.ssi-buttonWrapper{
+			margin-bottom:5px;
+		}
+		.ssi-button{
+			border:none;
+		}
+		.success,.ssi-btnIn{
+			background:#5bc0de!important;
+		}
+		.txtColor{
+			color:#e4956d;
+		}
+		.ssi-dropZonePreview{
+			min-height:240px;
+		}
+		.ssi-imgToUploadTable{
+			border:0;
+			box-shadow: 0 3px 15px #4781bb;
+			/* box-shadow: 0 10px 6px -6px #3f6d9b; */
+		}
+		.ssi-imgToUploadTable tr td{
+			color:#fff;
+		}
+		.ssi-dragOver .ssi-dropZone, .ssi-previewBox.ssi-dragOver {
+		    color: #e4956d;
+		    border-color: #e4956d;
+		}
+		.ssi-dropZonePreview{
+			box-shadow:none;
+		}
+		.document-item::before{
+			border: solid 2px #e4956d;
+		}
+		.document-item .fileCorner{
+		    border-color: #2f455c transparent transparent #e4956d;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="css/deepColor.css"/>	
+</head>
+
+<body>
+	<div id="box">
+	<!-- 	<div class="top_title">
+			证书上传
+		</div> -->
+		<div class="content">
+			<p>通过浏览本地文件或将文件拖到下面指定区域，上传证书文件。</p>
+			<p>文件支持的类型：<span class="txtColor">.lic</span></p>
+			<form class="form-inline" onsubmit="return false;">		
+				<div class="row" style="padding-top:20px;">
+					<div class="col-md-10">
+						<input type="file" multiple id="ssi-upload"/>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	
+	<script src="js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/ssi-uploader.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		$('#ssi-upload').ssi_uploader({
+			url:'upload/licenseUpload.do',//地址 
+			maxNumberOfFiles:1,
+			/* data:{"logType":logType},//除了文件额外的数据参数 */
+			allowed:['lic'],//允许上传文件的类型
+			ajaxOptions: {
+			    success: function(data) {
+			    	layer.msg(data);			    	
+			    },
+			    error:function(data){
+			    	layer.msg("上传失败",{icon: 5});
+			    	$(".ssi-abortUpload").click()
+			    }
+			}
+		});
+		
+	</script>
+	
+</body>
+</html>

@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.note.dao.INoteDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.common.note.entity.Note">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="result" jdbcType="INTEGER" property="result" />
+		<result column="describe" jdbcType="VARCHAR" property="describe" />
+		<result column="time" jdbcType="DATE" property="time" />
+		<result column="userId" jdbcType="VARCHAR" property="userId" />
+		<result column="departmentId" jdbcType="INTEGER" property="departmentId" />
+		<result column="account" jdbcType="VARCHAR" property="account" />
+		<result column="error" jdbcType="VARCHAR" property="error" />
+		<result column="count" jdbcType="INTEGER" property="count" />
+		<result column="userName" jdbcType="VARCHAR" property="userName" />
+		<result column="departmentName" jdbcType="VARCHAR" property="departmentName" />
+		<result column="ip" jdbcType="VARCHAR" property="ip" />
+		<result column="tableName" jdbcType="VARCHAR" property="tableName" />
+		<result column="state" jdbcType="INTEGER" property="state" />
+	</resultMap>
+
+	<!-- 查询字段设置可重复调用 -->
+	<!-- 部门id,name:部门名称,level:部门层级,superiorId:上级id,subordinate:是否有下级（1有0没有）,orderId:位置排序,comment:简介 -->
+	<sql id="Base_Column_List">
+		id, result, note.`describe`, time, userId,departmentId,account,error,ip,state
+	</sql>
+	<sql id="Base_Column_List_name">
+		id, result, note.`describe`, time, userId,departmentId,account,error,userName,departmentName,ip
+	</sql>
+	
+	
+	
+	
+	<!-- 查询所有数据 -->
+	<select id="selectAll" parameterType="com.jz.bigdata.common.note.entity.Note"  resultMap="BaseResultMap" >
+		SELECT note.id, result, note.`describe`, time, userId,note.departmentId,account,error,ip,
+		`user`.`name` as userName, department.`name` as departmentName
+		FROM note LEFT JOIN user ON note.account=`user`.phone 
+		LEFT JOIN  department  ON user.departmentId=department.id 
+		 where 1=1 
+		  <if test="startTime != null and startTime !=''" >
+		  	<![CDATA[
+		    	and time >= #{startTime,jdbcType=VARCHAR} 
+		   
+		    ]]> 
+		  </if>
+		  <if test="endTime != null and endTime !=''" >
+		  	<![CDATA[
+		  		and  time <= #{endTime,jdbcType=VARCHAR}
+		  	]]> 
+		  </if>
+		  <if test="account != null and account !=''" >
+		  	and account = #{account,jdbcType=VARCHAR} 
+		  </if>
+		  <if test="userName != null and userName !=''" >
+		  	and `user`.`name`  LIKE CONCAT('%', #{userName}, '%') 
+		  </if>
+		  <if test="departmentName != null and departmentName !=''" >
+		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 
+		  </if>
+		  <if test="ip != null and ip !=''" >
+		  	and ip =  #{ip,jdbcType=VARCHAR}
+		  </if>
+		 ORDER BY time DESC
+	</select>
+
+
+	<!--   总数 -->
+	<select id="count"    >
+	<!--   <bind name="name" value="'%' + name + '%'" /> -->
+		    select count(1) as count
+		<!--     引用查询字段 -->
+		    from note where 1=1 
+		    <![CDATA[
+		     and time >= #{startTime,jdbcType=VARCHAR} and  time <= #{endTime,jdbcType=VARCHAR}
+		   
+		    ]]> 
+		     <if test="account != null and account !=''" >
+		        and account = #{account,jdbcType=VARCHAR} 
+		    </if>
+	</select>
+
+	
+	<!-- 查询所有数据 -->
+	<select id="selectLimitNote"  resultMap="BaseResultMap">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from note where 1=1 
+		    <![CDATA[
+		     and time >= #{startTime,jdbcType=VARCHAR} and  time <= #{endTime,jdbcType=VARCHAR}
+		   
+		    ]]> 
+		     <if test="account != null and account !=''" >
+		        and account = #{account,jdbcType=VARCHAR}  
+		    </if> 
+		    ORDER BY time desc LIMIT 0,5
+	</select>
+
+
+
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.note.entity.Note">
+		insert into note
+		<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- 判断参数是否为空 -->
+			<if test="id != null">
+				id,
+			</if>
+			<if test="result != null">
+				result,
+			</if>
+			<if test="describe != null">
+				note.`describe`,
+			</if>
+			<if test="time != null">
+				time,
+			</if>
+			<if test="userId !=null and  userId !=''">
+				userId,
+			</if>
+			<if test="account !=null ">
+				account,
+			</if>
+			<if test="error !=null ">
+				error,
+			</if>
+			<if test="departmentId !=null and  departmentId !=''">
+				departmentId,
+			</if>
+			<if test="ip !=null and  ip !=''">
+				ip,
+			</if>
+			<if test="state !=null and  state !=''">
+				state
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="result != null">
+				#{result,jdbcType=INTEGER},
+			</if>
+			<if test="describe != null">
+				#{describe,jdbcType=VARCHAR},
+			</if>
+			<if test="time != null">
+				#{time,jdbcType=TIMESTAMP},
+			</if>
+			<if test="userId !=null and  userId !=''">
+				#{userId,jdbcType=VARCHAR},
+			</if>
+			<if test="account !=null ">
+				#{account,jdbcType=VARCHAR},
+			</if>
+			<if test="error !=null ">
+				#{error,jdbcType=VARCHAR},
+			</if>
+			<if test="departmentId !=null and  departmentId !=''">
+				#{departmentId,jdbcType=INTEGER},
+			</if>
+			<if test="ip !=null and  ip !=''">
+				#{ip,jdbcType=VARCHAR},
+			</if>
+			<if test="state !=null and  state !=''">
+				#{state,jdbcType=INTEGER}
+			</if>
+		</trim>
+	</insert>
+	
+	
+	<!--   删除数据 -->
+	<update id="delete" parameterType="java.lang.String">
+		<!-- delete from note where id in  -->
+		update note set state=0 where id in
+		<!-- 循环格式化 -->
+		<foreach item="ids" index="index" collection="array" open="(" separator="," close=")">  
+	 		#{ids}
+		</foreach>
+	</update>
+	
+	<!--   删除所有数据 -->
+	<delete id="deleteAll" >
+		delete from note 
+	</delete>
+	<!--   备份 -->
+	<update id="backup">
+		CREATE TABLE note_backup SELECT * FROM note;
+	</update>
+	<!--  表是否存在 -->
+	<select id="tableName" resultMap="BaseResultMap" >
+		SELECT table_name as tableName FROM information_schema.`TABLES`  WHERE table_name = 'note_backup'
+		
+	</select>
+	<!--   删除表-->
+	<update id="dropTable" >  
+        drop table note_backup
+    </update>
+    <!--   删除表-->
+    <update id="dropTableNote" >  
+        drop table note
+    </update>
+    <!--   还原 -->
+    <update id="restore">
+		CREATE TABLE note SELECT * FROM note_backup;
+	</update>
+	
+	
+	<!-- 查询所有数据 -->
+	<select id="selectByPage" parameterType="com.jz.bigdata.common.note.entity.Note"  resultMap="BaseResultMap" >
+		SELECT note.id, result, note.`describe`, time, userId,note.departmentId,account,error,ip,
+		`user`.`name` as userName, department.`name` as departmentName
+		FROM note LEFT JOIN user ON note.account=`user`.phone 
+		LEFT JOIN  department  ON user.departmentId=department.id 
+		 where 1=1 
+		  <if test="startTime != null and startTime !=''" >
+		  	<![CDATA[
+		    	and time >= #{startTime,jdbcType=VARCHAR} 
+		   
+		    ]]> 
+		  </if>
+		  <if test="endTime != null and endTime !=''" >
+		  	<![CDATA[
+		  		and  time <= #{endTime,jdbcType=VARCHAR}
+		  	]]> 
+		  </if>
+		  <if test="account != null and account !=''" >
+		  	and account = #{account,jdbcType=VARCHAR} 
+		  </if>
+		  <if test="userName != null and userName !=''" >
+		  	and `user`.`name`  LIKE CONCAT('%', #{userName}, '%') 
+		  </if>
+		  <if test="departmentName != null and departmentName !=''" >
+		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 
+		  </if>
+		  <if test="ip != null and ip !=''" >
+		  	and ip =  #{ip,jdbcType=VARCHAR}
+		  </if>
+		  and note.state =1
+		 ORDER BY time DESC  limit #{startRecord},#{pageSize}
+	</select>
+	
+	
+	<!-- 查询所有数据 -->
+	<select id="countByPage"   resultMap="BaseResultMap" >
+		SELECT count(*) as count
+		FROM note LEFT JOIN user ON note.account=`user`.phone 
+		LEFT JOIN  department  ON user.departmentId=department.id 
+		 where 1=1 
+		  <if test="startTime != null and startTime !=''" >
+		  	<![CDATA[
+		    	and time >= #{startTime,jdbcType=VARCHAR} 
+		   
+		    ]]> 
+		  </if>
+		  <if test="endTime != null and endTime !=''" >
+		  	<![CDATA[
+		  		and  time <= #{endTime,jdbcType=VARCHAR}
+		  	]]> 
+		  </if>
+		  <if test="account != null and account !=''" >
+		  	and account = #{account,jdbcType=VARCHAR} 
+		  </if>
+		  <if test="userName != null and userName !=''" >
+		  	and `user`.`name`  LIKE CONCAT('%', #{userName}, '%') 
+		  </if>
+		  <if test="departmentName != null and departmentName !=''" >
+		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 
+		  </if>
+		  <if test="ip != null and ip !=''" >
+		  	and ip =  #{ip,jdbcType=VARCHAR}
+		  </if>
+		  and note.state =1
+		  
+		 ORDER BY time DESC 
+	</select>
+	
+</mapper>

@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:elasticsearch="http://www.springframework.org/schema/data/elasticsearch"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans  
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
+                        http://www.springframework.org/schema/context  
+                        http://www.springframework.org/schema/context/spring-context-3.1.xsd  
+                        http://www.springframework.org/schema/mvc  
+                        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+                        http://www.springframework.org/schema/aop 
+	                    http://www.springframework.org/schema/aop/spring-aop.xsd
+                        http://www.springframework.org/schema/tx 
+	                    http://www.springframework.org/schema/tx/spring-tx.xsd
+	                    http://www.springframework.org/schema/data/jpa
+	                    http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+				        http://www.springframework.org/schema/data/elasticsearch
+						http://www.springframework.org/schema/data/elasticsearch/spring-elasticsearch-1.0.xsd
+						http://www.springframework.org/schema/cache
+						http://www.springframework.org/schema/cache/spring-cache-3.1.xsd
+						">
+	                    
+	                     
+	 <!-- 过滤掉controller  -->                  
+	<!-- <context:component-scan base-package="com.jz.bigdata">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>  
+    </context:component-scan> -->
+   <!--   <tx:annotation-driven transaction-manager="transactionManager" />
+    <context:annotation-config />    
+    <context:component-scan base-package="com.jz.bigdata" /> -->
+    <!-- <context:component-scan base-package="com.jz.bigdata">   
+	</context:component-scan> 
+     -->
+      
+     
+     
+    
+  	<!-- 过滤掉Controller防止获取两次controller导致事务失效 -->
+    <context:component-scan base-package="com.jz.bigdata" >
+    <!-- 	<context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Component"/> -->
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+    
+    <!-- 启动对@AspectJ注解的支持 --> 
+     <!-- proxy-target-class等于true是强制使用cglib代理，proxy-target-class默认是false，如果你的类实现了接口 就走JDK代理，如果没有，走cglib代理  -->
+     <!-- 注：对于单利模式建议使用cglib代理，虽然JDK动态代理比cglib代理速度快，但性能不如cglib -->
+
+     <!--如果不写proxy-target-class="true"这句话也没问题-->
+     <!-- <aop:aspectj-autoproxy proxy-target-class="true"/> -->
+
+    <!-- ehcache --> 
+    <cache:annotation-driven cache-manager="cacheManager" />  
+    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">  
+        <property name="cacheManager" ref="ehcache"></property>  
+    </bean>  
+
+    <bean id="ehcache" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">  
+        <property name="configLocation" value="classpath:ehcache-setting.xml"></property>  
+    </bean>  
+    
+	<!-- 引入配置文件 -->
+	<bean id="propertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:jdbc.properties" />
+	</bean>
+
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- 初始化连接大小 -->
+		<property name="initialSize" value="${initialSize}"></property>
+		<!-- 连接池最大数量 -->
+		<property name="maxActive" value="${maxActive}"></property>
+		<!-- 连接池最大空闲 -->
+		<property name="maxIdle" value="${maxIdle}"></property>
+		<!-- 连接池最小空闲 -->
+		<property name="minIdle" value="${minIdle}"></property>
+		<!-- 获取连接最大等待时间 -->
+		<property name="maxWait" value="${maxWait}"></property>
+		<!-- 
+		<property name="validationQuery" value="SELECT 1" />
+    	<property name="testOnBorrow" value="true"/>
+		 -->
+		
+	</bean>
+	<!-- 电商业务数据源 jzDemo数据库 -->
+	<!-- <bean id="EBDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${driver}" />
+		<property name="url" value="${EBUrl}" />
+		<property name="username" value="${username}" />
+		<property name="password" value="${password}" />
+		初始化连接大小
+		<property name="initialSize" value="${initialSize}"></property>
+		连接池最大数量
+		<property name="maxActive" value="${maxActive}"></property>
+		连接池最大空闲
+		<property name="maxIdle" value="${maxIdle}"></property>
+		连接池最小空闲
+		<property name="minIdle" value="${minIdle}"></property>
+		获取连接最大等待时间
+		<property name="maxWait" value="${maxWait}"></property>
+		<property name="validationQuery" value="SELECT 1" />
+    	<property name="testOnBorrow" value="true"/>
+	</bean>
+	<bean id="hiveDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${hiveDriver}" />
+		<property name="url" value="${hiveUrl}" />
+		<property name="username" value="${hiveUsername}" />
+		<property name="password" value="${hivePassword}" />
+		初始化连接大小
+		<property name="initialSize" value="${initialSize}"></property>
+		连接池最大数量
+		<property name="maxActive" value="${maxActive}"></property>
+		连接池最大空闲
+		<property name="maxIdle" value="${maxIdle}"></property>
+		连接池最小空闲
+		<property name="minIdle" value="${minIdle}"></property>
+		获取连接最大等待时间
+		<property name="maxWait" value="${maxWait}"></property>
+	</bean>
+	<bean id="phoenixDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${phoenixDriver}" />
+		<property name="url" value="${phoenixUrl}" />
+		<property name="username" value="${phoenixUsername}" />
+		<property name="password" value="${phoenixPassword}" />
+		初始化连接大小
+		<property name="initialSize" value="${initialSize}"></property>
+		连接池最大数量
+		<property name="maxActive" value="${maxActive}"></property>
+		连接池最大空闲
+		<property name="maxIdle" value="${maxIdle}"></property>
+		连接池最小空闲
+		<property name="minIdle" value="${minIdle}"></property>
+		获取连接最大等待时间
+		<property name="maxWait" value="${maxWait}"></property>
+	</bean> -->
+	<!-- log配置 -->
+	<bean id="logDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.LogUrl}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- 初始化连接大小 -->
+		<property name="initialSize" value="${initialSize}"></property>
+		<!-- 连接池最大数量 -->
+		<property name="maxActive" value="${maxActive}"></property>
+		<!-- 连接池最大空闲 -->
+		<property name="maxIdle" value="${maxIdle}"></property>
+		<!-- 连接池最小空闲 -->
+		<property name="minIdle" value="${minIdle}"></property>
+		<!-- 获取连接最大等待时间 -->
+		<property name="maxWait" value="${maxWait}"></property>
+		<!-- 避免数据库回收连接而连接池不知道的情况 -->
+		<property name="validationQuery" value="SELECT 1" />
+    	<property name="testOnBorrow" value="true"/>
+	</bean>
+	
+	<!-- 事务管理带aop -->
+	<!--class是引用的spring下的类 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+	<!-- 创建一个事务管理 ref引用的是dataSource的数据源（连接数据库配置） -->
+    	<property name="dataSource" ref="logDataSource" />
+	</bean>
+	<!-- tx:attribute标签所配置的是作为事务的方法的命名类型。 如<tx:method name="save*" propagation="REQUIRED"/>
+	 其中*为通配符，即代表以save为开头的所有方法，即表示符合此命名规则的方法作为一个事务。
+	  propagation="REQUIRED"代表支持当前事务，如果当前没有事务，就新建一个事务 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">  
+        <tx:attributes>  
+            <tx:method name="get*" read-only="true"  propagation="REQUIRED"/>  
+            <tx:method name="find*" read-only="true" propagation="REQUIRED"/>  
+            <tx:method name="select*" read-only="true" propagation="REQUIRED"/>  
+            <tx:method name="query*" read-only="true" propagation="REQUIRED"/>  
+            <tx:method name="insert*"  propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>  
+            <tx:method name="delete*"  propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>  
+            <tx:method name="update*"  propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>  
+            <tx:method name="remove*" propagation="REQUIRED" read-only="false" rollback-for="java.lang.Exception"/>
+            <!-- 开启新事务   --> 
+            <!-- 防止出现Exception异常无法正常回滚 -->
+            <tx:method name="error*" propagation="REQUIRED"/>  
+            <tx:method name="*" propagation="REQUIRED" rollback-for="java.lang.Exception" />  
+        </tx:attributes>  
+    </tx:advice>  
+	<!-- aop:pointcut标签配置参与事务的类，  其中第一个*代表返回值，第二*代表service下子包，第三个*代表方法名，“（..）”代表方法参数 -->
+	<aop:config>  
+    	<aop:pointcut id="transactionPointcut" expression="(execution(* com.jz.bigdata.common.department.service..*.*(..)))"/>  
+        <!-- advice-ref引用的是tx:advice的id -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="transactionPointcut"/>  
+    </aop:config>   
+    
+	<!-- 激活自动代理功能 -->
+	<!-- 通过aop命名空间的<aop:aspectj-autoproxy />声明自动为spring容器中那些配置@aspectJ切面的bean创建代理，织入切面
+	<aop:aspectj-autoproxy />有一个proxy-target-class属性，默认为false，表示使用jdk动态代理织入增强，当配为<aop:aspectj-autoproxy 
+	 poxy-target-class="true"/>时，表示使用CGLib动态代理技术织入增强。
+	不过即使proxy-target-class设置为false，如果目标类没有声明接口，则spring将自动使用CGLib动态代理。 -->
+    <!-- <aop:aspectj-autoproxy proxy-target-class="true"/> -->
+
+  
+  
+  
+	
+	
+<!-- 	<bean id="txManager"   class="org.springframework.jdbc.datasource.DataSourceTransactionManager">  
+    <property name="dataSource" ref="logDataSource" />  
+	</bean>  
+  
+
+
+
+	hive业务mapper
+	<bean id="hiveSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="hiveDataSource" />
+		自动扫描mapping.xml文件
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/business/bi/hive/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	health业务mapper-->
+	<bean id="healthSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/business/health/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean> 
+	<!-- 用户登录业务mapper -->
+	<bean id="userSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/user/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 电商业务mapper -->
+	<!-- <bean id="EBSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		自动扫描mapping.xml文件
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/business/electronicBusiness/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<bean id="taskSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		自动扫描mapping.xml文件
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/task/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean> -->
+	<!-- log配置 -->
+	<bean id="logSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/users/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 部门业务mapper -->
+	<bean id="departmentSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/department/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 资产业务mapper -->
+	<bean id="equipmentSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/equipment/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 审计日志业务mapper -->
+	<bean id="noteSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/note/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!--权限业务mapper -->
+	<bean id="functionSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/function/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 报警业务mapper -->
+	<bean id="alarmSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/alarm/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 安全审计业务mapper -->
+	<bean id="safeStrategySqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/safeStrategy/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	<!-- 菜单业务mapper -->
+	<bean id="menuSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/menu/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- 动作业务mapper -->
+	<bean id="actionSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/action/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- 事件业务mapper -->
+	<bean id="eventSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/event/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- 动作事件业务mapper -->
+	<bean id="action_eventSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/action_event/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+		
+	<!-- 资产事件业务mapper -->
+	<bean id="equipment_eventSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/equipment_event/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- ansj自定义词典业务mapper -->
+	<bean id="ansj_dicSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/ansj_dic/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- assets自定义词典业务mapper -->
+	<bean id="assetsSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/assets/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- url业务mapper -->
+	<bean id="urlSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/url/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+		<!-- service业务mapper -->
+	<bean id="serviceInfoSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource" />
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/serviceInfo/**/*.xml"></property>
+		
+		<property name="plugins">  
+       		<array>  
+          		<bean class="com.jz.bigdata.util.MapInterceptor"/>  
+       		</array>  
+   		</property> 
+	</bean>
+	
+	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
+	   <property name="basePackage" value="com.business.mapper"/>  
+	</bean> -->
+	<!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+<!-- 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.business.bi.hive" />
+		<property name="sqlSessionFactoryBeanName" value="hiveSqlSessionFactory"></property>
+	</bean>
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.business.bi.phoenix" />
+		<property name="sqlSessionFactoryBeanName" value="phoenixSqlSessionFactory"></property>
+	</bean>-->
+	<!-- DAO接口所在包名，Spring会自动查找其下的类 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.business.health" />
+		<property name="sqlSessionFactoryBeanName" value="healthSqlSessionFactory"></property>
+	</bean> 
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.user" />
+		<property name="sqlSessionFactoryBeanName" value="userSqlSessionFactory"></property>
+	</bean>
+<!-- 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.task" />
+		<property name="sqlSessionFactoryBeanName" value="taskSqlSessionFactory"></property>
+	</bean>
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.business.electronicBusiness" />
+		<property name="sqlSessionFactoryBeanName" value="EBSqlSessionFactory"></property>
+	</bean> -->
+	<!-- log配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.users" />
+		<property name="sqlSessionFactoryBeanName" value="logSqlSessionFactory"></property>
+	</bean>
+	<!--部门配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.department" />
+		<property name="sqlSessionFactoryBeanName" value="departmentSqlSessionFactory"></property>
+	</bean>
+	<!--资产配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.equipment" />
+		<property name="sqlSessionFactoryBeanName" value="equipmentSqlSessionFactory"></property>
+	</bean>
+	<!--审计日志配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.note" />
+		<property name="sqlSessionFactoryBeanName" value="noteSqlSessionFactory"></property>
+	</bean>
+	<!--权限配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.function" />
+		<property name="sqlSessionFactoryBeanName" value="functionSqlSessionFactory"></property>
+	</bean>
+	<!--日志报警配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.alarm" />
+		<property name="sqlSessionFactoryBeanName" value="alarmSqlSessionFactory"></property>
+	</bean>
+	<!--安全策略配置 -->
+	 <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.safeStrategy" />
+		<property name="sqlSessionFactoryBeanName" value="safeStrategySqlSessionFactory"></property>
+	</bean>
+	<!--菜单配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.menu" />
+		<property name="sqlSessionFactoryBeanName" value="menuSqlSessionFactory"></property>
+	</bean>
+	<!--动作表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.action" />
+		<property name="sqlSessionFactoryBeanName" value="actionSqlSessionFactory"></property>
+	</bean>
+	
+	<!--事件表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.event" />
+		<property name="sqlSessionFactoryBeanName" value="eventSqlSessionFactory"></property>
+	</bean>
+	<!--动作事件表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.action_event" />
+		<property name="sqlSessionFactoryBeanName" value="action_eventSqlSessionFactory"></property>
+	</bean>
+	
+	 <!--资产事件表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.equipment_event" />
+		<property name="sqlSessionFactoryBeanName" value="equipment_eventSqlSessionFactory"></property>
+	</bean>
+	
+	<!--资产事件表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.ansj_dic" />
+		<property name="sqlSessionFactoryBeanName" value="ansj_dicSqlSessionFactory"></property>
+	</bean>
+	<!--扫描ip表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.assets" />
+		<property name="sqlSessionFactoryBeanName" value="assetsSqlSessionFactory"></property>
+	</bean>
+	<!--url表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.url" />
+		<property name="sqlSessionFactoryBeanName" value="urlSqlSessionFactory"></property>
+	</bean>
+	<!--service表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.serviceInfo" />
+		<property name="sqlSessionFactoryBeanName" value="serviceInfoSqlSessionFactory"></property>
+	</bean>
+	
+	<!-- es spring官方封装测试 -->
+	<!-- 远程机器 -->
+	<!-- 
+    <elasticsearch:transport-client id="client" cluster-nodes="${app.elasticsearch.address:124.133.246.61:9300}" cluster-name="myElasticsearchCluster" /> 
+	
+	<elasticsearch:repositories base-package="com.jz.bigdata.framework.spring" />
+	<elasticsearch:transport-client id="client" cluster-nodes="124.133.246.61:9300" cluster-name="myElasticsearchCluster" />
+	<bean id="elasticsearchTemplate" class="org.springframework.data.elasticsearch.core.ElasticsearchTemplate">
+	  <constructor-arg name="client" ref="client" />
+	</bean>
+-->
+	 
+	 
+	<!-- es 封装测试 -->
+	<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<property name="searchSystemEnvironment" value="true"/>
+		<property name="locations">
+			<list>
+				<value>classpath:/elasticsearch/elasticsearch.properties</value>
+			</list>
+		</property>
+		<property name="properties">
+			<props>
+				<prop key="projectx.index.dir">K:\elsearch\data</prop>
+				<prop key="projectx.index.dir.create">true</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<!-- <bean id="esNode" class="org.projectx.elasticsearch.ElasticsearchNodeFactoryBean">
+		<property name="configLocation">
+			<value>classpath:org/projectx/elasticsearch/elasticsearch.properties</value>
+		</property>
+	</bean>
+	
+	<bean id="esNodeTamplate" class="org.projectx.elasticsearch.NodeTemplate">
+		<constructor-arg ref="esNode"/>
+		<constructor-arg value="${projectx.index.name}"/>
+	</bean> -->
+	
+	
+	<!-- <description>Elasticsearch索引配置</description> -->
+	<context:property-placeholder/>
+	<!-- 
+	<bean id="esClient" class="org.projectx.elasticsearch.ElasticsearchTransportClientFactoryBean">
+	 -->
+
+	<bean id="elasticsearch5" class="com.hs.elsearch.client.EStransportclient">
+		<property name="elasticsearchbean">
+			<map>
+				<entry key="es_ip" value="192.168.2.182"/>
+				<entry key="es_port" value="9300"/>
+				<entry key="es_name" value="myElasticsearchCluster"/>
+			</map>
+		</property>
+	</bean>
+
+	<!--<bean id="elasticsearch7" class="com.hs.elsearch.template.RestHighClient7">
+		<property name="elasticsearchbean">
+			<map>
+				<entry key="es_ip" value="192.168.2.181"/>
+				<entry key="es_port" value="9200"/>
+			</map>
+		</property>
+	</bean>-->
+	<!--<bean id="esClient" class="com.jz.bigdata.framework.spring.es.elasticsearch.ElasticsearchTransportClientFactoryBean">
+		<property name="transportAddresses">
+			<map>
+				<entry key="es_ip" value="192.168.2.182"/>
+				<entry key="es_port" value="9300"/>
+				<entry key="es_name" value="myElasticsearchCluster"/>
+			</map>
+		</property>	
+	</bean>-->
+	
+	<!--<bean id="clientTemplate" class="com.hs.elsearch.template.bak.ClientTemplate">-->
+		<!--<constructor-arg ref="elasticsearch5"/>-->
+		<!--<constructor-arg value="article"/>-->
+	<!--</bean>-->
+
+	<!--<bean id="elasticsearchDao" class="com.hs.elsearch.dao.impl.ElasticsearchDao">-->
+		<!--<constructor-arg ref="clientTemplate"/>-->
+	<!--</bean>-->
+	
+	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">  
+	    <property name="locations">
+	    <!-- 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组，跟上面一样  -->
+	    	<list>  
+                <value>classpath:hosts.properties</value>  
+            </list>
+	    </property>
+	    <!-- 设置编码格式 -->  
+        <property name="fileEncoding" value="UTF-8"></property>
+	</bean> 
+	
+	<!-- 自动备份定时任务 -->
+	<bean id="createSnapshotByIndicesJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<!-- 调用类 -->
+	    <property name="targetObject">  
+	        <ref bean="manageService"/>  
+	    </property>
+	   <!--  调用类方法 -->
+	    <property name="targetMethod">  
+	        <value>createSnapshotByIndices</value>  
+	    </property>  
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="createSnapshotJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="createSnapshotByIndicesJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+            <value>0 0 */1 * * ?</value>
+        </property>
+	</bean>
+	<!-- 自动更新资产威胁定时任务 -->
+	<bean id="updateRiskJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<!-- 调用类 -->
+	    <property name="targetObject">  
+	        <ref bean="manageService"/>  
+	    </property>
+	   <!--  调用类方法 -->
+	    <property name="targetMethod">  
+	        <value>updateRisk</value>  
+	    </property>  
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="updateRiskJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="updateRiskJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+            <value>0 */5 * * * ?</value>
+        </property>
+	</bean>
+	<!-- 资产心跳机制定时任务 -->
+	<bean id="assetsHeartBeatJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<!-- 调用类 -->
+	    <property name="targetObject">  
+	        <ref bean="CollectorService"/>  
+	    </property>
+	   <!--  调用类方法 -->
+	    <property name="targetMethod">  
+	        <value>assetsHeartBeat</value>  
+	    </property>  
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="assetsHeartBeatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="assetsHeartBeatJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+            <value>0 */2 * * * ?</value>
+        </property>
+	</bean>
+	<!-- url定时入库任务 -->
+	<bean id="urlJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<!-- 调用类 -->
+	    <property name="targetObject">  
+	        <ref bean="CollectorService"/>  
+	    </property>
+	   <!--  调用类方法 -->
+	    <property name="targetMethod">  
+	        <value>insertUrl</value>  
+	    </property>  
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="urlJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="urlJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+            <value>0 */6 * * * ?</value>
+        </property>
+	</bean>
+	<!-- domain定时入库任务 -->
+	<bean id="domainJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+    	<!-- 调用类 -->
+	    <property name="targetObject">  
+	        <ref bean="CollectorService"/>  
+	    </property>
+	   <!--  调用类方法 -->
+	    <property name="targetMethod">  
+	        <value>insertDomain</value>  
+	    </property>  
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="domainJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="domainJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+            <value>0 */2 * * * ?</value>
+        </property>
+	</bean>
+	<!-- 触发器启动 -->
+	<bean name="startQuertz" lazy-init="false" autowire="no" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="createSnapshotJobTrigger" />
+                <ref bean="updateRiskJobTrigger" />
+               <!--  <ref bean="urlJobTrigger" />
+                <ref bean="domainJobTrigger" />
+                <ref bean="assetsHeartBeatJobTrigger" /> -->
+            </list>
+        </property>
+        <property name="autoStartup" value="true" />
+    </bean>
+	
+	
+</beans>

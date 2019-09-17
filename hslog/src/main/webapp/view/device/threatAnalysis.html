@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>威胁分析</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link href="../../hplus/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+		<link href="../../hplus/css/style.css?v=4.0.0" rel="stylesheet">
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<style rel="stylesheet" type="text/css">
+			.analysisTitle{
+				font-size:18px;
+				font-weight:600;
+				margin-bottom:20px;
+			}
+			.eventBox{
+				width:150px;
+				height:150px;
+				margin:20px;
+				background:#ccc;
+				border-radius:5px;
+				float:left;
+				color:#fff;
+				font-weight:600;
+			}
+			.eventBox h4{
+			    height: 50px;
+			    display:flex;
+				justify-content: center;
+    			align-items: center;
+    			padding:6px;
+    			margin-bottom:0;
+			    font-size: 16px;
+			    text-align: center;
+			    font-weight: 600;
+			    background: rgba(0,0,0,0.1)
+			}
+			.percentageBox{
+				height:87px;
+				/* line-height:60px; */
+				text-align:center;
+				display:flex;
+				flex-wrap:wrap;
+				justify-content: center; 
+    			align-items: center;
+			}
+			
+			.percentageBox p{
+				padding:0 8px;
+				font-size:13px;
+				margin-bottom: 0;
+			}
+			.percentageBox .per{
+				margin:6px 0px;
+				font-size:13px;
+				white-space: nowrap; 
+				overflow: hidden; 
+				text-overflow: ellipsis; 
+			}
+			.percentageBox .time{
+				font-size:12px;
+				display:flex;
+				justify-content: center; 
+			}
+			.percentageBox .time span:first-child{
+				display:inline-block;
+				width:46px;
+			}
+			.percentageBox .time span:last-child{
+				display:inline-block;
+				width:80px;
+				text-align:left;
+			}
+			.percentageBox .time_line{
+				height:4px;
+				line-height: 2px;
+				margin:2px;
+			}
+			.higeThreat>div{
+				background:#f55446;
+			}
+			.lowThreat>div{
+				background:#55c45d;
+			}
+			.middleThreat>div{
+				background:#f1ae09;
+			}
+			.ibox-title h5{
+				font-weight: 600;
+			}
+			.ibox-content{
+				overflow:hidden;
+			}
+			.ibox-content>div{
+				transition: all .2s linear;
+			}
+			.ibox-content>div:hover{
+				cursor:pointer;
+				box-shadow:0 15px 30px rgba(0,0,0,0.1);
+				transform:translate3d(0,-2px,0)
+			}
+		</style>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	</head>
+	<body>
+		<div class="analysisTitle">潜在威胁分析</div>
+		<div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>高危事件</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>                   
+                </div>
+            </div>
+            <div class="ibox-content higeThreat" style="display: block;">
+              <!-- <div class="eventBox redColor">
+					<h4>开启新的会话窗口</h4>
+					<div class="percentageBox">
+						<p class="per">实时/阈值：990%</p>
+						<p class="time">2018-04-08 13:14:44</p>
+						<p class="time_line"> ~ </p>
+						<p class="time">2018-04-09 13:14:44</p>
+					</div>
+				</div> -->
+            </div>
+        </div>
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>中危事件</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>                   
+                </div>
+            </div>
+            <div class="ibox-content middleThreat" style="display: block;">
+              <!-- <div class="eventBox yellowColor">
+					<h4>通过ssh方式进行操作</h4>
+					<div class="percentageBox ">
+						<p class="per">实时/阈值：990%</p>
+						<p class="time">时段：1月20天5小时39分</p>
+					</div>
+				</div> -->
+            </div>
+        </div>
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>普通事件</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>                   
+                </div>
+            </div>
+            <div class="ibox-content lowThreat" style="display: block;">
+               <!-- <div class="eventBox greenColor">
+					<h4>主机关机</h4>
+					<div class="percentageBox ">
+						<span class="per">实时/阈值:99%</span>
+					</div>
+				</div> -->
+            </div>
+        </div>
+        <div class="ibox float-e-margins">
+            <div class="ibox-title">
+                <h5>未设置告警的事件</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>                   
+                </div>
+            </div>
+            <div class="ibox-content noSetThreat" style="display: block;">
+               
+            </div>
+        </div>
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../hplus/js/content.min.js"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var getDeviceId = sessionStorage.getItem("deviceObj3");//获取本地存储的设备值 对象
+			//存储资产id 变量
+			var propertyId = '';
+			//存储日志类型
+			var logType = '';
+			if(getDeviceId != null){
+				var str = JSON.parse(getDeviceId);
+				var title = str.deviceName;
+				$(".analysisTitle").html(title+' 潜在威胁分析')
+				//获取资产id
+				propertyId = str.deviceId;
+				logType = str.logType;
+				//删除本地session
+				sessionStorage.removeItem("deviceObj3");
+				//获取数据
+				getData();
+			}
+			//syslog事件对应中文解释
+			var syslogEventObj = {};
+			syslogEventObj.poweroff = "主机关机";
+			syslogEventObj.NetworkManager = "网络服务";
+			syslogEventObj.usb = "usb外接";
+			syslogEventObj.sshd = "通过ssh方式进行操作";
+			syslogEventObj.login = "用户登录";
+			syslogEventObj.su = "通过su方式登录";
+			syslogEventObj.session = "开启新的会话窗口";
+			syslogEventObj.rsyslogd = "rsyslog自身日志";
+			syslogEventObj.pci = "pci日志";
+			syslogEventObj.pci_bus = "pci_bus日志";
+			syslogEventObj.ACPI = "ACPI日志";
+			syslogEventObj.PM = "PM日志";
+			syslogEventObj.SRAT = "SRAT日志";
+			syslogEventObj.crond = "定时任务";
+					
+			//winlog事件对应中文解释
+			var winlogEventObj = {};
+			winlogEventObj.login_successful = "登录成功";
+			winlogEventObj.mstsc_successful = "远程登录成功";
+			winlogEventObj.mstsc_interrupt = "远程连接中断";
+			winlogEventObj.log_off = "用户注销";
+			var eventObj = {};
+			//循环创建 事件盒子
+			//判断日志类型 加载不同的事件盒子
+			if(logType == "syslog"){
+				eventObj = syslogEventObj;
+			}else if(logType == "winlog"){
+				eventObj = winlogEventObj;
+			}
+			var eventHtml = '';
+			for(var i in eventObj){
+				eventHtml += '<div class="eventBox" data-event="'+i+'">'
+						 +		'<h4>'+eventObj[i]+'</h4>'
+						 +		'<div class="percentageBox ">'
+						 +		'<span class="per">没有设置此事件告警</span>'
+						 +		'</div>'
+						 + '</div>'
+			}
+			//添加到页面上
+			$(".noSetThreat").html(eventHtml);	
+
+			//获得数据函数方法
+			function getData(){
+				//发送请求 回调函数
+				sfunc = function(data){
+					var html = '';
+					if(data == ''){//判断数据是否为空
+						
+					}else{
+						//循环数据 设置效果
+						for(var i in data){
+							var obj = data[i];
+							//获得事件的盒子
+							var $eventBox = $('.noSetThreat>div[data-event="'+obj.event_type+'"]');
+							//删除未设置里的对应事件
+							$eventBox.remove();
+							var number = Number(obj.per);//  实时/阈值
+							html = '<div class="eventBox">'
+								 +		'<h4>'+eventObj[obj.event_type]+'</h4>'
+								 +		'<div class="percentageBox ">'
+								 +			'<p class="per" title="'+number+'%">实时/阈值：'+number+'%</p>'
+								 +			'<p class="time"><span>起始：</span><span>'+obj.starttime+'</span></p>'
+								/*  +			'<p class="time_line">~</p>' */
+								 +			'<p class="time">结束：当前时间</p>'
+								 +		'</div>'
+								 + '</div>'
+							//判断事件威胁
+							if(number <= 50){//普通事件
+								$(".lowThreat").append(html);								
+							}else if(number > 50 && number <= 80){//中危事件
+								$(".middleThreat").append(html)
+							}else if(number > 80){//高危事件
+								$(".higeThreat").append(html);
+							}
+						}
+					}		
+				}
+				//发送请求
+				ajaxPost("../../log/getCountGroupByEventstype.do",{equipmentid:propertyId,type:logType},sfunc);
+			}
+			
+		</script>
+	</body>
+</html>

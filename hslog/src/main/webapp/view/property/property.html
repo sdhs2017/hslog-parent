@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/pagination.css"/>
+		<link rel="stylesheet" type="text/css" href="css/property.css"/>
+		<style>
+			.property_con{
+				height:600px;
+				overflow-y:auto;
+				border-top:1px solid #ccc;
+				margin-top:10px;
+			}
+			#property_list i{
+				margin-right:5px;
+				cursor:pointer;
+			}
+			.tab-pane {
+				height:200px;
+				overflow: hidden;
+			}
+			.table{
+				margin-bottom:0;
+			}
+			
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				资产列表
+			</div>
+			<div class="device_tools row">
+				<div class="col-sm-5">
+					<button  class="btn btn-primary" id="add_property"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加</button>
+					<button  class="btn btn-danger" id="remove_allProperty"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除</button>
+				</div>
+				<!-- <form class="form-inline col-sm-7" onsubmit="return false;">					
+					<div class="form-group">
+				    	<label>设备名称:</label>
+				    	<input type="text" class="form-control search_deviceName" placeholder="设备名称">
+				    	<label>主机名：</label>
+				    	<input type="tel" class="form-control search_hostname" placeholder="主机名">
+				    	<label>IP：</label>
+				    	<input type="tel" class="form-control search_deviceIp" placeholder="IP">
+				    	<button class="btn btn-primary search_device" ><i class="glyphicon glyphicon-search"></i></button>
+				  	</div>
+				</form> -->
+			</div>
+			<div class="property_con">
+				<div class="tab-content" style="position:relative;">
+					<div style="position:absolute;z-index: 1000;background:#fff;top:0;width:100%">
+						<table class="table table-hover table-striped" >
+							<thead>
+						        <tr>
+						        	<th width="5%"><input type="checkbox" id="theadCheck"></th>
+						          	<th width="10%">资产名称</th>
+						          	<th width="15%">资产IP</th>
+						          	<th width="10%">系统类型</th>
+						          	<th width="10%">资产类别</th>
+						          	<th width="30%">创建时间</th>
+						          	<th width="10%">风险情况</th>
+						          	<th width="10%">操作</th>
+						        </tr>
+					         </thead>
+					         
+						</table>
+					</div>
+                          <div class="table-responsive" style="overflow: hidden">
+                              <table class="table table-hover table-striped" id="property_list">
+                               	<thead>
+							        <tr>
+							        	<th width="5%"><input type="checkbox" id="theadCheck"></th>
+							          	<th width="10%">资产名称</th>
+							          	<th width="15%">资产IP</th>
+							          	<th width="10%">系统类型</th>
+							          	<th width="10%">资产类别</th>
+							          	<th width="30%">创建时间</th>
+							          	<th width="10%">风险情况</th>
+							          	<th width="10%">操作</th>
+							        </tr>
+						         </thead>
+                                    <tbody>
+                                          	<tr>   
+                                         	<td><input type="checkbox" ></td>
+                                            <td class="property_name">
+                                             	<span data-id="001">lenovo</span>
+                                            </td>
+                                            <td class="property_ip">192.168.100.20</td>
+                                            <td class="property_ganre">NetScreen</td>
+                                            <td class="property_type" data-type="1">服务器</td>	                                            
+                                            <td class="property_createtime">2017-02-03 18:00:36</td> 
+                                            <td class="property_status">
+                                            	<span class="label label-info">Info</span>
+                                            </td>
+                                            <td class="td_tools">
+                                           		<i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>
+                                           		<i class="glyphicon glyphicon-remove device_remove" title="删除"> </i>                  
+                                           	</td>
+                                        	</tr> 
+                                    </tbody>
+                                </table>
+                            </div>
+                    
+                               
+                 </div>
+                 
+                 <div class="tools_page">
+					<span class="current prev">&laquo;</span>
+					<span class="current">1</span>
+					<span class="current next">&raquo;</span>
+				</div>
+			</div>
+			
+			
+		</div>
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.slimscroll.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/property.js" type="text/javascript"></script>
+		<script>
+		  $(function(){$(".table-responsive").slimScroll({height:"200px"})});
+		</script>
+	</body>
+</html>

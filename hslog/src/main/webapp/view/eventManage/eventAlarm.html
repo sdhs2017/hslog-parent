@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>审计日志</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		#auditLogTable{
+			border:none;	
+		}
+		#auditLogTable button{
+			height:20px;
+			line-height:16px;
+			font-size:12px;
+			padding:1px 6px;
+		}
+		#auditLogTable input{
+			display:inline-block;
+			width:16px;
+			height:16px;
+		}
+		.tableCon{
+			padding:0 20px;
+		}
+		
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<body>
+	<div id="box">
+		<div class="top_title">
+			事件告警
+		</div>
+		<!-- table-no-bordered -->
+		<div class="tableCon">
+			<table id="auditLogTable" data-toggle="table" data-classes="table  table-hover" style="width:100%">
+                <thead>
+                    <tr>
+                    	<th>是否告警</th>
+                    	<th data-field="time"   data-valign="middle" >事件类型</th>  
+                    	<th data-field="describe"   data-valign="middle" >操作</th>                   	                	
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+		</div>
+	</div>
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+		var sfunc = function(data){			
+			 var html = '';
+			 for(var i in data){
+				 var obj = data[i];
+				 if(obj.emailState == 0){//未告警
+					 html += '<tr>'
+		                  +		'<td class="stateBox"><input type="checkbox" data-state="'+obj.emailState+'"></td>'
+		                  +		'<td>'+obj.event_type+'</td>'
+		               	  +		'<td class="bBox"><button class="btn btn-primary" data-id="'+obj.id+'" disabled>提交</button></td>'
+		                  +'</tr>'
+				 }else{//警告
+					 html += '<tr>'
+		                  +		'<td class="stateBox"><input type="checkbox" checked data-state="'+obj.emailState+'"></td>'
+		                  +		'<td>'+obj.event_type+'</td>'
+		               	  +		'<td class="bBox"><button class="btn btn-primary" data-id="'+obj.id+'" disabled>提交</button></td>'
+		                  +'</tr>'
+				 }
+			 }
+			 //添加到页面中
+			 $("#auditLogTable tbody").html(html);
+			 //给复选框添加点击事件
+			 $("#auditLogTable tbody").on("click","input",function(){
+				 //获取复选框的状态
+				 var newState = $(this).prop('checked');
+				 if(newState == true){
+					 newState = 1;
+				 }else{
+					 newState = 0;
+				 }
+				 //获取原先状态
+				 var oldState = $(this).attr("data-state");
+				 //判断状态
+				 if(newState == oldState){//未改变状态
+					 $(this).parent().siblings(".bBox").children("button").attr("disabled",true);
+				 }else{
+					 $(this).parent().siblings(".bBox").children("button").removeAttr("disabled");
+				 }
+				
+			 })
+			 //提交按钮点击事件
+			 $("#auditLogTable tbody").on("click","button",function(){ 
+				 //储存当前点击按钮
+				 var $this = $(this);
+				 var obj = {};
+				//获取id
+				var id = $(this).attr("data-id");
+				//获取告警状态
+				var alarmState =  $(this).parent().siblings(".stateBox").children("input").prop('checked');
+				if(alarmState == true){
+					alarmState = 1;
+				 }else{
+					 alarmState = 0;
+				 }
+				obj.id = id;
+				obj.emailState = alarmState;
+				//发送请求
+				//成功函数
+				var sfunc = function(data){
+					if(data.success == "true"){
+						layer.msg(data.message,{icon: 1});
+						
+						//更改告警状态
+						$this.parent().siblings(".stateBox").children("input").attr("data-state",alarmState);
+						//禁用按钮
+						$this.attr("disabled","disabled");
+					}else if(data.success == "false"){//失败
+						layer.msg(data.message,{icon: 5});
+					}
+				}
+				var efunc = function(data){
+					layer.msg("修改失败",{icon:2});
+				}
+				//失败函数
+				ajaxPost("../../alarm/updateById.do",obj,sfunc,'',efunc);
+			 })
+		}
+		//发送请求
+		ajaxPost("../../alarm/selectAll.do","",sfunc);
+	
+	</script>

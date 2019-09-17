@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>服务列表</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+		<style type="text/css">
+			.service_tools{
+				margin-bottom:20px;
+				padding-left:20px;
+			}
+			.service_tools button{
+				height: 30px;
+			    font-size: 12px;
+			    background: 0;
+			    transition: all .2s linear;
+			    color: #5bc0de!important;
+			    border: 1px solid #5bc0de!important;
+			}
+			.service_tools>button:hover {
+			    background: 0;
+			    transform: translate3d(0 ,-1px ,0);
+			    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+			}
+			.content{
+				box-shadow: 0 3px 15px #4781bb;
+				border-radius:5px;
+				
+			}
+			.table_content{
+				overflow:auto;
+			}
+			.table_content i:hover{
+				cursor:pointer;
+				color:#009688;
+			}
+			.table_content td{
+				white-space: nowrap;
+			    /* word-wrap: break-word; */
+			    overflow: hidden;
+			    text-overflow: ellipsis;
+			    -webkit-box-orient: vertical;
+			    -moz-binding: url(ellipsis.xml#ellipsis);
+			    -webkit-line-clamp: 1;
+			    margin: 0;
+			}
+			.service_page{
+				margin-bottom: 50px;
+    			height: 50px;
+			}
+			.service_page>div{
+				float:right;
+			}
+			.allCountBox{
+				float: right;
+			    height: 50px;
+			    line-height: 50px;
+			    font-size: 14px;
+			    margin-right: 10px;
+			    font-weight: 600;
+			}
+			.allCountBox b {
+			    color: #1ab394;
+			    margin: 0 5px;
+			}
+			th,td{
+				/* white-space:nowrap; */
+			}
+			.layui-layer-content{
+				padding: 20px;
+				background: #F8F8F8;
+			}
+			.form-group>div{
+				margin-top:5px;
+			}
+			.search_input{
+				padding-left:10px;
+			}
+			.search_input input{
+				border-radius:0;
+			}	
+			.search_input button{
+				height:34px;
+				margin-left:-4px;
+				border-radius:0;
+				font-size:12px;
+				border-color: #386c9a;
+			    background: #386c9a;
+			    box-shadow: 0px 0px 7px 1px #386c9a;
+			}
+			.searchBoxTitle{
+				height:32px;
+				margin-right:1px solid #4781bb;
+				line-height:34px;
+				text-align: center;
+				padding: 0 10px;
+    			word-break: keep-all;
+				font-size:12px;
+			}			
+			.searchConditions{
+				width:100%;
+				height:34px;
+				margin-bottom:24px;
+				display: flex;
+				justify-content: center;
+			}
+			.searchConditions>div{
+				display: flex;
+				justify-content: left;
+				border:1px solid #4781bb;
+				border-left:0;
+			}
+			.searchConditions select,.searchConditions input{
+				width:90px;
+				border-radius:0;
+				border:0;
+				height: 32px;
+				font-size:12px;
+			}
+			.searchConditions input{
+				width:100%;
+			}	
+			.searchTimeBox>input{
+				border: 0;
+				width: 150px;
+				padding-right:0;
+				height:32px;
+				font-size:13px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				服务列表
+			</div>
+			<div class="search_input" style="display:flex;max-width:1286px;margin:0 auto;">
+				<div class="searchConditions">
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">名称</div>
+						<input type="text" class="form-control searchName"  placeholder="名称">
+					</div>
+					<div class="searchDomainNameBox">
+						<div class="searchBoxTitle">IP</div>
+						<input type="text" class="form-control searchIp"  placeholder="IP">
+					</div>
+					<div class="searchAnaTypeBox">
+						<div class="searchBoxTitle">端口</div>
+						<input type="text" class="form-control searchPort" style="width:60px;"  placeholder="端口">
+					</div>
+					<div class="searchServerBox">
+						<div class="searchBoxTitle">协议</div>
+						<input type="text" class="form-control searchProtocol" style="width:60px;"  placeholder="协议">
+					</div>
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">路径</div>
+						<input type="text" class="form-control searchUrl"  placeholder="路径">
+					</div>
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">相对路径</div>
+						<input type="text" class="form-control searchRelativeUrl"  placeholder="相对路径">
+					</div>
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">状态</div>
+						<select class="form-control searchComplementState" style="width:80px;">
+    						<option selected value=""></option>
+ 							<option value="0">未补全</option>
+ 							<option value="1">已补全</option> 							
+ 						</select>
+					</div>
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">启用</div>
+						<select class="form-control searchState" style="width:60px;">
+    						<option selected value=""></option>
+ 							<option value="0">否</option>
+ 							<option value="1">是</option> 							
+ 						</select>
+					</div>
+					<button  class="btn btn-primary" id="searchList"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+				</div>
+			</div>
+			<div class="service_tools">
+				<button  class="btn btn-info" id="remove_service" title="删除"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除</button>
+			</div>
+			<div class="content">
+				<div class="service_table row">
+					<div class="col-sm-12">
+						<div class="table_content table-responsive">
+							<table class="table table-hover text-nowrap" id="service_list" style="table-layout:fixed;">
+								<thead>
+									<tr>
+										<th width="30"><input type="checkbox" id="theadCheck"></th>
+										<th width="80">名称</th>
+										<th width="120">IP</th>
+										<th width="65">端口</th>
+										<th width="65">协议</th>
+										<th>路径</th>
+										<th>相对路径</th>
+										<th width="75">补全状态</th>
+										<th width="75">是否启用</th>
+										<th>描述</th>
+										<th>创建时间</th>
+										<th>修改时间</th>
+										<th>停用时间</th>
+										<th width="50">操作</th>
+									</tr>
+								</thead>
+								<tbody></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			<div class="service_page">
+				<div id="pageBox"></div>
+            	<div class="allCountBox">共检索到的事件数量为<b>0</b>条</div>	
+			</div>
+			</div>
+			
+		</div>
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var currentPage;//当前显示的页码
+			var pageSize = 15;//每页显示的条数
+			var firstGet ;//定义第一次请求标识
+			var allCount;//总数
+			//定义传参集合
+			var sendObj = {};
+			sendObj.name = "";
+			sendObj.ip = "";
+			sendObj.port = "";
+			sendObj.protocol = "";
+			sendObj.url = "";
+			sendObj.relativeUrl ="";
+			sendObj.state = "";
+			sendObj.complementState ="";
+			//初始化
+			paramInitialize();
+			getServiceData(sendObj);
+			//获取数据
+			function getServiceData(sendObj){				
+				sendObj.pageIndex = currentPage;
+				sendObj.pageSize = pageSize;
+				//成功回调函数
+				var sFunc = function(data){
+					var tableData = data[0].serviceInfo;
+					//加载数据 
+					joinServiceList(tableData);
+					if(firstGet == true){
+						allCount = data[0].count.count;
+						//添加总条数到页面中
+						$(".allCountBox>b").html(allCount);
+						//创建分页
+						createPage("pageBox",allCount,pageSize);
+						
+					}
+				}
+				var eFunc = function(data){
+					console.log(data)
+					
+				}
+				//发送请求
+				ajaxPost("../../serviceInfo/selectPage.do",sendObj,sFunc,eFunc);
+			}
+			//拼接列表
+			function joinServiceList(data){
+				var htmlStr = "";
+				for(var i in data){
+					var obj = filterObj(data[i]);
+					//补全状态
+					if(obj.complementState == 0){
+				 		obj.complementState = '<span class="label label-warning">未补全</span>';
+				 	}else if(obj.complementState == 1){
+				 		obj.complementState = "已补全";
+				 	}
+					//启用状态
+					if(obj.state == 0){
+				 		obj.state = "否";
+				 	}else if(obj.state == 1){
+				 		obj.state = "是";
+				 	}
+					//时间分割  传来得时间数据 末尾有.0 将其分割出去
+				 	/* obj.createTime = obj.createTime.split(".")[0];
+				 	obj.upDateTime = obj.upDateTime.split(".")[0];
+				 	obj.endTime = obj.endTime.split(".")[0]; */
+					
+					
+				 	htmlStr += '<tr>'   
+						+		 '<td class="service_checkbox"> <input type="checkbox" name="'+obj.id+'"></td>'
+			            +        '<td title="'+obj.name+'" class="service_name">'+obj.name +'</td>'   
+			            +        '<td class="service_ip">'+obj.ip+'</td>'
+			            +        '<td class="service_port">'+obj.port+'</td>'
+			            +        '<td class="service_protocol">'+obj.protocol+'</td>'
+			            +        '<td title="'+obj.url+'" class="service_url">'+obj.url+'</td>'
+			            +        '<td title="'+obj.relativeUrl+'" class="service_relativeUrl">'+obj.relativeUrl+'</td>'
+			            +        '<td class="service_complementState">'+obj.complementState+'</td>'			   
+			            +        '<td class="service_state">'+obj.state+'</td>'
+			            +        '<td title="'+obj.describe+'" class="service_describe">'+obj.describe+'</td>'
+			            +        '<td title="'+obj.createTime+'" class="service_createTime">'+obj.createTime+'</td>' 		         
+			            +        '<td title="'+obj.updateTime+'" class="service_updatetime">'+obj.updateTime+'</td>' 
+			            +        '<td class="service_stoptime">'+obj.stopTime+'</td>'
+			            +        '<td class="td_tools">'
+			            +       	  '<i class="glyphicon glyphicon-edit service_revise" title="修改"> </i>'
+			            +        '</td>'
+			            +    '</tr>'
+				}
+				//添加到页面中
+				$("#service_list tbody").html(htmlStr);
+			}
+			//创建分页函数 elem-分页容器(id)  allcount-总条数  limit-每一页显示的条数
+			function createPage(elem,allCount,limit){
+				//分页插件
+				layui.use('laypage', function(){
+					var laypage = layui.laypage;	
+				  	//执行一个laypage实例
+				  	laypage.render({
+					  elem: elem //分页容器 id
+					  ,count: allCount //数据总数，从服务端得到
+					  ,limit: limit  //每页显示的条数
+					  ,curr:currentPage //默认显示页码
+					  ,jump: function(obj, first){				    
+					    //首次不执行
+					    if(!first){
+					    	//请求数据
+							//getData(obj.curr);
+							//更新当前显示的页码
+					    	currentPage = obj.curr;
+					    	getServiceData(sendObj);
+							
+					    }else{//首次
+					    	firstGet = false;
+					    }
+					  }
+					});
+				});
+			}
+			
+			//初始化参数
+			function paramInitialize(){
+				firstGet = true;//定义第一次请求
+				allCount = 0;//检索的结果总总数
+				currentPage = 1;//当前显示的页码
+			}
+			//检索按钮方法
+			$("#searchList").click(function(){
+				//初始化参数
+				paramInitialize();
+				//获取输入框中的值
+				sendObj.name = $(".searchName").val();
+				sendObj.ip = $(".searchIp").val();
+				sendObj.port = $(".searchPort").val();
+				sendObj.protocol = $(".searchProtocol").val();
+				sendObj.url = $(".searchUrl").val();
+				sendObj.relativeUrl = $(".searchRelativeUrl").val();
+				sendObj.state = $(".searchState").val();
+				sendObj.complementState = $(".searchComplementState").val();
+				//获取数据
+				getServiceData(sendObj);
+			})
+			//修改按钮方法
+			$("#service_list").on("click",".service_revise",function(){
+				//获取id
+				var id = $(this).parent().siblings('.service_checkbox').children("input").attr("name");
+				//获取详细信息
+				var sfunc = function(data){
+					var obj = data;
+					var layHtml = '<form class="form-horizontal">'					
+				  				+		'<div class="form-group">'
+				   		 		+			'<label class="col-sm-3 control-label">名称：</label>'
+				    			+			'<div class="col-sm-8">'
+				      			+				'<input type="text" class="form-control form_name" placeholder="名称">'
+				    			+			'</div>'
+				  				+		'</div>'
+				  				+		'<div class="form-group">'
+				   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">是否启用：</label>'
+				    			+			'<div class="col-sm-8 state_box">'
+				      			+				'<input type="radio" name="state" value="1" checked class="state_yes">是'
+				      			+				'<input type="radio" name="state" value="0" class="state_no">否'
+				    			+			'</div>'
+				  				+		'</div>'
+				  				+		'<div class="form-group">'
+				   		 		+			'<label class="col-sm-3 control-label">描述：</label>'
+				    			+			'<div class="col-sm-8">'
+				      			+				'<textarea class="form-control form_describe" rows="6"></textarea>'
+				    			+			'</div>'
+				  				+		'</div>'
+				  				+		'<div class="form-group">'
+				   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">状态补全：</label>'
+				    			+			'<div class="col-sm-8 complementState_box">'
+				      			+				'<input type="radio" name="complementState" value="1"  class="complement_yes">已补全'
+				      			+				'<input type="radio" name="complementState" value="0" checked class="complement_no">未补全'
+				    			+			'</div>'
+				  				+		'</div>'
+				  				+	'</form>'
+					//出现弹窗
+					layer.open({ 
+				 		type: 1,
+				 		title:['修改信息','font-size:18px;border-bottom:1px solid #ccc;height:60px'],//标题
+			  			area: ['480px', '460px'], //宽高
+			  			btn: ['确定','取消'], //按钮
+						btn1:function(index){
+							var objParam = {};
+							objParam.id = id;
+							objParam.name = $(".form_name").val();
+							objParam.describe = $(".form_describe").val();
+							objParam.state = $("input[name='state']:checked").val();
+							objParam.complementState = $("input[name='complementState']:checked").val();
+							//发送请求
+							var sfunc = function(data){
+								if(data.success == "true"){//成功
+									layer.msg(data.message,{icon: 1});
+									//初始化参数
+									paramInitialize();
+									getServiceData(sendObj);
+									//关闭弹窗
+									layer.close(index);
+								}else if(data.success == "false"){//失败
+									layer.msg(data.message,{icon: 5});
+								} 
+							}
+							var efunc = function(data){
+								layer.msg('操作失败',{icon: 5});
+							}
+							ajaxPost("../../serviceInfo/updateById.do",objParam,sfunc,efunc);
+						},
+						content: layHtml
+					})
+					//填充数据
+					$(".form_name").val(obj.name);
+					$(".form_describe").val(obj.describe);
+					if(obj.state == 0){
+						$(".state_yes").removeAttr("checked");
+						$(".state_no").attr("checked","checked");
+					}
+					if(obj.complementState == 1){
+						$(".complement_no").removeAttr("checked");
+						$(".complement_yes").attr("checked","checked");
+					}
+				}
+				var efunc = function(data){
+					layer.msg("获取信息失败",{icon:5})
+				}
+				//发送请求
+				ajaxPost("../../serviceInfo/selectServiceById.do",{id:id},sfunc,efunc);
+			
+			})
+			
+			//删除按钮方法
+			$("#remove_service").click(function(){
+				//获取被选择的复选框
+				var checkboxs = $("#service_list>tbody input[type=checkbox]:checked");
+				var ids = '';
+				//判断是否又被选中的  没有则提示 有则继续执行删除操作
+				if(checkboxs.length == 0){
+					layer.msg('未选中任何服务',{icon: 5});
+				}else{
+					//询问框
+					layer.confirm('您确定删除么？', {
+					  btn: ['确定','取消'] //按钮
+					}, function(index){
+						layer.close(index);
+						//循环拼接id值
+						for(var i = 0; i< checkboxs.length;i++){
+							ids += checkboxs[i].getAttribute("name")+',';
+						}	
+						var deviceObj = {};
+						deviceObj.id = ids;
+						 //发送数据到后台 进行删除
+						 //成功回调函数
+						var sfunc = function(data){
+							if(data.success == "true"){
+								layer.msg(data.message,{icon: 1});
+								//初始化参数
+								paramInitialize();
+								getServiceData(sendObj);
+							}else if(data.success == "false"){//失败
+								layer.msg(data.message,{icon: 5});
+							} 
+						}
+						//失败回调函数
+						var efunc = function(data){
+							layer.msg("删除失败",{icon:5});
+							console.log(data);
+						}
+						//发送请求
+						ajaxPostWithOutLayer("../../serviceInfo/delete.do",deviceObj,sfunc,"",efunc)
+						//关闭弹窗
+						layer.close();
+					}, function(){
+					  layer.close();
+					});
+				}
+	
+			})
+			
+			//数据对象过滤  null/undefined  转为'-';
+			function filterObj(obj){
+				for(var i in obj){
+					
+					if(obj[i] == undefined || obj[i] == null || obj[i] === ""){
+						obj[i] = '-';
+					}
+				}
+				return obj;
+			}
+			//表头中的复选框 点击全选或取消全选
+			$('#theadCheck').click(function(){	
+				//如果checkbox_Status == 0 则未选中
+				if($('#theadCheck')[0].checked == true){
+					//更改状态
+					$("#service_list>tbody input[type=checkbox]").prop("checked", "checked");
+				}else if($('#theadCheck')[0].checked == false){
+					//更改状态
+					$("#service_list>tbody input[type=checkbox]").removeAttr("checked"); 
+				}
+			})
+
+		</script>
+	</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>源文件管理</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<link rel="stylesheet" href="font/iconfont.css">
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			min-height:100%;
+			height:auto;
+		}
+		.content{
+			margin:0 auto;
+			margin-top:50px;
+			width:520px;
+			height:202px;
+		}
+		.content>div{
+			width:200px;
+			height:210px;
+			float:left;
+			border:1px solid #FFF;
+			text-align:center;
+			color:#2c76bd;
+			background:#f9f9f9;
+			cursor: pointer;
+			margin-left:30px;
+			margin-right:30px;
+		}
+		.content>div:hover{
+			background:#F0F8FD;
+			
+		}
+		.content i{
+			font-size: 52px;
+		    line-height: 95px;
+		    color:#2c76bd;
+		}
+		.title{
+			font-size:24px;
+			font-weight: 600px;
+			margin-bottom:2px;
+		}
+		.last{
+			color:#999;
+		}
+		.conBot{
+			margin-top:20px;
+			background:#f9f9f9;
+		}
+		.conBot h3{
+			padding-top:30px;
+			padding-left:50px;
+			margin-top:30px;
+			font-size:21px;
+		}
+		.ulBox{
+			padding:10px 20px;
+			padding-top:0;
+			overflow:hidden;
+			display:flex;
+			justify-content:center;
+		}
+		.ulBox h4{
+			color:#333;
+		}
+		.ulBox ul{
+			float:left;
+			margin:20px 40px;
+		}
+		.ulBox i{
+			font-size:18px;
+			margin-right:8px;
+		}
+		.ulBox li{
+			padding-left:30px;
+		}
+	</style>	
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+
+<body>
+	<div id="box">
+		<div class="top_title">
+			数据源添加
+		</div>
+		<div class="content">
+			<div class="upload">
+				<i class="iconfont icon-shangchuanwenjian"></i>
+				<p class="title">本地上传</p>				
+				<p>上传本地日志文件</p>
+				<p class="last">本地日志文件 <br/>本地结构化文件</p>
+			</div>
+			<div class="monitoring">
+				<div class="upload">
+					<i class="iconfont icon-jianshi"></i>
+					<p class="title">在线监控</p>
+					<p>在此服务上的文件和端口</p>
+					<p class="last">syslog-wmi-snmp-tcp/udp-脚本外部数据源输入</p>
+				</div>
+			</div>
+		</div>
+		<div class="conBot">
+			<h3>通用数据来源：</h3>
+			<div class="ulBox">
+				<ul>
+					<h4><i class="iconfont icon-wangluoshebei"></i>网络设备</h4>
+					<li>交换机</li>
+					<li>路由器</li>
+				</ul>
+				<ul>
+					<h4><i class="iconfont icon-anquan"></i> 安全</h4>
+					<li>IPS</li>
+					<li>IDS</li>
+					<li>抗DOS</li>
+					<li>防火墙</li>
+				</ul>
+				<ul>
+					<h4><i class="iconfont icon-zhuji"></i>主机</h4>
+					<li>Windows</li>
+					<li>Linux</li>
+					<li>虚拟机</li>
+				</ul>
+				<ul>
+					<h4><i class="iconfont icon-yingyongchengxu"></i>应用程序服务</h4>
+					<li>Tomcat</li>
+					<li>Apache</li>
+					<li>IIS</li>
+					<li>Weblogic</li>
+					<li>Mysql</li>
+					<li>Oracle</li>
+					<li>Sqlserver</li>
+					<li>Db2</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		$(".upload").click(function(){
+			location.href="upload.html";
+		})
+		$(".monitoring").click(function(){
+			location.href="monitoring.html";
+		})
+	</script>
+</body>
+</html>

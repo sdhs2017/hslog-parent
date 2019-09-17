@@ -1,0 +1,245 @@
+
+<head>
+
+    <meta http-equiv="Content-Type"content="text/html;charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+	<title>注册-宸析日志分析系统</title>
+    <!-- <title>注册-中网云安日志审计系统</title> -->
+
+    <link rel="shortcut icon" href="favicon.ico"> 
+    <link href="hplus/css/bootstrap.min.css?v=3.3.5" rel="stylesheet">
+    <link href="hplus/css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+	<link rel="icon" type="image/x-icon" href="img/cx.ico" />
+	<!-- <link rel="icon" type="image/x-icon" href="img/zwya_icon.ico" /> -->
+    <link href="hplus/css/animate.min.css" rel="stylesheet">
+    <link href="hplus/css/style.min.css?v=4.0.0" rel="stylesheet">
+    <style>
+    	html{
+    		height: 100%;
+    	}
+    	body{
+    		height:100%;
+    		width: 100%;
+    		overflow:hidden;
+    		background: url('img/download.jpg');
+    		background-size:100%;
+    		filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='img/download.jpg',sizingMethod='scale');
+			-ms-filter: "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='img/download.jpg',sizingMethod='scale')";
+    		overflow: auto;
+    	}
+    	.contentBox{
+			width: 100%;
+		    display: flex;
+		    justify-content: center;
+		}
+    	.gray-bg .middle-box{
+    		width:100%;
+    		max-width:700px!important;
+    		/* margin:0 auto; */
+		    height: auto;
+		    z-index:1000;
+		    overflow: hidden;
+		   /*  margin: 10% auto 0 auto; */
+		   	box-shadow: 0 5px 30px #2c3d4e;
+		    border-radius: 5px;
+		    margin-right: 10px;
+		    margin-left: 10px;
+		   /*  position:absolute;
+		    top:100px;
+		    left:50%;
+		    margin-left:-350px;
+		    margin-bottom:100px; */
+    	}
+    	.middle-box{
+    		max-width:6000px!important;
+    		padding:20px 0;
+    	}
+    	.middle-box h3{
+    		color:#fff;
+    		padding-left:20px;
+    		font-size:22px;
+    	}
+    	.logoImg{
+    		float: left;
+    		margin-left:30px;
+    		margin-top:10px;
+    	}
+    	.logoImg img{
+    		width: 370px;
+    		margin-bottom: 20px;
+    	}
+    	#loginForm{
+    		width:420px;
+    		margin:20px auto;
+    	}
+    	#buttonLogin{
+    		/* background:#009966; */
+    		background:#2c76bd;
+    		border:0;
+    	}
+    	.register{
+    		color:#ccc;
+    	}
+    	.register:hover{
+    		color:#eee;
+    		text-decoration:underline;
+    	}
+    	.form-group{
+    		height:60px;
+    	}
+    	.form-group .control-label{
+    		color:#fff;
+    		float:left;
+    		height:16px;
+    	}
+    	.form-group input{
+    		float:left;
+    		border-radius: 5px;
+    	}
+    	.form-group  .col-sm-12{
+    		color:#fff;
+    		
+    	}
+    	.form-group  .col-sm-12 input{
+    		float:none;
+    		margin:5px;
+    	}
+    	.pass_set{
+			display: none;
+			height: 22px;
+		  	padding-left: 0px;
+		}
+		.pass_set li{
+			float: left;
+		    text-align: center;
+		    width: 50px;
+		    border-right: 2px solid #fff;
+		    background: #ffd8b4;
+		    color: #fff;
+		    list-style-type: none;
+		}
+    </style>
+    
+    <!--[if lt IE 8]>
+    <meta http-equiv="refresh" content="0;ie.html" />
+    <![endif]-->
+   
+</head>
+<body class="gray-bg">
+	<div class="logoImg"><img src="img/login_cx.png"><!-- <img  src="img/zwya_logo.png"> --></div>
+	<div class="contentBox">
+		 <div class="middle-box loginscreen animated fadeInDown">
+	    	<h3>用户注册</h3>
+	        <div style="padding:0 10px;">
+	            <form id="loginForm" class="m-t" role="form" onsubmit="return false">
+	                <div class="form-group">
+	                	<label class="control-label">账号(电话)<span style="color:red">*</span>：</label>
+		      			<input class="form-control name" placeholder="11位有效数字" >                 
+	                </div>
+	                <div class="form-group">
+	                	<label class="control-label">密码<span style="color:red">*</span>：</label>                 
+		      			<input type="password" class="form-control password" maxlength="18" onkeyup="pwStrength(this.value)"  placeholder="6-18位数字、字母、字符" > 
+	                </div>
+	                <ul class="pass_set">
+					    <li id="strength_L">弱</li>
+					    <li id="strength_M">中</li>
+					    <li id="strength_H">强</li>
+					</ul>
+	                <div class="form-group">
+	                	<label class="control-label">确认密码<span style="color:red">*</span>：</label>                 
+		      			<input type="password" class="form-control password2" placeholder="确认密码" >  
+	                </div>
+	                <div class="form-group">
+	                	<label class="control-label">姓名<span style="color:red">*</span>：</label>                 
+		      			<input type="text" class="form-control userName" placeholder="姓名"  > 
+	                </div>
+	                 <div class="form-group">
+	                	<label class="control-label">邮箱<span style="color:red">*</span>：</label>                 
+		      			<input type="text" class="form-control email" placeholder="邮箱"  > 
+	                </div>
+	                <div class="form-group">
+	                	<label class="control-label">角色：</label>                 
+		      			<input type="text" class="form-control" value="游客" readonly> 
+	                </div>
+	                <div class="form-group">
+	                	<label class="control-label">年龄：</label>                 
+		      			<input type="text" class="form-control age" placeholder="年龄" >   
+	                </div>
+	                <div class="form-group" style="height:40px;">
+	                	<label class="control-label">性别：</label>                 
+	                    <div class="col-sm-12">
+		      				  <input type="radio" name="sex" value="1" checked class="nan">男
+		      				  <input type="radio" name="sex" value="0" class="nv">女
+		    			</div>    
+	                </div>
+	                
+	                <button id="buttonRegister" class="btn btn-primary block full-width m-b">注册</button>
+					<a class="register" href="Login.jsp">已有账号？点击登录</a>
+	            </form>
+	        </div>
+	    </div>
+    
+	</div>
+   
+    <script src="hplus/js/jquery.min.js?v=2.1.4"></script>
+    <script src="hplus/js/jquery.form.js"></script>
+    <script src="hplus/js/bootstrap.min.js?v=3.3.5"></script>
+    <script src="hplus/js/plugins/layer/layer.min.js"></script>
+    <script src="js/ajax.js"></script>
+    <script src="js/formCheck.js"></script>
+    <script>
+$(function() { 
+    //提交按钮点击事件
+    $("#buttonRegister").click(function(){
+    	var obj = {};
+    	//获取登录名
+    	obj.phone = $(".name").val();
+    	//获取密码
+    	obj.password = $(".password").val();
+    	var password2 = $(".password2").val();
+    	//获取姓名
+    	obj.name =  $(".userName").val();
+    	//获取性别
+    	obj.sex = $("input[name='sex']:checked").val();
+    	//获取年龄
+    	obj.age = $(".age").val();
+    	//获取邮箱
+    	obj.email = $(".email").val();
+    	//邮箱验证 正则表达式
+		var reg = /^[a-zA-Z0-9_.-]+@[a-zA-Z0-9-]+(\.[a-zA-Z0-9-]+)*\.[a-zA-Z0-9]{2,6}$/;
+		//验证合理性
+    	if(obj.phone == '' || obj.phone.length != 11 || !$.isNumeric(obj.phone)){
+			layer.msg('电话（账号）不能为空或格式不正确',{icon: 5});
+		}else if(obj.password != password2 || obj.password ==''){
+			layer.msg('两次密码输入不一致或密码为空',{icon: 5});
+		}else if(obj.name == ''){					
+			layer.msg('姓名不能为空',{icon: 5});
+		}else if(!reg.test(obj.email)){
+			layer.msg('邮箱格式不正确',{icon: 5});
+		}else{
+			var sfunc = function(data){
+	    		if(data.success=="true"){
+	    			layer.msg(data.message) ;
+	            	window.location.href="Login.jsp";
+	            }else if(data.success=="false"){
+	            	layer.msg(data.message);
+	            }
+			}
+			//失败回调函数
+			var efunc = function(data){
+				layer.msg('注册失败',{icon: 5});
+			}
+			//发送请求
+			ajaxPost("users/registerUser.do ",obj,sfunc,"",efunc);
+		}
+    	
+    }) 
+}); 
+</script>
+    <!-- 粒子效果 -->
+    <script type="text/javascript" color="255,255,255" opacity='1' zIndex="2" count="50" src="js/canvas-nest.js"></script>
+
+</body>
+
+</html>

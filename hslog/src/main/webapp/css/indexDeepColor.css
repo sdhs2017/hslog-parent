@@ -1,0 +1,114 @@
+.content-tabs{
+	background:#2f4050;
+	border-left:1px solid #293846;
+	border-bottom: solid 2px #3a4d5f;
+	
+}
+.border-bottom{
+	border-bottom:1px solid #293846!important;
+}
+.content-tabs button{
+	background:#2f4050;	
+}
+.content-tabs button:hover{
+	background:#2f4050;
+}
+.content-tabs .roll-right {
+    border-left: solid 1px #3a4d5f;
+}
+.content-tabs .roll-right:hover{
+	background:#2f4050;
+}
+.content-tabs .roll-left {
+    border-right: solid 1px #3a4d5f;
+}
+.content-tabs .roll-left:hover{
+	background:#2f4050;
+}
+.page-tabs a{
+	border-right:#293846;
+}
+.page-tabs a.active{
+	 background: #3a4d5f;
+}
+.page-tabs a:hover {
+    background: #3a4d5f;
+    color: #a7b1c2;
+}
+.footer{
+	background:#2f4050;
+	/* border-top:1px solid #3a4d5f;
+	border-left:1px solid #293846; */
+	border-top:0;
+}
+.threshold{
+	border-left:2px solid #293846; 	
+}
+#content-main{
+	background:#293846;
+}
+.dropdown-menu{
+	background:#293846;
+	box-shadow: 0 3px 15px #4781bb!important;
+}
+.dropdown-menu .divider{
+	background-color:#386c9a;
+}
+.dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover {
+    color: #fff;
+    text-decoration: none;
+    background:#3b5773;
+}
+
+
+.layui-layer-title{
+	color:#9b664c!important;
+	font-weight:600;
+	border-bottom:1px solid #3b5773!important;
+	background:0!important;
+}
+.layui-layer-setwin .layui-layer-close1{
+	background-position: -187px -38px!important;
+}
+.layui-layer{
+	border:0!important;
+	border-radius:5px!important;
+	box-shadow: 0 3px 15px #4781bb!important;
+}
+.layui-layer-content{
+	color:#eee;
+}
+.layui-layer-content,.layui-layer{
+	background-color:#293846!important;
+	border-bottom:1px solid #3b5773;
+	opactiy:0.5;
+} 
+.layui-layer-loading, .layui-layer-loading1{
+	background-color:#2d3d4c!important;
+	box-shadow:none!important;
+}
+.layui-layer-btn a{
+	background:0;
+	border:0;
+	color:#fff;
+	border-radius:5px;
+	box-shadow: 0 3px 15px #4781bb;
+}
+.layui-layer-padding{
+	border:0;
+}
+.layui-layer-msg .layui-layer-content{
+	background-color:#fff!important;
+	color:#333;
+}
+.rangeValue{
+	color:#fff;
+}
+.layui-layer-shade{
+	background:#2f4050!important;
+	opacity: 0.6!important;
+    filter: alpha(opacity=60)!important;
+}
+
+
+

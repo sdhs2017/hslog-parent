@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>控制中心</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		.conBox{
+			height:auto!important;
+			min-height:100%!important;
+			/* display: flex;
+		    justify-content: center;
+		    align-items: center; */
+		    padding-bottom:50px;
+		}
+		.btnConBox{
+			width:630px;
+			height:432px;
+			margin:20px auto;
+		}
+		.serviceConBox{
+			width:620px;
+			height:80px;
+			border:2px solid #4781bb;
+			margin-bottom:20px;
+			margin:0 auto;
+			position: relative;
+   		 	right: 5px;
+   		 	text-align: center;
+   		 	line-height:80px;
+   		 	font-size:26px;
+   		 	font-weight:600;
+		}
+		.btnConBoxTop,.btnConBoxBottom{
+			height:220px;
+		}
+		.serviceBtn{
+			width: 200px;
+		    height: 210px;
+		    float: left;
+		    text-align: center;
+		    color: #2c76bd;
+		    cursor: pointer;
+		    margin-right: 10px;
+		    margin-bottom: 10px;
+		    border: 0;
+		    border:2px solid #4781bb;
+		   /*  border-radius: 5px;
+		    box-shadow: 0 3px 15px #4781bb; */
+		    background: 0;
+		    transition: all .2s linear;
+		}
+		.serviceBtn:hover{
+			transform: translate3d(0 ,-1px ,0);
+    		box-shadow: 0 10px 30px #4781bb;
+		}
+		.serviceBtn i{
+			font-size: 52px;
+		    line-height: 95px;
+		    color: #2c76bd;
+		}
+		#play_service{
+			width:410px;
+		}
+		#play_service i{
+			font-size:72px;
+		}
+		#play_service>div{
+			width:190px;
+			float:left;
+			height:210px;
+			display: flex;
+		    justify-content: center;
+		    align-items: center;
+		}
+		.btnTitle{
+			color: #3298fb;
+			font-size: 24px;
+			font-weight:600;
+		}
+		.btnDescribe{
+			padding:0 10px;
+			color:#6792bd;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<body>
+	<div id="box">
+		<div class="top_title">
+			控制中心
+		</div>
+		<div class="conBox">
+			<div class="serviceConBox">
+				<span>服务状态：</span>
+				<span class="serviceStatus" style="color: rgb(217, 83, 79);">未开启</span>
+			</div>
+			<div class="btnConBox">
+				<div class="btnConBoxTop">
+					<div class="serviceBtn" id="initialize" title="点击初始化"> 
+						<i class="glyphicon glyphicon-repeat"></i>
+						<p class="btnTitle">初始化</p>
+						<p class="btnDescribe">对集群的数据结构进行初始化，保证日志数据正常采集到数据中心</p>
+					</div>
+					<div class="serviceBtn" id="play_service" title="点击开启服务">
+						<div>
+							<i class="glyphicon glyphicon-play"></i>
+						</div>
+						<div>
+							<div>
+								<p class="btnTitle">开启服务</p>
+								<p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div  class="btnConBoxBottom">
+					<div class="serviceBtn" id="stop_service" title="点击停止服务"> 
+						<i class="glyphicon glyphicon-stop"></i>
+						<p class="btnTitle">停止服务</p>
+						<p class="btnDescribe">停止收集各个资产发送过来的日志数据</p>
+					</div>
+					<div class="serviceBtn" id="backup" title="点击备份数据">
+						<i class="glyphicon glyphicon-floppy-disk"></i>
+						<p class="btnTitle">备份</p>
+						<p class="btnDescribe">对集群中的日志数据进行完整的备份操作</p>
+					</div>
+					<div class="serviceBtn" id="recover" title="点击恢复备份">
+						<i class="glyphicon glyphicon-retweet"></i>
+						<p class="btnTitle">恢复备份</p>
+						<p class="btnDescribe">对删除后的数据进行恢复操作（需对删除的数据先进行备份操作）</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/projectCommonJs.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript"  charset="utf-8">
+		//循环查询服务状态 
+		setInterval(getServiceStatus,5000);
+		getServiceStatus();
+		//查看服务状态函数
+		function getServiceStatus(){
+			 $.ajax({
+				type:"post",
+				url:"../../collector/stateKafkaCollector.do",
+				async:true,
+				success:function(data){
+					if(data[0].state == true){
+						$(".serviceStatus").html("已开启");
+						$(".serviceStatus").css("color","#1ab394");
+					}else if(data[0].state == false){
+						$(".serviceStatus").html("未开启");
+						$(".serviceStatus").css("color","#d9534f");
+					}else{
+						console.log(data)
+					}
+				},
+				error:function(error){
+					console.log(error)
+				}
+			}); 
+		}
+		
+		//初始化按钮
+		$("#initialize").click(function(){
+			//询问框
+			layer.confirm('是否初始化？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					if(data[0].state == true){
+						layer.msg(data[0].msg,{icon: 1});
+					}else if(data[0].state == false){
+						layer.msg(data[0].msg,{icon: 5});
+					}
+				/*	//当前按钮隐藏
+					$("#play_service").css("display","none");
+					//暂停按钮显示
+					$("#pause_service").css("display","inline-block");
+					$("#stop_service").attr("disabled",false)*/
+					
+					
+				}
+				//失败回调函数
+				var efunc = function(data){
+					//layer.msg('启动失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../log/createIndexAndMapping.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+	
+		//启动按钮
+		$("#play_service").click(function(){
+			//询问框
+			layer.confirm('是否开启服务？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					if(data[0].state == true){
+						layer.msg(data[0].msg,{icon: 1});
+						$(".serviceStatus").html("已开启");
+						$(".serviceStatus").css("color","#1ab394");
+					}else if(data[0].state == false){
+						layer.msg(data[0].msg,{icon: 5});
+					}
+					//console.log(data)
+					//layer.msg('启动成功',{icon: 1});$(".serviceStatus").html("已开启");
+				/*	//当前按钮隐藏
+					$("#play_service").css("display","none");
+					//暂停按钮显示
+					$("#pause_service").css("display","inline-block");
+					$("#stop_service").attr("disabled",false)*/
+					/*if(data == true){
+						layer.msg('启动成功',{icon: 1});
+					}else{
+						layer.msg('启动失败',{icon: 5});
+					}*/
+					
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('启动失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../collector/startCollectorState.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+	
+	
+		/*//暂停按钮
+		$("#pause_service").click(function(){
+			//询问框
+			layer.confirm('您确定暂停服务么？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					console.log(data)
+					$("#pause_service").css("display","none");
+					$("#play_service").css("display","inline-block");
+					layer.msg('已暂停服务',{icon: 1});
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPostWithOutLayer("",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})*/
+	
+		//停止按钮
+		$("#stop_service").click(function(){
+			//询问框
+			layer.confirm('是否停止服务？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					if(data[0].state == true){
+						layer.msg(data[0].msg,{icon: 1});
+						$(".serviceStatus").html("已停止");
+						$(".serviceStatus").css("color","#d9534f");
+					}else if(data[0].state == false){
+						layer.msg(data[0].msg,{icon: 5});
+					}
+					//console.log(data)
+					/*$("#pause_service").css("display","none");
+					$("#play_service").css("display","inline-block");*/
+					//layer.msg('已停止服务',{icon: 1});
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../collector/stopKafkaCollector.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+		//备份按钮
+		$("#backup").click(function(){
+			//询问框
+			layer.confirm('是否备份日志数据？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					 if(data[0].state == true){
+						layer.msg(data[0].msg,{icon: 1});
+					}else if(data[0].state == false){
+						layer.msg(data[0].msg,{icon: 5});
+					} 
+					//console.log(data)
+					/*$("#pause_service").css("display","none");
+					$("#play_service").css("display","inline-block");*/
+					//layer.msg('备份完成',{icon: 1});
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('备份失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../manage/createSnapshotByIndices.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+		//恢复按钮
+		$("#recover").click(function(){
+			//询问框
+			layer.confirm('是否恢复日志数据？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					 if(data[0].state == true){
+						layer.msg(data[0].msg,{icon: 1});
+					}else if(data[0].state == false){
+						layer.msg(data[0].msg,{icon: 5});
+					} 
+					//console.log(data)
+					/*$("#pause_service").css("display","none");
+					$("#play_service").css("display","inline-block");*/
+					//layer.msg('已恢复成功',{icon: 1});
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('恢复失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../manage/restore.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+	</script>
+</body>
+</html>

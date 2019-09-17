@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>资产管理</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" href="css/bootstrap-wizard.css" />
+		<!-- <link rel="stylesheet" type="text/css" href="../../js/bootstrap/css/bootstrap-switch.css"/> -->
+		<link rel="stylesheet" type="text/css" href="css/device.css"/>
+		<style type="text/css">
+			.wizard-modal p {
+				margin: 0 0 10px;
+				padding: 0;
+			}
+
+			#wizard-ns-detail-servers, .wizard-additional-servers {
+				font-size: 12px;
+				margin-top: 10px;
+				margin-left: 15px;
+			}
+			#wizard-ns-detail-servers > li, .wizard-additional-servers li {
+				line-height: 20px;
+				list-style-type: none;
+			}
+			#wizard-ns-detail-servers > li > img {
+				padding-right: 5px;
+			}
+
+			.wizard-modal .chzn-container .chzn-results {
+				max-height: 150px;
+			}
+			.wizard-addl-subsection {
+				margin-bottom: 40px;
+			}
+			.create-server-agent-key {
+				margin-left: 15px; 
+				width: 90%;
+			}
+			.modal-content {
+				
+				box-shadow: none;	
+			}
+			.searchConditions{
+				border-left:1px solid #ccc;
+			}
+			.searchConditions button{
+				border-radius:0;
+				height:32px;
+			}
+			.searchBoxTitle{
+				line-height:30px;
+			}
+			.btnTools button{
+				border:0!important;
+				background:#ccc!important;
+				border-radius:0;
+			}
+			.btnTools #add{
+				color:#1ab394!important;
+			}
+			.btnTools #remove_device{
+				color:#d9534f!important;
+			}
+			.tools_page a{
+				color:#666;
+			}
+			.tools_page .current{
+				background:#fff!important;
+				color:#1ab394;
+			}
+		</style>
+		<!-- <link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/> -->
+	</head>
+	
+	<body>
+		<div id="box">
+			<div class="top_title">
+				资产列表
+			</div>
+			<div class="device_tools row">
+				<div class="btnTools">
+					<button  class="btn btn-success" id="add" title="添加新的资产"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加资产</button>
+					<button  class="btn btn-danger" id="remove_device" title="删除资产"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除资产</button>
+				</div>
+				<form class="form-inline" onsubmit="return false;">					
+					<!-- <div class="form-group">
+				    	<label>资产名称:</label>
+				    	<input type="text" class="form-control search_deviceName" placeholder="资产名称(可为空)">
+				    	<label>日志类型 ：</label>
+    					<select class="form-control eLogType">
+    						<option disabled selected value=""></option>
+ 							<option value="1">syslog</option>
+ 							<option value="2">winlog</option>
+ 							<option value="3">snmp</option>
+ 							<option value="4">log4j</option>
+ 							<option value="5">mysql</option>
+ 							<option value="6">packetfilteringfirewall_log</option>
+ 						</select>
+				    	<label>主机名:</label>
+				    	<input type="tel" class="form-control search_hostname" placeholder="主机名(可为空)">
+				    	<label>IP:</label>
+				    	<input type="tel" class="form-control search_deviceIp" placeholder="IP(可为空)">
+				    	<button class="btn btn-info search_device" ><i class="glyphicon glyphicon-search"></i>搜索</button>
+				  	</div> -->
+				  	<div class="searchConditions">
+				  		<div class="searchDeviceNameBox">
+							<div class="searchBoxTitle">资产名称</div>
+							<input type="text" class="form-control search_deviceName" placeholder="资产名称(可为空)">
+						</div>
+				  		<div class="searchHostNameBox">
+							<div class="searchBoxTitle">主机名</div>
+							<input type="text" class="form-control search_hostname"  placeholder="主机名">
+						</div>
+				  		<div class="searchIpBox">
+							<div class="searchBoxTitle">IP地址</div>
+							<input type="text" class="form-control search_deviceIp"  placeholder="IP地址">
+						</div>
+						<div class="searchLogTypeBox">
+							<div class="searchBoxTitle">日志类型</div>
+							<select class="form-control logType">
+	    						<option selected value=""></option>
+	 							<!--  <option value="syslog">syslog</option>
+	 							<option value="winlog">winlog</option>
+	 							<option value="snmp">snmp</option>
+	 							<option value="log4j">log4j</option>
+	 							<option value="mysql">mysql</option>
+	 							<option value="netflow">netflow</option>
+	 							<option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option> -->
+	 						</select>
+						</div>
+						<button class="btn btn-primary search_device" ><i class="glyphicon glyphicon-search"></i>搜索</button>
+				  	</div>
+				</form>
+			</div>
+			<div class="row device_box">
+				<div class="col-sm-12">
+					<div class="device_list">
+						<div class="list_con">
+                            <ul class="nav nav-tabs">
+                                <!-- <span class="pull-right small text-muted"> x个设备</span>    -->                          
+                            </ul>
+                            <div class="tab-content">
+                                <div id="tab-1" class="tab-pane active">
+                                    <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="device_list">
+                                            	<thead>
+											        <tr>
+											          	<th><input type="checkbox" id="theadCheck"></th>
+											          	<th>资产名称</th>
+											          	<th>主机名</th>
+											          	<th>资产类型</th>
+											          	<th>日志类型</th>
+											          	<th>IP地址</th>
+											          	<th>进入时间</th>
+											          	<th>更新时间</th>
+											          	<th>截止时间</th>
+											          	<th>是否启用</th>
+											          	<th>操作</th>
+											          	<th width="45px"></th>
+											        </tr>
+											      </thead>
+                                                <tbody>
+                                                   <!--  <tr>   
+                                                    	<td><input type="checkbox" id="theadCheck"></td>
+                                                        <td class="device_name">
+                                                        	<span data-id="001">lenovo</span>
+                                                        </td>
+                                                        <td class="device_hostname">contos6-70-clltest</td>
+                                                        <td class="device_type" data-type="1">服务器</td>
+                                                        <td class="device_ip">192.168.100.20</td>
+                                                        <td class="device_starttime">2017-02-03 18:00:36</td> 
+                                                        <td class="device_updatetime">2017-02-03 18:00:36</td>
+                                                        <td class="device_endtime">2019-02-03 18:00:00</td>  
+                                                        <td class="device_iswork">
+                                                        	<input type="checkbox" name="my-checkbox">
+                                                        	是
+                                                        </td>  
+                                                       	<td class="td_tools">
+                                                       		<i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>
+                                                       		<i class="glyphicon glyphicon-remove device_remove" title="删除"> </i>
+                                                       		<i class="glyphicon glyphicon-list-alt device_logs" title="查询设备日志"> </i>
+                                                       		<i class="glyphicon glyphicon-play device_start" title="开启服务"> </i>
+                                                       		<i class="glyphicon glyphicon-pause device_pause" title="暂停服务"> </i>
+                                                       		<i class="glyphicon glyphicon-stop device_stop" title="关闭服务"> </i>                   
+                                                       	</td>
+                                                    </tr>
+ -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+                                </div>
+                                
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="bottomBox">
+				<div class="tools_page">
+					<span class="current prev">&laquo;</span>
+					<span class="current">1</span>
+					<span class="current next">&raquo;</span>
+				</div>
+				<div class="allCountBox">共检索到的资产数量为<b>0</b>台</div>
+			</div>
+		</div>
+		<!-- 向导模式 -->
+		<div class="wizard" id="satellite-wizard" data-title="">
+			<!-- Step 1 Name & FQDN -->
+			<div class="wizard-card" data-cardname="name">
+				<h3>Step 1</h3>
+				<input type="text" name="aa" id="aa" value="123" />
+			</div>
+
+			<div class="wizard-card" data-cardname="group">
+				<h3>Step 2</h3>
+
+			</div>
+			<div class="wizard-card" data-cardname="group">
+				<h3>Step 3</h3>
+
+			</div>			
+			<div class="wizard-card">
+				<h3>Step 4</h3>
+
+	
+				<div class="wizard-success">
+					<div class="alert alert-success">
+						<span class="create-server-name"></span>Server Created <strong>Successfully.</strong>
+					</div>
+	
+					<a class="btn btn-default create-another-server">Create another server</a>
+					<span style="padding:0 10px">or</span>
+					<a class="btn btn-success im-done">Done</a>
+				</div>
+			</div>
+		</div>
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<!-- 		<script src="../../js/bootstrap/js/bootstrap-switch.js" type="text/javascript" charset="utf-8"></script> -->
+		<script src="../../hplus/js/contabs.min.js"></script>
+		<script src="js/prettify.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/bootstrap-wizard.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/device-n.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			$("#add").click(function(){
+				location.href="addProperty-n.html";
+			})
+		</script>
+	</body>
+</html>

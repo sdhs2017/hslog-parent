@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap-switch.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" type="text/css" href="css/searchLogs.css"/>
+	</head>
+	<style>
+		.top_title{
+			/* padding-right:20px; */
+		}
+		.top_title form{
+			float:right;
+		}
+		.equipmentInfo{
+			padding:0 10px;
+		}
+		#box .form-control{
+			display:block;
+		}
+		.table{
+		    table-layout: fixed;
+		}
+		.searchTimeBox{
+			border: 1px solid #ccc;
+			display: flex;
+			justify-content: center;
+			float:left;
+			/* margin-right:20px; */
+			height:32px;
+			border-left:1px solid #ccc!important;
+		}
+		
+		.searchTimeBox>span{
+			width:20px;
+			text-align: center;
+			display: inline-block;
+			line-height: 30px;
+		}
+		.searchTimeBox>.searchBoxTitle{
+			border:0;
+		}
+		.searchBoxTitle{
+			height:32px;
+			margin-right:1px solid #ccc;
+			line-height:32px;
+			text-align: center;
+			width: 75px;
+			font-size:13px;
+		}
+		
+		.searchConditions{
+			float:right;
+			height:32px;
+			display: flex;
+			font-weight:500;
+			margin-top:5px;
+			justify-content: center;
+		}
+		.searchConditions>div{
+			display: flex;
+			justify-content: left;
+			border:1px solid #ccc;
+			border-left:0;
+		}
+		.searchConditions select,.searchConditions input{
+			width:90px;
+			background:#eee;
+			border-radius:0;
+			border:0;
+			height: 30px;
+			font-size:12px;
+		}
+		.searchConditions input{
+			width:68%;
+		}	
+		.searchTimeBox>input{
+			border: 0;
+			width: 150px;
+			padding-right:0;
+			height:30px;
+			font-size:13px;
+		}
+		.endTimeRemove,.startTimeRemove{				
+			text-align:left;
+			display:inline-block;
+			height:30px;
+			width:15px!important;
+			line-height:30px;
+			cursor:pointer;
+			background:#eee;
+			position:relative;
+			top:0px;
+			font-size:12px;
+		}
+		#searchLogs{
+			border-radius:0;
+		}
+		#removeLogs{
+			margin-right:10px;
+		}
+		.log_filter{
+			margin-left:0;
+		}		
+		.searchLevelBox{
+			position:relative;
+		}
+		.levelListBox{
+			display:none;
+			position:absolute;
+			width:176px;
+			border:1px solid #4781bb;
+			top:32px;
+			left:0;
+			background:#293846;
+			z-index:10;
+		}
+		.levelListBox input{
+			margin:0;
+			margin-right:5px;
+		}
+		.levelListBox li{
+			padding:5px;
+			color:#56a4ef;
+			cursor:pointer;
+			line-height: 20px;
+			text-shadow:none;
+			font-size:14px;
+		}
+		.levelListBox li:hover{
+			color:#fff;
+			background:#307fc9;
+		}
+		.zzDiv{
+			width:100%;
+			height: 100%;
+			position:absolute;
+			z-index:9;
+			top:0;
+			left:0;
+		}
+		.actionWapper{
+			width:340px;
+			height:250px;
+			position:fixed;
+			top:-350px;
+			left:0;
+			border:1px solid #386c9a;
+			background:#2f4050;
+			z-index: 99999999;
+			transition:all 0.4s;
+		}
+		.actionWapper .aw-title{
+			height:40px;
+			line-height:40px;
+			text-align: center;
+			font-size:14px;
+			color:#9b664c;
+			font-weight:600;
+			border-top: 4px solid #2e8ded;
+			border-bottom:1px solid #386c9a;
+		}
+		.actionWapper .aw-content{
+			padding:10px;
+			height:165px;
+		}
+		.actionWapper .aw-content>div{
+			display:flex;
+			justify-content: center;
+			margin-bottom:10px;
+		}
+		.actionWapper .aw-content>div lable{
+			width:100px;
+		}
+		.actionWapper .aw-content>div .keywordsBox{
+			display:inline-block;
+			width:240px;
+			height:108px;
+			border: 0;
+		    background: 0;
+		    color: #56a4ef;
+		    padding: 6px;
+		    border-radius:5px;
+		    box-shadow: 0px 0px 7px 1px #4781bb;
+		    overflow-y:auto;
+		}
+		.keywordsBox span{
+			position:relative;
+			display:inline-block;
+			border:1px solid #386c9a;
+			padding:0 5px;
+			margin-bottom:5px;
+			margin-right:3px;
+			border-radius:5px;
+			word-break: break-all;
+		}
+		.keywordsBox span:hover .removeKeywords{
+			displsy:inline-block;
+		}
+		.keywordsBox span .removeKeywords{
+			display:none;
+			position:absolute;		
+			width:16px;
+			height:16px;
+			line-height:16px;
+			text-align:center;
+			right:-3px;
+			top:-5px;
+			background: #d9534f;
+    		color: #fff;
+    		border-radius:100%;
+    		cursor:pointer;
+		}
+		.actionWapper .aw-content>div .actionName{
+			height:28px;
+			line-height: 28px;
+		}
+		.actionWapper .aw-tools{
+			height:40px;
+		}
+		.actionWapper .aw-tools button{
+			margin-top:8px;
+			border-top:1px solid #ccc;
+			float:right;
+			padding:0 10px;
+			background:0;
+			height:24px;
+			line-height: 24px;
+			border:0;
+		}
+		.actionWapper .aw-tools .actionCommit{
+			background-color: #2e8ded;
+			color:#fff;
+		}
+		.actionWapper .aw-tools .actionCancle{
+			background-color: #f1f1f1;
+			margin-left:6px;
+			margin-right:10px;
+		}
+		.bootstrap-switch {
+			border:none;
+		}
+		.bootstrap-switch .bootstrap-switch-label{
+			background: #386c9a;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	<body class="equipmentLogBody">
+		<div id="box">
+			<div class="top_title">
+				<span></span>
+				<div class="searchConditions">
+					<div class="searchTimeBox">
+						<div class="searchBoxTitle">时间范围</div>
+						<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">  
+						<i class="glyphicon glyphicon-remove startTimeRemove"></i>	
+						<span> ~ </span>
+						<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">  		
+						<i class="glyphicon glyphicon-remove endTimeRemove"></i>	
+					</div>
+					<div class="searchLevelBox">
+						<div class="searchBoxTitle">日志级别</div>
+						<input type="text" class="searchedLevelBox" style="width:100px;color: #56a4ef;padding: 6px 12px;" readonly value=""/>
+						<div class="levelListBox">
+							<ul>
+							</ul>
+						</div>
+					</div>
+					<button  class="btn btn-primary" id="searchLogs"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+					<!-- <a class="openSelect" href="javascript:void(0);">开启拖选</a> -->					
+					<!-- <span style="font-size:16px;margin-left:20px;line-height: 32px;">拖选：</span>
+					<div class="switch" style="border-color:#293846;" title="鼠标拖选日志内容，添加动作开关">
+					    <input name="status" type="checkbox" />
+					</div>	 -->				
+				</div>
+				<!-- <form class="form-inline" onsubmit="return false">
+					<div class="form-group">
+						<input type="text" class="form-control searchWords" id="exampleInputName2" placeholder="输入条件检索日志">
+					</div>
+				  <button  class="btn btn-info" id="searchLogs"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+				</form> -->
+			</div>
+			<div class="equipmentInfo">
+				<!-- <p>设备名称：</p>
+				<p>主机名：</p>
+				<p>类型：</p>
+				<p>IP：</p>
+				<p>进入时间：</p>
+				<p>更新时间：</p>
+				<p>截止时间：</p> -->
+				<div class="tab-content">
+                   <div id="tab-1" class="tab-pane active">
+                       <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+                           <div class="table-responsive">
+                               <table class="table table-hover table-striped" id="device_list">
+	                               	<thead>
+								        <tr>
+								          	<th>资产名称</th>
+								          	<th>主机名</th>
+								          	<th>资产类型</th>
+								          	<th>日志类型</th>
+								          	<th>IP地址</th>
+								          	<th>进入时间</th>
+								          	<th>更新时间</th>
+								          	<th>截止时间</th>
+								          	<th>是否启用</th>
+								        </tr>
+							         </thead>
+                                     <tbody>
+                                         <!--  <tr>   
+                                             <td class="device_name">
+                                             		<span data-id="001">lenovo</span>
+                                             </td>
+                                             <td class="device_hostname">contos6-70-clltest</td>
+                                             <td class="device_type" data-type="1">服务器</td>
+                                             <td class="device_ip">192.168.100.20</td>
+                                             <td class="device_starttime">2017-02-03 18:00:36</td> 
+                                             <td class="device_updatetime">2017-02-03 18:00:36</td>
+                                             <td class="device_endtime">2019-02-03 18:00:00</td>  
+                                             <td class="device_iswork">是</td>                                                        	
+                                         </tr> -->
+                                     </tbody>
+                                 </table>
+                             </div>
+                         </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+                     </div>
+                               
+                 </div>
+			</div>
+			<!-- <div class="search_input">
+				
+			</div> -->
+			
+			<div class="row result_box">
+				<div class="col-sm-2 box_left">
+					<h5>检索历史</h5>
+					<ul class="history_list">
+					</ul>
+				</div>
+				<div class="col-sm-10 box_right">
+					<div class="r_tools">
+						<div class="log_filter">
+							<form class="form-inline" onsubmit="return false" onkeydown="if(event.keyCode==13)return false;">
+								<button  class="btn btn-default" id="removeLogs">删除</button>
+								<div class="form-group">
+									<input type="text" class="form-control filterWords" value=""  placeholder="输入过滤条件">
+								</div>
+							  <button  class="btn btn-default" id="filterLogs">过滤</button>
+							  <button  class="btn btn-default" id="refreshLogs">刷新</button>
+							</form>
+						</div>
+						<div class="allCountBox">共检索到的日志数量为<b>0</b>条,最大展示<select class="form-control maxShowData"><option value="100000">10万</option><option value="200000">20万</option><option value="500000">50万</option><option value="1000000">100万</option><option value="10000000">1000万</option><option value="100000000">1亿</option></select>条</div>
+						<div id="pageBox">
+							
+						</div>
+						
+						<!--<nav aria-label="Page navigation">
+						  	<ul class="pagination">
+						    	<li>
+						      		<a href="#" aria-label="Previous">
+						        		<span aria-hidden="true">&laquo;</span>
+						      		</a>
+						    	</li>
+						    	<li><a href="#">1</a></li>
+						    	<li>
+						      		<a href="#" aria-label="Next">
+						       	 		<span aria-hidden="true">&raquo;</span>
+						      		</a>
+						    	</li>
+						  	</ul>
+						</nav>-->
+					</div>
+					<div class="r_content">
+						<div class="tab-content">
+		                   <div id="tab-1" class="tab-pane active">
+		                       <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+		                           <div class="table-responsive">
+		                               <table class="table table-hover table-striped" id="logs_list">
+			                               	<thead>
+										        <tr class="con_title">
+										          	<!-- <th width="200">时间</th>
+										          	<th width="100">级别</th>
+										          	<th>日志内容</th>
+										          	<th width="100">操作</th> -->
+										        </tr>
+									         </thead>
+		                                     <tbody>
+		                                        <tr>   
+		                                             <!-- <td class="logs_time">2017.7.18 10:10:10 000</td>
+		                                             <td class="logs_level">123</td>
+		                                             <td class="logs_Mes">
+		                                             	<p>Updates: 1 BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20167 139 2017-07-19 16:41:17  Written [{"success":"true","message":"操作成功！","state":"1"}] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@2e54b031] AbstractMessageConverterMethodProcessor.java org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor 20185 150</p>
+													 </td>
+		                                             <td class="logs_tools">
+		                                             	<i class="glyphicon glyphicon-list-alt"></i>
+		                                             </td>		         -->                                                                                         	
+		                                         </tr>
+		                                     </tbody>
+		                                 </table>
+		                             </div>
+		                         </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+		                     </div>
+	                               
+	                 	</div>
+					</div>
+				</div>
+			</div>
+			<div class="actionWapper">
+				<div class="aw-title">添加动作</div>
+				<div class="aw-content">
+					<div>
+						<lable>动作名称：</lable>
+						<input type="text"	class="form-control actionName" />
+					</div>
+					<div>
+						<lable style="width:74px;">选取特征：</lable>
+						<div class="keywordsBox">
+							<!-- <span>已枚举用户的本地组成员身份 <i class="glyphicon glyphicon-remove removeKeywords"></i></span> -->
+						</div>
+					</div>
+				</div>
+				<div class="aw-tools">					
+					<button class="actionCancle">取消</button>
+					<button class="actionCommit">确定</button>
+				</div>	
+			</div>
+		</div>
+		
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap/js/bootstrap-switch.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/highLightText.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/searchLogs.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/equipmentLog.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript" >
+			
+		</script>
+	</body>
+</html>

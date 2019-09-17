@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.assets.dao.IAssetsDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.common.assets.entity.Assets">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="hostName" jdbcType="VARCHAR" property="hostName" />
+		<result column="type" jdbcType="VARCHAR" property="type" />
+		<result column="ip" jdbcType="VARCHAR" property="ip" />
+		<result column="macAdress" jdbcType="VARCHAR" property="macAdress" />
+		<result column="createTime" jdbcType="VARCHAR" property="createTime" />
+		<result column="upDateTime" jdbcType="VARCHAR" property="upDateTime" />
+		<result column="endTime" jdbcType="VARCHAR" property="endTime" />
+		<result column="startUp" jdbcType="INTEGER" property="startUp" />
+		<result column="userId" jdbcType="VARCHAR" property="userId" />
+		<result column="departmentId" jdbcType="INTEGER" property="departmentId" />
+		<result column="logType" jdbcType="VARCHAR" property="logType" />
+		<result column="system" jdbcType="VARCHAR" property="system" />
+		<result column="systemVersion" jdbcType="VARCHAR" property="systemVersion" />
+		<result column="assetNum" jdbcType="VARCHAR" property="assetNum" />
+		<result column="serialNum" jdbcType="VARCHAR" property="serialNum" />
+		<result column="describe" jdbcType="VARCHAR" property="describe" />
+		<result column="valuation" jdbcType="VARCHAR" property="valuation" />
+		<result column="log_level" jdbcType="VARCHAR" property="log_level" />
+		<result column="high_risk" jdbcType="INTEGER" property="high_risk" />
+		<result column="moderate_risk" jdbcType="INTEGER" property="moderate_risk" />
+		<result column="low_risk" jdbcType="INTEGER" property="low_risk" />
+		<result column="departmentNodeId" jdbcType="INTEGER" property="departmentNodeId" />
+		<result column="ports" jdbcType="VARCHAR" property="ports" />
+		<result column="protocol" jdbcType="VARCHAR" property="protocol" />
+		<result column="state" jdbcType="VARCHAR" property="state" />
+		<result column="responseDate" jdbcType="VARCHAR" property="responseDate" />
+		<association property="user" javaType="com.jz.bigdata.common.users.entity.User">
+             <id property="userId" column="id"/>
+             <result property="name" column="userName"/>
+        </association>
+		
+	</resultMap>
+	
+	
+	
+	<resultMap id="BaseResultMapUserName"
+		type="com.jz.bigdata.common.assets.entity.Assets">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="hostName" jdbcType="VARCHAR" property="hostName" />
+		<result column="type" jdbcType="VARCHAR" property="type" />
+		<result column="ip" jdbcType="VARCHAR" property="ip" />
+		<result column="macAdress" jdbcType="VARCHAR" property="macAdress" />
+		<result column="createTime" jdbcType="VARCHAR" property="createTime" />
+		<result column="upDateTime" jdbcType="VARCHAR" property="upDateTime" />
+		<result column="endTime" jdbcType="VARCHAR" property="endTime" />
+		<result column="startUp" jdbcType="INTEGER" property="startUp" />
+		<result column="userId" jdbcType="VARCHAR" property="userId" />
+		<result column="departmentId" jdbcType="INTEGER" property="departmentId" />
+		<result column="logType" jdbcType="VARCHAR" property="logType" />
+		<result column="system" jdbcType="VARCHAR" property="system" />
+		<result column="systemVersion" jdbcType="VARCHAR" property="systemVersion" />
+		<result column="assetNum" jdbcType="VARCHAR" property="assetNum" />
+		<result column="serialNum" jdbcType="VARCHAR" property="serialNum" />
+		<result column="describe" jdbcType="VARCHAR" property="describe" />
+		<result column="valuation" jdbcType="VARCHAR" property="valuation" />
+		<result column="userName" jdbcType="VARCHAR" property="userName" />
+		<result column="log_level" jdbcType="VARCHAR" property="log_level" />
+		<result column="high_risk" jdbcType="INTEGER" property="high_risk" />
+		<result column="moderate_risk" jdbcType="INTEGER" property="moderate_risk" />
+		<result column="low_risk" jdbcType="INTEGER" property="low_risk" />
+		<result column="departmentNodeId" jdbcType="INTEGER" property="departmentNodeId" />
+		<result column="ports" jdbcType="VARCHAR" property="ports" />
+		<result column="protocol" jdbcType="VARCHAR" property="protocol" />
+		<result column="state" jdbcType="VARCHAR" property="state" />
+		<result column="responseDate" jdbcType="VARCHAR" property="responseDate" />
+	</resultMap>
+	
+	
+	<resultMap id="ResultOfInteger" type="java.lang.Integer">  
+	    <result column="budget" property="budget" jdbcType="INTEGER" />  
+	</resultMap>  
+	<!-- 查询字段设置可重复调用 -->
+	<!-- 部门id,name:部门名称,level:部门层级,superiorId:上级id,subordinate:是否有下级（1有0没有）,orderId:位置排序,comment:简介 -->
+	<sql id="Base_Column_List">
+		assets.id, assets.name, hostName, type, ip,createTime,assets.upDateTime,endTime,
+		startUp,userId,assets.departmentId,logType,macAdress,system,systemVersion,assetNum,
+		serialNum,assets.describe,valuation,log_level,high_risk,moderate_risk,low_risk,assets.departmentNodeId,ports
+		,protocol,assets.state,responseDate
+	</sql>
+
+	<!-- 查询所有数据 -->
+	<select id="selectAll" parameterType="com.jz.bigdata.common.assets.entity.Assets"
+		resultMap="BaseResultMapUserName">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" /> 
+		from assets
+	</select>
+<!-- 查询所有数据 -->
+	<select id="selectAllHostName"  resultMap="BaseResultMapUserName">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" /> 
+		from assets
+	
+	</select>
+
+	
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.assets.entity.Assets">
+		insert into assets
+		<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				id,
+			</if>
+			<!-- 判断参数是否为空 -->
+			<if test="name != null  and  name !=''">
+				name,
+			</if>
+			<if test="hostName != null  and  hostName !=''">
+				hostName,
+			</if>
+			<if test="type != null   and  type !=''">
+				type,
+			</if>
+			<if test="ip != null and  ip !=''">
+				ip,
+			</if>
+			<if test="createTime !=null and  createTime !=''">
+				createTime,
+			</if>
+			<if test="upDateTime !=null and  upDateTime !=''">
+				upDateTime,
+			</if>
+				<if test="endTime !=null and  endTime !=''">
+				endTime,
+			</if>
+				<if test="startUp !=null and  startUp !=''">
+				startUp,
+			</if>
+				<if test="departmentId !=null and  departmentId !=''">
+				departmentId,
+			</if>
+				<if test="userId !=null and  userId !=''">
+				userId,
+			</if>
+			<if test="logType !=null and  logType !=''">
+				logType,
+			</if>
+			<if test="macAdress !=null and  macAdress !=''">
+				macAdress,
+			</if>
+			<if test="system !=null and  system !=''">
+				system,
+			</if>
+			<if test="systemVersion !=null and  systemVersion !=''">
+				systemVersion,
+			</if>
+			<if test="assetNum !=null and  assetNum !=''">
+				assetNum,
+			</if>
+			<if test="serialNum !=null and  serialNum !=''">
+				serialNum,
+			</if>
+			<if test="describe !=null and  describe !=''">
+				assets.describe,
+			</if>
+			<if test="valuation !=null and  valuation !=''">
+				valuation,
+			</if>
+			<if test="log_level !=null and  log_level !=''">
+				log_level,
+			</if>
+			<if test="departmentNodeId !=null and  departmentNodeId !=''">
+				departmentNodeId,
+			</if>
+			<if test="ports !=null and  ports !=''">
+				ports,
+			</if>
+			<if test="protocol !=null and  protocol !=''">
+				protocol,
+			</if>
+			<if test="state !=null and  state !=''">
+				state,
+			</if>
+			<if test="responseDate !=null and  responseDate !=''">
+				responseDate
+			</if>
+		</trim> 
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="name != null and  name !=''">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="hostName != null and  hostName !=''">
+				#{hostName,jdbcType=VARCHAR},
+			</if>
+			<if test="type != null and  type !=''">
+				#{type,jdbcType=VARCHAR},
+			</if>
+			<if test="ip != null and  ip !=''">
+				#{ip,jdbcType=VARCHAR},
+			</if>
+			<if test="createTime != null and  createTime !=''">
+				#{createTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="upDateTime !=null and  upDateTime !=''">
+				#{upDateTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="endTime !=null and  endTime !=''">
+				#{endTime,jdbcType=TIMESTAMP},
+			</if>
+			<if test="startUp !=null and  startUp !=''">
+				#{startUp,jdbcType=INTEGER},
+			</if>
+			<if test="departmentId != null and  departmentId !=''">
+				#{departmentId,jdbcType=INTEGER},
+			</if>
+			<if test="userId != null and  userId !=''">
+				#{userId,jdbcType=VARCHAR},
+			</if>
+			<if test="logType != null and  logType !=''">
+				#{logType,jdbcType=VARCHAR},
+			</if>
+			<if test="macAdress != null and  macAdress !=''">
+				#{macAdress,jdbcType=VARCHAR},
+			</if>
+			<if test="system != null and  system !=''">
+				#{system,jdbcType=VARCHAR},
+			</if>
+			<if test="systemVersion != null and  systemVersion !=''">
+				#{systemVersion,jdbcType=VARCHAR},
+			</if>
+			<if test="assetNum != null and  assetNum !=''">
+				#{assetNum,jdbcType=VARCHAR},
+			</if>
+			<if test="serialNum != null and  serialNum !=''">
+				#{serialNum,jdbcType=VARCHAR},
+			</if>
+			<if test="describe != null and  describe !=''">
+				#{describe,jdbcType=VARCHAR},
+			</if>
+			<if test="valuation != null and  valuation !=''">
+				#{valuation,jdbcType=VARCHAR},
+			</if>
+			<if test="log_level != null and  log_level !=''">
+				#{log_level,jdbcType=VARCHAR},
+			</if>
+			<if test="departmentNodeId != null and  departmentNodeId !='' and  departmentNodeId !=0">
+				#{departmentNodeId,jdbcType=INTEGER},
+			</if>
+			<if test="ports !=null and  ports !=''">
+				#{ports,jdbcType=VARCHAR},
+			</if>
+			<if test="protocol !=null and  protocol !=''">
+				#{protocol,jdbcType=VARCHAR},
+			</if>
+			<if test="state !=null and  state !=''">
+				#{state,jdbcType=VARCHAR},
+			</if>
+			<if test="responseDate !=null and  responseDate !=''">
+				#{responseDate,jdbcType=VARCHAR}
+			</if>
+			
+			
+		</trim>
+	</insert>
+	<!-- 删除数据 -->
+	<delete id="delete" parameterType="java.lang.String">
+		delete from assets where id in 
+		<foreach item="ids" index="index" collection="array" open="(" separator="," close=")">  
+	 		#{ids}
+		</foreach>
+	</delete>
+	<!-- 根据id修改数据 -->
+	<update id="updateById" parameterType="com.jz.bigdata.common.assets.entity.Assets">
+		update assets set
+		name=#{name},hostName=#{hostName},type=#{type},ip=#{ip},startUp=#{startUp},logType=#{logType},
+		macAdress=#{macAdress},system=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
+		assets.describe=#{describe},valuation=#{valuation},log_level=#{log_level},
+		<!-- if判断语句 -->
+		<choose>
+			<when test="upDateTime != null and upDateTime !='' and upDateTime !='null'">
+				assets.upDateTime = #{upDateTime},
+			</when>
+			<otherwise>
+				assets.upDateTime =  null ,
+			</otherwise>
+		</choose>
+		<choose>
+			<when test="endTime != null and endTime !='' and endTime !='null'">
+				endTime = #{endTime}
+			</when>
+			<otherwise>
+				endTime = null
+			</otherwise>
+		</choose>
+		
+		where assets.id=#{id}
+	</update>
+
+
+<!-- 	<update id="updateSuperiorId" parameterType="com.jz.bigdata.common.department.entity.Department">
+		<if test="id != null and id !='0'">
+			update department set subordinate=1 where , id=#{id,jdbcType=INTEGER}
+		</if>
+	</update>
+ -->
+ <!-- 查询单个数据 -->
+	<select id="selectAssets" parameterType="com.jz.bigdata.common.assets.entity.Assets"
+		resultMap="BaseResultMapUserName">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />,user.`name` AS userName
+		from assets,user
+		where assets.id=#{id} and user.id=assets.userId
+	</select>
+	
+ <!-- 查询单个数据 -->
+	<select id="selectOneAssets" parameterType="com.jz.bigdata.common.assets.entity.Assets"
+		resultMap="BaseResultMapUserName">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from assets
+		where id=#{id} 
+	</select>
+ 
+ <!--   分页查询所有数据 -->
+	<select id="selectAllByPage" resultMap="BaseResultMapUserName"  >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select 
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from assets
+	    limit #{startRecord},#{pageSize}
+	</select>
+ 
+<!--  查询总数量 -->
+ 	<select id="count"  >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select count(*) as count
+	<!--     引用查询字段 -->
+	    from assets 
+	</select>
+	
+	
+	 <!--   查询增量数据-->
+	<select id="selectByIncrement" resultMap="BaseResultMapUserName"  >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select 
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from assets where 1=1 
+	   <if test="oldDate != null and oldDate !=''" > and createTime  <![CDATA[>]]> #{oldDate,jdbcType=VARCHAR} </if>
+	   
+	   <if test="date != null and date !=''" > and createTime <![CDATA[<=]]> #{date,jdbcType=VARCHAR} </if>
+		
+	</select>
+	
+	
+	<!-- 根据id修改数据 -->
+	<update id="updateState" parameterType="java.lang.String">
+		update assets set state=#{state}
+		<!-- if判断语句 -->
+		<if test="responseDate !=null and  responseDate !=''">
+			,assets.responseDate = #{responseDate}
+		</if>
+		<!-- <choose>
+			<when test="responseDate != null and responseDate !='' and responseDate !='null'">
+				assets.responseDate = #{responseDate},
+			</when>
+			
+		</choose> -->
+		where assets.id=#{id}
+	</update>
+	
+
+	
+	
+</mapper>

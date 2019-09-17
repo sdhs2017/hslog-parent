@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>角色管理</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		.tab{
+			width:793px;
+			margin:50px auto;
+			box-shadow: 0 3px 15px #ccc;
+		}
+		.demo{padding: 1em 0;}
+		a:hover,a:focus{
+		    outline: none;
+		    text-decoration: none;
+		}
+		.tab .nav-tabs{
+		   /*  border: 1px solid #1fc1dd; */
+		   border:0;	
+		   border-top: 1px solid #ccc;
+		}
+		.tab .nav-tabs li{
+		    margin: 0;
+		}
+		.tab .nav-tabs li a{
+		    font-size: 15px;
+		    font-weight:600;
+		    color: #999898;
+		    background: #f8f8f8;
+		    margin: 0;
+		    padding: 13px 78px;
+		    border-radius: 0;
+		    border: none;
+		    border-right: 1px solid #fff;
+		    text-transform: uppercase;
+		    position: relative;
+		}
+		.tab .nav-tabs li a:hover{
+		    border-top: none;
+		    border-bottom: none;
+		    background:#d5eff1;
+		}
+		.tab .nav-tabs li.active a,
+		.tab .nav-tabs li.active a:hover{
+		    color: #fff;
+		    border: none;
+		    background: #1fc1dd;
+		    border-right: 1px solid #ddd;
+		}
+		.tab .nav-tabs li.active a:before{
+		    content: "";
+		    width: 58%;
+		    height: 4px;
+		    background: #fff;
+		    position: absolute;
+		    top: 0;
+		    left: 0;
+		    right: 0;
+		    margin: 0 auto;
+		}
+		.tab .nav-tabs li.active a:after{
+		    content: "";
+		    border-top: 10px solid #1fc1dd;
+		    border-left: 10px solid transparent;
+		    border-right: 10px solid transparent;
+		    position: absolute;
+		    bottom: -10px;
+		    left: 43%;
+		}
+		.tab .tab-content{
+		    font-size: 13px;
+		    color: #999898;
+		    line-height: 25px;
+		    background: #fff;
+		    padding: 20px;
+		   /*  border: 1px solid #1fc1dd; */
+		    border-top: none;
+		}
+		.tab .tab-content h3{
+		    font-size: 24px;
+		    color: #999898;
+		    margin-top: 10px;
+		    margin-bottom:40px;
+		}
+		@media only screen and (max-width: 480px){
+		    .tab .nav-tabs li{
+		        width: 100%;
+		        text-align: center;
+		    }
+		    .tab .nav-tabs li.active a,
+		    .tab .nav-tabs li.active a:after,
+		    .tab .nav-tabs li.active a:hover{
+		        border: none;
+		    }
+		}
+		.roleContentBox{
+			margin-bottom:50px;
+			padding:0 10px;
+		}
+		.roleContentBox h5{
+			margin-top:13px;
+			margin-bottom:3px;
+		}
+		.roleContentBox span{
+			display:inline-block;
+			padding: 0 10px;
+		    border: 1px solid #ccc;
+		    border-radius: 5px;
+		    margin: 6px 6px;
+		    font-size:12px;
+		    cursor:pointer;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<body>
+	<div id="box">
+		<div class="top_title">
+			角色管理
+		</div>
+		<div>
+			<div class="tab" role="tabpanel">
+                <!-- Nav tabs -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active"><a href="#Section1" aria-controls="home" role="tab" data-toggle="tab">管理员</a></li>
+                    <li role="presentation"><a href="#Section2" aria-controls="profile" role="tab" data-toggle="tab">操作员</a></li>
+                    <li role="presentation"><a href="#Section3" aria-controls="messages" role="tab" data-toggle="tab">审查员</a></li>
+                    <li role="presentation"><a href="#Section4" aria-controls="messages" role="tab" data-toggle="tab">游客</a></li>
+                </ul>
+                <!-- Tab panes -->
+                <div class="tab-content tabs">
+                    <div role="tabpanel" class="tab-pane fade in active" id="Section1">
+                        <h3>功能描述</h3>
+                        <div class="roleContentBox roleCon0">
+                        	                                                                                                                                                     
+                        </div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane fade" id="Section2">
+                       	<h3>功能描述</h3>
+                        <div class="roleContentBox roleCon1"></div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane fade" id="Section3">
+                      	<h3>功能描述</h3>
+                        <div class="roleContentBox roleCon2"></div>
+                    </div>
+                    <div role="tabpanel" class="tab-pane fade" id="Section4">
+                       	<h3>功能描述</h3>
+                        <div class="roleContentBox roleCon3"></div>
+                    </div>
+                </div>
+            </div>
+		</div>
+		
+	</div>
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript"  charset="utf-8">
+		  /* $.ajax({
+			type:"get",
+			url:"role.json",
+			success:function(data){
+				for(var i in data.manager){
+					var spanStr = '<h5>'+data.manager[i].title+'</h5>'
+					for(var j in data.manager[i].content){
+						spanStr += '<span>'+data.manager[i].content[j]+'</span>'
+					}
+					$(".manager").append(spanStr)
+				}
+				for(var i in data.operator){
+					var spanStr = '<h5>'+data.operator[i].title+'</h5>'
+					for(var j in data.operator[i].content){
+						spanStr += '<span>'+data.operator[i].content[j]+'</span>'
+					}
+					$(".operator").append(spanStr)
+				}
+				for(var i in data.examinant){
+					var spanStr = '<h5>'+data.examinant[i].title+'</h5>'
+					for(var j in data.examinant[i].content){
+						spanStr += '<span>'+data.examinant[i].content[j]+'</span>'
+					}
+					$(".examinant").append(spanStr)
+				}
+				for(var i in data.visitor){
+					var spanStr = '<h5>'+data.visitor[i].title+'</h5>'
+					for(var j in data.visitor[i].content){
+						spanStr += '<span>'+data.visitor[i].content[j]+'</span>'
+					}
+					$(".visitor").append(spanStr)
+				}
+			},
+			error:function(err){
+				layer.msg('删除失败',{icon: 5});
+				console.log(err)
+			}
+		})  */
+		 var sfunc = function(data){
+			 var i =0;
+			var paramV = '';
+			for(var k in data){
+				var managerArr = [];
+				if(i == 0){
+					paramV = '.roleCon0';
+					managerArr = data.administrators;
+				}else if(i == 1){
+					paramV = '.roleCon1';
+					managerArr = data.operator;
+				}else if(i == 2){
+					paramV = '.roleCon2';
+					managerArr = data.examiner;
+				}else if(i == 3){
+					paramV = '.roleCon3';
+					managerArr = data.visitor;
+				}
+				for(var j in managerArr){
+					var obj = managerArr[j];
+					var resourceVal = obj.resource;
+					var title = resourceVal.split("/")[2];
+					switch (title){
+						case "collector" : case "log":							
+							if($(paramV+">.logTit").length == 0){
+								$(paramV).append("<h5 class='logTit'>日志、事件管理模块<h5>")	
+								$(paramV).append("<div class='logCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.logCon").append(spanStr)
+							break;
+						case "users":
+							if($(paramV+">.usersTit").length == 0){
+								$(paramV).append("<h5 class='usersTit'>用户模块<h5>")	
+								$(paramV).append("<div class='usersCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.usersCon").append(spanStr)
+							break;
+						case "equipment":
+							if($(paramV+">.equipmentTit").length == 0){
+								$(paramV).append("<h5 class='equipmentTit'>资产模块<h5>")	
+								$(paramV).append("<div class='equipmentCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.equipmentCon").append(spanStr)
+							break;
+						case "department":
+							if($(paramV+">.departmentTit").length == 0){
+								$(paramV).append("<h5 class='departmentTit'>组织机构模块<h5>")	
+								$(paramV).append("<div class='departmentCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.departmentCon").append(spanStr)
+							break;
+						
+						case "function":
+							if($(paramV+">.functionTit").length == 0){
+								$(paramV).append("<h5 class='functionTit'>角色管理模块<h5>")	
+								$(paramV).append("<div class='functionCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.functionCon").append(spanStr)
+							break;
+						case "note":
+							if($(paramV+">.noteTit").length == 0){
+								$(paramV).append("<h5 class='noteTit'>平台管理模块<h5>")	
+								$(paramV).append("<div class='noteCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.noteCon").append(spanStr)
+							break;
+						case "manage":
+							if($(paramV+">.manageTit").length == 0){
+								$(paramV).append("<h5 class='manageTit'>存储模块<h5>")	
+								$(paramV).append("<div class='manageCon'></div>")	
+							}
+							var spanStr = '<span id="obj.id">'+obj.describes+'</span>'
+							$(paramV+">.manageCon").append(spanStr)
+							break;
+						default:
+							break;
+					}
+				}
+				i++;
+			}
+				
+		}	
+		var efunc = function(data){
+			console.log(data)
+		}
+		//发送请求
+		ajaxPost("../../function/selectAll.do",'',sfunc,efunc); 
+	</script>
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<meta charset="utf-8" />
+		<title>用户管理</title>
+		<link rel="stylesheet" type="text/css" href="css/bootstrap.css"/>
+		<!--<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css"/>-->
+		<link rel="stylesheet" type="text/css" href="css/easyui.css"/>
+		<link rel="stylesheet" type="text/css" href="css/icon.css"/>
+		<link rel="stylesheet" type="text/css" href="css/userMa.css"/>	
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>	
+	</head>
+	<body>
+		<div id="box" class="row">
+			<div class="col-sm-12 top_title">
+				用户管理 
+			</div>
+			<div class="row user_content">
+				<div class="col-sm-3">
+					<div class="userTreeBox">
+						<h5>机构列表
+							<div class="h_tools">
+								<div class="create">
+									<button class="btn btn-sm " title="添加机构">
+										<span class="glyphicon glyphicon-plus"></span>
+									</button>
+								</div>
+								<div class="edit">
+									<button class="btn  btn-sm " title="修改选中机构">
+										<span class="glyphicon glyphicon-edit"></span>
+									</button>
+								</div>
+								<div class="remove">
+									<button class="btn  btn-sm " title="删除选中机构">
+										<span class="glyphicon glyphicon-remove"></span>
+									</button>
+								</div>
+							</div>
+						</h5>
+						<div class="user_tree">
+							<div class="treeBox ">
+								
+		   		 			</div>	
+						</div>
+					</div>
+				</div>
+				<div class="col-sm-9">
+					<!-- <h5>信息列表</h5> -->
+					<div class="user_list">
+						<h4><span class="companyName"></span></h4>
+						<div class="user_tools row">
+							<button class="btn user_add " ><i class="glyphicon glyphicon-plus"></i>&nbsp;添加用户</button>
+							<button class="btn user_removeMore "  ><i class="glyphicon glyphicon-remove"></i>&nbsp;删除用户</button>
+							<form class="form-inline" onsubmit="return false;">					
+								<div class="form-group">
+							    	<label for="exampleInputName2">姓名:</label>
+							    	<input type="text" class="form-control search_name" placeholder="输入姓名检索(可为空)">
+							    	<label for="exampleInputEmail2">账号:</label>
+							    	<input type="tel" class="form-control search_phone" placeholder="输入账号检索(可为空)">
+							    	<button class="btn btn-info search_user" ><i class="glyphicon glyphicon-search"></i>&nbsp;搜索</button>
+							  	</div>
+							</form>
+						</div>
+						<div class="list_con">
+							<div class="clients-list">
+                           <!--  <ul class="nav nav-tabs">
+                                <span class="pull-right small text-muted">14 个用户</span>
+                                <li class="active"><a data-toggle="tab" href="#tab-1" aria-expanded="true"><i class="fa fa-user"></i> 联系人</a>
+                                </li>
+                            </ul> -->
+                            	
+                            	<div class="tab-content" style="position:relative;">
+                                	<div style="position:absolute;z-index: 1000;background:#fff;top:0;width:100%" id="userTableHead"> 
+                                		<table class="table table-striped table-hover" style="margin-bottom:0;">
+                                			<thead>
+										        <tr>
+										          	<th width="4%"><input type="checkbox" id="theadCheck" onclick="theadCheck()"></th>
+										          	<th width="6%"></th>
+										          	<th width="14%">账号</th>
+										          	<th width="10%">姓名</th>
+										          	<th width="6%">性别</th>
+										          	<th width="6%">年龄</th>
+										          	<th width="8%">部门</th>
+										          	<th width="8%">角色</th>
+										         	<th width="20%">邮箱</th>
+										         	<th width="8%">状态</th>
+										         	<th width="10%">操作</th>
+										        </tr>
+										     </thead>
+                                		</table>  
+                                	</div>                            
+	                                <div class="table-responsive">
+		                                <table class="table table-striped table-hover" id="user_list">
+			                                <thead>
+												<tr>
+										          	<th width="4%"><input type="checkbox" id="theadCheck" onclick="theadCheck()"></th>
+										          	<th width="6%"></th>
+										          	<th width="14%">电话</th>
+										          	<th width="10%">姓名</th>
+										          	<th width="6%">性别</th>
+										          	<th width="6%">年龄</th>
+										          	<th width="8%">部门</th>
+										          	<th width="8%">角色</th>
+										         	<th width="20%">邮箱</th>										         	
+										         	<th width="8%">状态</th>
+										         	<th width="10%">操作</th>
+										        </tr>
+											</thead>
+			                                <tbody>
+													
+			                                </tbody>
+		                                </table>
+	                                </div>                                   
+	                                
+	                                
+	                            </div>
+
+                        	</div>
+						</div>
+					</div>
+					<div class="pageBox">
+						<div class="tools_page">
+							<span class="current prev">上一页</span>
+							<span class="current">1</span>
+							<span class="current next">下一页</span>
+						</div>
+						<div class="allCountBox">共检索到的用户数量为<b>0</b>人</div>
+					</div>
+					
+				</div>
+				<!-- <div class="col-sm-3">
+					<h5>详细信息</h5>
+					<div class="user_info">
+						<div class="row m-b-lg">
+                            <div class="col-lg-4 text-center">
+                                <h2>李雪</h2>
+                                <div class="m-b-sm">
+                                    <img alt="image" class="img-circle" src="img/a2.jpg" style="width: 102px">
+                                </div> 
+                            </div>
+                            <div class="col-lg-8">
+                                <h3>个人简介</h3> 
+                                <p>李彦宏，百度公司创始人、董事长兼首席执行官，全面负责百度公司的战略规划和运营管理。</p>
+                                <p>
+                                    1991年，李彦宏毕业于北京大学信息管理专业，随后前往美国布法罗纽约州立大学完成计算机科学硕士学位，先后担任道·琼斯公司高级顾问、《华尔街日报》网络版实时金融信息系统设计者，以及国际知名互联网企业——Infoseek公司资深工程师。李彦宏所持有的“超链分析”技术专利，是奠定整个现代搜索引擎发展趋势和方向的基础发明之一。
+                                </p> 
+                            </div>
+                        </div>
+					</div>
+				</div> -->
+			</div>
+		</div>
+		
+		<script src="js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/bootstrap.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.slimscroll.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/jquery.easyui.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/userM.js" type="text/javascript" charset="utf-8"></script>	
+		<script src="../../js/formCheck.js"></script>	
+		<script type="text/javascript">
+			
+		</script>
+	</body>
+</html>

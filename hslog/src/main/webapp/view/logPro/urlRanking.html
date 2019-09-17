@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>URL 排行</title>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/animate.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../js/datepicker/css/datepicker.css"/>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+		<style type="text/css">
+			#box{
+				padding: 10px;
+			    width: 100%;
+			    height: 100%;
+			    /* overflow-y: auto; */
+			}
+			.rankingListBox span{
+				display:inline-block;
+				font-weight:600;
+			}	
+			.ipRanking,.portRanking{
+			    display: flex;
+			}
+			.startIpBox,.endIpBox,.startPortBox,.endPortBox{			
+				width:50%;
+				padding:40px;
+				padding-top:10px;	
+			}
+			.startIpBox,.endIpBox{
+				border-bottom:1px solid #4b759e;
+			}
+			.startIpBox,.startPortBox{
+				border-right:1px solid #4b759e;
+			}
+			/*  */
+			.listBox{
+				max-width: 630px;
+				/* height: 600px; */
+				background: #3b5773;
+				margin: 10px auto;
+			}
+			.title{
+				height: 60px;
+			    line-height: 60px;
+			    border-bottom: 1px dashed #6598c7;
+			    text-align: center;
+			    font-size: 18px;
+			    font-weight: 600;
+			    color: #fff;
+			}
+			.listContent{
+				padding: 10px;
+			}
+			.listContent ul{
+				padding-right:40px;
+			}
+			li{
+				height: 46px;
+				margin-bottom: 1px;	
+				overflow: hidden;
+				color: #fff;
+				font-weight: 600;
+				/*display: flex;*/		
+			}
+			li:hover{
+				cursor: pointer;
+				box-shadow:6px 6px 15px #6592bb;
+			}
+			.list_left{
+				height: 100%;
+				width: 66px;
+				display: flex;
+				position: relative;
+				float: left;
+			}
+			.list_left .rect{
+				width: 20px;
+				height: 100%;
+				background: #245d92; 
+				border-radius: 5px 0 0 5px;
+			}
+			.list_left .order{
+				position: absolute;
+			    left: 9px;
+			    top: 12px;
+			    font-size: 14px;
+			    font-weight: 600;
+			    height: 24px;
+			    line-height: 24px;
+			    width: 26px;
+			    text-align: center;
+			    color: #fff;
+			    border-bottom: 1px solid #fff;
+			}
+			.list_left .triangle{
+				/*width: ;
+				height: 100%;*/
+				width: 0;
+			    height: 0;
+			    border-bottom: 46px solid #245d92;
+			    border-right: 46px solid transparent;
+			}
+			.list_right{
+				margin:3px 0;
+				height: 40px;
+				width: 100%;
+				background: #4b759e;	
+				border-radius: 0 5px 5px 0;
+			}
+			.list_right>div{
+				float: left;
+				line-height: 40px;
+			}
+			.list_right .emptyBox{
+				width: 66px;
+			}
+			.list_right .text{
+				width: calc(100% - 166px);
+				height: 100%;
+				text-align: center;
+				white-space: nowrap; 
+				overflow: hidden; 
+				text-overflow: ellipsis;				
+			}
+			.list_right .num{
+				width: 100px;
+				height: 100%;
+				text-align: center;
+			}
+			.firstItem{
+				color: #f75656;
+				font-weight: 600;
+			}
+			.firstItem .list_left .rect{
+				background: #f75656;
+			}
+			.firstItem .list_left .triangle{
+				border-bottom: 46px solid #f75656;
+			}
+			.secondItem{
+				color: #ff8547;
+				font-weight: 600;
+			}
+			.secondItem .list_left .rect{
+				background: #ff8547;
+			}
+			.secondItem .list_left .triangle{
+				border-bottom: 46px solid #ff8547;
+			}
+			.thirdItem{
+				color: #ffac38;
+				font-weight: 600;
+			}
+			.thirdItem .list_left .rect{
+				background: #ffac38;
+			}
+			.thirdItem .list_left .triangle{
+				border-bottom: 46px solid #ffac38;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				应用画像
+			</div>
+			<div class="datepickerBox" style="width:350px;display:flex; height: 35px;line-height: 35px;padding-left:10px;">
+				<span style="font-weight:600;">日期范围：</span>
+		        <div class="c-datepicker-date-editor  J-datepicker-range-day mt10">
+		        	<i class="c-datepicker-range__icon kxiconfont icon-clock"></i>
+		            <input placeholder="开始日期" name="" class="c-datepicker-data-input only-date startTime" value="">
+		            <span class="c-datepicker-range-separator">-</span>
+		            <input placeholder="结束日期" name="" class="c-datepicker-data-input only-date endTime" value="">
+		        </div>				
+			</div>
+			<div class="urlRankingCon">
+				<div class="listBox">
+					<div class="title"></div>
+					<div class="listContent">
+						<ul></ul>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/datepicker/js/plugins/moment.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/datepicker/js/datepicker.all.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			$(function(){
+				//年月日范围
+			    $('.J-datepicker-range-day').datePicker({
+			      hasShortcut: true,
+			      format: 'YYYY-MM-DD',
+			      isRange: true,
+			      shortcutOptions: [{
+			            name: '最近7天',
+			            day: '-7,0'
+			          }, {
+			            name: '最近30天',
+			            day: '-30,0'
+			          }, {
+			            name: '最近90天',
+			            day: '-90, 0'
+			          }],
+			      	hide:function(){
+			      		var startTime = $(".startTime").val();
+			      		var endTime = $(".endTime").val();
+			      		//console.log(startTime+'-----'+endTime)
+			      		//获取数据
+			      		getRankingData(startTime,endTime);
+			      	}
+			    }) 
+		 	})
+			var newDate = new Date();
+			var curDate = newDate.toLocaleDateString();
+			var curYear = newDate.getFullYear();
+			var curMonth = newDate.getMonth() + 1;
+			var curDay = newDate.getDate();
+			if(curMonth < 10){
+				curMonth = '0'+curMonth
+			}
+			if(curDay < 10){
+				curDay = '0' + curDay;
+			}
+			var startTime = curYear+'-'+curMonth+'-01';
+			var endTime = curYear+'-'+curMonth+'-'+curDay;
+			$(".startTime").val(startTime);
+			$(".endTime").val(endTime);
+			
+			var rankingTitle = "URL Top10 排行";
+			var sendObj = {};//参数
+			var url = "../../log/getCountGroupByUrl.do"
+			//获取存放在标签页标题中的数据
+			var getObj = $('.page-tabs-content', parent.document).click().children("a.active").attr("data-obj");
+			//判断是否是功能url排行榜
+			if(getObj !== undefined){
+				//将获取的本地sessionstorage字符串转换为obj对象格式
+				var obj = JSON.parse(getObj.replace(/'/g,"\""));	
+				if(obj.application_layer_protocol !== undefined){//指定资产的应用画像 排行
+					rankingTitle =obj.ipv4_dst_addr +" URL 排行";
+					sendObj.ipv4_dst_addr = obj.ipv4_dst_addr;
+					sendObj.application_layer_protocol = obj.application_layer_protocol;
+					$(".top_title").html("'"+obj.ipv4_dst_addr +"' 应用画像");
+				}else{ //功能排行
+					rankingTitle = "功能URL排行";
+					sendObj.domain_url = obj.domain_url;
+					url = "../../log/getCountGroupByHttpComUrl.do";
+					$(".top_title").html("'"+obj.domain_url +"' 功能排行")
+				}
+				
+			}
+			//填充标题
+			$(".listBox .title").html(rankingTitle)
+			
+			getRankingData(startTime,endTime);
+			//获取数据方法
+			function getRankingData(startTime,endTime){
+				sendObj.startTime = startTime;
+				sendObj.endTime = endTime;
+				//获取排行榜数据
+				var sfunc =  function(data){
+					var arr = data;
+					var html = "";
+					for(var i = 0;i<arr.length;i++){
+						var className = '';//class名 用于颜色显示
+						//判断顺序 添加class名
+						if(i == 0){
+							className = 'firstItem';
+						}else if(i == 1){
+							className = 'secondItem';
+						}else if(i == 2){
+							className = 'thirdItem';
+						}
+						var obj = arr[i];
+						//判断次数大小 超过一万 做万位处理
+						if(obj.count > 10000){
+							count = (Number(obj.count) / 10000).toFixed(1) + ' 万';
+						}else {
+							count = obj.count;
+						}
+						if(i < 9){
+							order = '0' + (i+1);
+						}else{
+							order = (i+1);
+						}
+						var text = "";
+						if(getObj !== undefined){//功能url-指定应用资产排行
+							if(obj.complete_url !== undefined){ //功能url
+								text = obj.complete_url;
+							}else{ //指定应用资产排行
+								text = obj.domain_url;
+							}
+							
+						}else{//服务画像
+							text = obj.domain_url;
+						}
+						
+						html += '<li class="'+className+'" data-count="'+obj.count+'" data-val="'+obj.url+'">'
+							 +		'<div class="list_left">'
+							 +			'<div class="rect"></div>'
+							 +		    '<div class="triangle"></div>'
+							 +			'<div class="order">'+ order +'</div>'
+							 +		'</div>'
+							 + 		'<div class="list_right">'
+							 +			'<div class="emptyBox"></div>'
+							 +			'<div class="text" title="'+text+'">'+text+'</div>'
+							 +			'<div class="num">'+count+'</div>'
+							 +		'</div>'
+							 +  '</li>'			
+					}
+					//添加到页面中
+					$(".listContent ul").html(html);
+				}
+				var efunc = function(err){
+					console.log(err)
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost(url,sendObj,sfunc,"",efunc);
+			}
+			
+			
+			
+			var htmlNum = 0;
+			//列表点击事件
+			$(".listContent ul").on("click","li",function(event){
+				//获取当前点击的值
+				var textUrl = $(this).find(".text").html();
+				//判断页面类型
+				if(getObj == undefined || JSON.parse(getObj.replace(/'/g,"\"")).application_layer_protocol !== undefined){//url排行页面
+					$(".selectedMenu").remove();
+					//页面添加选项菜单
+					var html = '<div class="selectedMenu animated bounceIn" style="position: fixed;width: 80px; color:#fff;box-shadow: 0 3px 15px #4781bb;font-size: 12px;background: rgb(52, 114, 174);z-index: 99999999900;display: none;">'
+							 +   	'<div class="menuRanking" style="width:100%;height: 30px;text-align: center;cursor: pointer;line-height: 30px;border-bottom: 1px solid rgb(92, 144, 192);">排行榜</div>'
+							 +   	'<div class="menuGraph" style="width:100%;height: 30px;text-align: center;cursor: pointer;line-height: 30px;border-bottom: 1px solid rgb(92, 144, 192);">业务流</div>'
+							 +   	'<div class="menuCancle" style="width:100%;height: 30px;text-align: center;cursor: pointer;line-height: 30px;">取消</div>'
+							 +	'</div>'
+					var zz = '<div class="zzDiv" style="position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.2);z-index:100"></div>'
+					$("body").append(html);
+					$("body").append(zz);
+					$(".selectedMenu>div").hover(function(){
+						$(this).css("background","rgb(29, 80, 128)");
+					},function(){
+						$(this).css("background","rgb(52, 114, 174)");
+					})
+					//显示菜单
+					 var e = event || window.event || arguments.callee.caller.arguments[0];
+					var mouseX = e.originalEvent.x || e.originalEvent.layerX || 0;
+					var mouxeY = e.originalEvent.y || e.originalEvent.layerY || 0;
+					 /* var scrollX=document.documentElement.scrollLeft||document.body.scrollLeft;//分别兼容ie和chrome
+				    var scrollY=document.documentElement.scrollTop||document.body.scrollTop;
+				    var mouseX=e.pageX||(e.clientX+scrollX);//兼容火狐和其他浏览器
+				    var mouxeY=e.pageY||(e.clientY+scrollY); */
+					$(".selectedMenu").css({"display":"block","left":mouseX,"top":mouxeY});
+				  	//菜单排行榜点击事件
+					$(".menuRanking").click(function(){
+						var obj = {};
+						obj.domain_url = textUrl;
+						//将对象转换为字符串
+						var objstr = JSON.stringify(obj);
+						//将  " 替换成 '
+						var urlStr = '';
+						objstr = objstr.replace(/"/g,"'");
+						jumpHtml("logPro/urlRanking.html",textUrl,' 排行',objstr);	
+						$(".selectedMenu").remove();
+						$(".zzDiv").remove();
+					})
+					//菜单业务流点击事件
+					$(".menuGraph").click(function(){
+						var obj={};
+						obj.domain_url = textUrl;
+						//将对象转换为字符串
+						var objstr = JSON.stringify(obj);
+						//将  " 替换成 '
+						var urlStr = '';
+						objstr = objstr.replace(/"/g,"'");
+						jumpHtml("logPro/urlGraph.html",textUrl,' 业务流',objstr);
+						$(".selectedMenu").remove();
+						$(".zzDiv").remove();
+					})
+					//菜单取消点击事件
+					$(".menuCancle").click(function(){
+						$(".selectedMenu").addClass("bounceOut");
+						$(".selectedMenu").remove();
+						$(".zzDiv").remove();
+					})
+					$(".zzDiv").click(function(){
+						$(".selectedMenu").remove();
+						$(".zzDiv").remove();
+					})
+										
+				}else {//功能url排行
+					var obj = {};
+					obj.complete_url = textUrl;
+					obj.domain_url = sendObj.domain_url;
+					//将对象转换为字符串
+					var objstr = JSON.stringify(obj);
+					//将  " 替换成 '
+					var urlStr = '';
+					objstr = objstr.replace(/"/g,"'");
+					jumpHtml("logPro/urlGraph.html",textUrl,' 业务流',objstr);
+				}								
+			})	
+			
+			//跳转页面 src-页面路径  dataVal-标签名 type-页面类型（排行榜、关系图） objStr-值的集合
+			function jumpHtml(src,dataVal,type,objStr){
+				var urlStr = "";
+				if(dataVal.length > 15){
+					urlStr = dataVal.substring(0,15)+'...'
+				}else{
+					urlStr = dataVal;
+				}
+				 var html ='<a href="javascript:;" class="active J_menuTab" data-obj="'+objStr+'" title="'+dataVal+'" data-id="'+src+htmlNum+'">'+urlStr+type+'<i class="fa fa-times-circle"></i></a>'
+					//移除导航菜单选中属性
+					$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+					//添加导航菜单
+					$('.page-tabs-content', parent.document).click().append(html);
+					var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="'+src+'" frameborder="0" data-id="'+src+htmlNum+'" seamless="" style="display: inline;"></iframe>'
+					//移除其他页面
+					$('#content-main', parent.document).click().children("iframe").hide();
+					$('#content-main', parent.document).click().append(iframe);
+					htmlNum++;
+			}
+		</script>
+		
+	</body>
+</html>

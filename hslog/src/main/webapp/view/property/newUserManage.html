@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<!--<link rel="shortcut icon" href="favicon.ico"> -->
+		<link href="css/bootstrap.min.css?v=3.3.5" rel="stylesheet">
+	    <link href="css/font-awesome.min.css?v=4.4.0" rel="stylesheet">
+	
+	    <!-- Morris -->
+	    <!--<link href="css/plugins/morris/morris-0.4.3.min.css" rel="stylesheet">-->
+	
+	    <!-- Gritter -->
+	    <!--<link href="js/plugins/gritter/jquery.gritter.css" rel="stylesheet">-->
+	
+	    <link href="css/animate.min.css" rel="stylesheet">
+	    <link href="css/style.min.css?v=4.0.0" rel="stylesheet"><base target="_blank">
+		<style>
+			.ibox{
+				margin-bottom: 0;
+			}
+			.ibox-title{
+				background: none;
+				border-top: none;
+				border-bottom: 2px solid #e7eaec;
+			}
+			.ibox-content{
+				background:none;
+			}
+			.ibox-content-left,.ibox-content-right{
+				float: left;
+				margin: 0 5px;
+			} 
+			.company{
+				width: 302px;
+				height: 120px;
+				border-radius: 5px;
+				overflow: hidden;
+				cursor: pointer;
+				float: left;
+				margin: 5px;	
+				position: relative;
+			}
+			.company_img{
+				width: 120px;
+				height: 120px;				
+				float: left;
+				background-color: #A37BC4;
+				text-align: center;
+			}
+			.company_img>span{
+				margin-top: 22px;
+				font-size: 70px;
+				color: #fff;
+			}
+			.company_txt{
+				width: 180px;
+				height:120px;
+				float: left;
+				background: #fff;
+			}
+			.company_zz{
+				width: 100%;
+				height: 120px;
+				border-radius:5px ;
+				position: absolute;
+				top: 0;
+				background:rgba(0,0,0,0.8);
+				color: #fff;
+				text-align: center;
+				line-height: 120px;
+				font-size: 45px;
+				font-weight: 600;
+			}
+			.btn_tools{
+				position: absolute;
+				right: 11px;
+				top: 0px;
+				width: 20px;
+				padding: 2px;
+				z-index: 5;
+				opacity: 0;
+			}
+			.btn_tools>span{
+				display: inline-block;
+				width: 20px;
+				height: 20px;
+				line-height: 20px;
+				text-align: center;				
+				border-radius: 100%;
+				margin: 3px;
+				font-size: 12px;
+			}
+			.btn_remove{
+				border: 1px solid darkred;
+				color:darkred;
+			}
+			.btn_remove:hover{
+				color: #fff;
+				background-color: darkred;
+			}
+			.btn_edit{
+				color: green;
+				border: 1px solid green;
+			}
+			.btn_edit:hover{
+				color: #fff;
+				background-color: green;
+			}
+			.btn_add{
+				width: 120px;
+				height: 120px;
+				line-height: 150px;
+				text-align: center;
+				border-radius: 5px;
+				border: 1px dashed #ccc;
+				margin: 5px;
+				cursor: pointer;
+			}
+			.btn_add i{
+				font-size: 48px;
+			}
+			.btn_add:hover{
+				background: #ccc;
+			}
+			.txt_title{
+				width: 100%;
+				height: 40px;
+				line-height: 53px;
+				text-align: center;
+				/*border-bottom:1px solid #ccc;*/
+				font-size: 18px;
+				font-weight: 600;
+			}
+			.txt_con{
+				width: 100%;
+				height: 60px;
+				margin-top: 10px;				
+			}
+			.txt_con>p{
+				height: 30px;
+				line-height: 30px;
+				margin: 0;
+			}
+			.txt_con>p>span{
+				display: inline-block;
+			}
+			.firstP{
+				width: 108px;
+				text-align: end;
+			}
+			.department{
+				width:120px;
+				height: 120px;
+				border: 1px solid #ccc;
+				background-color: #A37BC4;	
+				border-radius: 5px;
+				overflow: hidden;
+				color:#fff;
+				cursor: pointer;	
+				float: left;
+				margin: 5px;	
+				position: relative;		
+			}
+			.department_top{
+				height:80px;
+				font-weight: 600;
+				font-size: 18px;
+				text-align: center;
+				line-height: 80px;
+			}
+			.department_bottom{
+				text-align: center;
+			}
+			.department_zz{
+				width: 120px;
+				height: 120px;
+				line-height: 120px;
+				text-align: center;
+				font-size: 40px;
+				background:rgba(0,0,0,0.8);
+				position: absolute;
+				top: 0;
+			}
+			.userbox{				
+				width: 240px;
+				height:310px;
+				/*border: 1px solid #ccc;*/
+				background-color: #fff;
+				transition: all .2s linear;
+				cursor: pointer;	
+				float: left;
+				margin: 10px;	
+				margin-top: 30px;
+			}
+			.userbox:hover{
+				/*box-shadow: 5px 5px 7px rgba(33,33,33,.7);*/
+				transform: translate3d(0 ,-2px ,0);
+				box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+			}
+			.user_top{
+				height:100px;
+				position: relative;
+				border-bottom: 1px solid #ccc;
+				background-color: #A37BC4;
+				color: #fff;
+				
+			}
+			.user_top>img{
+				width: 80px;
+				height: 80px;
+				border: 5px solid #fff;
+				border-radius: 100%;
+				position: absolute;
+				top: -40px;
+				left: 80px;
+			}
+			.user_top>b{
+				width: 80px;
+				text-align: center;
+				font-size: 24px;
+				position: absolute;
+				top: 50px;
+				left: 80px;
+			}
+			.user_message{
+				padding: 0 10px;
+				/*background-color: #ffc;*/
+				background-color: #fff;
+			}
+			.user_message>p{
+				height: 40px;
+				line-height: 40px;
+				border-bottom: 1px solid #ccc;
+				margin: 0;
+			}
+			.user_message>p>span:last-child{
+				display: inline-block;
+				width: 130px;
+				text-align: center;
+			}
+			.mes_title{
+				display: inline-block;
+				width: 70px;
+				text-align: end;
+				
+			}
+			.add_user{
+				margin-top: 30px;
+			}
+			.user_search{
+				margin-bottom: 35px;
+			}
+		</style>
+	</head>
+	<body class="gray-bg">
+		<!-- 公司 -->
+		<div class="wrapper wrapper-content">
+			<div class="ibox float-e-margins">
+	            <div class="ibox-title">
+	                <h5>公司列表</h5>
+	                <div class="ibox-tools">
+	                    <a class="collapse-link">
+	                        <i class="fa fa-chevron-up"></i>
+	                    </a>
+	                </div>
+	            </div>
+	            <div class="ibox-content">
+	            	<div class="ibox-content-left companyBox">
+	            		<!-- <div class="company">
+		            		<div class="company_img">
+		            			<span class="glyphicon glyphicon-home"></span>
+		            		</div>
+		            		<div class="company_txt">
+		            			<div class="txt_title">
+		            				九州信泰
+		            			</div>
+		            			<div class="txt_con">
+		            				<p><span class="firstP">部门数：</span><span class="depCount">5</span></p>
+		            				<p><span class="firstP">总人数：</span><span class="personCount">10</span></p>
+		            			</div>
+		            		</div>
+		            		<div class="company_zz">九州</div>
+		            		<div class="btn_tools">
+		            			<span class="btn_remove" title="删除"><i class="glyphicon glyphicon-remove"></i></span>
+		            			<span class="btn_edit" title="修改"><i class="glyphicon glyphicon-edit"></i></span>
+		            		</div>
+		            	</div> -->
+		            	
+	            	</div>
+	            	<div class="ibox-content-right">
+	            		<div class="btn_add add_company">
+	            			<i class="glyphicon glyphicon-plus"></i>
+	            		</div>
+	            	</div>
+	            </div> 
+	        </div>
+	    </div>
+	    <!-- 部门 -->
+	    <div class="wrapper wrapper-content" style="padding-top: 0;">
+			<div class="ibox float-e-margins">
+	            <div class="ibox-title">
+	                <h5>部门</h5>
+	                <div class="ibox-tools">
+	                    <a class="collapse-link">
+	                        <i class="fa fa-chevron-up"></i>
+	                    </a>
+	                </div>
+	            </div>
+	            <div class="ibox-content">
+	            	<div class="ibox-content-left departmentBox">
+		            	<!-- <div class="department">
+		            		<div class="department_top">商务部</div>
+		            		<div class="department_bottom">2人</div>
+		            		<div class="department_zz">商</div>
+		            		<div class="btn_tools">
+		            			<span class="btn_remove" title="删除"><i class="glyphicon glyphicon-remove"></i></span>
+		            			<span class="btn_edit" title="修改"><i class="glyphicon glyphicon-edit"></i></span>
+		            		</div>
+		            	</div> -->
+		            	
+		            </div>	
+		            <div class="ibox-content-right">
+	            		<div class="btn_add add_department">
+	            			<i class="glyphicon glyphicon-plus"></i>
+	            		</div>
+	            	</div>
+	            </div> 
+	        </div>
+	    </div>
+	    <!-- 用户 -->
+	     <div class="wrapper wrapper-content" style="padding-top: 0;">
+			<div class="ibox float-e-margins">
+	            <div class="ibox-title">
+	                <h5>用户</h5>
+	                <div class="ibox-tools">
+	                    <a class="collapse-link">
+	                        <i class="fa fa-chevron-up"></i>
+	                    </a>
+	                </div>
+	            </div>
+	            <div class="ibox-content">
+	            	<div class="user_search">
+	            		<form class="form-inline" onsubmit="return false">
+							<div class="form-group">
+								<label>姓名：</label>
+								<input type="text" class="form-control"  placeholder="姓名">
+							</div>
+							<div class="form-group">
+								<label>电话:</label>
+								<input type="email" class="form-control"  placeholder="电话（账号）">
+							</div>
+							<button class="btn btn-primary" style="margin-bottom: 0;">检索</button>
+							</form>
+	            	</div>
+	            	<div class="ibox-content-left userBox">
+		            	<!-- <div class="userbox">
+		            		<div class="user_top">
+		            			<img src="img/a1.jpg"/>
+		            			<b>李雪</b>
+		            			<div class="btn_tools">
+			            			<span class="btn_remove" title="删除"><i class="glyphicon glyphicon-remove"></i></span>
+			            			<span class="btn_edit" title="修改"><i class="glyphicon glyphicon-edit"></i></span>
+			            		</div>
+		            		</div>
+		            		<div class="user_message">
+		            			<p> <span class="mes_title">性别：</span> <span>女</span></p>
+		            			<p> <span class="mes_title">年龄：</span> <span>24</span></p>
+		            			<p> <span class="mes_title">部门：</span> <span>商务部</span></p>
+		            			<p> <span class="mes_title">手机：</span> <span>13456987824</span></p>
+		            			<p> <span class="mes_title">邮箱：</span> <span>123456@qq.com</span></p>
+		            		</div>
+		            	</div> -->
+		            
+		            </div>	
+		            <div class="ibox-content-right">
+	            		<div class="btn_add add_user">
+	            			<i class="glyphicon glyphicon-plus"></i>
+	            		</div>
+	            	</div>
+	            </div> 
+	        </div>
+	    </div>
+	   
+	    <script src="js/jquery.min.js?v=2.1.4"></script>
+	    <script src="js/bootstrap.min.js?v=3.3.5"></script>
+	    <script src="js/content.min.js?v=1.0.0"></script>
+	    <!-- <script src="js/userM.js"></script> -->
+		<script type="text/javascript">						
+			//默认加载
+			getData({level:1})
+			//请求数据函数
+			function getData(depObj){
+				//发送请求
+				$.ajax({
+					type:"post",
+					url:"../../department/selectAll.do",
+					data:depObj,
+					async:true,
+					success:function(data){
+						console.log(data)
+						if(data.department != ''){
+							jointCompany(data.department);
+						}
+						
+						if(data.user != undefined){
+							jiontUser(data.user[0])
+						}
+						//加载组织机构列表
+						/* orgTree($this,data.department);
+						//判断是否有用户数据
+						if(data.user != undefined){
+							userTree($this,data.user[0]);
+							//加载用户列表
+							var userListHtmls = splitUserList(data.user[0]);
+							 //添加到页面中
+							$('#user_list>tbody').html(userListHtmls);
+						} */
+					},
+					error:function(err){
+						
+					}
+				})
+			}
+			//拼接公司函数
+			function jointCompany(data){
+				//定义字符串 用于拼接数据
+				var html = "";
+				if(data[0].level == 1){//公司
+					for(var i in data){
+						var obj = data[i];
+						//截取名称 前两位作为遮罩显示数据
+						var zName = obj.name.substring(0,2);
+						html += '<div class="company" data-id="'+obj.id+'" data-level="'+obj.level+'">'
+				             +		'<div class="company_img">'
+					         +			'<span class="glyphicon glyphicon-home"></span>'
+					         +		'</div>'
+					         +		'<div class="company_txt">'
+					         +			'<div class="txt_title">'
+					         +				obj.name
+					         +			'</div>'
+					         +			'<div class="txt_con">'
+					         +				'<p><span class="firstP">部门数：</span><span class="depCount">5</span></p>'
+					         +				'<p><span class="firstP">总人数：</span><span class="personCount">10</span></p>'
+					         +			'</div>'
+					         +		'</div>'
+					         +		'<div class="company_zz">'+zName+'</div>'
+					         +		'<div class="btn_tools">'
+					         +			'<span class="btn_remove" title="删除"><i class="glyphicon glyphicon-remove"></i></span>'
+					         +			'<span class="btn_edit" title="修改"><i class="glyphicon glyphicon-edit"></i></span>'
+					         +		'</div>'
+					         + 	'</div>'
+					}
+					$(".companyBox").html(html);
+				}else if(data[0].level == 2){//部门
+					for(var i in data){
+						var obj = data[i];
+						//截取名称 前两位作为遮罩显示数据
+						var zName = obj.name.substring(0,1);
+						html += '<div class="department" data-id="'+obj.id+'" data-level="'+obj.level+'">'
+					         +		'<div class="department_top">'+obj.name+'</div>'
+					         +		'<div class="department_bottom">2人</div>'
+					         +		'<div class="department_zz">'+zName+'</div>'
+					         +		'<div class="btn_tools">'
+					         +			'<span class="btn_remove" title="删除"><i class="glyphicon glyphicon-remove"></i></span>'
+					         +			'<span class="btn_edit" title="修改"><i class="glyphicon glyphicon-edit"></i></span>'
+					         +		'</div>'
+					         + 	'</div>'
+					}
+					$(".departmentBox").html(html);
+				}else{
+					
+				}
+				
+				//公司
+				$(".company").hover(function(){
+					//添加  向右淡出 动画
+					$(this).children(".company_zz").addClass("animated fadeOutRight");
+					$(this).children(".company_zz").removeClass("fadeInRight");
+					//显示工具栏
+					$(this).children(".btn_tools").addClass("animated fadeInRight");
+					$(this).children(".btn_tools").removeClass("fadeOutRight");
+				},function(){
+					//移除向右淡出动画
+					$(this).children(".company_zz").removeClass("fadeOutRight");
+					$(this).children(".company_zz").addClass("fadeInRight");
+					//移除工具栏
+					$(this).children(".btn_tools").removeClass("fadeInRight");
+					$(this).children(".btn_tools").addClass("fadeOutRight");				
+				})
+				//点击事件函数
+				$(".company").click(function(){
+					//当前点击下的遮罩 隐藏
+					$(this).children(".company_zz").css("display","none");
+					//恢复当前点击的兄弟元素下的遮罩
+					$(this).siblings().children(".company_zz").css("display","block");
+					//获得点击的公司id
+					var id = $(this).attr("data-id");
+					
+					getData({id:id})
+				})
+				//部门
+				$(".department").hover(function(){
+					$(this).children(".department_zz").addClass("animated fadeOutUp");
+					//显示工具栏
+					$(this).children(".btn_tools").addClass("animated fadeInRight");
+					$(this).children(".btn_tools").removeClass("fadeOutRight");
+				},function(){
+					$(this).children(".department_zz").removeClass("fadeOutUp");
+					$(this).children(".department_zz").addClass("fadeInDown");
+					//移除工具栏
+					$(this).children(".btn_tools").removeClass("fadeInRight");
+					$(this).children(".btn_tools").addClass("fadeOutRight");	
+				})
+				$(".department").click(function(){
+					$(this).children(".department_zz").css("display","none");
+					$(this).siblings().children(".department_zz").css("display","block");
+					//获得部门id
+					 var id = $(this).attr("data-id");
+					 getData({id:id})
+				})
+			}
+			
+			//拼接用户 函数
+			function jiontUser(data){
+				var html = '';
+				for (var i in data){
+					var obj = data[i];
+					for(var j in obj){
+						if(obj[j] == null){
+							obj[j] = ' -';
+						}
+					}
+					var img = '1';//人员头像
+					var userSex = "男";
+					//转换 
+					if(obj.sex == 1){
+						
+					}else{ 					
+						userSex = "女";
+						img = "2";
+					}
+					html += '<div class="userbox" data-id="'+obj.id+'">'
+			             +		'<div class="user_top">'
+			             +			'<img src="img/a1.jpg"/>'
+			             +	 		'<b>'+obj.name+'</b>'
+			             +			'<div class="btn_tools">'
+			             +   			'<span class="btn_remove" title="删除"><i class="glyphicon glyphicon-remove"></i></span>'
+			             +   			'<span class="btn_edit" title="修改"><i class="glyphicon glyphicon-edit"></i></span>'
+			             +   		'</div>'
+			             +		'</div>'
+			             +		'<div class="user_message">'
+			             +			'<p> <span class="mes_title">性别：</span> <span>'+userSex+'</span></p>'
+			             +			'<p> <span class="mes_title">年龄：</span> <span>'+obj.age+'</span></p>'
+			             +			'<p> <span class="mes_title">部门：</span> <span>'+obj.departmentName+'</span></p>'
+			             +			'<p> <span class="mes_title">手机：</span> <span>'+obj.phone+'</span></p>'
+			             +			'<p> <span class="mes_title">邮箱：</span> <span>'+obj.email+'</span></p>'
+			             +		'</div>'
+			             +	'</div>'
+				}
+				//添加到页面中
+				$(".userBox").html(html);
+				//用户
+				$(".userbox").hover(function(){
+					//显示工具栏
+					$(this).find(".btn_tools").addClass("animated fadeInRight");
+					$(this).find(".btn_tools").removeClass("fadeOutRight");
+				},function(){
+					//移除工具栏
+					$(this).find(".btn_tools").removeClass("fadeInRight");
+					$(this).find(".btn_tools").addClass("fadeOutRight");	
+				})
+			}
+			
+			
+			
+			
+			
+			
+		</script>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>源文件管理</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<link rel="stylesheet" type="text/css" href="css/ssi-uploader.min.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		.propertyNav{
+			margin-bottom:10px;
+			/* display:none; */
+		}
+		.propertyNav a{
+			font-size:12px;
+			margin:10px;
+			color:#428bca;
+		}
+		.propertyNav a:hover{
+			text-decoration: underline;
+		}
+		.content{
+			margin-top:20px;
+			padding-left:30px;
+		}
+		.content p{
+			margin-bottom:30px;
+		}
+		.content form{
+			margin-bottom:20px;
+		}
+		.ssi-buttonWrapper{
+			margin-bottom:20px;
+		}
+		.ssi-button{
+			border:none;
+		}
+		.success,.ssi-btnIn{
+			background:#5bc0de!important;
+		}
+		.txtColor{
+			color:#2c76bd;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>	
+</head>
+
+<body>
+	<div id="box">
+		<div class="top_title">
+			本地文件上传
+		</div>
+		<div class="propertyNav">
+				<a href="sourceFile.html">数据源管理</a>><a class="secondA" href="javascript:void(0)">本地文件上传</a> <a href="sourceFile.html">返回上一级</a>
+			</div>
+		<div class="content">
+			<p>通过浏览本地文件或将文件拖到下面指定区域，上传日志文件。</p>
+			<p>文件支持的类型：<span class="txtColor">txt、log、csv、json</span></p>
+			<form class="form-inline" onsubmit="return false;">		
+				<div class="row" style="padding-left:20px;">
+					<label>日志文件类型<span style="color:red">*</span>:</label>
+			    	<select class="form-control eLogType">
+						<!-- <option disabled selected value=""></option> -->
+						<option value="syslog">syslog</option>
+						<option value="winlog">winlog</option>
+						<option value="log4j">log4j</option>
+					</select>
+				</div>
+				<div class="row" style="padding-top:20px;">
+					<div class="col-md-10">
+						<input type="file" multiple id="ssi-upload"/>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+	
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="js/ssi-uploader.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		//获取日志类型
+		var logType = $(".eLogType").val()
+		$('#ssi-upload').ssi_uploader({
+			url:'../../upload/uploadFile.do',//地址
+			data:{"logType":logType},//除了文件额外的数据参数
+			allowed:['log','txt','csv',"json"]//允许上传文件的类型
+		});
+	</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>排行</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/animate.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../js/datepicker/css/datepicker.css"/>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>	
+	<style type="text/css">
+		html,body{
+			width:100%;
+			height:100%;
+		}
+		#box{
+			padding: 10px;
+		    width: 100%;
+		    height: 100%;
+		    /* overflow-y: auto; */
+		}
+		.rankingListBox span{
+			display:inline-block;
+			font-weight:600;
+		}	
+		.ipRanking,.portRanking{
+		    display: flex;
+		}
+		.startIpBox,.endIpBox,.startPortBox,.endPortBox{			
+			width:50%;
+			padding:40px;
+			padding-top:10px;	
+		}
+		.startIpBox,.endIpBox{
+			border-bottom:1px solid #4b759e;
+		}
+		.startIpBox,.startPortBox{
+			border-right:1px solid #4b759e;
+		}
+		/*  */
+		.listBox{
+			max-width: 530px;
+			/* height: 600px; */
+			background: #3b5773;
+			margin: 10px auto;
+		}
+		.title{
+			height: 60px;
+		    line-height: 50px;
+		    border-bottom: 1px dashed #6598c7;
+		    text-align: center;
+		    font-size: 18px;
+		    font-weight: 600;
+		    color: #fff;
+		}
+		.listContent{
+			padding: 10px;
+		}
+		li{
+			height: 46px;
+			margin-bottom: 1px;	
+			overflow: hidden;
+			color: #fff;
+			font-weight: 600;
+			/*display: flex;*/		
+		}
+		li:hover{
+			cursor: pointer;
+			box-shadow:6px 6px 15px #6592bb;
+		}
+		.list_left{
+			height: 100%;
+			width: 66px;
+			display: flex;
+			position: relative;
+			float: left;
+		}
+		.list_left .rect{
+			width: 20px;
+			height: 100%;
+			background: #245d92; 
+			border-radius: 5px 0 0 5px;
+		}
+		.list_left .order{
+			position: absolute;
+		    left: 9px;
+		    top: 12px;
+		    font-size: 14px;
+		    font-weight: 600;
+		    height: 24px;
+		    line-height: 24px;
+		    width: 26px;
+		    text-align: center;
+		    color: #fff;
+		    border-bottom: 1px solid #fff;
+		}
+		.list_left .triangle{
+			/*width: ;
+			height: 100%;*/
+			width: 0;
+		    height: 0;
+		    border-bottom: 46px solid #245d92;
+		    border-right: 46px solid transparent;
+		}
+		.list_right{
+			margin:3px 0;
+			height: 40px;
+			width: 100%;
+			background: #4b759e;	
+			border-radius: 0 5px 5px 0;
+		}
+		.list_right>div{
+			float: left;
+			line-height: 40px;
+		}
+		.list_right .emptyBox{
+			width: 66px;
+		}
+		.list_right .text{
+			width: calc(100% - 166px);
+			height: 100%;
+			text-align: center;
+		}
+		.list_right .num{
+			width: 100px;
+			height: 100%;
+			text-align: center;
+		}
+		.firstItem{
+			color: #f75656;
+			font-weight: 600;
+		}
+		.firstItem .list_left .rect{
+			background: #f75656;
+		}
+		.firstItem .list_left .triangle{
+			border-bottom: 46px solid #f75656;
+		}
+		.secondItem{
+			color: #ff8547;
+			font-weight: 600;
+		}
+		.secondItem .list_left .rect{
+			background: #ff8547;
+		}
+		.secondItem .list_left .triangle{
+			border-bottom: 46px solid #ff8547;
+		}
+		.thirdItem{
+			color: #ffac38;
+			font-weight: 600;
+		}
+		.thirdItem .list_left .rect{
+			background: #ffac38;
+		}
+		.thirdItem .list_left .triangle{
+			border-bottom: 46px solid #ffac38;
+		}
+		
+	</style>
+</head>
+<body>
+	<div id="box">
+		<div class="top_title">
+			资产画像
+		</div>
+		<div class="datepickerBox" style="width:350px;display:flex; height: 35px;line-height: 35px;padding-left:10px;">
+			<span style="font-weight:600;">日期范围：</span>
+	        <div class="c-datepicker-date-editor  J-datepicker-range-day mt10">
+	        	<i class="c-datepicker-range__icon kxiconfont icon-clock"></i>
+	            <input placeholder="开始日期" name="" class="c-datepicker-data-input only-date startTime" value="">
+	            <span class="c-datepicker-range-separator">-</span>
+	            <input placeholder="结束日期" name="" class="c-datepicker-data-input only-date endTime" value="">
+	        </div>				
+		</div>
+		<div class="rankingListBox">
+			<div class="ipRanking">
+				<!-- <div class="startIpBox">
+					<div class="rankingTitle">源IP排行榜</div>
+					<div class="rankingList">
+						<ul>
+						</ul>
+					</div>
+				</div> -->
+				<div class="startIpBox">
+					<div class="listBox">
+						<div class="title">源IP排行榜</div>
+						<div class="listContent">
+							<ul>
+								
+							</ul>
+						</div>
+					</div>
+				</div>
+				
+				<div class="endIpBox">
+					<div class="listBox">
+						<div class="title">目的IP排行榜</div>
+						<div class="listContent">
+							<ul>
+								
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="portRanking">
+				<div class="startPortBox">
+					<div class="listBox">
+						<div class="title">源端口排行榜</div>
+						<div class="listContent">
+							<ul>
+								
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="endPortBox">
+					<div class="listBox">
+						<div class="title">目的端口排行榜</div>
+						<div class="listContent">
+							<ul>
+								
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>	
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/datepicker/js/plugins/moment.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/datepicker/js/datepicker.all.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript">
+	 	$(function(){
+		//年月日范围
+		    $('.J-datepicker-range-day').datePicker({
+		      hasShortcut: true,
+		      format: 'YYYY-MM-DD',
+		      isRange: true,
+		      shortcutOptions: [{
+		            name: '最近7天',
+		            day: '-7,0'
+		          }, {
+		            name: '最近30天',
+		            day: '-30,0'
+		          }, {
+		            name: '最近90天',
+		            day: '-90, 0'
+		          }],
+		      	hide:function(){
+		      		var startTime = $(".startTime").val();
+		      		var endTime = $(".endTime").val();
+		      		//console.log(startTime+'-----'+endTime)
+		      		//获取数据
+		      		getRankingData(startTime,endTime);
+		      	}
+		    }) 
+	 	})
+	 	
+		var newDate = new Date();
+		var curDate = newDate.toLocaleDateString();
+		var curYear = newDate.getFullYear();
+		var curMonth = newDate.getMonth() + 1;
+		$(".startTime").val(curYear+'-'+curMonth+'-1');
+		$(".endTime").val(curDate.replace(/\//g,'-'));
+		
+		getRankingData(curYear+'-'+curMonth+'-1',curDate.replace(/\//g,'-'));
+		//获取数据方法
+		function getRankingData(startTime,endTime){
+			 var sfunc = function(data){//成功 
+					var startIpObj = data[0].ipv4_src_addr;//源ip数组集合
+					var endIpObj = data[0].ipv4_dst_addr;//目的ip数组集合
+					var startPortObj = data[0].l4_src_port;//源端口数组集合
+					var endPortObj = data[0].l4_dst_port;//目的端口数组集合			
+					//源ip排行榜列表
+					splitRankingList(startIpObj,'startIpBox');			
+					//目的ip排行榜列表
+					splitRankingList(endIpObj,'endIpBox');
+					//源端口排行榜列表
+					splitRankingList(data[0].l4_src_port,'startPortBox');			
+					//目的端口排行榜列表
+					splitRankingList(endPortObj,'endPortBox');
+				}
+				//失败回调函数
+				var efunc = function(data){
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../log/getTopGroupByIPOrPort.do",{"startTime":startTime,"endTime":endTime},sfunc,"",efunc);
+	 	}
+
+		//拼接排行榜通用方法 arr-列表数组   elem-页面中列表展示的位置（class名）
+		function splitRankingList(arr,eleClassName){
+			var html = '';
+			var className = '';//class名 用于颜色显示
+			var type = '';//列表类型
+			var count = '';//次数
+			var order = '';//序号
+			//判断列表类型
+			if(eleClassName == 'startIpBox'){
+				type = 'ipv4_src_addr-源IP';
+			}else if(eleClassName == 'endIpBox'){
+				type = 'ipv4_dst_addr-目的IP';
+			}else if(eleClassName == 'startPortBox'){
+				type = 'l4_src_port-源端口';
+			}else if(eleClassName == 'endPortBox'){
+				type = 'l4_dst_port-目的端口';
+			}
+			
+			for(var i = 0;i<arr.length;i++){
+				var className = '';//class名 用于颜色显示
+				//判断顺序 添加class名
+				if(i == 0){
+					className = 'firstItem';
+				}else if(i == 1){
+					className = 'secondItem';
+				}else if(i == 2){
+					className = 'thirdItem';
+				}
+				var obj = arr[i];
+				//判断次数大小 超过一万 做万位处理
+				if(obj.count > 10000){
+					count = (Number(obj.count) / 10000).toFixed(1) + ' 万';
+				}else {
+					count = obj.count;
+				}
+				if(i < 9){
+					order = '0' + (i+1);
+				}else{
+					order = (i+1);
+				}
+				
+				html += '<li class="'+className+'" data-count="'+obj.count+'" data-val="'+obj.IpOrPort+'" data-type="'+type+'">'
+					 +		'<div class="list_left">'
+					 +			'<div class="rect"></div>'
+					 +		    '<div class="triangle"></div>'
+					 +			'<div class="order">'+ order +'</div>'
+					 +		'</div>'
+					 + 		'<div class="list_right">'
+					 +			'<div class="emptyBox"></div>'
+					 +			'<div class="text">'+obj.IpOrPort+'</div>'
+					 +			'<div class="num">'+count+'</div>'
+					 +		'</div>'
+					 +  '</li>'			
+			}
+			//添加到页面中
+			$("."+eleClassName+" ul").html(html);
+			
+		}
+		var htmlNum = 0;
+		//点击排行榜列表 跳转到日志列表 禅查询日志
+		$(".rankingListBox").on("click","li",function(event){
+			$(".selectedMenu").remove();
+			//初始化连接
+			var src = 'logPro/rankingListDetail.html';
+			//类型
+			var dataType = $(this).attr('data-type');
+			//值
+			var dataVal = $(this).attr('data-val');
+			//次数
+			var dataCount = $(this).attr('data-count');
+			var netglowVal = dataType+'-'+dataVal+'-'+dataCount;
+			// 储存在本地
+			//sessionStorage.setItem("netflowVal", dataType+'-'+dataVal+'-'+dataCount);
+			//判断点击的是什么类型的排行榜
+			if(dataType == "ipv4_src_addr-源IP" || dataType == "ipv4_dst_addr-目的IP"){//源、目的 IP				
+				//页面添加选项菜单
+				var html = '<div class="selectedMenu animated bounceIn" style="position: fixed;width: 80px; color:#fff;box-shadow: 0 3px 15px #4781bb;font-size: 12px;background: rgb(52, 114, 174);z-index: 99999999900;display: none;">'
+						 +   	'<div class="menuRanking" style="width:100%;height: 30px;text-align: center;cursor: pointer;line-height: 30px;border-bottom: 1px solid rgb(92, 144, 192);">排行榜</div>'
+						 +   	'<div class="menuGraph" style="width:100%;height: 30px;text-align: center;cursor: pointer;line-height: 30px;border-bottom: 1px solid rgb(92, 144, 192);">业务流</div>'
+						 +   	'<div class="menuCancle" style="width:100%;height: 30px;text-align: center;cursor: pointer;line-height: 30px;">取消</div>'
+						 +	'</div>'
+				var zz = '<div class="zzDiv" style="position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.2);z-index:100"></div>'
+				$("body").append(html);
+				$("body").append(zz);
+				$(".selectedMenu>div").hover(function(){
+					$(this).css("background","rgb(29, 80, 128)");
+				},function(){
+					$(this).css("background","rgb(52, 114, 174)");
+				})
+				//显示菜单
+				 var e = event || window.event || arguments.callee.caller.arguments[0];
+				var mouseX = e.originalEvent.x || e.originalEvent.layerX || 0;
+				var mouxeY = e.originalEvent.y || e.originalEvent.layerY || 0;
+				 /* var scrollX=document.documentElement.scrollLeft||document.body.scrollLeft;//分别兼容ie和chrome
+			    var scrollY=document.documentElement.scrollTop||document.body.scrollTop;
+			    var mouseX=e.pageX||(e.clientX+scrollX);//兼容火狐和其他浏览器
+			    var mouxeY=e.pageY||(e.clientY+scrollY); */
+				$(".selectedMenu").css({"display":"block","left":mouseX,"top":mouxeY});
+				
+				//菜单排行榜点击事件
+				$(".menuRanking").click(function(){
+					jumpHtml(src,dataVal,' 排行',netglowVal);	
+					$(".selectedMenu").remove();
+					$(".zzDiv").remove();
+				})
+				//菜单关系图点击事件
+				$(".menuGraph").click(function(){
+					src = "logPro/graph.html";
+					jumpHtml(src,dataVal,' 关系图',netglowVal);
+					$(".selectedMenu").remove();
+					$(".zzDiv").remove();
+				})
+				//菜单取消点击事件
+				$(".menuCancle").click(function(){
+					$(".selectedMenu").addClass("bounceOut");
+					$(".selectedMenu").remove();
+					$(".zzDiv").remove();
+				})
+				$(".zzDiv").click(function(){
+					$(".selectedMenu").remove();
+					$(".zzDiv").remove();
+				})
+			}else{//源、目的 端口
+				jumpHtml(src,dataVal,' 排行',netglowVal);
+			}
+			
+			/* //拼接导航
+			  */
+		})
+		
+		//跳转页面 src-页面路径  dataVal-标签名 type-页面类型（排行榜、关系图） netglowVal-值的集合
+		function jumpHtml(src,dataVal,type,netglowVal){
+			 var html ='<a href="javascript:;" class="active J_menuTab" data-val="'+netglowVal+'" data-id="'+src+htmlNum+'">'+dataVal+type+'<i class="fa fa-times-circle"></i></a>'
+				//移除导航菜单选中属性
+				$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+				//添加导航菜单
+				$('.page-tabs-content', parent.document).click().append(html);
+				var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="'+src+'" frameborder="0" data-id="'+src+htmlNum+'" seamless="" style="display: inline;"></iframe>'
+				//移除其他页面
+				$('#content-main', parent.document).click().children("iframe").hide();
+				$('#content-main', parent.document).click().append(iframe);
+				htmlNum++;
+		}
+	</script>
+</body>
+</html>

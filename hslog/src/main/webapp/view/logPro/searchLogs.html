@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" rel="stylesheet" type="text/css"/>
+		<link rel="stylesheet" type="text/css" href="css/searchLogs.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+		<style>
+			.serviceStatus{
+				font-weight: 600;
+				/* color:#1ab394; */
+				color:#d9534f;
+			}
+			.layer_box span ,.r_content span{
+				background: yellow;
+				color:#676a6c!important;
+			}
+			#logs_list a{
+				color: #428bca;
+    			text-decoration: underline;
+			}
+			.table{
+			    table-layout: fixed;
+			}
+			.btnBox button{
+				color:#2c76bd;
+				border:1px solid #2c76bd;
+				padding:4px 6px;
+				margin-top:3px;
+			}
+			.btnBox button:hover{
+				color:#2c76bd;
+			}
+		</style>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				日志检索	
+				<!-- <p style="float:right;padding-right:20px;font-weight: 100;">
+					<span>服务状态：</span>
+					<span class="serviceStatus">未开启</span>
+				</p>	 -->	
+			</div>
+			
+			<div class="search_input">
+				<!-- <div class="btnBox">
+					<button  class="btn btn-info" id="initialize" title="初始化服务"><i class="glyphicon glyphicon-repeat"></i>&nbsp;初始化</button>
+					<button  class="btn btn-info" id="play_service" title="开启服务"><i class="glyphicon glyphicon-play"></i>&nbsp;开启服务</button>
+					<button  class="btn btn-info" id="pause_service" title="暂停服务"><i class="glyphicon glyphicon-pause"></i>&nbsp;暂停</button>
+					<button  class="btn btn-info" id="stop_service" title="停止服务"><i class="glyphicon glyphicon-stop"></i>&nbsp;停止服务</button>
+					<button  class="btn" id="backup" title="备份"><i class="glyphicon glyphicon-floppy-disk"></i>&nbsp;备份</button>
+					<button  class="btn" id="recover" title="恢复备份"><i class="glyphicon glyphicon-retweet"></i>&nbsp;恢复备份</button>
+				</div> -->
+				<form class="form-inline" onsubmit="return false">					
+					<div class="form-group searchWordsBox">
+						<input type="text" class="form-control searchWords" id="exampleInputName2" placeholder="输入条件检索日志">
+					</div>					
+				  <button  class="btn btn-primary" id="searchLogs"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+				</form>
+			</div>
+			
+			<div class="row result_box">
+				<div class="col-sm-2 box_left">
+					<h5>检索历史</h5>
+					<ul class="history_list">
+						<!-- <li>1<i class="glyphicon glyphicon-remove" title="删除"></i></li> -->
+					</ul>
+				</div>
+				<div class="col-sm-10 box_right">
+					<div class="r_tools">
+						<div class="log_filter">
+							<form class="form-inline" onsubmit="return false">
+								<div class="form-group">
+									<input type="text" class="form-control filterWords"  placeholder="输入过滤条件">
+								</div>
+							  <button  class="btn btn-default" id="filterLogs">过滤</button>
+							</form>
+						</div>
+						<div class="allCountBox">共检索到的日志数量为<b>0</b>条,最大展示<select class="form-control maxShowData"><option value="100000">10万</option><option value="200000">20万</option><option value="500000">50万</option><option value="1000000">100万</option><option value="10000000">1000万</option><option value="100000000">1亿</option></select>条</div>
+						<div  id="pageBox">
+							<!-- <span class="current prev">&laquo;</span>
+							<span class="current">1</span>
+							<span class="current next">&raquo;</span> -->
+						</div>
+						            
+					</div>
+					<div class="r_content">
+						<div class="tab-content">
+		                   <div id="tab-1" class="tab-pane active">
+		                       <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+		                           <div class="table-responsive">
+		                               <table class="table table-hover table-striped" id="logs_list">
+			                               	<thead>
+										        <tr class="con_title">
+										          	<th width="200">时间</th>
+										          	<th width="100">级别</th>
+										          	<th width="100">日志类型</th>
+										          	<!-- <th width="100">用户名</th> -->
+										          	<th width="120">资产名称</th>
+										          	<th width="125">IP</th>
+										          	<th>日志内容</th>
+										          	<th width="60">操作</th>  
+										        </tr>
+									         </thead>
+		                                     <tbody>
+		                                         <!-- <tr>   
+		                                             <td class="logs_time">2017.7.18 10:10:10 000</td>
+		                                             <td class="logs_level">error</td>
+		                                             <td class="logs_type">winlog</td>
+		                                             <td class="logs_uer">Jarry</td>
+		                                             <td class="property_name">aooo</td>
+		                                             <td class="logs_ip">123.147.125.33</td>
+		                                             <td class="logs_Mes" data-index="0">
+		                                             	<p>Updates: 1 BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20167 139 2017-07-19 16:41:17  Written [{"success":"true","message":"操作成功！","state":"1"}] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@2e54b031] AbstractMessageConverterMethodProcessor.java org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor 20185 150</p>
+													 </td>
+		                                             <td class="logs_tools">
+		                                             	<i class="glyphicon glyphicon-list-alt more"></i>
+		                                             </td>		                                                                                                 	
+		                                         </tr> 
+		                                          <tr>   
+		                                             <td class="logs_time">2017.7.18 10:10:10 000</td>
+		                                             <td class="logs_level">error</td>
+		                                             <td class="logs_type">log4j</td>
+		                                             <td class="logs_uer">Jarry</td>
+		                                             <td class="property_name">aooo</td>
+		                                             <td class="logs_ip">113.33.22.5</td>
+		                                             <td class="logs_Mes" data-index="1">
+		                                             	<p>Updates: 1 BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20167 139 2017-07-19 16:41:17  Written [{"success":"true","message":"操作成功！","state":"1"}] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@2e54b031] AbstractMessageConverterMethodProcessor.java org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor 20185 150</p>
+													 </td>
+		                                             <td class="logs_tools">
+		                                             	<i class="glyphicon glyphicon-list-alt more"></i>
+		                                             </td>		                                                                                                 	
+		                                         </tr>  -->
+		                                     </tbody>
+		                                 </table>
+		                             </div>
+		                         </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+		                     </div>
+	                               
+	                 	</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/highLightText.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/searchLogs.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var pageSize = 12;
+			var url = "../../log/getLogListByContent.do";
+			$("#searchLogs").click(function(){
+				currentPage = 1;
+				//初始化默认显示的页码为1
+				currentPage = 1;
+				//logStatus = true;
+				//定义第一次请求
+				firstGet = true;
+				//获得搜索关键词
+				var searchWords = $(".searchWords").val();	
+				
+				//获取数据
+				/* getLogs(url,'',searchWords); */
+				getLogs(url,"",searchWords,1,pageSize)
+			})
+			//页面加载完成  获取数据
+			getLogs(url,'','',1,pageSize);
+ /************************************新增代码******************************************/	
+ 			var words =  localStorage.getItem("allDeviceSearchWord");
+			if(words != null){
+				//获取数据
+				//getLogs(url,'',words);
+				//初始化默认显示的页码为1
+				currentPage = 1;
+				//定义第一次请求
+				firstGet = true;
+				getLogs(url,'',words,1,pageSize);
+				//搜索框添加搜索关键词
+				$(".searchWords").val(words);
+				//删除本地缓存日志
+				localStorage.removeItem("allDeviceSearchWord")
+			}
+				
+/************************************新增代码******************************************/
+			//检索历史li 绑定点击事件 点击查询
+			$(".history_list").on("click","li",function(){
+				//获取当前点击的内容
+				var searchWords = $(this).text();
+				var ev = arguments.callee.caller.arguments[0] || window.event;
+			    var $this =$(ev.target); 
+			   	if($this[0].nodeName == "LI" ){ 
+					//初始化默认显示的页码为1
+					currentPage = 1;
+			   		logStatus = true;									
+					//var url = "data2.json";
+					//定义第一次请求
+					firstGet = true;
+					//获取数据
+					//getLogs(url,"",searchWords);
+					getLogs(url,"",searchWords,1,pageSize);
+			   	}
+				
+			})
+			
+			//数据最大显示下拉框改变事件
+			$(".maxShowData").change(function(){
+				maxShowChange('数据量过大时，可通过 <精确查询> 提高查询效率')
+			})
+		</script>
+	</body>
+</html>

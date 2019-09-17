@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>审计日志</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		#auditLogTable{
+			border:none;	
+		}
+		.pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus{
+			z-index: 2;
+		    color: #fff;
+		    cursor: default;
+		   /*  background-color: rgb(26, 179, 148);
+		    border-color: rgb(26, 179, 148); */
+		}
+		.tableCon{
+			padding:0 20px;
+		}
+		.btnBox{
+			padding-left:20px;
+			margin-bottom: 15px;
+		}
+		.btnBox>button{
+			height:30px;
+			font-size:12px;
+			background:0;
+			transition: all .2s linear;
+		    color: #fff;
+		    background: #ccc;
+		    border-radius: 0;
+		    border: 0;
+		}
+		.btnBox>button:hover{
+			background:#ccc;
+		    transform: translate3d(0 ,-1px ,0);
+		    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+		}
+		.btnBox>button:focus{
+			background:0;
+		}
+		.searchTimeBox{
+			border: 1px solid #ccc;
+			display: flex;
+			justify-content: center;
+			float:left;
+			/* margin-right:20px; */
+			height:34px;
+			border-left:1px solid #ccc!important;
+		}
+		
+		.searchTimeBox>span{
+			width:20px;
+			text-align: center;
+			display: inline-block;
+			line-height: 34px;
+		}
+		.searchTimeBox>.searchBoxTitle{
+			border:0;
+		}
+		.searchBoxTitle{
+			height:34px;
+			margin-right:1px solid #ccc;
+			line-height:34px;
+			text-align: center;
+			width: 75px;
+			font-size:13px;
+		}
+		
+		.searchConditions{
+			height:34px;
+			margin-bottom:24px;
+			display: flex;
+			justify-content: center;
+		}
+		.searchConditions>div{
+			display: flex;
+			justify-content: left;
+			border:1px solid #ccc;
+			border-left:0;
+		}
+		.searchConditions select,.searchConditions input{
+			width:90px;
+			background:#eee;
+			border-radius:0;
+			border:0;
+			height: 32px;
+			font-size:12px;
+		}
+		.searchConditions input{
+			width:68%;
+		}	
+		.searchTimeBox>input{
+			border: 0;
+			width: 150px;
+			padding-right:0;
+			height:32px;
+			font-size:13px;
+		}
+		.endTimeRemove,.startTimeRemove{				
+			text-align:left;
+			display:inline-block;
+			height:32px;
+			width:15px!important;
+			line-height:32px;
+			cursor:pointer;
+			background:#eee;
+			position:relative;
+			top:0px;
+		}
+		#searchAuditLogs{
+			border-radius:0;
+		}
+		.eventSearchBottom{
+			margin-bottom:50px;
+			height:50px;
+		}
+		.eventSearchBottom>div{
+			float:right;
+		}
+		.allCountBox{
+			float: right;
+		    height: 50px;
+		    line-height: 50px;
+		    font-size: 14px;
+		    margin-right: 10px;
+		    font-weight: 600;
+		}
+		.allCountBox b {
+		    color: #1ab394;
+		    margin: 0 5px;
+		}
+	</style>
+	<!-- <link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/> -->
+</head>
+<body>
+	<div id="box">
+		<div class="top_title">
+			审计日志
+				<div class="searchConditions" style="float:right">
+					<div class="searchTimeBox">
+						<div class="searchBoxTitle">时间范围</div>
+						<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">  
+						<i class="glyphicon glyphicon-remove startTimeRemove"></i>	
+						<span> ~ </span>
+						<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">  		
+						<i class="glyphicon glyphicon-remove endTimeRemove"></i>	
+					</div>
+					<div class="searchLevelBox">
+						<div class="searchBoxTitle">部门</div>
+						<input type="text" class="form-control searchDepartment"  placeholder="部门">
+					</div>
+					<div class="searchLevelBox">
+						<div class="searchBoxTitle">用户</div>
+						<input type="text" class="form-control searchUserName"  placeholder="用户">
+					</div>
+					<div class="searchLevelBox">
+						<div class="searchBoxTitle">账号</div>
+						<input type="text" class="form-control searchIphone"  placeholder="手机号">
+					</div>
+					<div class="searchLevelBox">
+						<div class="searchBoxTitle">IP</div>
+						<input type="text" class="form-control searchIp"  placeholder="ip地址">
+					</div>
+					<button  class="btn btn-primary" id="searchAuditLogs"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+			</div>
+		</div>
+		
+		<div class="btnBox">
+			<button  class="btn btn-info" id="backup" title="备份数据"><i class="glyphicon glyphicon-floppy-disk"></i>&nbsp;备份</button>
+			<button  class="btn btn-info" id="recover" title="还原备份数据"><i class="glyphicon glyphicon-retweet"></i>&nbsp;还原</button>
+			<button  class="btn btn-info" id="empty" title="清空"><i class="glyphicon glyphicon-trash"></i>&nbsp;清空</button>
+			<button  class="btn btn-info" id="remove" title="删除"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除</button>
+			<button  class="btn btn-info" id="repeat" title="刷新"><i class="glyphicon glyphicon-repeat"></i>&nbsp;刷新</button>
+		</div>
+		
+		<!-- table-no-bordered -->
+		<div class="tableCon">
+			<table id="auditLogTable" data-toggle="table" data-classes="table  table-hover " style="width:100%">
+                <thead>
+                    <tr>
+                    	<th data-checkbox="true"></th>
+                    	<th data-field="time"   data-valign="middle" >操作时间</th>    
+                    	<th data-field="userName"  data-valign="middle">用户</th> 
+                    	<th data-field="account"  data-valign="middle">账号</th> 
+                    	<th data-field="departmentName"  data-valign="middle">部门</th>
+                    	<th data-field="ip"  data-valign="middle">IP</th>    
+                    	<th data-field="describe"   data-valign="middle" >内容</th>                   	                	
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div class="eventSearchBottom">
+            	<div id="pageBox"></div>
+            	<div class="allCountBox">共检索到的事件数量为<b>0</b>条</div>						
+            </div>
+		</div>
+	</div>
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/projectCommonJs.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript"  charset="utf-8">
+		var pageSize = 15;//每页显示的条数
+		var firstGet; //定义第一次请求
+		var allCount;//检索的结果总总数
+		var currentPage;//当前显示的页码
+		//初始化参数
+		paramInitialize();
+		//存放id数组
+		var idArr = [];
+		//存放传递参数对象 并初始化
+		var sendObj = {};
+		sendObj.userName = '';
+		sendObj.departmentName = '';
+		sendObj.startTime = '';
+		sendObj.endTime = '';
+		sendObj.ip = '';
+		sendObj.account='';
+		sendObj.pageSize = pageSize;
+		//获取数据函数	
+		function getAuditLogsData(sendObj){
+			//当前页码
+			sendObj.pageIndex = currentPage;
+			//清空id数组
+			idArr = [];
+			var sfunc = function(data){
+				var arr = data[0].note[0];
+				for(var i in arr){
+					arr[i].time = arr[i].time.split(".")[0];
+				}
+				//储存日志id
+				for(var i in arr){
+					var obj = arr[i];
+					idArr.push(obj.id)
+				}
+				//添加到页面
+				$("#auditLogTable").bootstrapTable("load",arr);	
+				//第一次请求创建分页
+				if(firstGet == true){
+					//获得总条数
+					allCount = data[0].count.count;
+					//添加总条数到页面中
+					$(".allCountBox>b").html(allCount);
+					//创建分页
+					createPage("pageBox",allCount,pageSize);
+				}
+				
+			}
+			var efunc = function(data){
+				console.log(data)
+				
+			}
+			//发送请求
+			ajaxPost("../../note/selectByPage.do",sendObj,sfunc,efunc);
+		}
+		//页面加载时 获取数据
+		getAuditLogsData(sendObj);
+		
+		//创建分页函数 elem-分页容器(id)  allcount-总条数  limit-每一页显示的条数
+		function createPage(elem,allCount,limit){
+			//分页插件
+			layui.use('laypage', function(){
+				var laypage = layui.laypage;	
+			  	//执行一个laypage实例
+			  	laypage.render({
+				  elem: elem //分页容器 id
+				  ,count: allCount //数据总数，从服务端得到
+				  ,limit: limit  //每页显示的条数
+				  ,curr:currentPage //默认显示页码
+				  ,jump: function(obj, first){				    
+				    //首次不执行
+				    if(!first){
+				    	//请求数据
+						//getData(obj.curr);
+						//更新当前显示的页码
+				    	currentPage = obj.curr;
+				    	getAuditLogsData(sendObj);
+						
+				    }else{//首次
+				    	firstGet = false;
+				    }
+				  }
+				});
+			});
+		}
+		
+		
+		
+		
+		//清空按钮
+		$("#empty").click(function(){
+			//询问框
+			layer.confirm('您确定清空数据么？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					 if(data.success == "true"){//成功
+						layer.msg(data.message,{icon: 1});
+						//初始化参数
+						paramInitialize();
+						getAuditLogsData(sendObj);
+					}else if(data.success == "false"){//失败
+						layer.msg(data.message,{icon: 5});
+					} 
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../note/deleteAll.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+		//备份按钮
+		$("#backup").click(function(){
+			//询问框
+			layer.confirm('您确定备份数据么？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){
+					//成功回调函数
+					var sfunc = function(data){//成功
+						if(data.success == "true"){
+							layer.msg(data.message,{icon: 1});
+							//初始化参数
+							paramInitialize();
+							getAuditLogsData(sendObj);
+						}else if(data.success == "false"){//失败
+							layer.msg(data.message,{icon: 5});
+						} 
+					}
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../note/backup.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+		//还原按钮
+		$("#recover").click(function(){
+			//询问框
+			layer.confirm('您确定恢复备份数据么？', {
+			  btn: ['确定','取消'] //按钮
+			}, function(index){
+				layer.close(index);
+				//成功回调函数
+				var sfunc = function(data){//成功
+					if(data.success == "true"){
+						layer.msg(data.message,{icon: 1});
+						//初始化参数
+						paramInitialize();
+						getAuditLogsData(sendObj);
+					}else if(data.success == "false"){//失败
+						layer.msg(data.message,{icon: 5});
+					} 
+				}
+				//失败回调函数
+				var efunc = function(data){
+					console.log(data)
+					layer.msg('操作失败',{icon: 5});
+				}
+				//发送请求
+				ajaxPost("../../note/restore.do",'',sfunc,"",efunc);
+			}, function(){
+				  layer.close();
+			});
+		})
+		//删除按钮
+		$("#remove").click(function(){
+			//定义id
+			var ids = '';
+			//获取被选择的复选框
+			var checkboxs = $("#auditLogTable>tbody input[type=checkbox]:checked");
+			if(checkboxs.length == 0){
+				layer.msg('未选中任何日志',{icon: 5});
+			}else{
+				//循环获取选中行的index值 用于去对应的id值
+				for(var i = 0; i< checkboxs.length;i++){
+					var index = $(checkboxs[i]).parents("tr").attr("data-index");
+					ids += idArr[index]+','				
+				}
+				//询问框
+				layer.confirm('您确定删除选中的数据么？', {
+				  btn: ['确定','取消'] //按钮
+				}, function(index){
+					layer.close(index);
+					//成功回调函数
+					var sfunc = function(data){//成功
+						if(data.success == "true"){
+							layer.msg(data.message,{icon: 1});
+							//初始化参数
+							paramInitialize();
+							getAuditLogsData(sendObj);
+						}else if(data.success == "false"){//失败
+							layer.msg(data.message,{icon: 5});
+						} 
+					}
+					//失败回调函数
+					var efunc = function(data){
+						console.log(data)
+						layer.msg('操作失败',{icon: 5});
+					}
+					//发送请求
+					ajaxPost("../../note/deletes.do ",{ids:ids},sfunc,"",efunc);
+				}, function(){
+					  layer.close();
+				});  
+			}
+			
+		})
+		
+		//刷新按钮
+		$("#repeat").click(function(){
+			//获取数据
+			getAuditLogsData(sendObj);
+			//初始化参数
+			paramInitialize();
+		})
+		
+		//检索按钮
+		$("#searchAuditLogs").click(function(){
+			//初始化参数
+			paramInitialize();
+			//获取参数函数
+			sendObj.ip = $(".searchIp").val();
+			sendObj.userName = $(".searchUserName").val();
+			sendObj.departmentName = $(".searchDepartment").val();
+			sendObj.startTime = $("#startTime").val();
+			sendObj.endTime = $("#endTime").val();
+			sendObj.account = $(".searchIphone").val();
+			//获取数据
+			getAuditLogsData(sendObj);
+		})
+		//初始化参数
+		function paramInitialize(){
+			firstGet = true;//定义第一次请求
+			allCount = 0;//检索的结果总总数
+			currentPage = 1;//当前显示的页码
+		}
+		
+	</script>
+</body>
+</html>

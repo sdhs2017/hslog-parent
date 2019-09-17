@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.alarm.dao.IAlarmDao">
+<!-- 返回结果设置 -->
+ 	<resultMap id="BaseResultMap" type="com.jz.bigdata.common.alarm.entity.Alarm">
+	    <id column="id" jdbcType="VARCHAR" property="id" />
+	    <result column="event_type" jdbcType="VARCHAR" property="event_type" />
+	    <result column="emailState" jdbcType="INTEGER" property="emailState" />
+ 	</resultMap>
+ 
+  
+ <!--  查询字段设置可重复调用 -->
+	<sql id="Base_Column_List">
+	 	id, event_type, emailState
+	</sql>
+  
+<!--   查询所有数据 -->
+	<select id="selectAll"  resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+    	 select  
+		 <include refid="Base_Column_List" />
+	     from alarm
+  	</select>
+  	
+  	<!--   查询所有数据 -->
+	<select id="selectByEmailState"  resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+    	 select  
+		 <include refid="Base_Column_List" />
+	     from alarm where emailState=1
+  	</select>
+  	
+  	<!-- 根据id修改信息 -->
+	<update id="updateById" parameterType="com.jz.bigdata.common.alarm.entity.Alarm">
+		update alarm set emailState = #{emailState}
+		where id=#{id}
+	</update>
+
+	
+
+	
+</mapper>

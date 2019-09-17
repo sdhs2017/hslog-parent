@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.jz.bigdata.business.health.test.book.dao.IBookDao" >
+	<resultMap id="BaseResultMap" type="com.jz.bigdata.business.health.test.book.entity.Book" >
+    	<id column="id" property="id" jdbcType="VARCHAR" />
+    	<result column="bookName" property="bookName" jdbcType="VARCHAR" />
+    	<result column="writer" property="writer" jdbcType="VARCHAR" />
+    	<result column="date" property="date" jdbcType="VARCHAR" />
+  	</resultMap>
+  	<sql id="Base_Column_List" >
+    	id, bookName, writer, date
+  	</sql>
+  	<select id="selectById" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    	select 
+    	<include refid="Base_Column_List" />
+    	from book
+    	where id = #{id,jdbcType=VARCHAR}
+  	</select>
+  	<insert id="insert" parameterType="com.jz.bigdata.business.health.test.book.entity.Book" >
+    	insert into book (id, bookName, writer,date)
+    	values (UUID(), #{bookName,jdbcType=VARCHAR}, #{writer,jdbcType=VARCHAR}, 
+      	#{date,jdbcType=VARCHAR})
+  	</insert>
+   	<select id="selectList" resultMap="BaseResultMap" parameterType="com.jz.bigdata.business.health.test.book.entity.Book" >
+    	select 
+    	<include refid="Base_Column_List" />
+    	from book
+    	where 1=1 
+	    <if test="writer != null" >
+	        and writer = #{writer,jdbcType=VARCHAR}
+	    </if>
+  	</select>
+  	<update id="updateById" parameterType="com.jz.bigdata.business.health.test.book.entity.Book" >
+	    update book
+	    <set >
+			<if test="bookName != null" >
+	        	bookName = #{bookName,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="writer != null" >
+	        	writer = #{writer,jdbcType=VARCHAR},
+	      	</if>
+	      	<if test="date != null" >
+	        	date = #{date,jdbcType=VARCHAR},
+	      	</if>
+	    </set>
+	    where id = #{id,jdbcType=VARCHAR}
+	</update>
+	<delete id="delete" parameterType="java.lang.String">
+		delete from book where id in 
+		<foreach item="ids" index="index" collection="array" open="(" separator="," close=")">  
+	 		#{ids}
+		</foreach>
+    </delete>
+    <select id="getMapListResult">
+        select *,'1.5' as num from book
+    </select>
+    
+    <select id="selectByquery" resultMap="BaseResultMap" parameterType="java.lang.String" >
+    	select 
+    	<include refid="Base_Column_List" />
+    	from book
+    	where  1=1
+	    <if test="_parameter != null and _parameter != ''" >
+	      and writer = #{_parameter} or bookName = #{_parameter}
+	    </if>
+  	</select>
+    
+    
+  <!--   <select id="number" resultMap="java.lang.Integer"  >
+    	select 
+    	count(1)
+    	from book
+  	</select> -->
+</mapper>

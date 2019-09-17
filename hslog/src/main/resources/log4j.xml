@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>  
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">  
+<!-- 控制台打印配置   -->
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">  
+    <appender name="console" class="org.apache.log4j.ConsoleAppender">  
+        <param name="Target" value="System.out" />  
+        <layout class="org.apache.log4j.PatternLayout"> 
+    <!--    输出到控制台配置  
+			%p: 输出日志信息优先级，即DEBUG，INFO，WARN，ERROR，FATAL
+			%d: 输出日志时间点的日期或时间，默认格式为ISO8601，也可以在其后指定格式，比如：%d{yyy MMM dd HH:mm:ss,SSS}
+			%r: 输出自应用启动到输出该log信息耗费的毫秒数 
+			%c: 输出日志信息所属的类目，通常就是所在类的全名 
+			%L: 输出代码中的行号 
+			%m: 输出代码中指定的消息,产生的日志具体信息 
+		    %n: 输出一个回车换行符，Windows平台为”\r\n”，Unix平台为”\n”输出日志信息换行 -->
+            <param name="ConversionPattern" value="%d [%p]  [%m]  [%c] %M()[%L] [%r] %n" />  
+        </layout>  
+      	<!--过滤器设置输出的级别-->
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">  
+            <!-- 设置日志输出的最小级别 -->
+            <param name="levelMin" value="info" /> 
+             <!-- 设置日志输出的最大级别 -->
+            <param name="levelMax" value="warn" /> 
+            <!-- 设置日志输出的xxx，默认是false --> 
+            <param name="AcceptOnMatch" value="true" />  <!-- 答案：http://bbs.csdn.net/topics/350195913 -->
+        </filter>  
+    </appender>  
+    <!-- 输出日志到文件  文件大小到达指定尺寸的时候产生一个新的文件 --> 
+    <appender class="org.apache.log4j.RollingFileAppender" name="file">  
+		<!--     存储地址 -->
+        <param name="File" value="d:/logs/catering.log" />  
+        <!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
+        <param name="Append" value="true" />  
+   		<!-- 设置当日志文件达到此阈值的时候自动新建文件，单位可以是KB，MB，GB，默认单位是KB --> 
+        <param name="MaxFileSize" value="100MB" /> 
+        <!-- 设置保存备份日志的最大个数 --> 
+        <param name="MaxBackupIndex" value="5" />  
+        <layout class="org.apache.log4j.PatternLayout">
+       <!--  存储格式   -->
+            <param name="ConversionPattern" value="[CateringLog] %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %c - %m%n" />  
+        </layout>  
+    </appender>  
+    <!--   
+        定义全局的日志输出级别,但是在输出目的地的配置中配置的具体输出级别优先级高于全局定义的优先级。  
+        如果在railyFile中定义<param name="Threshold" value="info"></param>，那么将会把info以上级别的信息输出  
+     -->    
+    <root>  
+  		  <!-- <level value="off" /> -->
+        <priority value="debug" />  
+        <appender-ref ref="console" />  
+        <appender-ref ref="file" />  
+    </root>  
+   <!--  定义单独的类的日志级别    Logger类是Category类的子类-->
+    <category name="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+       <priority value="info"/>
+       <appender-ref ref="console"/>
+    </category>
+    <category name="org.springframework.beans.factory.support.DefaultListableBeanFactory">
+       <priority value="info"/>
+       <appender-ref ref="console"/>
+    </category>
+    <!-- org.springframework.jdbc.datasource.DataSourceUtils -->
+   <!--  http://www.fx114.net/qa-52-87604.aspx -->
+     <category name="org.springframework.jdbc.datasource.DataSourceUtils">
+       <priority value="info"/>
+       <appender-ref ref="console"/>
+    </category>
+    
+    <logger name="org.springframework.web.servlet.DispatcherServlet">  
+        <level value="info" />  
+    </logger>  
+    <!--    <logger name="org.springframework.web.servlet.DispatcherServlet"  >  
+        <level value="debug" /> 
+        <appender-ref ref="console"/> 
+    </logger> -->
+    <logger name="org.mybatis.spring" additivity="false">  
+        <level value="info" />   
+    </logger>  
+      
+    <logger name="net.sf.ehcache">  
+        <level value="ERROR" />  
+    </logger>  
+    <logger name="com.mchange.v2">  
+        <level value="ERROR" />  
+    </logger>  
+      
+    <logger name="java.sql">  
+        <level value="info" /> 
+    </logger>  
+     <logger name="log4j.logger.java.sql.ResultSet" level="info" additivity="false">
+      <appender-ref ref="console"/>
+    </logger>
+    <logger name=" org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <level value="off" />
+      </logger>
+      
+  <!--     
+      <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+ <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+  <layout class="org.apache.log4j.PatternLayout">
+   <param name="ConversionPattern" value="[%d{dd/MM/yy hh:mm:ss:sss z}] %5p %c{2}: %m%n" />
+  </layout>
+ </appender>
+ <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
+  <param name="file" value="${user.home}/foss-framework.log" />
+  <param name="append" value="true" />
+  <param name="maxFileSize" value="10MB" />
+  <param name="maxBackupIndex" value="100" />
+  <layout class="org.apache.log4j.PatternLayout">
+   <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n" />
+  </layout>
+ </appender>
+      
+      
+      
+       下面是打印mybatis语句的配置
+ <logger name="com.ibatis" additivity="true"> 
+  <level value="DEBUG" /> 
+ </logger> 
+ <logger name="Java.sql.Connection" additivity="true"> 
+  <level value="DEBUG" /> 
+ </logger> 
+ <logger name="java.sql.Statement" additivity="true"> 
+  <level value="DEBUG" /> 
+ </logger> 
+ <logger name="java.sql.PreparedStatement" additivity="true"> 
+  <level value="DEBUG" /> 
+ </logger> 
+ <logger name="java.sql.ResultSet" additivity="true"> 
+  <level value="DEBUG" /> 
+ </logger> 
+ 
+ <root>
+  <level value="DEBUG" />
+  <appender-ref ref="CONSOLE" />
+  <appender-ref ref="FILE" />
+ </root> -->
+      
+      
+</log4j:configuration>  

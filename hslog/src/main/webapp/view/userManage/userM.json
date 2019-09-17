@@ -1,0 +1,201 @@
+ [{
+            "name": "山东九州信息股份有限公司",
+            "code":"001",
+            "icon": "icon-th",
+            "isChild":"true",
+            "child": [
+                {
+                    "name": "总经办",
+                    "icon": "icon-minus-sign",
+                    "isChild":"true",
+                    "code":"001001",
+                    "parentCode": "001",
+                    "child": [
+                        {
+                            "name": "总经理",
+                            "code":"001001001",
+                            "isChild":"true",
+                            "icon": "icon-minus-sign",
+                            "parentCode": "001001",
+                            "child": [
+                            	{
+		                            "name": "李雪",
+		                            "code":"001001001001",
+		                            "icon": "",
+		                            "isChild":"false",
+		                            "parentCode": "001001001",
+		                            "child": []
+		                        }
+                            ]
+                        },
+                        {
+                            "name": "副总经理",
+                            "code":"001001002",
+                            "icon": "icon-minus-sign",
+                            "isChild":"true",
+                            "parentCode": "001001",
+                            "child": [
+                            	{
+		                            "name": "张武",
+		                            "code":"001001002001",
+		                            "icon": "",
+		                            "isChild":"false",
+		                            "parentCode": "001001002",
+		                            "child": []
+		                        },
+		                        {
+		                            "name": "洪为",
+		                            "code":"001001002002",
+		                            "icon": "",
+		                            "isChild":"false",
+		                            "parentCode": "001001002",
+		                            "child": []
+		                        }
+                            ]
+                        }
+                    ]
+                }
+            	,
+                {
+                    "name": "财务部",
+                    "icon": "icon-minus-sign",
+                    "isChild":"true",
+                    "code":"001002",
+                    "parentCode": "001",
+                    "child": [
+                        {
+                            "name": "房名",
+                            "code":"001002001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001002",
+                            "child": []
+                        },
+                        {
+                            "name": "华英",
+                            "code":"001002002",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001002",
+                            "child": []
+                        },
+                        {
+                            "name": "文章",
+                            "code":"001002003",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001002",
+                            "child": []
+                        }
+                    ]
+                },
+                {
+                    "name": "销售部",
+                    "icon": "icon-minus-sign",
+                    "isChild":"true",
+                    "code":"001003",
+                    "parentCode": "001",
+                    "child": [
+                        {
+                            "name": "经理-熊得问",
+                            "code":"001003001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001003",
+                            "child": []
+                        },
+                        {
+                            "name": "王为",
+                            "code":"001003002",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001003",
+                            "child": []
+                        },
+                        {
+                            "name": "科东",
+                            "code":"001003003",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001003",
+                            "child": []
+                        },
+                        {
+                            "name": "邱比鹤",
+                            "code":"001003004",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001003",
+                            "child": []
+                        }
+                    ]
+                },
+                {
+                    "name": "研发部",
+                    "icon": "icon-minus-sign",
+                    "isChild":"true",
+                    "code":"001004",
+                    "parentCode": "001",
+                    "child": [
+                        {
+                            "name": "经理-徐晓",
+                            "code":"001004001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001004",
+                            "child": []
+                        },
+                         {
+                            "name": "赵空量",
+                            "code":"001004001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001004",
+                            "child": []
+                        } ,
+                        {
+                            "name": "孙明",
+                            "code":"001004001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001004",
+                            "child": []
+                        },
+                         {
+                            "name": "刘光亮",
+                            "code":"001004001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001004",
+                            "child": []
+                        }
+                    ]
+                },
+                {
+                    "name": "市场部",
+                    "icon": "icon-minus-sign",
+                    "isChild":"true",
+                    "code":"001005",
+                    "parentCode": "001",
+                    "child": [
+                        {
+                            "name": "经理-杭业",
+                            "code":"001005001",
+                            "icon": "",
+                            "isChild":"false",
+                            "parentCode": "001005",
+                            "child": []
+                        },
+                         {
+                            "name": "美丽",
+                            "code":"001005002",
+                            "isChild":"false",
+                            "icon": "",
+                            "parentCode": "001005",
+                            "child": []
+                        }
+                    ]
+                }
+            ]
+        }
+]

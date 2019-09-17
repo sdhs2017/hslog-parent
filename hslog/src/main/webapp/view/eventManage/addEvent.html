@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>添加事件</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+		<style type="text/css">
+			.propertyNav{
+				margin-bottom:10px;
+				/* display:none; */
+			}
+			.propertyNav a{
+				font-size:12px;
+				margin:10px;
+				color:#428bca;
+			}
+			.propertyNav a:hover{
+				text-decoration: underline;
+			}
+			.content .emptyBox{
+				width:20%;
+				float:left;
+				height:10px;
+				transition: all 0.4s ease 0s;
+			}
+			.content .paramBox{
+				width:60%;			
+				padding:20px;
+				float:left;				
+			}
+			.content .paramBox>div{
+				background:#2e3e4e;
+				padding:20px 0;
+			}
+			.content .actionBox,.content .equipmentBox{
+				width:40%;
+				background:#2e3e4e;
+				max-width:600px;
+			}
+			.content .row{
+				padding: 10px;
+			}
+			.content .row>div{
+				padding-left:30px;
+			}
+			.content .row>div label{
+				width: 100px;
+				/* text-align: end; */
+				float: left;
+				height:34px;
+				line-height: 34px;
+				margin-right: 20px;
+			}
+			.content .row>div>input{
+			    float: left;
+			    width: 77%;
+			}
+			.content .row>div>select{
+				float: left;
+			    width: 76%;
+			}
+			.content .row>div textarea {
+			    float: left;
+			    width: 77%;
+			}
+			.content .equipmentWarpper{
+				height:0;
+				overflow:hidden;
+				
+				padding:0;
+				transition: all 0.4s ease 0s;
+			}
+			.selectedEquipmentBox{
+				max-height:300px!important;
+				overflow-y:auto;
+			}
+			.selectAction,.selectEquipment {
+			    font-size: 12px!important;
+			    color: #1ab394;
+			    padding-left: 0!important;
+			    border:0!important;
+			}
+			.selectAction:hover,.selectEquipment:hover{
+				color: #1ab394;
+		    	text-decoration: underline;
+		    	background: 0;
+		    	border:0;
+			}
+			.selectedActionBox ,.selectedEquipmentBox{
+			    border: 0;
+			    background: 0;
+			    color: #56a4ef;
+			    box-shadow: 0px 0px 7px 1px #4781bb;
+			    min-height: 100px;
+			    padding:5px;
+			    
+			}
+			.selectedActionBox table,.selectedEquipmentBox table{
+				overflow:hidden;
+			}
+			.selectedActionBox tbody tr{
+				cursor:move;
+				user-select:none;
+			    -webkit-user-select:none;
+			    -ms-user-select:none;
+			    -moz-user-select:none;
+			}
+			.selectedActionBox tbody i ,.selectedEquipmentBox tbody i {
+				margin-right:5px;
+				cursor:pointer;
+			}
+			.inputWarpper{
+				padding:0;
+				width:77%;
+				float: left;
+			}
+			.actionBox,.equipmentBox{
+				 box-shadow: 0px 0px 7px 1px #4781bb;
+				 padding:10px;
+				 height:90vh;
+				 position:fixed;
+				 top:20px;
+				 /* right:10px; */
+				 right:-52%;
+				 transition:all 0.5s;
+				 /* transform: scale3d(1, 1, 1); */
+			}
+			.listTitleBox{
+				width:100%;
+			 	max-width: 600px;
+    			padding: 0 10px;
+    			/* right:10px; */
+				background:#2e3e4e;
+				margin-bottom: 15px;
+			    /* position: fixed; */
+			    border-bottom: 1px solid #386c9a;
+			}
+			.actionBoxTitle{
+			    display: inline-block;
+			    width: 80px;
+			    position: absolute;
+			    left: 50%;
+			   	margin-left: -40px;
+    			text-align: center;
+			    font-size: 16px;
+			    font-weight: 600;
+			    color:#b7795a;
+			}
+			.actionBox button,.equipmentBox button{
+				background:#386c9a!important;
+				width:53px;
+			}
+			.actionBox tbody tr,.equipmentBox tbody tr{
+				cursor:move;
+				user-select:none;
+			    -webkit-user-select:none;
+			    -ms-user-select:none;
+			    -moz-user-select:none;
+			}
+			.actionBox-logtype{
+			    background:#2e3e4e;
+			    top: 58px;
+				display:flex;
+				justify-content: center;
+				height:30px;
+				padding:0 10px;
+				margin-bottom:10px;
+			}
+			.actionBox-logtype lable{
+				width:90px;
+				height:30px;
+				line-height:30px;
+				text-algin:center;
+				font-weight: 600;
+				color:#56a4ef;
+			}
+			.actionBox-logtype .form-control{
+				height:30px;
+				padding:0 10px;	
+				border-radius:0;			
+			}
+			.eqTableBox{
+				height:calc(100% - 50px);
+				overflow:auto;
+			}
+			
+			.acTableBox{
+				overflow:auto;
+				/* padding-top:90px; */
+				height: calc(100% - 90px);
+			}
+			.layui-layer-content{
+				padding:10px;
+			}
+			.alarmBox{
+				height:0;
+				overflow:hidden;
+				transition: all 0.4s ease 0s;
+			}
+			.timeBox{
+				display:flex;
+			}
+			.timeBox span{
+				display: inline-block;
+    			width: 25%;
+			}
+			.btnBox{
+				display:flex;
+				justify-content:center;
+			}
+			.submitParam{
+				background:#386c9a!important;
+				margin:0 20px;
+			}
+			.goBack{
+				border:1px solid #386c9a;
+				color:#fff;
+				margin:0 20px;
+			}
+			.goBack:hover{
+				color:#fff;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				新增事件
+			</div>
+			<div class="propertyNav">
+				<a href="eventList.html">事件列表</a>><!-- <a class="secondA" href="javascript:void(0);">新增事件</a> --> <a class="secondA" href="addEvent.html">新增事件</a><a href="eventList.html">返回上一级</a>
+			</div>
+			<!-- javascript:void(0) -->
+			<div class="content">
+				<div class="emptyBox"></div>
+				<div class="paramBox">
+					<div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>事件名称  ：</label>
+		    					<input type="text" class="form-control eventName"  placeholder="事件名称">
+							</div>
+						</div>
+						<div class="row">
+							<div class-sm-12>
+								<label>事件类型  ：</label>
+		    					<select class="form-control eventType">
+		    						<option value="0">系统事件</option>
+		    						<option value="1">资产事件</option>
+		    					</select>
+							</div>
+						</div>
+						<div class="row equipmentWarpper">
+							<div class="col-sm-12">
+								<label>绑定资产  ：</label>
+		    					<div class="inputWarpper">
+		    						<div style="margin-bottom:10px;"><a href="javascript:void(0);" class="selectEquipment">选择资产</a></div>
+		    						<div class="selectedEquipmentBox">
+		    							<table data-toggle="table" data-classes="table table-hover ">
+											<thead>
+												<tr>
+													<th>资产名称</th>
+													<th>主机名</th>
+													<th>资产类型</th>
+													<th>日志类型</th>
+													<th>IP地址</th>
+													<th>操作</th>
+												</tr>
+											</thead>
+											<tbody id="selectedEquipmentBox">
+												
+											</tbody>
+										</table>
+		    							
+		    						</div>
+		    						
+		    					</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>动作名称  ：</label>
+		    					<div class="inputWarpper">
+		    						<div style="margin-bottom:10px;"><a href="javascript:void(0);" class="selectAction">选择动作</a><span class="selectActionDes">(可拖拽排序)</span></div>
+		    						<div class="selectedActionBox">
+		    							<table data-toggle="table" data-classes="table table-hover ">
+											<thead>
+												<tr>
+													<th>动作名称</th>
+													<th>创建人</th>
+													<!-- <th>资产名称</th> -->
+													<th>日志类型</th>
+													<th>关键字</th>
+													<th>次数</th>
+													<th>操作</th>
+												</tr>
+											</thead>
+											<tbody id="selectedActionBox">
+												
+											</tbody>
+										</table>
+		    							
+		    						</div>
+		    						
+		    					</div>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>是否启用  ：</label>
+								<div class="inputWarpper" style="height:34px;line-height: 34px;">
+									<input type="radio" name="isUsed" value="1" checked class="yes">是
+		    						<input type="radio" name="isUsed" value="0" class="no">否
+								</div> 				
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12">
+								<label>是否告警  ：</label>
+		    					<div class="inputWarpper" style="height:34px;line-height: 34px;">
+									<input type="radio" name="isAlarm" value="1"  class="yes">是
+		    						<input type="radio" name="isAlarm" value="0" checked class="no">否
+								</div> 	
+							</div>
+						</div>
+						<div class="alarmBox">
+							<div class="row">
+								<div class="col-sm-12">
+									<label>策略名称 ：</label>
+			    					<input type="text" class="form-control alarmName"  placeholder="策略名称">
+								</div>
+							</div>
+							<div class="row">
+								<div class="col-sm-12">
+									<label>选择时间 ：</label>
+									<div class="inputWarpper timeBox">
+										<span>
+											<label>月</label>
+											<select class="form-control safe_month">
+												<option value="00"></option>
+											</select>
+										</span>
+										<span>
+											<label>日</label>
+											<select class="form-control safe_day">
+												<option value="00"></option>
+											</select>
+										</span>
+										<span>
+											<label>时</label>
+											<select class="form-control safe_hour">
+												<option value="00"></option>
+											</select>
+										</span>
+										<span>
+											<label>分</label>
+											<select class="form-control safe_min">
+												<option value="00"></option>
+											</select>
+										</span>
+									</div>
+								</div>	
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="col-sm-12">
+								<label>事件描述  ：</label>
+		    					<textarea class="form-control eventDes"></textarea>
+							</div>
+						</div>
+						<div class="row">
+							<div class="col-sm-12 btnBox">
+								<button class="btn btn-info submitParam">提交</button>
+								<button class="btn goBack">返回</button>
+							</div>
+						</div>
+					</div>	
+				</div>
+				<div class="actionBox">
+					<div class="listTitleBox"><button class="btn btn-info  closeActionBox">关闭</button><span class="actionBoxTitle">动作列表</span> <!-- <span style="float:right;color:#b7795a;">提示：拖入左侧黄框中</span> --></div>
+					<div class="actionBox-logtype">
+						<lable>日志类型：</lable>
+						<select class="form-control selectLogType">
+	   						<option value="syslog">syslog</option>
+ 							<option value="winlog">winlog</option>
+ 							<option value="snmp">snmp</option>
+ 							<option value="log4j">log4j</option>
+ 							<option value="mysql">mysql</option>
+ 							<option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option>
+	   					</select>						
+					</div>
+					<div class="acTableBox">
+						<table data-toggle="table" data-classes="table table-hover">
+							<thead>
+								<tr>
+									<th>动作名称</th>
+									<th>创建人</th>
+									<!-- <th>资产名称</th> -->
+									<th>日志类型</th>
+									<th>关键字</th>
+								</tr>
+							</thead>
+							<tbody id="acl">
+								<!-- <tr>
+									<td>登录</td>
+									<td>李洪连</td>
+									<td>jr</td>
+									<td>winlog</td> 
+								</tr> -->
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class="equipmentBox">
+					<div class="listTitleBox"><button class="btn btn-info  closeEquipmentBox">关闭</button><span class="actionBoxTitle">资产列表</span> <!-- <span style="float:right;color:#b7795a;">提示：拖入左侧黄框中</span> --></div>
+					<div class="eqTableBox">
+						<table data-toggle="table" data-classes="table table-hover">
+							<thead>
+								<tr>
+									<th>资产名称</th>
+									<th>主机名</th>
+									<th>资产类型</th>
+									<th>日志类型</th>
+									<th>IP地址</th>
+								</tr>
+							</thead>
+							<tbody id="eql">
+								<tr>
+									<td>设备1</td>
+									<td>jxs</td>
+									<td>主机-windows</td>
+									<td>winlog</td> 
+									<td>123.123.2.36</td> 
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/addEvent.js" type="text/javascript" charset="utf-8"></script>
+	</body>
+</html>

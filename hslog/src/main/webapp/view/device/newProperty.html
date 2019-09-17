@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>资产管理</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" href="css/bootstrap-wizard.css" />
+		<!-- <link rel="stylesheet" type="text/css" href="../../js/bootstrap/css/bootstrap-switch.css"/> -->
+		<link rel="stylesheet" type="text/css" href="css/device.css"/>
+		<style type="text/css">
+			.wizard-modal p {
+				margin: 0 0 10px;
+				padding: 0;
+			}
+
+			#wizard-ns-detail-servers, .wizard-additional-servers {
+				font-size: 12px;
+				margin-top: 10px;
+				margin-left: 15px;
+			}
+			#wizard-ns-detail-servers > li, .wizard-additional-servers li {
+				line-height: 20px;
+				list-style-type: none;
+			}
+			#wizard-ns-detail-servers > li > img {
+				padding-right: 5px;
+			}
+
+			.wizard-modal .chzn-container .chzn-results {
+				max-height: 150px;
+			}
+			.wizard-addl-subsection {
+				margin-bottom: 40px;
+			}
+			.create-server-agent-key {
+				margin-left: 15px; 
+				width: 90%;
+			}
+			.modal-content {
+				
+				box-shadow: none;	
+			}
+			/* html,body{
+				background:#fff;
+				 
+			}
+			#box{
+				/* background:none; */
+				border:0;
+				padding:0;
+			}
+			.top_title{
+				border:0;
+				padding-left:20px;
+				border-bottom:1px solid #ddd;
+				margin-bottom:0;
+			} */
+			.toolsBox{
+				/* padding:20px 50px; */
+				/* overflow:hidden; */
+				/* display:flex;
+				justify-content:center; */
+				float:left;
+			}
+			.tools{
+				width: 40px;
+				height:40px;
+			/* 	border:1px solid #ccc; */
+				cursor:pointer;
+				transition: all .2s linear;
+				/* margin:20px; */
+				float:left;
+				border-radius:5px;
+				overflow:hidden;
+				
+			}
+			.tools:hover{
+				/*box-shadow: 5px 5px 7px rgba(33,33,33,.7);*/
+				transform: translate3d(0 ,-2px ,0);
+				box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+			}
+			.toolsIcon{
+				height:40px;
+				line-height: 40px;
+				text-align: center;
+				font-size:20px;
+				color:#fff;
+				background:
+			}
+			.toolsTxt{
+				text-align:center;
+				line-height: 30px;
+				display:none;
+			}
+			#add_device .toolsIcon{
+				background:#00B07F;
+			}
+			#remove_device .toolsIcon{
+				background:#D54C54;
+			}
+			#echart_device .toolsIcon{
+				background:#47A4EA;
+			}
+			#play_service .toolsIcon{
+				background:#A37BC4;
+			}
+			#pause_service .toolsIcon{
+				background:orange;
+			}
+			#stop_service .toolsIcon{
+				background:#D9531E;
+			}
+			#refresh_device .toolsIcon{
+				background:#00AEAF;
+			}
+			.form-control{
+				width:auto;
+			}
+			.fromBox{
+				height:40px;
+				line-height:40px;
+				padding-left:10px;
+				/* border:1px solid #ddd; */
+				border-bottom:0;
+				margin:20px
+			}
+			.fromBox>form{
+				float:right;
+			}
+			.device_box{
+				/*  border:1px solid #ddd;  */
+				
+			}
+			.nav-tabs {
+				border-top:1px solid #ccc;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<div id="box">
+			<div class="top_title">
+				资产管理
+			</div>
+			
+			<!-- <div class="device_tools row">
+				<div class="col-sm-5">
+					<button  class="btn btn-primary" id="add_device" title="添加新的资产"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加</button>
+					<button  class="btn btn-danger" id="remove_device" title="删除资产"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除</button>
+					<button  class="btn btn-primary" id="echart_device" title="查看资产报表"><i class="glyphicon glyphicon-stats"></i>&nbsp;报表</button>
+					<button  class="btn btn-info" id="play_service" title="开启服务"><i class="glyphicon glyphicon-play"></i>&nbsp;开启</button>
+					<button  class="btn btn-primary" id="pause_service" title="暂停服务"><i class="glyphicon glyphicon-pause"></i>&nbsp;暂停</button>
+					<button  class="btn btn-danger" id="stop_service" title="停止服务"><i class="glyphicon glyphicon-stop"></i>&nbsp;停止</button>
+					<button  class="btn btn-primary" id="wizard_device">测试</button>
+				</div>
+				<form class="form-inline col-sm-7" onsubmit="return false;">					
+					<div class="form-group">
+				    	<label>资产名称:</label>
+				    	<input type="text" class="form-control search_deviceName" placeholder="资产名称(可为空)">
+				    	<label>主机名:</label>
+				    	<input type="tel" class="form-control search_hostname" placeholder="主机名(可为空)">
+				    	<label>IP:</label>
+				    	<input type="tel" class="form-control search_deviceIp" placeholder="IP(可为空)">
+				    	<button class="btn btn-primary search_device" ><i class="glyphicon glyphicon-search"></i>搜索</button>
+				  	</div>
+				</form>
+			</div>  -->
+			<div class="fromBox">
+				<div class="toolsBox">
+					<div class="tools" id="add_device" title="添加资产">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-plus"></i>
+						</div>
+						<div class="toolsTxt">添加</div>
+					</div>
+					<div class="tools" id="remove_device" title="删除资产">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-remove"></i>
+						</div>
+						<div class="toolsTxt">删除资产</div>
+					</div>
+					<div class="tools" id="echart_device" title="资产报表">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-stats"></i>
+						</div>
+						<div class="toolsTxt">资产报表</div>
+					</div>
+					<div class="tools" id="refresh_device" title="刷新列表">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-refresh"></i>
+						</div>
+						<div class="toolsTxt">资产报表</div>
+					</div>
+					<div class="tools" id="play_service" title="开始服务">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-play"></i>
+						</div>
+						<div class="toolsTxt">开始服务</div>
+					</div>
+					<div class="tools" id="pause_service" title="暂停服务">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-pause"></i>
+						</div>
+						<div class="toolsTxt">暂停服务</div>
+					</div>
+					<div class="tools" id="stop_service" title="停止服务">
+						<div class="toolsIcon">
+							<i class="glyphicon glyphicon-stop"></i>
+						</div>
+						<div class="toolsTxt">停止服务</div>
+					</div>
+				</div>
+				<form class="form-inline" onsubmit="return false;">					
+					<div class="form-group">
+				    	<label>资产名称:</label>
+				    	<input type="text" class="form-control search_deviceName" placeholder="资产名称(可为空)">
+				    	<label>主机名:</label>
+				    	<input type="tel" class="form-control search_hostname" placeholder="主机名(可为空)">
+				    	<label>IP:</label>
+				    	<input type="tel" class="form-control search_deviceIp" placeholder="IP(可为空)">
+				    	<button class="btn btn-primary search_device" ><i class="glyphicon glyphicon-search"></i>搜索</button>
+				  	</div>
+				</form>
+			</div>
+			<div class="row device_box">
+				<div class="col-sm-12">
+					<div class="device_list">
+						<div class="list_con">
+                            <ul class="nav nav-tabs">
+                                <!-- <span class="pull-right small text-muted"> x个设备</span>    -->                          
+                            </ul>
+                            <div class="tab-content">
+                                <div id="tab-1" class="tab-pane active">
+                                    <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="device_list">
+                                            	<thead>
+											        <tr>
+											          	<th><input type="checkbox" id="theadCheck"></th>
+											          	<th>资产名称</th>
+											          	<th>主机名</th>
+											          	<th>资产类型</th>
+											          	<th>日志类型</th>
+											          	<th>IP地址</th>
+											          	<th>进入时间</th>
+											          	<th>更新时间</th>
+											          	<th>截止时间</th>
+											          	<th>是否启用</th>
+											          	<th>操作</th>
+											        </tr>
+											      </thead>
+                                                <tbody>
+                                                   <!--  <tr>   
+                                                    	<td><input type="checkbox" id="theadCheck"></td>
+                                                        <td class="device_name">
+                                                        	<span data-id="001">lenovo</span>
+                                                        </td>
+                                                        <td class="device_hostname">contos6-70-clltest</td>
+                                                        <td class="device_type" data-type="1">服务器</td>
+                                                        <td class="device_ip">192.168.100.20</td>
+                                                        <td class="device_starttime">2017-02-03 18:00:36</td> 
+                                                        <td class="device_updatetime">2017-02-03 18:00:36</td>
+                                                        <td class="device_endtime">2019-02-03 18:00:00</td>  
+                                                        <td class="device_iswork">
+                                                        	<input type="checkbox" name="my-checkbox">
+                                                        	是
+                                                        </td>  
+                                                       	<td class="td_tools">
+                                                       		<i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>
+                                                       		<i class="glyphicon glyphicon-remove device_remove" title="删除"> </i>
+                                                       		<i class="glyphicon glyphicon-list-alt device_logs" title="查询设备日志"> </i>
+                                                       		<i class="glyphicon glyphicon-play device_start" title="开启服务"> </i>
+                                                       		<i class="glyphicon glyphicon-pause device_pause" title="暂停服务"> </i>
+                                                       		<i class="glyphicon glyphicon-stop device_stop" title="关闭服务"> </i>                   
+                                                       	</td>
+                                                    </tr>
+ -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+                                </div>
+                                
+                            </div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="tools_page">
+				<span class="current prev">&laquo;</span>
+				<span class="current">1</span>
+				<span class="current next">&raquo;</span>
+			</div>
+		</div>
+		<!-- 向导模式 -->
+		<div class="wizard" id="satellite-wizard" data-title="">
+			<!-- Step 1 Name & FQDN -->
+			<div class="wizard-card" data-cardname="name">
+				<h3>Step 1</h3>
+				<input type="text" name="aa" id="aa" value="123" />
+			</div>
+
+			<div class="wizard-card" data-cardname="group">
+				<h3>Step 2</h3>
+
+			</div>
+			<div class="wizard-card" data-cardname="group">
+				<h3>Step 3</h3>
+
+			</div>			
+			<div class="wizard-card">
+				<h3>Step 4</h3>
+
+	
+				<div class="wizard-success">
+					<div class="alert alert-success">
+						<span class="create-server-name"></span>Server Created <strong>Successfully.</strong>
+					</div>
+	
+					<a class="btn btn-default create-another-server">Create another server</a>
+					<span style="padding:0 10px">or</span>
+					<a class="btn btn-success im-done">Done</a>
+				</div>
+			</div>
+		</div>
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<!-- 		<script src="../../js/bootstrap/js/bootstrap-switch.js" type="text/javascript" charset="utf-8"></script> -->
+		<script src="../../hplus/js/contabs.min.js"></script>
+		<script src="js/prettify.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/bootstrap-wizard.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/device.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+
+		</script>
+	</body>
+</html>

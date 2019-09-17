@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>安全策略</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	</head>
+	<style>
+		html, body {
+		    height: 100%;
+		}
+		#box{
+			height: auto!important;
+    		min-height: 100%!important
+		}
+		.btnBox{
+			padding-left:20px;
+			margin-bottom: 15px;
+		}
+		.btnBox>button{
+			height:30px;
+			font-size:12px;
+			background:0;
+			transition: all .2s linear;
+		    color: #5bc0de!important;
+		    border: 1px solid #5bc0de!important;
+		}
+		.btnBox>button:hover{
+			background:0;
+		    transform: translate3d(0 ,-1px ,0);
+		    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+		}
+		.btnBox>button:focus{
+			background:0;
+		}
+		.tab-content{
+			border-top:1px solid #ddd;
+		}
+		.safeStrategyList{
+			padding:20px;
+			padding-top:0;
+		}
+		.safeStrategyList i:hover{
+			cursor:pointer;
+			color:#5bc0de;
+		}
+		.layui-layer-content {
+		    padding: 20px;
+		    background: rgb(248, 248, 248);
+		}
+		.form-group {
+		    margin-bottom: 15px;
+		}
+		.safe_date{
+			display:flex;
+		}
+		.safe_date>span{
+			margin:0 3px;
+		}
+		.safe_date .control-label{
+			display:inline-block;
+			width:58px;
+			text-align: center;
+		}
+		.state_box{
+			margin-top:5px;
+		}
+		.state_box input{
+			margin-left:5px;
+		}
+		.safe_day,.safe_month,.safe_minute,.safe_hour{
+			padding-right:0;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				安全策略
+			</div>
+			<div class="btnBox">
+				<button class="btn btn-info" id="add_safe" title="添加新的安全策略"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加</button>
+				<button class="btn btn-remove" id="remove_safe" title="删除选中的安全策略"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除</button>
+			</div>
+			<div class="safeStrategyList">
+				<div class="tab-content" style="position:relative;">
+					<div class="table-responsive">
+                    	<table class="table table-striped table-hover" id="safeStrategy_list">
+	                    	<thead>
+								<tr>
+						          	<th width="4%"><input type="checkbox" id="theadCheck" onclick="theadCheck()"></th>
+						          	<th>策略名</th>
+						          	<th>事件类型</th>
+						          	<th>阈值</th>
+						          	<th>时间</th>
+						          	<th>是否启用</th>
+						          	<th>操作</th>
+						        </tr>
+							</thead>
+	                        <tbody>
+								<!-- <tr data-id="123">
+									<td><input type="checkbox"></td>
+									<td>错误</td>
+									<td>error</td>
+									<td>10000</td>									
+									<td>1小时</td>
+									<td>是</td>
+									<td><i class="glyphicon glyphicon-edit safeStrategy_revise" title="修改"> </i></td>
+								</tr> -->
+	                        </tbody>
+	                    </table>
+	               </div>
+				</div>
+			</div>
+		</div>
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var getDeviceId = sessionStorage.getItem("deviceObj2");//获取本地存储的设备值 对象
+			//存储资产id 变量
+			var propertyId = '';
+			//存储日志类型
+			var logType = '';
+			if(getDeviceId != null){
+				var str = JSON.parse(getDeviceId);
+				var title = str.deviceName;
+				$(".top_title").html(title+' 安全策略')
+				//获取资产id
+				propertyId = str.deviceId;
+				logType = str.logType;
+				//删除本地session
+				sessionStorage.removeItem("deviceObj2");
+				//获取数据
+				getSafeDate();
+			}	
+			
+			//syslog事件对应中文解释
+			var syslogEventObj = {};
+			syslogEventObj.poweroff = "主机关机";
+			syslogEventObj.NetworkManager = "网络服务";
+			syslogEventObj.usb = "usb外接";
+			syslogEventObj.sshd = "通过ssh方式进行操作";
+			syslogEventObj.login = "用户登录";
+			syslogEventObj.su = "通过su方式登录";
+			syslogEventObj.session = "开启新的会话窗口";
+			syslogEventObj.rsyslogd = "rsyslog自身日志";
+			syslogEventObj.pci = "pci日志";
+			syslogEventObj.pci_bus = "pci_bus日志";
+			syslogEventObj.ACPI = "ACPI日志";
+			syslogEventObj.PM = "PM日志";
+			syslogEventObj.SRAT = "SRAT日志";
+			syslogEventObj.crond = "定时任务";
+					
+			//winlog事件对应中文解释
+			var winlogEventObj = {};
+			winlogEventObj.login_successful = "登录成功";
+			winlogEventObj.mstsc_successful = "远程登录成功";
+			winlogEventObj.mstsc_interrupt = "远程连接中断";
+			winlogEventObj.log_off = "用户注销";
+			
+			var eventObj = {};
+			//获取安全策略数据
+			function getSafeDate(){
+				//发送请求 回调函数
+				sfunc = function(data){
+					//拼接页面
+					var html = '';
+					for(var i in data){
+						var obj = data[i];
+						if(obj.state == 0){
+							var state = "否";
+						}else if(obj.state == 1){
+							var state = "是";
+						}
+						//时间显示修改
+						var  time = '';
+						var arr = obj.time_interval.split("-");					
+						if(arr[0] != "00"){
+							time += arr[0]+"月";
+						}
+						if(arr[1] != "00"){
+							time += arr[1]+"日";
+						}
+						if(arr[2] != "00"){
+							time += arr[2]+"时";
+						}
+						if(arr[3] != "00"){
+							time += arr[3]+"分";
+						}
+						//判断日志类型 加载不同的事件盒子
+						if(logType == "syslog"){
+							eventObj = syslogEventObj;
+						}else if(logType == "winlog"){
+							eventObj = winlogEventObj;
+						}
+						html += '<tr data-id="'+obj.id+'">'
+							+		'<td><input type="checkbox"></td>'
+							+		'<td>'+obj.safe_strategy_name+'</td>'
+							+		'<td>'+eventObj[obj.event_type]+'</td>'
+							+		'<td>'+obj.number+'</td>'								
+							+		'<td>'+time+'</td>'
+							+		'<td>'+state+'</td>'
+							+		'<td><i class="glyphicon glyphicon-edit safeStrategy_revise" title="修改"> </i></td>'
+							+	'</tr>'
+					}
+					
+					//显示在页面中
+					$("#safeStrategy_list>tbody").html(html);
+				}
+				//发送请求
+				ajaxPost("../../safeStrategy/selectByEquipmentId.do",{equipmentId:propertyId},sfunc);
+			}			
+			
+			//定义按钮类型
+			var btnType = "";
+			//添加安全策略按钮点击事件
+			$("#add_safe").click(function(){
+				//设置按钮类型
+				btnType = "addBtn";
+				//调用弹窗函数
+				safeLayerHtml(btnType);
+				//设置弹窗函数标题
+				$(".layui-layer-title").html("添加安全策略");
+			})
+			
+			//修改安全策略按钮点击事件
+			$("#safeStrategy_list").on("click",".safeStrategy_revise",function(){
+				//获取id
+				var safeId = $(this).parents("tr").attr("data-id");
+				//定义按钮类型
+				btnType = "reviseBtn";
+				//发送请求 回调函数
+				var sfunc = function(data){
+					var obj = data[0];
+					//显示弹窗
+					safeLayerHtml(btnType,safeId);
+					//设置弹窗函数标题
+					$(".layui-layer-title").html("修改安全策略");
+					//填充数据
+					//策略名
+	  				$(".safe_name").val(obj.safe_strategy_name);
+	  				//事件类型
+	  				$(".safe_eventType").val(obj.event_type);
+	  				$(".safe_eventType").attr("disabled","disabled");
+	  				//阈值
+	  				$(".safe_number").val(obj.number);
+	  				//是否启用
+	  				if(obj.state == 1){
+	  					
+	  				}else{
+	  					$(".yes").removeAttr("checked");
+	  					$(".no").attr("checked","checked");
+	  				}
+	  				//时间 月 日 时  分
+	  				$(".safe_month").val(obj.month)
+	  				$(".safe_day").val(obj.day)
+	  				$(".safe_hour").val(obj.hour)
+	  				$(".safe_minute").val(obj.minute)
+				}
+				//发送请求
+				ajaxPost("../../safeStrategy/selectById.do",{id:safeId},sfunc); 
+				
+				
+			})
+			
+			//删除按钮点击事件
+			$("#remove_safe").click(function(){
+				//获取被选择的复选框
+				var checkboxs = $("#safeStrategy_list>tbody input[type=checkbox]:checked");
+				var deleteId = '';
+				//判断是否又被选中的  没有则提示 有则继续执行删除操作
+				if(checkboxs.length == 0){
+					layer.msg('未选中任何安全策略',{icon: 5});
+				}else{
+					//询问框
+					layer.confirm('您确定删除么？', {
+					  btn: ['确定','取消'] //按钮
+					}, function(index){
+						layer.close(index);
+						//循环拼接id值
+						for(var i = 0; i< checkboxs.length;i++){
+							deleteId += $(checkboxs[i]).parents("tr").attr("data-id")+',';
+						}	
+						var safeObj = {};
+						//策略id
+						safeObj.ids = deleteId;
+						//资产id
+						safeObj.id = propertyId;
+						 //发送数据到后台 进行删除
+						 //成功回调函数
+						var sfunc = function(data){
+							layer.msg("删除成功",{icon:1});
+							//重新加载谁被列表
+							getSafeDate();
+						}
+						
+						//发送请求
+						ajaxPost("../../safeStrategy/deletes.do",safeObj,sfunc)
+						//关闭弹窗
+						layer.close();
+					}, function(){
+					  layer.close();
+					});
+				}
+			})
+			
+			//弹窗函数 btnType - 按钮类型 ; safeId - 修改时获取的id
+			function safeLayerHtml(btnType,safeId){
+				var layHtml = '<form class="form-horizontal">'					
+			  				+		'<div class="form-group">'
+			   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">策略名 ：</label>'
+			    			+			'<div class="col-sm-8">'
+			      			+				'<input type="text" class="form-control safe_name" placeholder="安全策略名称" maxlength="11">'
+			    			+			'</div>'
+			  				+		'</div>'
+			  				+		'<div class="form-group">'
+			   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">事件类型 ：</label>'
+			    			+			'<div class="col-sm-8">'
+			    			+				'<select class="form-control safe_eventType">'
+			      			+					'<option value=""></option>'
+			      			+               '</select>'
+			    			+			'</div>'
+			  				+		'</div>'
+			  				+		'<div class="form-group">'
+			   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">阈值 ：</label>'
+			    			+			'<div class="col-sm-8">'
+			      			+				'<input type="number" min="1" class="form-control safe_number" placeholder="定义时段内阈值" maxlength="5">'
+			    			+			'</div>'
+			  				+		'</div>'
+			  				+		'<div class="form-group">'
+			   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">是否启用：</label>'
+			    			+			'<div class="col-sm-8 state_box">'
+			      			+				'<input type="radio" name="safeState" value="1" checked class="yes">是'
+			      			+				'<input type="radio" name="safeState" value="0" class="no">否'
+			    			+			'</div>'
+			  				+		'</div>'
+			  				+		'<div class="form-group">'
+			   		 		+			'<label for="inputEmail3" class="col-sm-3 control-label">时间 ：</label>'
+			    			+			'<div class="col-sm-8 safe_date">'
+			    			+				'<span>'
+			    			+					'<label class="col-sm-3 control-label">月</label>'
+			    			+					'<select class="form-control safe_month">'
+			    			+						'<option value="00"></option>'
+			    			+               	'</select>'
+			    			+					'</span>'
+			    			+				'<span>'
+			    			+					'<label class="col-sm-3 control-label">日</label>'
+			    			+					'<select class="form-control safe_day">'
+			    			+						'<option value="00"></option>'
+			    			+               	'</select>'
+			    			+				'</span>'
+			    			+				'<span>'
+			    			+					'<label class="col-sm-3 control-label">时</label>'
+			    			+					'<select class="form-control safe_hour">'
+			    			+						'<option value="00"></option>'
+			    			+               	'</select>'
+			    			+				'</span>'
+			    			+				'<span>'
+			    			+					'<label class="col-sm-3 control-label">分</label>'
+			    			+					'<select class="form-control safe_minute">'
+			    			+						'<option value="00"></option>'
+			    			+               	'</select>'
+			    			+				'</span>'
+			    			+			'</div>'
+			  				+		'</div>'
+			  				+	'</form>'
+				//弹窗
+				layer.open({ 
+			 		type: 1,
+			 		title:['安全策略','font-size:18px;border-bottom:1px solid #ccc;height:50px'],//标题
+		  			area: ['440px', '444px'], //宽高
+		  			btn: ['确定','取消'], //按钮
+		  			btn1:function(index){
+		  				//定义传参对象
+		  				var senObj = {};
+		  				//策略名
+		  				senObj.safe_strategy_name = $(".safe_name").val();
+		  				//事件类型
+		  				senObj.event_type = $(".safe_eventType").val();
+		  				//阈值
+		  				senObj.number = $(".safe_number").val();
+		  				//是否启用
+		  				senObj.state = $("input[name='safeState']:checked").val();
+		  				//月
+		  				senObj.month = $(".safe_month").val();
+		  				//日
+		  				senObj.day = $(".safe_day").val();
+		  				//时
+		  				senObj.hour = $(".safe_hour").val();
+		  				//分
+		  				senObj.minute = $(".safe_minute").val();
+		  				//设备id 
+		  				senObj.equipmentId = propertyId;
+		  				if(senObj.safe_strategy_name == ''){
+		  					layer.msg('策略名称不能为空',{icon: 5});
+		  				}else if(senObj.event_type == ''){
+		  					layer.msg('事件类型不能为空',{icon: 5});
+		  				}else if(senObj.number == ''){
+		  					layer.msg('阈值不能为空',{icon: 5});
+		  				}else if(!(senObj.month != "00" || senObj.day != "00" || senObj.hour != "00" || senObj.minute != "00")){
+		  					layer.msg('时间段不能为空',{icon: 5});
+		  				}else{
+		  					//添加按钮提交事件
+			  				if (btnType == "addBtn"){
+			  					var sfunc = function(data){
+			  						layer.msg('添加成功',{icon: 1});
+			  						//关闭弹窗
+			  				  		layer.close(index);
+			  						//查询数据
+			  				  		getSafeDate();
+			  					}
+			  					//发送请求
+			  					ajaxPost("../../safeStrategy/insert.do",senObj,sfunc);
+			  				}else if(btnType == "reviseBtn"){
+			  					senObj.id = safeId;
+			  					var sfunc = function(data){
+			  						layer.msg('修改成功',{icon: 1});
+			  						//关闭弹窗
+			  				  		layer.close(index);
+			  						//查询数据
+			  				  		getSafeDate();
+			  					}
+			  					//发送请求
+			  					ajaxPost("../../safeStrategy/insert.do",senObj,sfunc);
+			  				}
+		  				}
+		  				
+		  			},
+		 	 		content: layHtml
+				});
+			  	//添加月
+			  	for(var i = 1;i <= 12;i++){
+			  		$(".safe_month").append('<option value="'+i+'">'+i+'</option>');
+			  	}
+			  	//添加日
+			  	for(var i = 1;i <= 30;i++){
+			  		$(".safe_day").append('<option value="'+i+'">'+i+'</option>');
+			  	}
+			  	//添加时
+			  	for(var i = 1;i <= 24;i++){
+			  		$(".safe_hour").append('<option value="'+i+'">'+i+'</option>');
+			  	}
+			  	//添加分
+			  	for(var i = 1;i <= 60;i++){
+			  		$(".safe_minute").append('<option value="'+i+'">'+i+'</option>');
+			  	}
+			  	//添加事件类型
+			  	if(logType == "syslog"){
+			  		$(".safe_eventType").append('<option value="poweroff">主机关机</option><option value="NetworkManager">网络服务</option><option value="usb">usb外接</option><option value="sshd">通过ssh方式进行操作</option><option value="login">用户登录</option><option value="su">通过su方式登录</option><option value="session">开启新的会话窗口</option><option value="rsyslogd">rsyslog自身日志</option><option value="pci">pci日志</option><option value="pci_bus">pci_bus日志</option><option value="ACPI">ACPI日志</option><option value="PM">PM日志</option><option value="SRAT">SRAT日志</option><option value="crond">定时任务</option>')
+			  	}else if(logType == "winlog"){
+			  		$(".safe_eventType").append('<option value="login_successful">登录成功</option><option value="mstsc_successful">远程登录成功</option><option value="mstsc_interrupt">远程连接中断</option><option value="log_off">用户注销</option>')
+			  	}
+			}
+		</script>
+	</body>
+</html>

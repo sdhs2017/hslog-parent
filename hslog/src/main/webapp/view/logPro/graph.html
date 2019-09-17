@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>关系图</title>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+		<style type="text/css">
+			.top_title{
+				width: auto;
+			    margin-bottom: 0;
+			    background: #293947;
+			    border-top: 4px solid #2d4356;
+			}
+			.content{
+				min-height: 610px;
+				overflow: hidden;
+				border: 1px solid #2f4050;
+			}
+			#echartBox{
+				height: 810px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				关系图
+			</div>
+			<div class="content">
+				<div id="echartBox"></div>
+			</div>
+		</div>
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			//获取从排行榜传过来的值
+			var rankingListVal = $('.page-tabs-content', parent.document).click().children("a.active").attr("data-val");
+			//sessionStorage.removeItem("netflowVal");
+			//填充页面相关数据
+			$(".top_title").html(rankingListVal.split('-')[1]+':'+rankingListVal.split('-')[2]+' 关系图');//类型：值
+		
+			// 基于准备好的容器(这里的容器是id为chart1的div)，初始化echarts实例
+			var chart = echarts.init(document.getElementById("echartBox"));
+			var option = {
+				//backgroundColor:'#3A4D5F',
+				backgroundColor: {
+				    type: 'linear',
+				    x: 0,
+				    y: 0,
+				    x2: 0,
+				    y2: 1,
+				    colorStops: [{
+				        offset: 0, color: '#293846' // 0% 处的颜色
+				    }, {
+				        offset: 1, color: '#456479' // 100% 处的颜色
+				    }],
+				    global: false // 缺省为 false
+				},
+				title:{ 	//标题
+					text:"网络关系图",
+					x:'center',
+					textStyle:{
+						color:""
+					}
+				},
+				tooltip: {  // 提示框的配置
+			        formatter: function(param) {
+			            if (param.dataType === 'edge') {
+			                //return param.data.category + ': ' + param.data.target;
+			                return param.data.count;
+			            }
+			            //return param.data.category + ': ' + param.data.name;
+			            return param.data.name + '<br/> 次数：' + param.data.count;
+			        }
+			    },
+			    series:[{
+			   		type: 'graph',          // 系列类型:关系图
+				    top: '10%',             // 图表距离容器顶部的距离
+				    roam: true,             // 是否开启鼠标缩放和平移漫游
+				    focusNodeAdjacency: true,   // 是否在鼠标移到节点上的时候突出显示节点以及节点的边和邻接节点。
+				    force:{
+				    	 repulsion: 500,	//节点之间的斥力因子
+				    	 edgeLength: [100, 100] //边的两个节点之间的距离，也收repulsion影响
+				    },
+				    layout:'force',  //图的布局  force采用力引导布局
+				    symbol:'circle', //节点形状  -圆形
+				    edgeSymbol:['circle','arrow'],//关系边的形状 -> 箭头
+				    lineStyle:{  //线的基本样式
+				    	normal:{
+				    		opacity:1,  //透明度
+				    		/* curveness:0.5 //边的弯曲 */
+				    	}
+				    },
+				    label:{ //节点对象上的标签
+				    	normal:{
+				    		show:true,          //是否显示
+				    		position:'inside',  //位置  节点里面
+				    		textStyle:{  		//文本样式
+				    			fontSize:12,
+				    			color:'#eee',
+				    			fontWeight:'bold',
+				    			textBorderWidth:'2',
+				    			textBorderColor:'#3A4D5F'
+				    		}
+				    	}
+				    },
+				    data:[     //节点数据
+				    
+				    ],
+				    links:[{    //节点之间的关系数据
+				    	
+				    }],
+				    animationEasingUpdate: "quinticInOut",//数据更细动画的欢动效果
+				    animationDurationUpdate: 100          //数据更新动画的时长
+				    
+			    }]
+			}
+			//使用此配置显示图表
+			chart.setOption(option);
+			
+			var CIRCLE_SIZE = 100; //节点大小
+			var LINE_SIZE = 10; //线大小
+			//传参对象
+			var senObj = {};
+			senObj.groupfiled = rankingListVal.split('-')[0];
+			senObj.iporport  = rankingListVal.split('-')[2];
+			senObj.count = rankingListVal.split('-')[3];
+			//获取数据
+			var sfunc = function(data){	
+				//关系图节点
+				var echartNodeData = data[0].data;
+				//获取中间节点的count
+				var centerCount = echartNodeData[0].count;
+				//处理节点数据
+				for(var i in echartNodeData){
+					/* var obj = {
+						obj.name = data[i].name;
+						draggable: true,
+						symbolSize: 100,
+			            itemStyle: {
+			            	color: '#ff0000'
+			            }
+					} */
+					echartNodeData[i].itemStyle = {};
+					//echartNodeData[i].symbolSize = [];
+					echartNodeData[i].draggable = true;//可拖拽
+					echartNodeData[i].symbolSize = Math.pow(echartNodeData[i].count/centerCount,1/3) * CIRCLE_SIZE; //大小
+					echartNodeData[i].itemStyle.shadowBlur = 5 //阴影大小
+					//颜色
+					if(echartNodeData[i].node == 1){
+						//echartNodeData[i].itemStyle.color = '#de9325';
+						echartNodeData[i].itemStyle.color = {
+							    type: 'radial',
+							    x: 0.5,
+							    y: 0.5,
+							    r: 0.5,
+							    colorStops: [{
+							        offset: 0, color: '#D76662' // 0% 处的颜色
+							    }, {//de9325
+							        offset: 1, color: '#de9325' // 100% 处的颜色
+							    }],
+							    global: false // 缺省为 false
+							}
+						echartNodeData[i].itemStyle.shadowColor = "#de9325"
+					}else if(echartNodeData[i].node == 2){
+						//echartNodeData[i].itemStyle.color = '#5f9da5';
+						echartNodeData[i].itemStyle.color = {
+							    type: 'radial',
+							    x: 0.5,
+							    y: 0.5,
+							    r: 0.5,
+							    colorStops: [{
+							        offset: 0, color: '#fff' // 0% 处的颜色
+							    }, {
+							        offset: 1, color: '#5f9da5' // 100% 处的颜色
+							    }],
+							    global: false // 缺省为 false
+							}
+						echartNodeData[i].itemStyle.shadowColor = "#5f9da5"
+					}else if(echartNodeData[i].node == 3){
+						//echartNodeData[i].itemStyle.color = '#bda29a';
+						echartNodeData[i].itemStyle.color= {
+							    type: 'radial',
+							    x: 0.5,
+							    y: 0.5,
+							    r: 0.5,
+							    colorStops: [{
+							        offset: 0, color: '#fff' // 0% 处的颜色
+							    }, {
+							        offset: 1, color: '#bda29a' // 100% 处的颜色
+							    }],
+							    global: false // 缺省为 false
+							}
+						echartNodeData[i].itemStyle.shadowColor = "#bda29a"
+					} 
+					
+				}
+				
+				//关系图节点连线
+				var echartLinkData = data[0].links;
+				var lineArr1 = [];
+				
+				for(var i in echartLinkData){
+					if(echartLinkData[i].node == 1){
+						lineArr1.push(echartLinkData[i].count);
+					}
+				}
+				//获得一级线段数组中的次数最大值
+				var maxLineCount = Math.max.apply(null,lineArr1);
+				//处理线数据
+				for(var i in echartLinkData){
+					echartLinkData[i].lineStyle = {};
+					//初始线宽
+					var lineWidth = Math.pow(echartLinkData[i].count/maxLineCount,1/3) * LINE_SIZE;
+					echartLinkData[i].symbolSize = [lineWidth,2*lineWidth];
+					//echartLinkData[i].lineStyle.curveness = 0.3;
+					echartLinkData[i].lineStyle.width = lineWidth;
+					echartLinkData[i].lineStyle.shadowBlur = 5;
+					if(echartLinkData[i].node == 1){
+						echartLinkData[i].lineStyle.color = "#EBC38C";
+						echartLinkData[i].lineStyle.shadowColor = "#EBC38C";
+					}else if(echartLinkData[i].node == 2){
+						echartLinkData[i].lineStyle.color = "#aed1d5";
+						echartLinkData[i].lineStyle.shadowColor = "#aed1d5";
+					}
+				}
+				
+				//设置echart
+				option.series[0].data = echartNodeData;
+				option.series[0].links = echartLinkData;
+				chart.setOption(option);
+				window.addEventListener("resize",function(){
+					chart.resize();
+	            });
+			}
+			//失败回调函数
+			var efunc = function(data){
+				layer.msg('操作失败',{icon: 5});
+			}
+			//发送请求
+			ajaxPost("../../log/getTopologicalData.do",senObj,sfunc,"",efunc);
+			
+		</script>
+	</body>
+</html>

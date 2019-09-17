@@ -1,0 +1,3 @@
+{
+	"logType":["syslog","winlog","snmp","log4j","mysql","netflow","packetfilteringfirewall_log","dns","dhcp","app_file","app_apache"]
+}

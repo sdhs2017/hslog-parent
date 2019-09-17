@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"/>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+		<link rel="stylesheet" type="text/css" href="css/searchLogs.css"/>
+		<style>
+			.serviceStatus{
+				font-weight: 600;
+				/* color:#1ab394; */
+				color:#d9534f;
+			}
+			.layer_box span ,.r_content span{
+				background: yellow;
+				color:#676a6c!important;
+			}
+			#logs_list a{
+				color: #428bca;
+    			text-decoration: underline;
+			}
+			.table{
+			    table-layout: fixed;
+			}		
+			.btnBox {
+			    width: 300px;
+			    position: absolute;
+			    left: 50%;
+			    top: 32px;
+			    margin-left: -150px;
+			}
+			.search_input{
+				padding-left:10px;
+			}
+			.search_input input{
+				border-radius:0;
+			}	
+			.search_input button{
+				height:34px;
+				margin-left:-4px;
+				border-radius:0;
+			}
+			.searchTimeBox{
+				border: 1px solid #ccc;
+				display: flex;
+				justify-content: center;
+				float:left;
+				/* margin-right:20px; */
+				height:34px;
+				border-left:1px solid #ccc!important;
+			}
+			
+			.searchTimeBox>span{
+				width:20px;
+				text-align: center;
+				display: inline-block;
+				line-height: 34px;
+			}
+			.searchTimeBox>.searchBoxTitle{
+				border:0;
+			}
+			.searchBoxTitle{
+				height:34px;
+				margin-right:1px solid #ccc;
+				line-height:34px;
+				text-align: center;
+				width: 75px;
+				font-size:10px;
+			}
+			
+			.searchConditions{
+				width:100%;
+				height:34px;
+				margin-bottom:24px;
+				display: flex;
+				justify-content: center;
+			}
+			.searchConditions>div{
+				display: flex;
+				justify-content: left;
+				border:1px solid #ccc;
+				border-left:0;
+			}
+			.searchConditions select,.searchConditions input{
+				width:90px;
+				background:#eee;
+				border-radius:0;
+				border:0;
+				height: 32px;
+				font-size:12px;
+			}
+			.searchConditions input{
+				width:68%;
+			}	
+			.searchTimeBox>input{
+				border: 0;
+				width: 150px;
+				padding-right:0;
+				height:32px;
+				font-size:13px;
+			}
+			.endTimeRemove,.startTimeRemove{				
+				text-align:left;
+				display:inline-block;
+				height:32px;
+				width:15px!important;
+				line-height:32px;
+				cursor:pointer;
+				background:#eee;
+				position:relative;
+				top:0px;
+			}
+			#removeLogs{
+				margin-right:10px;
+				margin-left:10px;
+			}
+			.log_filter{
+				margin-left:0;
+			}
+			.searchLevelBox{
+				position:relative;
+			}
+			.searchedLevelBox{
+				width:100px;
+			}
+			.levelListBox{
+				display:none;
+				position:absolute;
+				width:176px;
+				border:1px solid #4781bb;
+				top:32px;
+				left:0;
+				background:#293846;
+				z-index:10;
+			}
+			.levelListBox input{
+				margin:0;
+				margin-right:5px;
+			}
+			.levelListBox li{
+				padding:5px;
+				color:#56a4ef;
+				cursor:pointer;
+			}
+			.levelListBox li:hover{
+				color:#fff;
+				background:#307fc9;
+			}
+			.zzDiv{
+				width:100%;
+				height: 100%;
+				position:absolute;
+				z-index:9;
+				top:0;
+				left:0;
+			}
+			.history_list>li{
+				text-align:left!important;
+			}
+		</style>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	</head>
+	<body>
+		<div id="box">
+			<div class="top_title">
+				HTTP日志		
+			</div>
+			<div class="device_logType" style="display:none">defaultpacket_http</div>
+			<!-- 普通查询条件 -->
+			<!-- <div class="search_input" style="max-width:1286px;">
+				
+			</div> -->
+			<div class="search_input" style="display:flex;max-width:1296px;">
+				<div class="search_left" style="flex:1;height:34px;border-left: 2px solid #4781bb;overflow:hidden;transition:all .5s;">
+					<div class="searchConditions" style="margin-bottom:0;">
+						<div class="searchConditions">
+							<div class="searchTimeBox">
+								<div class="searchBoxTitle">时间范围</div>
+								<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">  
+								<i class="glyphicon glyphicon-remove startTimeRemove"></i>	
+								<span> ~ </span>
+								<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">  		
+								<i class="glyphicon glyphicon-remove endTimeRemove"></i>	
+							</div>
+							<div class="searchIpBox">
+								<div class="searchBoxTitle">源地址</div>
+								<input type="text" class="form-control searchSource_ip"  placeholder="源IP">
+							</div>
+							<div class="searchDomainNameBox">
+								<div class="searchBoxTitle">目的地址</div>
+								<input type="text" class="form-control searchDes_ip"  placeholder="目的IP">
+							</div>
+							<div class="searchAnaTypeBox">
+								<div class="searchBoxTitle">源端口</div>
+								<input type="text" class="form-control searchSource_port"  placeholder="源端口">
+							</div>
+							<div class="searchServerBox">
+								<div class="searchBoxTitle">目的端口</div>
+								<input type="text" class="form-control searchDes_port"  placeholder="目的端口">
+							</div>
+							<div class="searchServerBox">
+								<div class="searchBoxTitle">请求/响应</div>
+								<select class="form-control searchRequestorresponse">
+		 							<option	selected value=""></option>
+		 							<option value="request">request</option>
+		 							<option value="response">response</option>
+		 						</select>
+							</div>
+						</div>
+					</div>
+					<div class="searchConditions sc2" style="position:relative;top:5px;z-index:0;">
+						<div class="searchServerBox more1" style="width:50%;">
+							<div class="searchBoxTitle ">请求方法</div>
+							<input type="text" class="form-control searchRequest_type"  placeholder="请求方法">
+						</div>
+						<div class="searchServerBox more1" style="width:50%;">
+							<div class="searchBoxTitle">请求URL</div>
+							<input type="text" class="form-control searchRequest_url"  placeholder="请求URL">
+						</div>
+						<div class="searchServerBox more2" style="width:100%;">
+							<div class="searchBoxTitle ">响应状态</div>
+							<input type="text" class="form-control searchResponse_state"  placeholder="响应状态">
+						</div>
+					</div>
+				</div> 
+				<div class="search_right" style="flex:0,0,60px;width:60px;height:34px;position:relative;overflow:hidden;transition:all .5s;">
+					<button  class="btn btn-primary" id="searchLogs" style="height:34px;transition:all .5s;"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+				</div>
+			</div>
+			<div class="row result_box">
+				<div class="col-sm-2 box_left">
+					<h5>检索历史</h5>
+					<ul class="history_list">
+						<!-- <li>1<i class="glyphicon glyphicon-remove" title="删除"></i></li> -->
+					</ul>
+				</div>
+				<div class="col-sm-10 box_right">
+					<div class="r_tools">
+						<div class="log_filter">
+							<form class="form-inline" onsubmit="return false" onkeydown="if(event.keyCode==13)return false;">
+								<!-- <button  class="btn btn-default" id="removeLogs">删除</button> -->
+								<div class="form-group">
+									<input type="text" class="form-control filterWords"  placeholder="输入过滤条件">
+								</div>
+							  <button  class="btn btn-default" id="filterLogs">过滤</button>
+							</form>
+						</div>
+						<div class="allCountBox">共检索到的日志数量为<b>0</b>条,最大展示<select class="form-control maxShowData"><option value="100000">10万</option><option value="200000">20万</option><option value="500000">50万</option><option value="1000000">100万</option><option value="10000000">1000万</option><option value="100000000">1亿</option></select>条</div>
+						<div id="pageBox">
+							
+						</div>                 
+					</div>
+					<div class="r_content">
+						<div class="tab-content">
+		                   <div id="tab-1" class="tab-pane active">
+		                       <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+		                           <div class="table-responsive">
+		                               <table class="table table-hover table-striped" id="logs_list">
+			                               	<thead>
+										        <tr class="con_title">
+										        	
+										        </tr>
+									         </thead>
+		                                     <tbody>
+		                                         <tr>   
+		                                             <!-- <td class="logs_time">2017.7.18 10:10:10 000</td>
+		                                             <td class="logs_level">123</td>
+		                                             <td class="logs_level">123</td>
+		                                             <td class="logs_level">123</td>
+		                                             <td class="logs_Mes">
+		                                             	<p>Updates: 1 BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20167 139 2017-07-19 16:41:17  Written [{"success":"true","message":"操作成功！","state":"1"}] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@2e54b031] AbstractMessageConverterMethodProcessor.java org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor 20185 150</p>
+													 </td>
+		                                             <td class="logs_tools">
+		                                             	<i class="glyphicon glyphicon-list-alt"></i>
+		                                             </td>		                         -->                                                                         	
+		                                         </tr> 
+		                                     </tbody>
+		                                 </table>
+		                             </div>
+		                         </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
+		                     </div>
+	                               
+	                 	</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/highLightText.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/searchLogs.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var pageSize = 12;
+			var url = "../../log/getHttpLogListByBlend.do";
+			var sendSearchObj = {};//查询日志 参数集合
+			//点击检索按钮 获取数据
+			$("#searchLogs").click(function(){
+				//定义第一次请求
+				firstGet = true;
+				//获得数据
+				getData();
+			})
+			//获取数据函数
+			function getData(){	
+				currentPage = 1;
+				//定义第一次请求
+				firstGet = true;
+				logStatus = true;
+				//获得查询条件参数值
+				//日志类型为dns
+				sendSearchObj.type = "defaultpacket";
+				//应用层日志类型
+				sendSearchObj.application_layer_protocol= "http";
+				//获取开始时间
+				sendSearchObj.starttime = $("#startTime").val();
+				//获取结束时间
+				sendSearchObj.endtime = $("#endTime").val();
+				//获取源地址
+				sendSearchObj.ipv4_src_addr= $(".searchSource_ip").val();
+				//获取目的地址
+				sendSearchObj.ipv4_dst_addr = $(".searchDes_ip").val();
+				//获取源端口
+				sendSearchObj.l4_src_port= $(".searchSource_port").val();
+				//获取目的端口
+				sendSearchObj.l4_dst_port= $(".searchDes_port").val();
+				//请求或响应
+				sendSearchObj.requestorresponse= $(".searchRequestorresponse").val();
+				//请求方法
+				sendSearchObj.request_type= $(".searchRequest_type").val();
+				//获请求URL
+				sendSearchObj.request_url= $(".searchRequest_url").val();
+				//响应状态
+				sendSearchObj.response_state= $(".searchResponse_state").val();
+				//获取数据
+				getLogs(url,"",sendSearchObj,1,pageSize);
+				historySearch(sendSearchObj)
+			}
+			//检索历史记录函数  obj-检索条件
+			function historySearch(obj){
+				//获取当前系统时间
+				var newDate = new Date();
+				var currentTime =  newDate.getFullYear()+ "/" +(Number(newDate.getMonth())+1) + '/' +  newDate.getDate()+' '+newDate.getHours()+':'+newDate.getMinutes()+':'+newDate.getSeconds();
+				//定义检索条件 用于页面显示
+				var searchCon = '';
+				//循环检验查询条件  不为空则添加
+				for (var i in obj){
+					if(obj[i] != '' && obj[i] != 'undefined' && i != "id" && i != "param" && i != "order"&& i != "page"&& i != "size"){
+						searchCon += obj[i]+';';
+					}
+				}
+				//添加到检索历史列表 不为空且不存在
+				if (searchCon != '' && historyArr.indexOf(searchCon) === -1){
+					var searchHtml = '<li title="'+searchCon+'" data-startTime="'+obj.starttime+'" data-endTime="'+obj.endtime+'" data-dns_clientip="'+obj.dns_clientip+'" data-dns_view="'+obj.dns_view+'" data-dns_domain_name="'+obj.dns_domain_name+'" data-dns_ana_type="'+obj.dns_ana_type+'" data-dns_server="'+obj.dns_server+'"><b>'+currentTime+' - </b>'+searchCon+'<i class="glyphicon glyphicon-remove" title="删除"></i></li>';
+					$(".history_list").prepend(searchHtml);
+					historyArr.push(searchCon);
+				}
+			}
+			
+			//页面加载后 获取数据
+			getData();
+			//检索历史li 绑定点击事件 点击查询
+			$(".history_list").on("click","li",function(){
+				currentPage = 1;
+				//定义第一次请求
+				firstGet = true;
+				//获取当前点击的内容
+				var searchWords = $(this).text();
+				var ev = arguments.callee.caller.arguments[0] || window.event;
+			    var $this =$(ev.target); 
+			   	if($this[0].nodeName == "LI" || $this[0].nodeName == "B" ){ 
+			   		logStatus = true;	
+			   		sendSearchObj.starttime = $(this).attr("data-startTime");
+			   		sendSearchObj.endtime = $(this).attr("data-endTime");
+			   		sendSearchObj.dns_clientip = $(this).attr("data-dns_clientip");
+			   		sendSearchObj.dns_view = $(this).attr("data-dns_view");
+			   		sendSearchObj.dns_domain_name = $(this).attr("data-dns_domain_name");
+			   		sendSearchObj.dns_ana_type = $(this).attr("data-dns_ana_type");
+			   		sendSearchObj.dns_server  = $(this).attr("data-dns_server");
+			   		//获取数据
+			   		getLogs(url,"",sendSearchObj,1,pageSize);
+			   		//填充搜索框中得值
+			   		$("#startTime").val(sendSearchObj.starttime);
+					$("#endTime").val(sendSearchObj.endtime);
+					$(".searchClientIp").val(sendSearchObj.dns_clientip);
+					$(".searchDnsView").val(sendSearchObj.dns_view);						
+					$(".searchDomainName").val(sendSearchObj.dns_domain_name);
+					$(".searchAnaType").val(sendSearchObj.dns_ana_type);						
+					$(".searchServer").val(sendSearchObj.dns_server);
+					
+			   	}
+				
+			})
+		
+			//时间控件
+			$('#startTime').datetimepicker({  
+			    format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
+			    autoclose: true,//选择好自动关闭  
+//			    minView: 2,//只选择到小时  
+			    language: 'zh-CN', //汉化   
+			 });
+			
+			$('#endTime').datetimepicker({  
+			    format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
+			    autoclose: true,//选择好自动关闭  
+//			    minView: 2,//只选择到小时  
+			    language: 'zh-CN', //汉化   
+			 });
+		  
+			//开始时间控件 值改变事件
+		     $('#startTime').datetimepicker().on('changeDate', function(ev){
+		     	
+		    	//删除结束时间控件
+		    	$('#endTime').datetimepicker('remove');
+		    	//获取开始时间
+		  		var startDate = $("#startTime").val();
+		    	//初始化结束时间控件数据
+		  		$("#endTime ").datetimepicker({
+					format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
+				    autoclose: true,//选择好自动关闭  
+	//			    minView: 2,//只选择到小时  
+					startDate: startDate,//开始时间
+				    language: 'zh-CN', //汉化
+		   		});
+		  	}); 
+		   //结束时间控件 值改变事件
+		    $('#endTime').datetimepicker().on('changeDate', function(ev){
+		    	//删除开始时间控件
+		    	$('#startTime').datetimepicker('remove');
+		    	//获取结束时间
+		  		var endDate = $("#endTime .form-control").val();
+		    	$('#startTime').datetimepicker({  
+				    format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
+				    autoclose: true,//选择好自动关闭  
+	//			    minView: 2,//只选择到小时  
+					endDate:endDate,//结束时间
+				    language: 'zh-CN', //汉化   
+				 });			
+		  	});
+		   //日期清除
+		   $(".startTimeRemove").click(function(){
+			   $("#startTime").val("")
+		   })
+		   $(".endTimeRemove").click(function(){
+			   $("#endTime").val("")
+		   })
+		   
+		   
+		   //删除按钮（批量）日志  点击事件 函数
+			$("#removeLogs").click(function(){
+				//获取被选择的复选框
+				var checkboxs = $("#logs_list>tbody input[type=checkbox]:checked");
+				var logsId = '';
+				var logsType = '';
+				//判断是否又被选中的  没有则提示 有则继续执行删除操作
+				if(checkboxs.length == 0){
+					layer.msg('未选中任何日志',{icon: 5});
+				}else{
+					//循环拼接id值
+					for(var i = 0; i< checkboxs.length;i++){
+						//拼接日志Id
+						logsId += $(checkboxs[i]).parents("tr").attr("data-logid")+',';
+						logsType += 'dns,';
+					}	
+					//调用删除函数
+					removeLogs(logsId,logsType)
+				}
+			})
+			//单个日志删除
+			$("#logs_list").on("click",".removeLog",function(){
+				var logId = $(this).parents("tr").attr("data-logid");
+				/* var logtype = $(this).parent().siblings(".logs_type").html(); */
+				var logtype = "dns"
+				removeLogs(logId,logtype)
+			})
+
+			//删除日志
+			function removeLogs(logsId,logsType){				
+				//参数
+				var obj = {};
+				obj.index = "estest";
+				obj.type = logsType;
+				obj.id = logsId;
+				//询问框
+				layer.confirm('您确定删除日志信息么？', {
+				  btn: ['确定','取消'] //按钮
+				}, function(index){
+					layer.close(index);
+					$.ajax({
+						type:"post",
+						url:"../../log/deleteById.do",
+						data:obj,
+						async:false,
+						success:function(data){
+							if(data == "DELETED"){
+								currentPage = 1;
+								layer.msg('删除成功',{icon: 1});
+								firstGet = true;//第一次请求标识
+								//日志查询
+								getLogs(url,'',sendSearchObj,1,pageSize);
+							}else{
+								layer.msg('删除失败',{icon: 5});
+							}
+							
+						},
+						error:function(err){
+							layer.msg('删除失败',{icon: 5});
+							console.log(err)
+						}
+					})
+					//关闭弹窗
+					layer.close();
+				}, function(){
+				  layer.close();
+				});
+			}
+		   
+		  //数据最大显示下拉框改变事件
+			$(".maxShowData").change(function(){
+				maxShowChange('数据量过大时，细化查询条件提高查询效率')
+			})
+			//查询条件改变事件
+			$(".searchRequestorresponse").change(function(){
+				var val = $(".searchRequestorresponse").val();
+				//清空数据
+				$(".searchRequest_type").val('');
+				$(".searchRequest_url").val('');
+				$(".searchResponse_state").val('');
+				 //改变高度
+				if(val == 'request'){
+					$(".search_left").css("height","34px");
+					$(".search_right").css("height","34px");
+					$("#searchLogs").css("height","34px");
+					if($(".search_left").height() == 73){						
+						setTimeout(function(){
+							$(".search_left").css("height","73px");
+							$(".search_right").css("height","73px");
+							$("#searchLogs").css("height","73px");
+							$(".more1").css("display","flex");
+							$(".more2").css("display","none")
+						},500)
+					}else{
+						$(".search_left").css("height","73px");
+						$(".search_right").css("height","73px");
+						$("#searchLogs").css("height","73px");
+						$(".more1").css("display","flex");
+						$(".more2").css("display","none")
+					}
+					
+				}else if(val == 'response'){
+					$(".search_left").css("height","34px");
+					$(".search_right").css("height","34px");
+					$("#searchLogs").css("height","34px");
+					if($(".search_left").height() == 73){						
+						setTimeout(function(){
+							$(".search_left").css("height","73px");
+							$(".search_right").css("height","73px");
+							$("#searchLogs").css("height","73px");
+							$(".more2").css("display","flex");
+							$(".more1").css("display","none");
+						},500)
+					}else{
+						$(".search_left").css("height","73px");
+						$(".search_right").css("height","73px");
+						$("#searchLogs").css("height","73px");	
+						$(".more2").css("display","flex");
+						$(".more1").css("display","none");
+					}
+					
+				}else{
+					$(".search_left").css("height","34px");
+					$(".search_right").css("height","34px");
+					$("#searchLogs").css("height","34px");
+				}	 
+			})
+		</script>
+	</body>
+</html>

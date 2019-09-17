@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>事件搜索</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-table.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"/>
+	<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		#box{
+			height:auto!important;
+			min-height:100%!important;
+		}
+		#auditLogTable{
+			border:none;	
+		}
+		.pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus{
+			z-index: 2;
+		    color: #fff;
+		    cursor: default;
+		   /*  background-color: rgb(26, 179, 148);
+		    border-color: rgb(26, 179, 148); */
+		}
+		.tableCon{
+			padding:0 20px;
+		}
+		
+		.eventSearchBox{
+			margin-bottom:20px;		
+		}
+		.eventSearchBox>form{
+			width: 380px;
+    		margin: 0 auto;
+		}
+		.eventSearchWords{
+			width:300px;
+		}
+		.searchTimeBox{
+			border: 1px solid #ccc;
+			display: flex;
+			justify-content: center;
+			float:left;
+			/* margin-right:20px; */
+			height:34px;
+			border-left:1px solid #ccc!important;
+		}
+		
+		.searchTimeBox>span{
+			width:20px;
+			text-align: center;
+			display: inline-block;
+			line-height: 34px;
+		}
+		.searchTimeBox>.searchBoxTitle{
+			border:0;
+		}
+		.searchBoxTitle{
+			height:34px;
+			margin-right:1px solid #ccc;
+			line-height:34px;
+			text-align: center;
+			width: 75px;
+			font-size:13px;
+		}
+		
+		.searchConditions{
+			width:100%;
+			height:34px;
+			margin-bottom:24px;
+			display: flex;
+			justify-content: center;
+		}
+		.searchConditions>div{
+			display: flex;
+			justify-content: left;
+			border:1px solid #ccc;
+			border-left:0;
+		}
+		.searchConditions select,.searchConditions input{
+			width:90px;
+			background:#eee;
+			border-radius:0;
+			border:0;
+			height: 32px;
+			font-size:12px;
+		}
+		.searchConditions input{
+			width:68%;
+		}	
+		.searchTimeBox>input{
+			border: 0;
+			width: 150px;
+			padding-right:0;
+			height:32px;
+			font-size:13px;
+		}
+		.endTimeRemove,.startTimeRemove{				
+			text-align:left;
+			display:inline-block;
+			height:32px;
+			width:15px!important;
+			line-height:32px;
+			cursor:pointer;
+			background:#eee;
+			position:relative;
+			top:0px;
+		}
+		#searchEvents{
+			border-radius:0;
+		}
+		table{
+		 	overflow:hidden;
+		}
+		table>tbody>tr>td{
+			white-space:nowrap;
+			overflow:hidden;
+			text-overflow:ellipsis;
+		}
+		.eventSearchBottom{
+			margin-bottom:50px;
+			height:50px;
+		}
+		.eventSearchBottom>div{
+			float:right;
+		}
+		.allCountBox{
+			float: right;
+		    height: 50px;
+		    line-height: 50px;
+		    font-size: 14px;
+		    margin-right: 10px;
+		    font-weight: 600;
+		}
+		.allCountBox b {
+		    color: #1ab394;
+		    margin: 0 5px;
+		}
+		.maxShowData {
+		    width:auto;
+		    height: 24px;
+		    line-height: 24px;
+		    font-size: 13px;
+		    display: inline-block !important;
+		    padding: 0px;
+		    margin: 0px 5px;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<body>
+	<div id="box">
+		<div class="top_title">
+			事件搜索
+		</div>
+		<div class="eventSearchBox">	
+			<div class="searchConditions">
+					<div class="searchTimeBox">
+						<div class="searchBoxTitle">时间范围</div>
+						<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">  
+						<i class="glyphicon glyphicon-remove startTimeRemove"></i>	
+						<span> ~ </span>
+						<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">  		
+						<i class="glyphicon glyphicon-remove endTimeRemove"></i>	
+					</div>
+					<div class="searchLevelBox">
+						<div class="searchBoxTitle">事件级别</div>
+						<select class="form-control searchLevel">
+							<option selected value=""></option>
+							<option value="0">Emergency</option>
+							<option value="1">Alert</option>
+							<option value="2">Critical</option>
+							<option value="3">Error</option>
+							<option value="4">Warn</option>
+							<option value="5">Notice</option>
+							<option value="6">Info</option>
+							<option value="7">Debug</option>						
+						</select>
+					</div>
+					<div class="searchEventTypeBox">
+						<div class="searchBoxTitle">事件类型</div>
+						<input type="text" class="form-control searchEventType"  placeholder="事件类型">
+					</div>
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">IP地址</div>
+						<input type="text" class="form-control searchIp"  placeholder="IP地址">
+					</div>
+					<div class="searchIpBox">
+						<div class="searchBoxTitle">资产名称</div>
+						<input type="text" class="form-control searchHostname"  placeholder="资产名称">
+					</div>
+					<button  class="btn btn-primary" id="searchEvents"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+				</div>
+		</div>
+		<!-- table-no-bordered -->
+		<div class="tableCon">
+			<table id="eventTable" data-toggle="table"  data-detail-view="true" data-classes="table table-hover " data-detail-formatter="detailFormatter" data-pagination="false" style="width:100%；">
+                <thead>
+                    <tr>
+                    	<th data-field="logtime"   data-valign="middle" >时间</th><!-- 时间  日志内容 事件类型  -->
+                    	<th data-field="event_des" data-valign="middle">事件名称</th>
+                    	<th data-field="operation_level" data-valign="middle">事件级别</th>   
+                    	<th data-field="event_type" data-valign="middle">事件类型</th>  
+                    	<th data-field="ip" data-valign="middle">IP地址</th>  
+                    	<th data-field="type"  data-valign="middle">日志类型</th>
+                    	<th data-field="equipmentname"  data-valign="middle">资产名称</th> 
+                    	<th data-field="operation_des"  data-valign="middle">日志内容</th>                    	                	
+                    </tr>
+                </thead>
+                
+            </table>
+            <div class="eventSearchBottom">
+            	<div id="pageBox"></div>
+            	<div class="allCountBox">共检索到的事件数量为<b>0</b>条,最大展示<select class="form-control maxShowData"><option value="100000">10万</option><option value="200000">20万</option><option value="500000">50万</option><option value="1000000">100万</option><option value="10000000">1000万</option><option value="100000000">1亿</option></select>条</div>						
+            </div>
+            
+		</div>
+	</div>
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/projectCommonJs.js" type="text/javascript" charset="utf-8"></script>
+	<script type="text/javascript"  charset="utf-8">
+		$(function(){
+			var pageSize = 15;//每页显示的条数
+			var firstGet = true;//定义第一次请求
+			var allCount = 0;//检索的结果总总数
+			var currentPage = 1;//当前显示的页码
+			//传递参数 对象
+			var sendObj = {};
+			//点击检索按钮 查询事件
+			$("#searchEvents").click(function(){
+				currentPage = 1;
+				firstGet = true;
+				//传递参数 对象
+				sendObj = {};
+				//获取查询条件
+				//获取开始时间
+				sendObj.startTime = $("#startTime").val();
+				//获取结束时间
+				sendObj.endTime = $("#endTime").val();
+				//获取ip地址
+				sendObj.ip= $(".searchIp").val();
+				//获取主机名
+				sendObj.hostname= $(".searchHostname").val();
+				//获取日志级别
+				sendObj.event_level= $(".searchLevel").val();
+				//获取事件类型
+				sendObj.event_type = $(".searchEventType").val();				
+				//获取数据
+				getData(1);
+			})
+			//page-当前页码  pageSize-每页条数
+			function getData(page){
+				//当前页码
+				sendObj.page = page;
+				//每页条数
+				sendObj.size = pageSize;
+				//成功回调函数
+				var sfunc = function(data){
+					//清空表格数据
+					$("#eventTable").bootstrapTable('removeAll');
+					//添加数据
+					$("#eventTable").bootstrapTable("load",data[0].list);
+					//判断是否是第一次请求
+					if(firstGet == true){
+						//获得总条数
+						allCount = data[0].count;
+						//添加总条数到页面中
+						$(".allCountBox>b").html(allCount);
+						//获得设置的最大显示条数
+						var maxShowDataVal = $(".maxShowData").val();
+						//获得默认的最大显示条数
+						var defaultmaxVal = $(".maxShowData").children("option:first-child").val();
+						if(maxShowDataVal != defaultmaxVal){
+							maxShowDataVal = defaultmaxVal;
+							 $(".maxShowData").val(defaultmaxVal);
+						}
+						//判断总数与当前选择的最大显示的条数进行对比
+						if(allCount > maxShowDataVal){
+							//创建分页函数
+							createPage("pageBox",$(".maxShowData").val(),pageSize);
+						}else{
+							//创建分页函数
+							createPage("pageBox",allCount,pageSize);
+						}
+						
+					}else{
+						//显示数据
+					}
+				}
+
+				//发送请求
+				ajaxPost("../../log/getEventListByBlend.do",sendObj,sfunc);
+			}
+			//默认加载数据
+			$("#searchEvents").click();
+			//创建分页函数 elem-分页容器(id)  allcount-总条数  limit-每一页显示的条数
+			function createPage(elem,allCount,limit){
+				//分页插件
+				layui.use('laypage', function(){
+					var laypage = layui.laypage;	
+				  	//执行一个laypage实例
+				  	laypage.render({
+					  elem: elem //分页容器 id
+					  ,count: allCount //数据总数，从服务端得到
+					  ,limit: limit  //每页显示的条数
+					  ,curr:currentPage //默认显示页码
+					  ,jump: function(obj, first){				    
+					    //首次不执行
+					    if(!first){
+					    	//请求数据
+							getData(obj.curr);
+							//更新当前显示的页码
+					    	currentPage = obj.curr;
+							//判断当前页
+							if(obj.curr * obj.limit >= $(".allCountBox>b").html()){
+								layer.tips('这是最后一页', '.layui-laypage-curr', {
+									  tips: [1, '#3595CC'],
+									  time: 1000
+									});
+							}else{
+								if($(".layui-laypage-curr").next().html() == "下一页"){
+									layer.tips('可通过更改最大显示数量，查看后面的数据', '.maxShowData', {
+										  tips: [1, '#3595CC'],
+										  time: 2000
+										});
+								}
+								/**/
+							}
+					    }else{//首次
+					    	firstGet = false;
+					    }
+					  }
+					});
+				});
+			}
+			//最大显示数据改变事件函数 html-数值改变 提示标语
+			function maxShowChange(html){
+				//获得当前改变的值
+				var changeVal = $(".maxShowData").val();
+				//判断选的数值与检索出来的总数的大小   
+				if(changeVal < allCount){
+					//创建分页函数
+					createPage("pageBox",changeVal,pageSize);
+				}else{
+					//创建分页函数
+					createPage("pageBox",allCount,pageSize);
+				}
+				if(changeVal >= 10000000){
+					layer.tips('友情提示: '+html, '.maxShowData', {
+						  tips: [1, '#3595CC'],
+						  time: 4000
+						});
+				}
+			}	
+			//数据最大显示下拉框改变事件
+			$(".maxShowData").change(function(){
+				maxShowChange('数据量过大时，细化查询条件提高查询效率')
+			})
+			
+		})	
+		//列表详情 函数 
+		 function detailFormatter(index, row) {				
+	        var html = [];
+	        var showColArr = ["logtime","operation_des","operation_level","equipmentname","ip","event_des","type","event_type"]
+	        $.each(row, function (key, value) {
+	        	
+	        	if(key == "logtime"){
+	        		 html.push('<p><b>时间:</b> ' + value + '</p>');
+	        	}else if(key == "operation_des"){
+	        		html.push('<p><b>日志内容:</b> ' + value + '</p>');
+	        	}else if(key == "operation_level"){
+	        		html.push('<p><b>事件级别:</b> ' + value + '</p>');
+	        	}else if(key == "event_type"){
+	        		html.push('<p><b>事件类型:</b> ' + value + '</p>');
+	        	}else if(key == "equipmentname"){
+	        		html.push('<p><b>资产名称:</b> ' + value + '</p>');
+	        	}else if(key == "ip"){
+	        		html.push('<p><b>IP地址:</b> ' + value + '</p>');
+	        	}else if(key == "event_des"){
+	        		html.push('<p><b>事件名称:</b> ' + value + '</p>');
+	        	}else if(key == "type"){
+	        		html.push('<p><b>日志类型:</b> ' + value + '</p>');
+	        	}
+	        });
+	        return html.join('');
+	    }
+		
+		//$("#OphthalmologyTable").bootstrapTable("load", data.result);
+	</script>
+</body>
+</html>

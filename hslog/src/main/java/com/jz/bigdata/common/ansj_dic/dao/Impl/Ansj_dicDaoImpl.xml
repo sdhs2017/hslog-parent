@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.ansj_dic.dao.IAnsj_dicDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.common.ansj_dic.entity.Dic">
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="nature" jdbcType="VARCHAR" property="nature" />
+		<result column="freq" jdbcType="INTEGER" property="freq" />
+	</resultMap>
+
+	
+
+	<!-- 查询所有数据 -->
+	<select id="selectByName"  parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		select  dic.name, dic.nature, dic.freq FROM dic where name=#{name,jdbcType=VARCHAR}
+	</select>
+
+
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.ansj_dic.entity.Dic">
+		insert into dic
+		<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- 判断参数是否为空 -->
+			<if test="name != null">
+				name,
+			</if>
+			<if test="nature != null">
+				nature,
+			</if>
+			<if test="freq != null">
+				freq
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="nature != null">
+				#{nature,jdbcType=VARCHAR},
+			</if>
+			<if test="freq != null">
+				#{freq,jdbcType=VARCHAR}
+			</if>
+		</trim>
+	</insert>
+	
+	<!-- 批量插入关系 -->
+     <insert id ="insertList" parameterType="java.util.List" >
+           
+           insert into dic
+           (dic.name,dic.nature,dic.freq)
+           values
+            <foreach collection ="list" item="dic" index= "index" separator =",">
+                (
+                #{dic.name}, #{dic.nature}, #{dic.freq}
+                )
+            </foreach >
+     </insert >
+
+</mapper>

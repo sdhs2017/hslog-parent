@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	</head>
+	<style type="text/css">
+		body {
+			background: #293846;
+			color: #fff;
+		}
+		
+		.content {
+			max-width: 1440px;
+			margin: 50px auto;
+			padding: 0 50px;
+		}
+		
+		.row1 {
+			height: 450px;
+		}
+		
+		.row1>div {
+			height: 100%;
+			box-shadow: 0 3px 15px #4781bb;
+		}
+		
+		.row1-col2-row1 {
+			height: 150px;
+		}
+		
+		.device-name {
+			height: 50px;
+			line-height: 50px;
+			color: #e4956d;
+			font-size: 20px;
+			/*border-bottom: 1px solid #4781bb;*/
+		}
+		.device-imformation dl{
+			margin-bottom: 0;
+			color: #5bc0de;
+		}
+		.device-imformation dt{
+			height: 34px;
+			line-height: 34px;
+			padding-left: 30px;
+			background: #386c9a;
+			
+		}
+		.device-imformation dd{
+			height: 30px;
+			line-height: 30px;
+			/*padding-left: 60px;*/
+			background-color: #2f455c;
+			border-bottom:1px solid #365778;
+		}
+		.device-imformation .dd-title{
+			display: inline-block;
+			width: 100px;
+			text-align: end;
+			margin-right: 20px;
+		}
+		.row1-col2-row1>div {
+			height: 100%;
+			box-shadow: 0 3px 15px #4781bb;
+			display: flex;
+		}
+		
+		.row1-col2-row1>div .pie-title {
+			width: 20px;
+			height: 100%;
+			color: #e4956d;
+			padding-top: 10px;
+			font-weight: 600;
+			margin-left: 10px;
+		}
+		
+		.row1-col2-row1>div .pie-box {
+			flex: 1;
+			height: 100%;
+		}
+		
+		.row1-col2-row2 {
+			height: 300px;
+		}
+		
+		.row2 {
+			mi-height: 280px;
+			height: 40Vh;
+		}
+		
+		.row2>div {
+			height: 100%;
+			box-shadow: 0 3px 15px #4781bb;
+		}
+	</style>
+
+	<body>
+		<div class="content">
+			<div class="row row1">
+				<div class="col-md-4 row1-col1">
+					<div class="device-name">名称：Zabbix server</div>
+					<div class="device-imformation">
+						<dl class="device-general">
+							<dt>一般信息</dt>
+							<dd>
+								<span class="dd-title">启动时间 :</span>
+								<span>2019-06-12 10:10:10</span>
+							</dd>
+							<dd>
+								<span class="dd-title">本地时间 :</span>
+								<span>2019-06-13 06:10:30</span>
+							</dd>
+							<dd>
+								<span class="dd-title">主机名 :</span>
+								<span>jzLog server</span>
+							</dd>
+						</dl>
+						<dl class="device-os">
+							<dt>OS</dt>
+							<dd>
+								<span class="dd-title">系统信息 :</span>
+								<span>Linux localhost localdomain 2.6.32-504</span>
+							</dd>
+							<dd>
+								<span class="dd-title">运行时间 :</span>
+								<span>01:00:50</span>
+							</dd>
+							<dd>
+								<span class="dd-title">登陆用户数 :</span>
+								<span>2</span>
+							</dd>
+						</dl>
+						<dl class="device-argent">
+							<dt>argent</dt>
+							<dd>
+								<span class="dd-title">主机名 :</span>
+								<span>Azbbixserver</span>
+							</dd>
+							<dd>
+								<span class="dd-title">版本号 :</span>
+								<span>4.2.1</span>
+							</dd>
+							<dd>
+								<span class="dd-title">ping :</span>
+								<span>Up(1)</span>
+							</dd>
+						</dl>
+					</div>
+
+				</div>
+				<div class="col-md-8 row1-col2">
+					<div class="row row1-col2-row1">
+						<div class="col-md-3">
+							<div class="pie-title">已用内存</div>
+							<div id="echartBox4" class="pie-box"></div>
+						</div>
+						<div class="col-md-3">
+							<div class="pie-title">已用磁盘</div>
+							<div id="echartBox5" class="pie-box"></div>
+						</div>
+						<div class="col-md-3">
+							<div class="pie-title">已运行进程</div>
+							<div id="echartBox6" class="pie-box"></div>
+						</div>
+						<div class="col-md-3">
+							<div class="pie-title">已用索引节点</div>
+							<div id="echartBox7" class="pie-box"></div>
+						</div>
+					</div>
+					<div class="row row1-col2-row2" id="echartBox1">
+					</div>
+				</div>
+			</div>
+			<div class="row row2">
+				<div class="col-md-7" id="echartBox2">
+
+				</div>
+				<div class="col-md-5" id="echartBox3">
+
+				</div>
+			</div>
+		</div>
+
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+		<script type="text/javascript">
+			var myChartPie1 = echarts.init(document.getElementById('echartBox4'));
+
+			optionPie1 = {
+				tooltip: {
+					trigger: 'item',
+					formatter: "{a} <br/>{b}: {c} ({d}%)"
+				},
+				series: [{
+					name: '内存总数 15.56（GB）',
+					type: 'pie',
+					radius: ['55%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						normal: {
+							show: false,
+							position: 'center'
+						},
+						emphasis: {
+							show: false,
+							textStyle: {
+								fontSize: '20',
+								fontWeight: 'bold',
+								color: '#fff'
+							}
+						}
+					},
+					labelLine: {
+						normal: {
+							show: false
+						}
+					},
+					data: [{
+							value: 5.97,
+							name: '已使用',
+							label: {
+								show: true,
+								fontSize: '18',
+								fontWeight: 'bold',
+								color: '#5EDDE3',
+								formatter: "{d}%"
+							},
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#bfd9fe'
+									}, {
+										offset: 1,
+										color: '#df89b5'
+									}])
+								}
+							}
+						},
+						{
+							value: 10,
+							name: '未使用',
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#5bc0de'
+									}, {
+										offset: 1,
+										color: '#5FE2E4'
+									}])
+								}
+							}
+						}
+					]
+				}]
+			};
+			//为echarts对象加载数据
+			myChartPie1.setOption(optionPie1);
+
+			var myChartPie2 = echarts.init(document.getElementById('echartBox5'));
+
+			optionPie2 = {
+				tooltip: {
+					trigger: 'item',
+					formatter: "{a} <br/>{b}: {c} ({d}%)"
+				},
+				series: [{
+					name: '总磁盘空间：500（GB）',
+					type: 'pie',
+					radius: ['55%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						normal: {
+							show: false,
+							position: 'center'
+						},
+						emphasis: {
+							show: false,
+							textStyle: {
+								fontSize: '20',
+								fontWeight: 'bold',
+								color: '#fff'
+							}
+						}
+					},
+					labelLine: {
+						normal: {
+							show: false
+						}
+					},
+					data: [{
+							value: 35,
+							name: '已使用',
+							label: {
+								show: true,
+								fontSize: '18',
+								fontWeight: 'bold',
+								color: '#5EDDE3',
+								formatter: "{d}%"
+							},
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#bfd9fe'
+									}, {
+										offset: 1,
+										color: '#df89b5'
+									}])
+								}
+							}
+						},
+						{
+							value: 465,
+							name: '未使用',
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#5bc0de'
+									}, {
+										offset: 1,
+										color: '#5FE2E4'
+									}])
+								}
+							}
+						}
+					]
+				}]
+			};
+			//为echarts对象加载数据
+			myChartPie2.setOption(optionPie2);
+
+			var myChartPie3 = echarts.init(document.getElementById('echartBox6'));
+
+			optionPie3 = {
+				tooltip: {
+					trigger: 'item',
+					formatter: "{a} <br/>{b}: {c} ({d}%)"
+				},
+				series: [{
+					name: '总进程数：180（个）',
+					type: 'pie',
+					radius: ['55%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						normal: {
+							show: false,
+							position: 'center'
+						},
+						emphasis: {
+							show: false,
+							textStyle: {
+								fontSize: '20',
+								fontWeight: 'bold',
+								color: '#fff'
+							}
+						}
+					},
+					labelLine: {
+						normal: {
+							show: false
+						}
+					},
+					data: [{
+							value: 30,
+							name: '已运行',
+							label: {
+								show: true,
+								fontSize: '18',
+								fontWeight: 'bold',
+								color: '#5EDDE3',
+								formatter: "{d}%"
+							},
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#bfd9fe'
+									}, {
+										offset: 1,
+										color: '#df89b5'
+									}])
+								}
+							}
+						},
+						{
+							value: 150,
+							name: '未运行',
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#5bc0de'
+									}, {
+										offset: 1,
+										color: '#5FE2E4'
+									}])
+								}
+							}
+						}
+					]
+				}]
+			};
+			//为echarts对象加载数据
+			myChartPie3.setOption(optionPie3);
+
+			var myChartPie4 = echarts.init(document.getElementById('echartBox7'));
+
+			optionPie4 = {
+				tooltip: {
+					trigger: 'item',
+					formatter: "{a} <br/>{b}: {c} ({d}%)"
+				},
+				series: [{
+					name: '总索引节点：',
+					type: 'pie',
+					radius: ['55%', '70%'],
+					avoidLabelOverlap: false,
+					label: {
+						normal: {
+							show: false,
+							position: 'center'
+						},
+						emphasis: {
+							show: false,
+							textStyle: {
+								fontSize: '20',
+								fontWeight: 'bold',
+								color: '#fff'
+							}
+						}
+					},
+					labelLine: {
+						normal: {
+							show: false
+						}
+					},
+					data: [{
+							value: '20',
+							name: '已使用',
+							label: {
+								show: true,
+								fontSize: '18',
+								fontWeight: 'bold',
+								color: '#5EDDE3',
+								formatter: "{d}%"
+							},
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#bfd9fe'
+									}, {
+										offset: 1,
+										color: '#df89b5'
+									}])
+								}
+							}
+						},
+						{
+							value: '80',
+							name: '未使用',
+							itemStyle: {
+								normal: {
+									color: new echarts.graphic.LinearGradient(1, 0, 0, 0, [{ //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+
+										offset: 0,
+										color: '#5bc0de'
+									}, {
+										offset: 1,
+										color: '#5FE2E4'
+									}])
+								}
+							}
+						}
+					]
+				}]
+			};
+			//为echarts对象加载数据
+			myChartPie4.setOption(optionPie4);
+
+			var myChartLine1 = echarts.init(document.getElementById('echartBox1'));
+			optionLine1 = {
+				title: {
+					x: "left",
+					text: '网络接口',
+					textStyle: {
+						fontSize: 14,
+						fontWeight: 'normal',
+						color: '#e4956d'
+					},
+					left: 20,
+					top: 10
+				},
+				color: ['#fff'],
+				legend: {
+				 	textStyle:{
+				 		color: '#5bc0de',
+				 	},
+				 	top:'20px',
+			        data:['进入','流出']
+			    },
+				tooltip: {
+					trigger: 'axis',
+				},
+				
+				xAxis: [{
+					type: 'category',
+					boundaryGap: false,
+					nameTextStyle: {
+						color: '#5bc0de'
+					},
+					axisLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					data: ['10:00:00','10:00:10','10:00:20','10:00:30','10:00:40','10:00:50','10:01:00','10:01:10','10:01:20','10:01:30','10:01:40','10:01:50','10::02:00'],
+					axisTick: {
+						alignWithLabel: true
+					}
+				}],
+				yAxis: [{
+					type: 'value',
+					axisLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					splitLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					nameTextStyle: {
+						color: '#5bc0de'
+					}
+				}],
+				series: [{
+					name: '进入',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#00EABD'
+							}, {
+								offset: 1,
+								color: 'rgba(116,235,213,0.1)'
+							}])
+
+						}
+					},
+					itemStyle: {
+						normal: {
+							color: '#00EABD'
+						}
+					},
+					data: [10, 52, 200, 334, 43, 87,400,580,300,400,258,550,400]
+				},
+				{
+					name: '流出',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 1, 0, 0, [{
+								offset: 0,
+								color: '#508DFF'
+							}, {
+								offset: 1,
+								color: 'rgba(116,235,213,0.1)'
+							}])
+
+						}
+					},
+					itemStyle: {
+						normal: {
+							color: '#508DFF'
+						}
+					},
+					data: [10, 20, 10, 8, 10, 15,8,13,20,4,2,10,10]
+				}]
+			};
+			//为echarts对象加载数据
+			myChartLine1.setOption(optionLine1);
+
+			var myChartLine = echarts.init(document.getElementById('echartBox2'));
+			optionLine = {
+				title: {
+					x: "left",
+					text: 'CPU 利用率',
+					textStyle: {
+						fontSize: 14,
+						fontWeight: 'normal',
+						color: '#e4956d'
+					},
+					left: 20,
+					top: 10
+				},
+				tooltip: {
+					trigger: 'axis'
+				},
+				lineStyle: {
+					normal: {
+						color: '#5bc0de'
+					}
+				},
+				legend: {
+				 	textStyle:{
+				 		color: '#5bc0de',
+				 	},
+				 	top:'30px',
+			        data:['CPU空闲时间','CPU用户时间','CPU系统时间','CPU等待时间','低优先级用户态时间','CPU中断时间','CPU筛选时间','CPU被占用时间','运行虚拟机时间','低优先级运行虚拟机的时间']
+			    },
+				grid: {
+					top:'85px',
+					left: '3%',
+					right: '4%',
+					bottom: '9%',
+					containLabel: true
+				},
+				toolbox: {
+
+				},
+				xAxis: {
+					type: 'category',
+					boundaryGap: false,
+					nameTextStyle: {
+						color: '#5bc0de'
+					},
+					axisLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					data: ['10:00:00','10:00:10','10:00:20','10:00:30','10:00:40','10:00:50','10:01:00','10:01:10','10:01:20','10:01:30','10:01:40','10:01:50','10::02:00']
+				},
+				yAxis: {
+					type: 'value',
+					axisLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					splitLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					nameTextStyle: {
+						color: '#5bc0de'
+					}
+				},
+				series: [{
+					name: 'CPU空闲时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#00EABD'
+							},{
+								offset: 1,
+								color: 'rgba(116,235,213,0.1)'
+							}])
+						}
+					},
+					data: ['90', '91', '95', '80', '99', '97', '89', '97', '90', '90', '99', '99'],
+					itemStyle: {
+						normal: {
+							color: '#00EABD'
+						}
+					}
+				},
+				{
+					name: 'CPU用户时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#20C1F3'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['10', '20', '5', '18', '1', '8', '10', '10', '2', '5','10','9'],
+					itemStyle: {
+						normal: {
+							color: '#20C1F3'
+						}
+					}
+				}
+				,
+				{
+					name: 'CPU系统时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#FC686F'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['1', '8', '3', '10', '5', '5', '3', '11', '1', '5','3','1'],
+					itemStyle: {
+						normal: {
+							color: '#FC686F'
+						}
+					}
+				}
+				,
+				{
+					name: 'CPU等待时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#F9D124'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['10', '2', '2', '7', '11', '3', '7', '1', '10', '1','8','1'],
+					itemStyle: {
+						normal: {
+							color: '#F9D124'
+						}
+					}
+				},
+				{
+					name: '低优先级用户态时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#DE1AFB'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['8', '1', '7', '4', '1', '1', '1', '0', '0', '1','11','1'],
+					itemStyle: {
+						normal: {
+							color: '#DE1AFB'
+						}
+					}
+				},
+				{
+					name: 'CPU中断时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#C0D7FC'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['0', '0', '0', '9', '3', '0', '0', '0', '0', '0','0','1'],
+					itemStyle: {
+						normal: {
+							color: '#C0D7FC'
+						}
+					}
+				},
+				{
+					name: 'CPU筛选时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#A9F4B7'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['31', '20', '32', '14', '35', '14', '31', '20', '11', '10','10','10'],
+					itemStyle: {
+						normal: {
+							color: '#A9F4B7'
+						}
+					}
+				},
+				{
+					name: 'CPU被占用时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#FF9E96'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['1', '2', '3', '4', '5', '4', '3', '2', '1', '1','1','1'],
+					itemStyle: {
+						normal: {
+							color: '#FF9E96'
+						}
+					}
+				},
+				{
+					name:'运行虚拟机时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#75B568'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['1', '2', '3', '4', '5', '4', '3', '2', '1', '1','1','1'],
+					itemStyle: {
+						normal: {
+							color: '#75B568'
+						}
+					}
+				},
+				{
+					name: '低优先级运行虚拟机的时间',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#323A81'
+							},{
+								offset: 1,
+								color: 'rgba(41,56,70,0.1)'
+							}])
+
+						}
+					},
+					data: ['1', '2', '3', '4', '5', '4', '3', '2', '1', '1','1','1'],
+					itemStyle: {
+						normal: {
+							color: '#323A81'
+						}
+					}
+				}]
+			};
+			//为echarts对象加载数据
+			myChartLine.setOption(optionLine);
+
+			var myChartLine3 = echarts.init(document.getElementById('echartBox3'));
+			optionLine3 = {
+				title: {
+					x: "left",
+					text: 'CPU 负载',
+					textStyle: {
+						fontSize: 14,
+						fontWeight: 'normal',
+						color: '#e4956d'
+					},
+					left: 20,
+					top: 10
+				},
+				tooltip: {
+					trigger: 'axis'
+				},
+				lineStyle: {
+					normal: {
+						color: '#5bc0de'
+					}
+				},
+				legend: {
+				 	textStyle:{
+				 		color: '#5bc0de',
+				 	},
+				 	top:'30px',
+				 	data:['处理器负载（每个核心平均1分钟）', '处理器负载（每个核心平均5分钟）', '处理器负载（每个核心平均15分钟）']
+			    },
+				grid: {
+					top:'85px',
+				/*	left: '3%',
+					right: '4%',*/
+					bottom: '9%',
+					containLabel: true
+				},
+				toolbox: {
+
+				},
+				xAxis: {
+					type: 'category',
+					boundaryGap: false,
+					nameTextStyle: {
+						color: '#5bc0de'
+					},
+					axisLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					data: ['10:00:00','10:00:10','10:00:20','10:00:30','10:00:40','10:00:50','10:01:00','10:01:10','10:01:20','10:01:30','10:01:40','10:01:50','10::02:00']
+				},
+				yAxis: {
+					type: 'value',
+					axisLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					splitLine: {
+						lineStyle: {
+							color: '#5bc0de'
+						}
+					},
+					nameTextStyle: {
+						color: '#5bc0de'
+					}
+				},
+				series: [{
+					name: '处理器负载（每个核心平均1分钟）',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#00EABD'
+							},{
+								offset: 1,
+								color: 'rgba(116,235,213,0.1)'
+							}])
+						}
+					},
+					data: ['18', '20', '40', '50', '12', '30', '20', '10', '20', '20', '30', '10','0'],
+					itemStyle: {
+						normal: {
+							color: '#00EABD'
+						}
+					}
+				},
+				{
+					name: '处理器负载（每个核心平均5分钟）',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#20C1F3'
+							},{
+								offset: 1,
+								color: 'rgba(116,235,213,0.1)'
+							}])
+						}
+					},
+					data: ['10', '15', '30', '40', '10', '20', '18', '8', '18', '10', '20', '5','0'],
+					itemStyle: {
+						normal: {
+							color: '#20C1F3'
+						}
+					}
+				},
+				{
+					name: '处理器负载（每个核心平均15分钟）',
+					type: 'line',
+					smooth: true, //平滑性
+					areaStyle: {
+						normal: {
+							//颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+							color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+								offset: 0,
+								color: '#C0D7FC'
+							},{
+								offset: 1,
+								color: 'rgba(116,235,213,0.1)'
+							}])
+						}
+					},
+					data: ['5', '10', '20', '30', '5', '10', '8', '5', '1', '1', '10', '0','0'],
+					itemStyle: {
+						normal: {
+							color: '#C0D7FC'
+						}
+					}
+				}]
+			};
+			//为echarts对象加载数据
+			myChartLine3.setOption(optionLine3);
+		</script>
+	</body>
+
+</html>

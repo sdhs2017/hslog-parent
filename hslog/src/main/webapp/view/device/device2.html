@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>资产管理</title>
+		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+		<link rel="stylesheet" type="text/css" href="css/device.css"/>
+		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+		<style type="text/css">
+			.create-server-agent-key {
+				margin-left: 15px; 
+				width: 90%;
+			}
+			#box{
+				overflow:hidden;
+			}
+			.modal-content {
+				
+				box-shadow: none;	
+			}
+			th{
+				white-space:nowrap;
+			}
+			
+			.device-list .device-item {
+				/*min-height: 300px;*/
+				width: 258px;
+				float: left;
+				color: #5bc0de;
+				margin: 20px;
+				background: #293846;
+				/*box-shadow: 17px 15px 16px #344d65;*/
+				position: relative;
+			}
+		
+			.li-title {
+				height: 110px;
+				padding: 0 10px;
+				background-image: linear-gradient(to right, #2f455c 0%, #386c9a 100%);
+				position: relative;
+				border: 1px solid #365778;
+			}
+			
+			.li-title:after {
+				content: ' ';
+				position: absolute;
+				left: 0;
+				top: 110px;
+				width: 0;
+				border: 8px solid;
+				transition: all .3s;
+				border-top-color: #0b4c86;
+				border-right-color: #0b4c86;
+				border-bottom-color: transparent;
+				border-left-color: transparent;
+				bottom: -16px;
+			}
+			
+			.li-title .device_name{
+				color: #E4956D;
+				font-size: 18px;
+				font-weight: 600;
+				/*height: 90px;
+				line-height: 90px;
+				text-align: center;*/
+				height: 56px;
+				line-height: 70px;
+				border-bottom: 1px dashed #5bc0de;
+				transition: all 0.2s linear;
+				overflow: hidden;
+				position: relative;
+				z-index: 2;
+				cursor: pointer;
+			}
+			.li-title .device_name span{
+				position: relative;
+				z-index: 1;
+			}
+			.li-title .device_name:after{
+				content: "";
+			    position: absolute;
+			    top: 0;
+			    left: 0;
+			    width: 500%;
+			    height: 1000%;
+			    background: #5bc0de;
+			    z-index: 0;
+			    opacity: 0.5;
+			    transform-origin: 0% 0%;
+			    transform: translateX(calc(20% - 25px)) translateY(10%) rotate(-45deg);
+			    /*/transform: translateY(10%)translateX(16%)rotate(-45deg);*/
+			    transition: transform .3s;
+			}
+			.li-title .device_name:hover::after{
+				transform: translateY(10%) translateX(-25px) rotate(-45deg);
+			}
+			.li-title .tit-ball {
+				width: 50px;
+				height: 50px;
+				text-align: center;
+				line-height: 40px;
+				border-radius: 100%;
+				position: absolute;
+				font-weight: 600;
+				right: 22px;
+				top: -25px;
+				font-size: 12px;
+				color: #fff;
+				background: #2f455c;
+				border: 5px solid #376995;
+				z-index: 3;
+			}
+			
+			.device-information {
+				height: 44px;
+				/*padding-top: 10px;*/
+				display: flex;
+				font-size: 12px;
+				align-items: center;
+				justify-content: space-around;
+				position: relative;
+				height: 44px;
+				/*height: 0;
+				overflow: hidden;*/
+				transition: all 0.2s linear;
+			}
+			
+			.device-information span {
+				display: inline-block;
+				height: 26px;
+				line-height: 26px;
+				padding: 0 8px;
+				background: #2f455c;
+				border: 1px solid #365778;
+			}
+			
+			.device_logtype {
+				max-width: 86px;
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+			
+			.more-infor {
+				cursor: pointer;
+				position: relative;
+				z-index: 3;
+			}
+			.li-key-box{
+				width:188px;
+				position: absolute;
+				background: #2f455c;
+				/*right: -194px;*/
+				right: -240px;
+				padding: 10px;
+				opacity: 0;
+				transition: all 0.3s linear; 
+				border: 1px solid #365778;
+			}
+			.li-key-box>div{
+				height: 20px;
+				line-height: 20px;
+				display: flex;
+				border-bottom: 1px solid #365778;
+				/*padding: 0 10px;*/
+			}
+			.li-key-box>div .li-key{
+				width: 56px;
+				text-align: right;
+			}
+			.li-key-box>div .li-value{
+				flex: 1;
+				overflow: hidden;
+				white-space: nowrap;
+				text-overflow: ellipsis;
+			}
+			.device-tools {
+				height: 20px;
+				width: 20px;
+				background: #386c9a;
+				border-radius: 100%;
+				position: absolute;
+				text-align: center;
+				bottom: -10px;
+				left: 118px;
+				font-size: 12px;
+				line-height: 23px;
+				cursor: pointer;
+				background: #376995;
+				border: 1px solid #376995;
+				z-index: 3;
+			}
+			
+			.device-tools a {
+				color: #FFFFFF;
+			}
+			
+			.li-tools-ul {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+				width: 228px;
+				height: 200px;
+				/*visibility: hidden;*/
+				position: relative;
+				display: none;
+			}
+			
+			.li-tools-ul li {
+				overflow: hidden;
+				height: 40px;
+				width: 40px;
+				color: #fff;
+				border-radius: 100%;
+				float: left;
+				background: #386c9a;
+				text-align: center;
+				line-height: 40px;
+				cursor: pointer;
+			}
+			
+			.li-tools-ul li:hover {
+				border: 1px solid #5bc0de;
+				color: #5bc0de;
+			}
+			
+			.zz {
+				width: 100vw;
+				height: 100vh;
+				position: fixed;
+				left: 0;
+				top: 0;
+				background: rgba(0, 0, 0, 0.5);
+				z-index: 3;
+				display: none;
+			}
+			.device-list input[type=checkbox]{
+				position: absolute;
+			    right: 7px;
+			    top: 5px;
+			}
+			input[type=checkbox]:after{
+				border: 2px solid #5bc0de;
+			}
+			input[type=checkbox]:checked:after {
+			    border: 4px solid #fff;
+			    background-color: #37AF6E;
+			}
+		</style>
+	</head>
+	
+	<body>
+		<div id="box">
+			<div class="top_title">
+				资产列表
+			</div>
+			<div class="device_tools row">
+				<form class="form-inline" onsubmit="return false;">					
+				  	<div class="searchConditions">
+				  		<div class="searchDeviceNameBox">
+							<div class="searchBoxTitle">资产名称</div>
+							<input type="text" class="form-control search_deviceName" placeholder="资产名称(可为空)">
+						</div>
+				  		<div class="searchHostNameBox">
+							<div class="searchBoxTitle">主机名</div>
+							<input type="text" class="form-control search_hostname"  placeholder="主机名">
+						</div>
+				  		<div class="searchIpBox">
+							<div class="searchBoxTitle">IP地址</div>
+							<input type="text" class="form-control search_deviceIp"  placeholder="IP地址">
+						</div>
+						<div class="searchLogTypeBox">
+							<div class="searchBoxTitle">日志类型</div>
+							<select class="form-control logType">
+	    						<option selected value=""></option>
+	 						</select>
+						</div>
+						<!-- <div class="searchLogTypeBox">
+							<div class="searchBoxTitle">资产类型</div>
+							<select class="form-control eBigType" >
+	    						<option selected value=""></option>
+	 							<option value="0">网络</option>
+	 							<option value="1">安全</option>
+	 							<option value="2">主机</option>
+	 							<option value="3">应用</option>	 							
+	 						</select>
+	 						<select class="form-control eType"></select>
+						</div> -->
+						<button class="btn btn-primary search_device" ><i class="glyphicon glyphicon-search"></i>搜索</button>
+				  	</div>
+				</form>
+				<div class="btnTools">
+					<button  class="btn btn-info" id="add_device" title="添加新的资产"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加资产</button>
+					<button  class="btn btn-info" id="remove_device" title="删除资产"><i class="glyphicon glyphicon-remove"></i>&nbsp;删除资产</button>
+					<button  class="btn btn-info" id="echart_device" title="查看资产报表"><i class="glyphicon glyphicon-stats"></i>&nbsp;报表</button>
+				</div>
+			</div>
+			<div class="row device_box">
+				<div class="col-sm-12 list_con">
+					<ul class="device-list">
+						
+					</ul>
+				</div>
+			</div>
+			<div class="bottomBox">
+				<div class="tools_page">
+					<span class="current prev">&laquo;</span>
+					<span class="current">1</span>
+					<span class="current next">&raquo;</span>
+				</div>
+				<div class="allCountBox">共检索到的资产数量为<b>0</b>台</div>
+			</div>
+		</div>
+		<div class="zz"></div>
+		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/jquery.wheelmenu.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+		<script src="../../hplus/js/contabs.min.js"></script>
+		<script src="js/prettify.js" type="text/javascript" charset="utf-8"></script>
+		<script src="js/device2.js" type="text/javascript" charset="utf-8"></script>
+	</body>
+</html>

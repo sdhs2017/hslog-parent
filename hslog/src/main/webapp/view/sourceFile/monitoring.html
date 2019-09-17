@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>源文件管理</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<style type="text/css">
+		html,body{
+			height:100%;
+		}
+		.propertyNav{
+			margin-bottom:10px;
+			/* display:none; */
+		}
+		.propertyNav a{
+			font-size:12px;
+			margin:10px;
+			color:#428bca;
+		}
+		.propertyNav a:hover{
+			text-decoration: underline;
+		}
+		.content{
+			margin-top:20px;
+		}
+		.row{
+			margin-bottom:20px!important;
+		}
+	</style>	
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+
+<body>
+	<div id="box">
+		<div class="top_title">
+			在线监控
+		</div>
+		<div class="propertyNav">
+			<a href="sourceFile.html">数据源管理</a>><a class="secondA" href="javascript:void(0)">在线监控</a> <a href="sourceFile.html">返回上一级</a>
+		</div>
+		<div class="content">
+			<div class="row">
+				<div class="col-sm-10">
+					<label>数据接收协议</label>
+					<input  type="text" class="form-control" readonly="readonly" value='UDP/TCP'>
+				</div>	
+			</div>
+			<div class="row">
+				<div class="col-sm-10">
+					<label>Rsyslog格式</label>
+	  				<input  type="text" class="form-control" readonly="readonly" class="form-c" value='$template myformat,"<%PRI%> %$NOW% %TIMESTAMP:8:15% %HOSTNAME% %FROMHOST-IP% %syslogtag:1:32%%msg:::sp-if-no-1st-sp%%msg%\n"'>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-sm-10">
+					<label>数据存放路径 （排除本机的日志）</label>
+					<input  type="text" class="form-control" readonly="readonly" value='fromhost-ip, !isequal, "127.0.0.1" /var/log/hostlog/test.log'>
+				</div>	
+			</div>
+			
+		</div>
+	</div>
+	
+	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+</body>
+</html>

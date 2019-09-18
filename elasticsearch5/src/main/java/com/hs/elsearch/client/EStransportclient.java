@@ -9,6 +9,7 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
 
+import javax.annotation.Resource;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
@@ -22,6 +23,12 @@ public class EStransportclient implements FactoryBean<TransportClient>, Initiali
 
     private Map<String, String> elasticsearchbean;
 
+    /*private EsConfig esConfig;
+
+    public EStransportclient(final EsConfig esConfig){
+        this.esConfig = esConfig;
+    }*/
+
     public void setElasticsearchbean(Map<String, String> elasticsearchbean) {
         this.elasticsearchbean = elasticsearchbean;
     }
@@ -30,8 +37,12 @@ public class EStransportclient implements FactoryBean<TransportClient>, Initiali
 
         Settings settings = Settings.builder().put("cluster.name", elasticsearchbean.get("es_name")).build();
         client = new PreBuiltTransportClient(settings)
-                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticsearchbean.get("es_ip")), Integer.valueOf(elasticsearchbean.get("es_port")) ));
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(elasticsearchbean.get("es_ip")), Integer.valueOf(elasticsearchbean.get("es_port"))));
 
+        /*Settings settings = Settings.builder().put("cluster.name", esConfig.getEs_cluster_name()).build();
+        client = new PreBuiltTransportClient(settings)
+                .addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName(esConfig.getEs_ip()), Integer.valueOf(esConfig.getEs_port())));
+*/
     }
 
     @Override
@@ -44,7 +55,8 @@ public class EStransportclient implements FactoryBean<TransportClient>, Initiali
 
     @Override
     public TransportClient getObject() throws Exception {
-        System.out.println("elasticsearch transport-client builded successful!");
+        //System.out.println("elasticsearch transport-client builded successful!");
+        logger.info("elasticsearch transport-client builded successful!");
         return client;
     }
 
@@ -60,7 +72,9 @@ public class EStransportclient implements FactoryBean<TransportClient>, Initiali
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        System.out.println("开始初始化Transport-client，elasticsearch-ip：" +elasticsearchbean.get("es_ip") + "  elasticsearch-port: " + elasticsearchbean.get("es_port"));
+        //System.out.println("开始初始化Transport-client，elasticsearch-ip：" +elasticsearchbean.get("es_ip") + "  elasticsearch-port: " + elasticsearchbean.get("es_port"));
+        //logger.info("开始初始化Transport-client，elasticsearch-ip：" + esConfig.getEs_ip() + "  elasticsearch-port: " + esConfig.getEs_port());
+        logger.info("开始初始化Transport-client，elasticsearch-ip：" + elasticsearchbean.get("es_ip") + "  elasticsearch-port: " + elasticsearchbean.get("es_ip"));
         buildingClient();
     }
 }

@@ -54,6 +54,8 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortOrder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -64,7 +66,7 @@ import java.util.concurrent.ExecutionException;
 public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperations {
 
 	private static Logger logger = Logger.getLogger(ClientTemplate.class);
-	
+
 	private Client client;
 	
 	private final String indexName;
@@ -79,7 +81,7 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	public ClientTemplate(final Client client, final String indexName) {
 		Assert.notNull(client, "客户端不允许为空");
 		Assert.notNull(indexName, "节点名不允许为空");
-		logger.info("module elasticsearch5 template初始化··· ···");
+		logger.info("module elasticsearch5 template初始化··· ···"+indexName);
 		this.client = client;
 		this.indexName = indexName;
 	}
@@ -414,7 +416,7 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	
 	/**
 	 * @param index
-	 * @param type
+	 * @param types
 	 * @return
 	 * 获取index+type下的索引数据条数
 	 */

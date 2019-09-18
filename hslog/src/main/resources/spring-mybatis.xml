@@ -642,6 +642,17 @@
 	<bean id="esClient" class="org.projectx.elasticsearch.ElasticsearchTransportClientFactoryBean">
 	 -->
 
+	<!--<bean id="elsearch" class="com.hs.elsearch.EsConfig">
+		<property name="locations">
+			&lt;!&ndash; 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组  &ndash;&gt;
+			<list>
+				<value>classpath:hosts.properties</value>
+			</list>
+		</property>
+		&lt;!&ndash; 设置编码格式 &ndash;&gt;
+		<property name="fileEncoding" value="UTF-8"></property>
+	</bean>-->
+
 	<bean id="elasticsearch5" class="com.hs.elsearch.client.EStransportclient">
 		<property name="elasticsearchbean">
 			<map>
@@ -650,6 +661,7 @@
 				<entry key="es_name" value="myElasticsearchCluster"/>
 			</map>
 		</property>
+		<!--<constructor-arg ref="elsearch"/>-->
 	</bean>
 
 	<!--<bean id="elasticsearch7" class="com.hs.elsearch.template.RestHighClient7">
@@ -670,25 +682,25 @@
 		</property>	
 	</bean>-->
 	
-	<!--<bean id="clientTemplate" class="com.hs.elsearch.template.bak.ClientTemplate">-->
-		<!--<constructor-arg ref="elasticsearch5"/>-->
-		<!--<constructor-arg value="article"/>-->
-	<!--</bean>-->
+	<bean id="clientTemplate" class="com.hs.elsearch.template.bak.ClientTemplate">
+		<constructor-arg ref="elasticsearch5"/>
+		<constructor-arg value="article"/>
+	</bean>
 
-	<!--<bean id="elasticsearchDao" class="com.hs.elsearch.dao.impl.ElasticsearchDao">-->
-		<!--<constructor-arg ref="clientTemplate"/>-->
-	<!--</bean>-->
-	
-	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">  
+	<bean id="elasticsearchDao" class="com.hs.elsearch.dao.impl.ElasticsearchDao">
+		<constructor-arg ref="clientTemplate"/>
+	</bean>
+
+	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 	    <property name="locations">
 	    <!-- 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组，跟上面一样  -->
 	    	<list>  
                 <value>classpath:hosts.properties</value>  
             </list>
 	    </property>
-	    <!-- 设置编码格式 -->  
+	    <!-- 设置编码格式 -->
         <property name="fileEncoding" value="UTF-8"></property>
-	</bean> 
+	</bean>
 	
 	<!-- 自动备份定时任务 -->
 	<bean id="createSnapshotByIndicesJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">

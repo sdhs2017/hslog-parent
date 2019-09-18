@@ -5,6 +5,9 @@ import com.hs.elsearch.template.bak.ClientTemplate;
 import org.apache.log4j.Logger;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -23,7 +26,7 @@ public class ElasticsearchDao implements IElasticsearchDao {
     private ClientTemplate clientTemplate;
 
     public ElasticsearchDao(final ClientTemplate clientTemplate){
-        logger.info("module elasticsearch5 Dao 初始化··· ···");
+        logger.info("module elasticsearch5 Dao层 初始化··· ···");
         this.clientTemplate = clientTemplate;
     }
 

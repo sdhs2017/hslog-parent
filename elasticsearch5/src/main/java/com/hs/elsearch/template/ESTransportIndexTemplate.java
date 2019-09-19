@@ -37,8 +37,20 @@ public class ESTransportIndexTemplate {
      * @param type
      * @param mappingproperties
      * @return
+     * @throws Exception
+     *
+     * curl -X PUT "IP:9200/index_name/_mapping?pretty" -H 'Content-Type: application/json' -d'
+     *     {
+     *     "properties": {
+     *     "field1": {
+     *     "type": "keyword"
+     *     }
+     *     }
+     *     }
+     *     '
+     *
      */
-    public Boolean addMapping(String index, String type,String mappingproperties) {
+    public Boolean addMapping(String index, String type,String mappingproperties) throws Exception {
         boolean result = false;
         // 判断index是否存在
         if (this.indexExists(index)) {
@@ -61,6 +73,23 @@ public class ESTransportIndexTemplate {
      * 创建指定名称的索引
      * @param index 索引名称
      * @return  成功true 失败false
+     *
+     * 对应 rest ful api curl 命令
+     *     curl -X PUT "IP:9200/index_name?pretty" -H 'Content-Type: application/json' -d'
+     *     {
+     *     "settings" : {
+     *     "index" : {
+     *     "number_of_shards" : 1,
+     *     "number_of_replicas" : 1
+     *     }
+     *     },
+     *     "mappings" : {
+     *     "properties" : {
+     *     "field1" : { "type" : "text" }
+     *     }
+     *     }
+     *     }'
+     *
      */
     public boolean createIndex(String index) {
         boolean result = false;
@@ -76,6 +105,8 @@ public class ESTransportIndexTemplate {
      * 删除指定index
      * @param index
      * @return
+     *
+     * curl -X DELETE "IP:9200/index_name?pretty"
      */
     public boolean deleteByIndex(String index) {
         boolean result = false;
@@ -89,8 +120,11 @@ public class ESTransportIndexTemplate {
      * 判断指定索引是否存在
      * @param index
      * @return
+     * @throws Exception
+     *
+     * curl -I "IP:9200/index_name?pretty"
      */
-    public boolean indexExists(String index) {
+    public boolean indexExists(String index) throws Exception{
         boolean result = false;
         IndicesExistsRequest request = new IndicesExistsRequest(index);
         IndicesExistsResponse response = transportClient.admin().indices().exists(request).actionGet();
@@ -102,9 +136,11 @@ public class ESTransportIndexTemplate {
      * 查询指定索引的数据量，可指定多索引
      * @param indices   索引数组
      * @return  数据量
-     * @throws IOException
+     * @throws Exception
+     *
+     * curl -X GET "IP:9200/index_name?pretty"
      */
-    public long getIndexCount(String... indices) throws IOException {
+    public long getIndexCount(String... indices) throws Exception {
         SearchRequestBuilder searchRequestBuilder = transportClient.prepareSearch(indices);
         SearchResponse response = searchRequestBuilder.get();
         long count = response.getHits().getTotalHits();
@@ -117,6 +153,8 @@ public class ESTransportIndexTemplate {
      * 开启指定索引
      * @param indices
      * @return
+     *
+     * curl -X POST "IP:9200/index_name/_open?pretty"
      */
     public boolean openIndex(String... indices){
         IndicesAdminClient indicesAdminClient = transportClient.admin()
@@ -129,6 +167,8 @@ public class ESTransportIndexTemplate {
      * 关闭指定索引
      * @param indices
      * @return
+     *
+     * curl -X POST "IP:9200/index_name/_close?pretty"
      */
     public boolean closeIndex(String... indices){
         IndicesAdminClient indicesAdminClient = transportClient.admin()

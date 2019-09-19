@@ -43,6 +43,8 @@ public class ESTransportCrudTemplate {
      * @param type
      * @param id
      * @return
+     *
+     *curl -X GET "IP:9200/index_name/_doc/ID?pretty"
      */
     public Map<String, Object> searchById(String index, String type, String id){
         GetResponse response = transportClient
@@ -82,6 +84,12 @@ public class ESTransportCrudTemplate {
     /**
      * 批量提交步骤二：将步骤一的list，批量提交入库
      * @param requests
+     *
+     * curl -X POST "IP:9200/_bulk?pretty" -H 'Content-Type: application/json' -d'
+     *     { "index" : { "_index" : "test", "_id" : "1" } }
+     *     { "create" : { "_index" : "test", "_id" : "2" } }
+     *     { "create" : { "_index" : "test", "_id" : "3" } }
+     *     '
      */
     public void bulkInsert(List<IndexRequest> requests) {
         BulkRequestBuilder bulkRequest = transportClient.prepareBulk();
@@ -99,6 +107,14 @@ public class ESTransportCrudTemplate {
      * @param index
      * @param type
      * @param json
+     *
+     * curl -X PUT "IP:9200/index_name/_doc/id?&pretty" -H 'Content-Type: application/json' -d'
+     *     {
+     *     "user" : "kimchy",
+     *     "logdate" : "2019-01-01 14:12:12",
+     *     "message" : "trying out Elasticsearch"
+     *     }
+     *     '
      */
     public void insert(String index, String type, String json) {
         IndexRequestBuilder response = transportClient.prepareIndex(index, type);
@@ -118,6 +134,16 @@ public class ESTransportCrudTemplate {
      * @param indices
      * @param queryBuilder
      * @return
+     *
+     * curl -X POST "IP:9200/index_name/_delete_by_query?pretty" -H 'Content-Type: application/json' -d'
+     *     {
+     *     "query": {
+     *     "match": {
+     *     "message": "some message"
+     *     }
+     *     }
+     *     }
+     *     '
      */
     public long countDeleteByQuery(String [] indices, QueryBuilder queryBuilder) {
         BulkByScrollResponse response = DeleteByQueryAction.INSTANCE
@@ -166,6 +192,8 @@ public class ESTransportCrudTemplate {
      * @param type
      * @param id
      * @return
+     *
+     * curl -X DELETE "IP:9200/index_name/_doc/ID?pretty"
      */
     public String deleteById(String index, String type, String id) {
         DeleteResponse response = transportClient.prepareDelete(index, type, id)

@@ -204,9 +204,12 @@ public class UsersServiceImpl implements IUsersService{
 			SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
 			String startTime =df.format(new Date(date.getTime() -  30 * 60 * 1000));
 			String endTime=df.format(date);
-			//判断登录密码次数过多，锁定账号
+
+			// 查询半小时以内近5次的账号登录状态
 			List<Note> list=noteDao.selectLimitNote(user.getPhone(), startTime, endTime);
 			Boolean res = false;
+			//
+			//判断登录密码次数过多，锁定账号
 			if(list.size()==5){
 				for(int i=0;i<list.size();i++){
 					if(list.get(i).getResult()==1){
@@ -306,7 +309,7 @@ public class UsersServiceImpl implements IUsersService{
 
 
 	/**
-	 * @param user
+	 * @param id
 	 * @return
 	 * @description
 	 * 修改密码

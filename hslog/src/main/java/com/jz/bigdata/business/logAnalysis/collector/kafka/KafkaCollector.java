@@ -85,7 +85,7 @@ public class KafkaCollector implements Runnable {
 	 */
 	Map<String, Equipment> equipmentMap;
 	Set<String> ipadressSet;
-	Map<String, String> equipmentLogType;
+	Map<String, String> equipmentLogLevel;
 	/**
 	 * 告警事件
 	 */
@@ -144,7 +144,7 @@ public class KafkaCollector implements Runnable {
 		
 		ipadressSet = equipmentService.selectAllIPAdress();
 		
-		equipmentLogType = equipmentService.selectLog_level();
+		equipmentLogLevel = equipmentService.selectLog_level();
 		
 		eventType = alarmService.selectByEmailState();
 		
@@ -317,12 +317,14 @@ public class KafkaCollector implements Runnable {
 										//判断是否在已识别资产里————日志类型可识别
 										equipment=equipmentMap.get(log4j.getIp() +logType);
 										if(null != equipment){
-											log4j.setUserid(equipment.getUserId());
-											log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
-											log4j.setEquipmentname(equipment.getName());
-											log4j.setEquipmentid(equipment.getId());
-											json = gson.toJson(log4j);
-											requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
+											if (equipmentLogLevel.get(equipment.getId()).indexOf(log4j.getOperation_level().toLowerCase())!=-1){
+												log4j.setUserid(equipment.getUserId());
+												log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
+												log4j.setEquipmentname(equipment.getName());
+												log4j.setEquipmentid(equipment.getId());
+												json = gson.toJson(log4j);
+												requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
+											}
 										}else{
 											log4j.setUserid(LogType.LOGTYPE_UNKNOWN);
 											log4j.setDeptid(LogType.LOGTYPE_UNKNOWN);
@@ -357,12 +359,14 @@ public class KafkaCollector implements Runnable {
 						if (ipadressSet.contains(ipadress)) {
 							equipment = equipmentMap.get(log4j.getIp()+logType);
 							if (equipment!=null) {
-								log4j.setUserid(equipment.getUserId());
-								log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
-								log4j.setEquipmentname(equipment.getName());
-								log4j.setEquipmentid(equipment.getId());
-								json = gson.toJson(log4j);
-								requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
+								if (equipmentLogLevel.get(equipment.getId()).indexOf(log4j.getOperation_level().toLowerCase())!=-1){
+									log4j.setUserid(equipment.getUserId());
+									log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
+									log4j.setEquipmentname(equipment.getName());
+									log4j.setEquipmentid(equipment.getId());
+									json = gson.toJson(log4j);
+									requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
+								}
 							}else {
 								log4j.setUserid(LogType.LOGTYPE_UNKNOWN);
 								log4j.setDeptid(LogType.LOGTYPE_UNKNOWN);
@@ -475,7 +479,7 @@ public class KafkaCollector implements Runnable {
 							//判断是否在已识别资产里————日志类型可识别
 							equipment=equipmentMap.get(winlog.getIp() +logType);
 							if(equipment != null){
-								if (equipmentLogType.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {
+								if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {
 									winlog.setUserid(equipment.getUserId());
 									winlog.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									winlog.setEquipmentname(equipment.getName());
@@ -511,7 +515,7 @@ public class KafkaCollector implements Runnable {
 							//判断是否在已识别资产里————日志类型可识别
 							equipment=equipmentMap.get(dns.getIp() +logType);
 							if(equipment != null){
-								if (equipmentLogType.get(equipment.getId()).indexOf(dns.getOperation_level().toLowerCase())!=-1) {
+								if (equipmentLogLevel.get(equipment.getId()).indexOf(dns.getOperation_level().toLowerCase())!=-1) {
 									dns.setUserid(equipment.getUserId());
 									dns.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									dns.setEquipmentname(equipment.getName());
@@ -546,7 +550,7 @@ public class KafkaCollector implements Runnable {
 							//判断是否在已识别资产里————日志类型可识别
 							equipment=equipmentMap.get(dhcp.getIp() +logType);
 							if(equipment != null){
-								if (equipmentLogType.get(equipment.getId()).indexOf(dhcp.getOperation_level().toLowerCase())!=-1) {
+								if (equipmentLogLevel.get(equipment.getId()).indexOf(dhcp.getOperation_level().toLowerCase())!=-1) {
 									dhcp.setUserid(equipment.getUserId());
 									dhcp.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									dhcp.setEquipmentname(equipment.getName());
@@ -584,7 +588,7 @@ public class KafkaCollector implements Runnable {
 							//判断是否在已识别资产里————日志类型可识别
 							equipment = equipmentMap.get(app_file.getIp() +logType);
 							if(null != equipment){
-								if (equipmentLogType.get(equipment.getId()).indexOf(app_file.getOperation_level().toLowerCase())!=-1) {
+								if (equipmentLogLevel.get(equipment.getId()).indexOf(app_file.getOperation_level().toLowerCase())!=-1) {
 									app_file.setUserid(equipment.getUserId());
 									app_file.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									app_file.setEquipmentid(equipment.getId());
@@ -623,7 +627,7 @@ public class KafkaCollector implements Runnable {
 							//判断是否在已识别资产里————日志类型可识别
 							equipment = equipmentMap.get(syslog.getIp() +logType);
 							if(null != equipment){
-								if (equipmentLogType.get(equipment.getId()).indexOf(syslog.getOperation_level().toLowerCase())!=-1) {
+								if (equipmentLogLevel.get(equipment.getId()).indexOf(syslog.getOperation_level().toLowerCase())!=-1) {
 									syslog.setUserid(equipment.getUserId());
 									syslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									syslog.setEquipmentid(equipment.getId());

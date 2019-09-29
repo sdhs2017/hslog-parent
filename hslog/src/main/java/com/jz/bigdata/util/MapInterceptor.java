@@ -19,7 +19,14 @@ import org.apache.ibatis.plugin.Plugin;
 import org.apache.ibatis.plugin.Signature;
 import org.json.JSONException;
 
-
+/**
+ * mybatis 拦截器的四个类型及所对应的方法
+ *  1.Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+ 	2.ParameterHandler (getParameterObject, setParameters)
+ 	3.ResultSetHandler (handleResultSets, handleOutputParameters)
+ 	4.StatementHandler (prepare, parameterize, batch, update, query)
+ *
+ */
 @Intercepts(@Signature(method="handleResultSets", type=ResultSetHandler.class, args={Statement.class}))
 public class MapInterceptor implements Interceptor {
 

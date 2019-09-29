@@ -678,7 +678,7 @@ public class LogController extends BaseController{
 	
 	/**
 	 * 通过设备id获取该设备日志列表
-	 * @param requestt
+	 * @param request
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")

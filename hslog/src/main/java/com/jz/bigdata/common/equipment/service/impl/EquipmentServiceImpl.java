@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Resource;
@@ -23,6 +24,7 @@ import com.jz.bigdata.common.users.dao.IUsersDao;
 import com.jz.bigdata.common.users.entity.User;
 import com.jz.bigdata.util.BASE64Util;
 import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.JavaBeanUtil;
 import com.jz.bigdata.util.Uuid;
 
 import net.sf.json.JSONArray;
@@ -43,7 +45,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
-	
+
 	@Resource(name="logService")
 	private IlogService logService;
 
@@ -65,8 +67,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// 判断资产数是否超过限定
 		if (Integer.valueOf((String) resultList.get(0).get("count")) < Integer
 				.valueOf(base64Util.decode(configProperty.getNumber()).trim())) {
-			
-			
+
+
 			Equipment equ= equipmentDao.selectByNameIp(equipment);
 			//判断资产是否存在
 			if(equ ==null){
@@ -114,6 +116,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 获取日期
 		equipment.setUpDateTime(df.format(new Date()));
+		equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
 		// equipment.setDepartmentId(Integer.valueOf(session.getAttribute(Constant.SESSION_DEPARTMENTID).toString()));
 		// equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
 		// if(equipment)
@@ -121,7 +124,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	}
 
 	/**
-	 * @param id
+	 * @param ids
 	 * @return 删除数据
 	 */
 	@Override
@@ -135,23 +138,54 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	/**
 	 * @param equipment
 	 * @return
-	 * @description 根据id查询一个数据
+	 * @description 根据id查询单一资产
 	 */
 	@Override
 	public List<Equipment> selectEquipment(Equipment equipment) {
 		List<Equipment> list = equipmentDao.selectEquipment(equipment);
 		List<Equipment> listEquipment = (List<Equipment>) list.get(0);
+
 		// equipment=listEquipment.get(0);
 		// System.out.println(equipment.getConfidentiality());
-		return listEquipment;
+
+		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
+		// 设置日期格式
+		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		SimpleDateFormat startdf = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
+		String starttime = startdf.format(new Date());
+		String endtime = df.format(new Date());
+		Map<String, String> esMap = new HashMap<>();
+		Map<String, Object> equipmentmap = (Map<String, Object>) listEquipment.get(0);
+
+		/*for (Entry<String,Object> ssSet : equipmentmap.entrySet()) {
+			System.out.println(ssSet.getKey()+":"+ssSet.getValue());
+		}*/
+
+		String equipmentid = equipmentmap.get("id").toString();
+		esMap.put("equipmentid", equipmentid);
+		esMap.put("starttime", starttime);
+		esMap.put("endtime", endtime);
+		equipmentmap.put("log_count", logService.getCount(configProperty.getEs_index(), null, esMap)+"");
+		//equipmentmap.put("log_count", "20");
+
+		equipment = JavaBeanUtil.convertMapToBean(Equipment.class, equipmentmap);
+//		equipment = JavaBeanUtil.convertMapToBean(new Equipment(), equipmentmap);
+		List<Equipment> myList = new ArrayList<>();
+		myList.add(equipment);
+		return myList;
+		//return listEquipment;
 	}
 
 	/**
-	 * @param equipment
-	 * @param startRecord
+	 * 分页查询数据
+	 * @param hostName
+	 * @param name
+	 * @param ip
+	 * @param logType
+	 * @param pageIndex
 	 * @param pageSize
+	 * @param session
 	 * @return
-	 * @description 分页查询数据
 	 */
 	@Override
 	public String selectAllByPage(String hostName, String name, String ip, String logType, int pageIndex, int pageSize,HttpSession session) {
@@ -169,7 +203,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// 查询所有数据
 		List<Equipment> listEquipment = equipmentDao.selectAllByPage(hostName, name, ip, logType,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize);
 		// System.err.println(listEquipment.get(0).getCreateTime());
-		
+
 		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
 		// 设置日期格式
 		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -206,7 +240,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	/**
 	 * @return
 	 * @description 查询所有数据map
-	 * 
+	 *
 	 */
 	@Override
 	public Map<String, Equipment> selectAllEquipment() {

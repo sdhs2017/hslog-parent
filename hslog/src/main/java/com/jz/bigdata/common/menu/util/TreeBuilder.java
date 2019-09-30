@@ -13,6 +13,11 @@ import com.jz.bigdata.common.menu.entity.Menu;
  * @date 2017年8月9日 上午9:39:45
  * @description 拼接json樹
  */
+
+/**
+ * TODO
+ * JDK8新特性：构建tree
+ */
 public class TreeBuilder {
 	// 获取list集合信息
 	List<Menu> menuList = new ArrayList<Menu>();
@@ -25,7 +30,7 @@ public class TreeBuilder {
 
 	/**
 	 * @return
-	 * 
+	 *
 	 * 		list转json 构建树形结构
 	 */
 	public String buildJSONTree() {
@@ -105,7 +110,7 @@ public class TreeBuilder {
 			}
 
 		}
-		
+
 		return isRootNode;
 	}
 
@@ -157,7 +162,7 @@ public class TreeBuilder {
 				return 0; // 相等为0
 			}
 		});
-		
+
 		return childNodes;
 	}
 

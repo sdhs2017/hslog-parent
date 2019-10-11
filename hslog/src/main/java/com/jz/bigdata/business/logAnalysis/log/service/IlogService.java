@@ -148,9 +148,26 @@ public interface IlogService {
 	 * @return
 	 */
 	public List<Map<String, Object>> getListGroupByTime(String index,String[] types,String param,String equipmentid);
-	
+
+	/**
+	 * 根据时间统计单个资产的各个事件级别数量
+	 * @param index
+	 * @param types
+	 * @param dates
+	 * @param equipmentid
+	 * @param eventtype
+	 * @param i
+	 * @return
+	 */
 	public List<Map<String, Object>> getEventListGroupByTime(String index,String[] types,String dates,String equipmentid,String eventtype,int i);
-	
+
+	/**
+	 * 通过map构建的查询条件进行数据查询
+	 * @param index
+	 * @param types
+	 * @param map
+	 * @return
+	 */
 	public List<Map<String, Object>> getListByMap(String index,String[] types,Map<String, String> map);
 
 	/**
@@ -225,12 +242,39 @@ public interface IlogService {
 	 */
 	public String deleteById(String index, String type, String id);
 
+	/**
+	 * 根据时间统计单个资产的事件数量
+	 * @param index
+	 * @param types
+	 * @param dates
+	 * @param equipmentid
+	 * @param groupby
+	 * @return
+	 */
 	public List<Map<String, Object>> getEventListGroupByEventType(String index, String[] types, String dates, String equipmentid,
 			String groupby);
 
+	/**
+	 * 统计某个时间段内单个资产的事件类型
+	 * @param index
+	 * @param types
+	 * @param equipmentid
+	 * @param event_type
+	 * @param starttime
+	 * @param endtime
+	 * @return
+	 */
 	List<Map<String, Object>> getListGroupByEvent(String index, String[] types, String equipmentid, String event_type,
 			String starttime, String endtime);
 
+	/**
+	 * 统计客户自定义的安全策略数据，实现安全告警
+	 * @param index
+	 * @param types
+	 * @param equipmentid
+	 * @param enddate
+	 * @return
+	 */
 	List<Map<String, Object>> getEventstypeCountByEquipmentid(String index, String[] types, String equipmentid, Date enddate);
 
 	/**

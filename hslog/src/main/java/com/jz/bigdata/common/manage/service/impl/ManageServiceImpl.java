@@ -218,7 +218,11 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 			return JSONArray.fromObject(map).toString();
 		}
 	}
-    
+
+    /**
+     * 定时任务统计客户自定义的安全策略数据
+     * @return
+     */
     public String updateRisk() {
 		
     	List<Equipment> list = equipmentService.selectAllEquipmentByRisk();
@@ -231,7 +235,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 		
 		Map<String, Object> map= new HashMap<>();
 		map.put("state", true);
-		map.put("msg", "日志数据备份成功！");
+		map.put("msg", "定时任务执行完成！");
 		return JSONArray.fromObject(map).toString();
 	}
 

@@ -61,7 +61,7 @@ public interface IlogService {
 	/**
 	 * 实现类sql的group by功能
 	 * @param index
-	 * @param type
+	 * @param types
 	 * @param param groupby的key值
 	 * @param size 设置es group by返回的数据条数，es默认是10条
 	 * @param map 条件参数
@@ -72,8 +72,8 @@ public interface IlogService {
 	/**
 	 * 实现类sql的group by功能
 	 * @param index
-	 * @param type
-	 * @param []param groupby的key值
+	 * @param types
+	 * @param param groupby的key值
 	 * @param size 设置es group by返回的数据条数，es默认是10条
 	 * @param map 条件参数
 	 * @return
@@ -91,8 +91,8 @@ public interface IlogService {
 	 * @return
 	 */
 	public List<Map<String, Object>> orderBy(String index,String type,String param,String order,String page,String size) ;
-	
-	/**
+
+    /*/**
 	 * 根据设备id查询索引数据
 	 * @param index
 	 * @param type
@@ -102,8 +102,8 @@ public interface IlogService {
 	 * @param page
 	 * @param size
 	 * @return
-	 *//*
-	public List<Map<String, Object>> getLogListByEquipmentId(String index,String type,String param,String order,String equipmentId,String page,String size) ;*/
+	 */
+    /*public List<Map<String, Object>> getLogListByEquipmentId(String index,String type,String param,String order,String equipmentId,String page,String size) ;*/
 	
 	public void update();
 
@@ -121,7 +121,7 @@ public interface IlogService {
 	 * @param index
 	 * @param types
 	 * @param content
-	 * @param from
+	 * @param page
 	 * @param size
 	 * @return
 	 */
@@ -133,7 +133,7 @@ public interface IlogService {
 	 * @param types
 	 * @param content
 	 * @param userid
-	 * @param from
+	 * @param page
 	 * @param size
 	 * @return
 	 */
@@ -174,9 +174,9 @@ public interface IlogService {
 	 * getListByBlend重载
 	 * 通过遍历map中的查询条件进行查询
 	 * @param logindex
-	 * @param array
+	 * @param types
 	 * @param map
-	 * @param from
+	 * @param page
 	 * @param size
 	 * @return
 	 */
@@ -189,7 +189,7 @@ public interface IlogService {
 	 * @param types
 	 * @param pamap
 	 * @param userid
-	 * @param from
+	 * @param page
 	 * @param size
 	 * @return
 	 */
@@ -201,7 +201,7 @@ public interface IlogService {
 	 * @param types
 	 * @param starttime
 	 * @param endtime
-	 * @param pamap
+	 * @param map
 	 * @return
 	 */
 	public List<Map<String, Object>> getListByMap(String index, String[] types, String starttime, String endtime,Map<String, String> map);

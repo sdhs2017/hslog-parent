@@ -1,14 +1,18 @@
 package com.hs.elsearch.template;
 
+import com.hs.elsearch.template.bak.ClientTemplate;
+import org.apache.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,11 +29,20 @@ import java.util.Map;
  * @create: 2019-08-15 14:05
  **/
 
-@Component
+//@Component
 public class ESTransportSearchTemplate {
 
-    @Autowired
-    TransportClient transportClient;
+    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+
+    /*@Autowired
+    TransportClient transportClient;*/
+
+    private  TransportClient transportClient;
+
+    public ESTransportSearchTemplate(TransportClient transportClient){
+        logger.info(" 初始化 ESTransportSearchTemplate ... ");
+        this.transportClient = transportClient;
+    }
 
     /**
      * 通过查询条件获取count
@@ -239,6 +252,18 @@ public class ESTransportSearchTemplate {
             map.put("index", hit.getIndex());
             map.put("type", hit.getType());
             map.put("id", hit.getId());
+            // 处理高亮字段
+            Map<String, HighlightField> highlightFields = hit.getHighlightFields();
+            for(Map.Entry<String, HighlightField> entry : highlightFields.entrySet()){
+                if (entry.getValue()!=null){
+                    Text[] texts = entry.getValue().fragments();
+                    String name = "";
+                    for(Text text :texts){
+                        name += text;
+                    }
+                    map.put(entry.getKey(),name);
+                }
+            }
             list.add(map);
         }
         return list;

@@ -40,6 +40,18 @@ public class ConfigProperty {
     
     @Value("#{prop.es_index}")
     private String es_index;
+
+	@Value("#{prop.es_repository_name}")
+	private String es_repository_name;
+
+	@Value("#{prop.es_repository_path}")
+	private String es_repository_path;
+
+	@Value("#{prop.es_max_result_window}")
+	private String es_max_result_window;
+
+	@Value("#{prop.es_number_of_replicas}")
+	private String es_number_of_replicas;
     
     @Value("#{prop.es_bulk}")
     private Integer es_bulk;
@@ -140,6 +152,38 @@ public class ConfigProperty {
 
 	public void setEs_path_snapshot(String es_path_snapshot) {
 		this.es_path_snapshot = es_path_snapshot;
+	}
+
+	public String getEs_repository_name() {
+		return es_repository_name;
+	}
+
+	public void setEs_repository_name(String es_repository_name) {
+		this.es_repository_name = es_repository_name;
+	}
+
+	public String getEs_repository_path() {
+		return es_repository_path;
+	}
+
+	public void setEs_repository_path(String es_repository_path) {
+		this.es_repository_path = es_repository_path;
+	}
+
+	public String getEs_max_result_window() {
+		return es_max_result_window;
+	}
+
+	public void setEs_max_result_window(String es_max_result_window) {
+		this.es_max_result_window = es_max_result_window;
+	}
+
+	public String getEs_number_of_replicas() {
+		return es_number_of_replicas;
+	}
+
+	public void setEs_number_of_replicas(String es_number_of_replicas) {
+		this.es_number_of_replicas = es_number_of_replicas;
 	}
 
 	public String getEs_index() {

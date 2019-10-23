@@ -1,993 +1,1086 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8">
-		<title></title>
-		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
-		<link src="../../css/layer.css" type="text/css" charset="utf-8"></link>
-		<!-- <link rel="stylesheet" type="text/css" href="css/dashBoard.css"/> -->
-		<style>
-			/* 基础重置样式 */
-			html, body, div{
-			    margin:0;
-			    padding:0;
-			}
-			html,body{
-				font-size:14px;
-				font-family: "微软雅黑";
-				background:#f3f3f4;
-				padding: 10px;
-				color:#676a6c;
-				height:100%;
-			}
-			h1,h2,h3,h4,h5,h6,em,i {
-			    font-weight: 100;
-			    font-style: normal;
-			}
-			ul,ol,li {
-			    list-style-type: none;
-			}
-			a {
-			    color: #666;
-			    text-decoration: none;
-			    outline: 0;
-			}
-			a:hover{
-				text-decoration: none;
-			}
-			.row{
-				/*margin: 0!important;*/
-				margin-bottom:10px;
-			}
-			.col-box{
-				background-color: #fff;
-				border-top: 4px solid rgb(231, 234, 236);
-				min-height:350px;
-			}
-			#box{
-				padding:10px;
-				/*background-color: #fff;*/
-				width: 100%;
-				min-height: 100%;
-				/* min-height: 800px; */
-				overflow-y: auto;
-				overflow-x:hidden;
-				/*border-top: 4px solid rgb(231, 234, 236);*/
-			}
-			.top_title{
-				font-size: 18px;
-				font-weight: 600;
-			    color: inherit;
-			    padding-left: 10px;
-			    width: 100%;
-				height: 50px;
-				line-height: 40px;
-				margin-bottom: 17px;
-				/*border-bottom:1px solid #e7eaec;*/
-				border-top: 4px solid rgb(231, 234, 236);
-				background-color: #fff;
-			}
-			.col_title{
-			    color: inherit;
-			    margin-bottom: 0;
-			    /*padding: 14px 15px 7px;*/
-			   	padding: 0 15px;
-			    height: 48px;
-			    line-height: 48px;
-			    border-bottom:1px solid #e7eaec;
-			}
-			.ecBox{
-				height: 280px;
-				width: 100%;
-				padding: 10px;
-			}
-			#logChart01{
-				width:100%;
-				padding:15px;
-			}
-			.moveLogs{
-				margin: 0;
-				/*padding: 10px;*/
-				padding: 0;
-				position: relative;
-				overflow: hidden;
-				height: 345px;
-			}
-			.moveLogs>li{
-				width: 100%;
-				border-bottom: 1px solid #e7eaec;
-				padding: 10px;
-				height: 111px;
-			}
-			.moveLogs>li:hover{
-				background:#3b5773!important;
-			}
-			.moveLogs>li p{
-				padding-left:20px;
-				padding-bottom: 5px;
-				padding-top: 5px;
-				margin: 0;
-				height: 48px;
-				display: -webkit-box; 
-				display: -moz-box;  
-				white-space: pre-wrap; 
-				word-wrap: break-word;
-				overflow: hidden; 
-				text-overflow: ellipsis; 
-				-webkit-box-orient: vertical; 
-				-moz-binding:url('ellipsis.xml#ellipsis');
-				-webkit-line-clamp:2;   /*显示行数*/
-				cursor:pointer;
-			}
-			.moveLogs>li span{
-				margin-right:10px;
-				color: #2c76bd;
-			}
-			.moveLogs>li i{
-				/*color: #19aa8d;*/
-			}
-			.clearfix:after { 
-				display: block; 
-				clear: both; 
-				content: ""; 
-				visibility: hidden; 
-				height: 0; 
-			}
-			.dash_list{
-				height:280px;
-				padding-left:10px;
-				padding-right:10px;
-			}
-			.dash_list>img{
-				width:100%;
-				margin: 10px auto;
-				/* max-height: 260px; */
-			}
-			.dash_list b{
-				/* font-size:34px; */
-				font-size:2rem;
-				/* color:#e4956d; */
-				color:#2c76bd;
-			}
-			.dash_list>div{
-				height:140px;
-				padding:0 20px;
-				/* display: flex;
-			    justify-content: space-around;
-			    align-items: center; */
-			}
-			.dash_list>div>div{
-				/* height:100%; */
-			}
-			/* .indexPropertyBoxLeft,.indexLogsBoxLeft{
-				float:left;
-			}*/
-			.item-val .errorLogsCount{
-				color:#e4956d;
-				cursor:pointer;
-			} 
-			.errorLogsCount:hover{
-				text-decoration: underline;
-			}
-			.indexlologsBox{
-				/* background:#2f455c; */
-				height:150px!important;
-				display: flex;
-			    justify-content: space-around;
-			    align-items: center;
-			    padding:0!important;
-			}
-			.indexlologsBox>div{
-				background:#2f455c;
-				height:100%;
-				border-radius: 5px;
-			}
-			.indexlologsBox .logsWapper{
-				width:50%;
-				margin-right:10px;
-			}
-			.logsWapper>div{
-				/* height:50%; */
-				padding-top:10px;
-			}
-			.logsWapper .logsTop{
-				height:70px;
-			}
-			.logsWapper .logsBottom{
-				height:75px;
-			}
-			.indexlologsBox .flowsWapper{
-				flex:1;
-			}
-			.indexlologsBox .item-tit{
-				margin: 0;
-				padding-left:14px;
-			}
-			.indexlologsBox .item-val{
-				height:45px;
-				display: flex;
-			    justify-content: space-around;
-			    align-items: center;
-				text-align:center;
-				margin:0;
-			}
-			.flowsWapper .item-tit{
-				margin-top:10px;
-			}
-			.flowsWapper .item-val{
-				height:120px;
-				display:flex;
-				justify-content: center;
-    			align-items: center;
-			}
-			.col_title>a{
-				float: right;
-				margin-right:10px;
-				cursor:pointer;
-				color:#337ab7;
-			}
-			::-webkit-scrollbar-track {
-				background-color:#F5F5F5
-			}
-			::-webkit-scrollbar {
-				width:6px;
-				background-color:#F5F5F5
-			}
-			::-webkit-scrollbar-thumb {
-				background-color:#999
-			}
-			#Date{ 
-				font-family:'BebasNeueRegular', Arial, Helvetica, sans-serif; 
-				font-size:30px; 
-				text-align:center; 
-				text-shadow:0 0 5px #00c6ff; 
-			}
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link src="../../css/layer.css" type="text/css" charset="utf-8"></link>
+	<link rel="stylesheet" type="text/css" href="../../js/datepicker/css/datepicker.css"/>
+	<!-- <link rel="stylesheet" type="text/css" href="css/dashBoard.css"/> -->
+	<style>
+		/* 基础重置样式 */
+		html, body, div{
+			margin:0;
+			padding:0;
+		}
+		html,body{
+			font-size:14px;
+			font-family: "微软雅黑";
+			background:#f3f3f4;
+			padding: 10px;
+			color:#676a6c;
+			height:100%;
+		}
+		h1,h2,h3,h4,h5,h6,em,i {
+			font-weight: 100;
+			font-style: normal;
+		}
+		ul,ol,li {
+			list-style-type: none;
+		}
+		a {
+			color: #666;
+			text-decoration: none;
+			outline: 0;
+		}
+		a:hover{
+			text-decoration: none;
+		}
+		.row{
+			/*margin: 0!important;*/
+			margin-bottom:10px;
+		}
+		.col-box{
+			background-color: #fff;
+			border-top: 4px solid rgb(231, 234, 236);
+			min-height:350px;
+		}
+		#box{
+			padding:10px;
+			/*background-color: #fff;*/
+			width: 100%;
+			min-height: 100%;
+			/* min-height: 800px; */
+			overflow-y: auto;
+			overflow-x:hidden;
+			/*border-top: 4px solid rgb(231, 234, 236);*/
+		}
+		.top_title{
+			font-size: 18px;
+			font-weight: 600;
+			color: inherit;
+			padding-left: 10px;
+			width: 100%;
+			height: 50px;
+			line-height: 40px;
+			margin-bottom: 17px;
+			/*border-bottom:1px solid #e7eaec;*/
+			border-top: 4px solid rgb(231, 234, 236);
+			background-color: #fff;
+		}
+		.col_title{
+			color: inherit;
+			margin-bottom: 0;
+			/*padding: 14px 15px 7px;*/
+			padding: 0 15px;
+			height: 48px;
+			line-height: 48px;
+			border-bottom:1px solid #e7eaec;
+		}
+		.ecBox{
+			height: 280px;
+			width: 100%;
+			padding: 10px;
+		}
+		#logChart01{
+			width:100%;
+			padding:15px;
+		}
+		.moveLogs{
+			margin: 0;
+			/*padding: 10px;*/
+			padding: 0;
+			position: relative;
+			overflow: hidden;
+			height: 345px;
+		}
+		.moveLogs>li{
+			width: 100%;
+			border-bottom: 1px solid #e7eaec;
+			padding: 10px;
+			height: 111px;
+		}
+		.moveLogs>li:hover{
+			background:#3b5773!important;
+		}
+		.moveLogs>li p{
+			padding-left:20px;
+			padding-bottom: 5px;
+			padding-top: 5px;
+			margin: 0;
+			height: 48px;
+			display: -webkit-box;
+			display: -moz-box;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			-webkit-box-orient: vertical;
+			-moz-binding:url('ellipsis.xml#ellipsis');
+			-webkit-line-clamp:2;   /*显示行数*/
+			cursor:pointer;
+		}
+		.moveLogs>li span{
+			margin-right:10px;
+			color: #2c76bd;
+		}
+		.moveLogs>li i{
+			/*color: #19aa8d;*/
+		}
+		.clearfix:after {
+			display: block;
+			clear: both;
+			content: "";
+			visibility: hidden;
+			height: 0;
+		}
+		.dash_list{
+			height:280px;
+			padding-left:10px;
+			padding-right:10px;
+		}
+		.dash_list>img{
+			width:100%;
+			margin: 10px auto;
+			/* max-height: 260px; */
+		}
+		.dash_list b{
+			/* font-size:34px; */
+			font-size:2rem;
+			/* color:#e4956d; */
+			color:#2c76bd;
+		}
+		.dash_list>div{
+			height:140px;
+			padding:0 20px;
+			/* display: flex;
+            justify-content: space-around;
+            align-items: center; */
+		}
+		.dash_list>div>div{
+			/* height:100%; */
+		}
+		/* .indexPropertyBoxLeft,.indexLogsBoxLeft{
+            float:left;
+        }*/
+		.item-val .errorLogsCount{
+			color:#e4956d;
+			cursor:pointer;
+		}
+		.errorLogsCount:hover{
+			text-decoration: underline;
+		}
+		.indexlologsBox{
+			/* background:#2f455c; */
+			height:150px!important;
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			padding:0!important;
+		}
+		.indexlologsBox>div{
+			background:#2f455c;
+			height:100%;
+			border-radius: 5px;
+		}
+		.indexlologsBox .logsWapper{
+			width:50%;
+			margin-right:10px;
+		}
+		.logsWapper>div{
+			/* height:50%; */
+			padding-top:10px;
+		}
+		.logsWapper .logsTop{
+			height:70px;
+		}
+		.logsWapper .logsBottom{
+			height:75px;
+		}
+		.indexlologsBox .flowsWapper{
+			flex:1;
+		}
+		.indexlologsBox .item-tit{
+			margin: 0;
+			padding-left:14px;
+		}
+		.indexlologsBox .item-val{
+			height:45px;
+			display: flex;
+			justify-content: space-around;
+			align-items: center;
+			text-align:center;
+			margin:0;
+		}
+		.flowsWapper .item-tit{
+			margin-top:10px;
+		}
+		.flowsWapper .item-val{
+			height:120px;
+			display:flex;
+			justify-content: center;
+			align-items: center;
+		}
+		.col_title>a{
+			float: right;
+			margin-right:10px;
+			cursor:pointer;
+			color:#337ab7;
+		}
+		::-webkit-scrollbar-track {
+			background-color:#F5F5F5
+		}
+		::-webkit-scrollbar {
+			width:6px;
+			background-color:#F5F5F5
+		}
+		::-webkit-scrollbar-thumb {
+			background-color:#999
+		}
+		#Date{
+			font-family:'BebasNeueRegular', Arial, Helvetica, sans-serif;
+			font-size:30px;
+			text-align:center;
+			text-shadow:0 0 5px #00c6ff;
+		}
 
-			.indexPropertyBox ul { 
-				width:100%;  
-				padding:0px; 
-				list-style:none; 
-				text-align:center; 
+		.indexPropertyBox ul {
+			width:100%;
+			padding:0px;
+			list-style:none;
+			text-align:center;
+		}
+
+		.indexPropertyBox ul li {
+			display:inline;
+			/* font-size:5em;  */
+			text-align:center;
+			font-family:'BebasNeueRegular', Arial, Helvetica, sans-serif;
+			text-shadow:0 0 5px #00c6ff;
+		}
+		@media only screen and (min-width: 800px){
+			.indexPropertyBox ul li {
+				font-size:3em;
 			}
-			
-			.indexPropertyBox ul li { 
-				display:inline; 
-				/* font-size:5em;  */
-				text-align:center; 
-				font-family:'BebasNeueRegular', Arial, Helvetica, sans-serif; 
-				text-shadow:0 0 5px #00c6ff; 
+			.indexlologsBox b{
+				font-size:1.3rem;
 			}
-			@media only screen and (min-width: 800px){  
-			    .indexPropertyBox ul li {  
-					font-size:3em; 
-				} 
-				.indexlologsBox b{
-					font-size:1.3rem;
-				}
-			} 
-			@media only screen and (min-width: 1500px){  
-			    .indexPropertyBox ul li {  
-					font-size:5em; 
-				} 
-				.indexlologsBox b{
-					font-size:1.7rem;
-				}
-			} 
-			
-			#point { 
-				position:relative; 
-				-moz-animation:mymove 1s ease infinite; 
-				-webkit-animation:mymove 1s ease infinite; 
-				padding-left:10px; padding-right:10px; 
+		}
+		@media only screen and (min-width: 1500px){
+			.indexPropertyBox ul li {
+				font-size:5em;
 			}
-			
-			@-webkit-keyframes mymove 
-			{
-				0% {opacity:1.0; text-shadow:0 0 20px #00c6ff;}
-				50% {opacity:0; text-shadow:none; }
-				100% {opacity:1.0; text-shadow:0 0 20px #00c6ff; }	
+			.indexlologsBox b{
+				font-size:1.7rem;
 			}
-			
-			
-			@-moz-keyframes mymove 
-			{
-				0% {opacity:1.0; text-shadow:0 0 20px #00c6ff;}
-				50% {opacity:0; text-shadow:none; }
-				100% {opacity:1.0; text-shadow:0 0 20px #00c6ff; }	
-			}
-			
-		</style>
-		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
-	</head>
-	<body>
-		<div id="box">
-			<div class="row">
-				<div class="col-md-4">
-					<div class="col-box">
-						<div class="col_title">
-							统计
-							<!-- <a class="goToDash">详情></a> -->
-						</div>					
-						<div class="dash_list">
-							<!-- <img src="img/dash1.png" class="img-responsive " alt="Responsive image"> -->
-							<div class="indexPropertyBox">
-								<div id="Date"></div>
-								<ul>
-									<li id="hours"> </li>
-								    <li id="point">:</li>
-								    <li id="min"> </li>
-								    <li id="point">:</li>
-								    <li id="sec"> </li>
-								</ul>													
-							</div>
-							<div class="indexlologsBox">
-								<!-- <div class="indexLogsBoxLeft">
-									<p>已收集日志条数 </p>
-									<p><b class="allLogsCount"> -</b></p>									
-								</div>		
-								<div class="indexLogsBoxRight">
-									<p>error日志条数</p>	
-									<p> <b class="errorLogsCount" title="点击检索error日志"> -</b></p>						
-								</div>	 -->	
-								<div class="logsWapper">
-									<div class="logsTop">
-										<p class="item-tit">日志数 </p>
-										<p class="item-val"><b class="allLogsCount"> -</b></p>
-									</div>
-									<div class="logsBottom">
-										<p class="item-tit">error日志数</p>	
-										<p class="item-val"> <b class="errorLogsCount" title="点击检索error日志"> -</b></p>	
-									</div>
-								</div>	
-								<div class="flowsWapper">
-									<p class="item-tit">流量数</p>	
-									<p class="item-val"> <b class="flowCount"> -</b></p>	
-								</div>													
-							</div>
-						</div>
-					</div>
+		}
+
+		#point {
+			position:relative;
+			-moz-animation:mymove 1s ease infinite;
+			-webkit-animation:mymove 1s ease infinite;
+			padding-left:10px; padding-right:10px;
+		}
+
+		@-webkit-keyframes mymove
+		{
+			0% {opacity:1.0; text-shadow:0 0 20px #00c6ff;}
+			50% {opacity:0; text-shadow:none; }
+			100% {opacity:1.0; text-shadow:0 0 20px #00c6ff; }
+		}
+
+
+		@-moz-keyframes mymove
+		{
+			0% {opacity:1.0; text-shadow:0 0 20px #00c6ff;}
+			50% {opacity:0; text-shadow:none; }
+			100% {opacity:1.0; text-shadow:0 0 20px #00c6ff; }
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<body>
+<div id="box">
+	<div class="row">
+		<div class="col-md-4">
+			<div class="col-box">
+				<div class="col_title">
+					统计
+					<!-- <a class="goToDash">详情></a> -->
 				</div>
-				<div class="col-md-8 col-sm-12">
-					<div class="row">
-						<div class="col-sm-7">
-							<div class="col-box">
-								<div class="col_title">
-									柱状图
-								</div>
-								<div id="logChart01" class="ecBox">
-									
-								</div>
+				<div class="dash_list">
+					<!-- <img src="img/dash1.png" class="img-responsive " alt="Responsive image"> -->
+					<div class="indexPropertyBox">
+						<div id="Date"></div>
+						<ul>
+							<li id="hours"> </li>
+							<li id="point">:</li>
+							<li id="min"> </li>
+							<li id="point">:</li>
+							<li id="sec"> </li>
+						</ul>
+					</div>
+					<div class="indexlologsBox">
+						<!-- <div class="indexLogsBoxLeft">
+                            <p>已收集日志条数 </p>
+                            <p><b class="allLogsCount"> -</b></p>
+                        </div>
+                        <div class="indexLogsBoxRight">
+                            <p>error日志条数</p>
+                            <p> <b class="errorLogsCount" title="点击检索error日志"> -</b></p>
+                        </div>	 -->
+						<div class="logsWapper">
+							<div class="logsTop">
+								<p class="item-tit">日志数 </p>
+								<p class="item-val"><b class="allLogsCount"> -</b></p>
+							</div>
+							<div class="logsBottom">
+								<p class="item-tit">error日志数</p>
+								<p class="item-val"> <b class="errorLogsCount" title="点击检索error日志"> -</b></p>
 							</div>
 						</div>
-						<div class="col-sm-5">
-							<div class="col-box">
-								<div class="col_title">
-									饼图
-								</div>
-								<div id="logChart02" class="ecBox">
-									
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-5">
-					<div class="col-box">
-						<div class="col_title">
-							日志检索
-							<a class="goToLogSearch">详情></a>
-						</div>
-						<div class="ecBox" style="height: 350px;">
-							<ul class="moveLogs">
-								<span class="noErr">暂无error日志数据</span>
-								<!-- <li>
-									<span>#zxcv-12-88#</span><span>#192.168.10.26#</span>
-									<p>1Preparing: delete from book where id in ( ? )  BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20075 139</p>
-									<small class="block text-muted"><i class="glyphicon glyphicon-time"></i> 2017-07-19 16:41:17</small>
-								</li> -->
-							</ul>	
-						</div>
-					</div>
-				</div>
-				<div class="col-md-7">
-					<div class="col-box">
-						<div class="col_title">
-							折线图
-						</div>
-						<div id="logChart03" class="ecBox" style="height: 350px;">
-									
+						<div class="flowsWapper">
+							<p class="item-tit">流量数</p>
+							<p class="item-val"> <b class="flowCount"> -</b></p>
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
-		
-		
-		
-		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
-		
-		<script type="text/javascript">
-			$(".goToLogSearch").click(function(){
-				//获得ifarme父级左侧导航菜单的对应a标签
-				var $a = $('#side-menu', parent.document).click().find("[data-href ='logPro/searchLogs.html']");
-				 parentClick($a);
-			})
-			//左边导航点击函数  $a对应子目录
-			function parentClick($a){
-				//获得a标签最外层父级li下的a标签
-				var $aPA = $a.parent().parent().prev("a");
-				$a[0].click();
-				if(!$aPA.parent().hasClass("active")){
-					setTimeout(clickNav,100);
-				}
-				function clickNav(){
-					$aPA[0].click();
-				}
-				
-			}
+		<div class="col-md-8 col-sm-12">
+			<div class="row">
+				<div class="col-sm-7">
+					<div class="col-box">
+						<div class="col_title">
+							<div class="datepickerBox" style="width:265px;display:flex; height: 35px;line-height: 35px;padding-top:5px;">
+								<div class="c-datepicker-date-editor  J-datepicker-range-day barDate" style="border:0;border-bottom: 1px solid #e4956d;">
+									<i class="c-datepicker-range__icon kxiconfont icon-clock"></i>
+									<input placeholder="开始日期" name="" class="c-datepicker-data-input only-date startTime barStart" value="">
+									<span class="c-datepicker-range-separator">-</span>
+									<input placeholder="结束日期" name="" class="c-datepicker-data-input only-date endTime barEnd" value="">
+								</div>
+							</div>
+						</div>
+						<div id="logChart01" class="ecBox"></div>
+					</div>
+				</div>
+				<div class="col-sm-5">
+					<div class="col-box">
+						<div class="col_title">
+							<div class="datepickerBox" style="width:265px;display:flex; height: 35px;line-height: 35px;padding-top:5px;">
+								<div class="c-datepicker-date-editor  J-datepicker-range-day pieDate" style="border:0;border-bottom: 1px solid #e4956d;">
+									<i class="c-datepicker-range__icon kxiconfont icon-clock"></i>
+									<input placeholder="开始日期" name="" class="c-datepicker-data-input only-date startTime pieStart" value="">
+									<span class="c-datepicker-range-separator">-</span>
+									<input placeholder="结束日期" name="" class="c-datepicker-data-input only-date endTime pieEnd" value="">
+								</div>
+							</div>
+						</div>
+						<div id="logChart02" class="ecBox"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-5">
+			<div class="col-box">
+				<div class="col_title">
+					日志检索
+					<a class="goToLogSearch">详情></a>
+				</div>
+				<div class="ecBox" style="height: 350px;">
+					<ul class="moveLogs">
+						<span class="noErr">暂无error日志数据</span>
+						<!-- <li>
+                            <span>#zxcv-12-88#</span><span>#192.168.10.26#</span>
+                            <p>1Preparing: delete from book where id in ( ? )  BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20075 139</p>
+                            <small class="block text-muted"><i class="glyphicon glyphicon-time"></i> 2017-07-19 16:41:17</small>
+                        </li> -->
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-7">
+			<div class="col-box">
+				<div class="col_title line_title"></div>
+				<div id="logChart03" class="ecBox" style="height: 350px;">
 
-        	//柱状图  饼图
-        	$.ajax({
-				type:"post",
-				url:"../../log/getCountGroupByParam.do",
-				data:{"index":"estest","type":"","param":"operation_level"},
-				async:true,
-				success:function(data){
-					var obj = data[0];
-					var xVal = [];//x轴数据
-					var yVal = [];//y轴数据						
-					var pieVAl = [];//饼图数据
-					for(var i in obj){
-						var pieObj = {};
-						xVal.push(i);
-						yVal.push(obj[i])
-						pieObj.value = obj[i];
-						pieObj.name = i;
-						pieVAl.push(pieObj)
-					}
-					//柱状图
-		        	var myChart01 = echarts.init(document.getElementById('logChart01'));
-		        	myChart01.setOption({
-		        		title: {
-		        				text: '日志级别数量统计',
-					        	x:'center',
-					        	textStyle:{
-					        		color:'#5bc0de'
-					        	}
-					        	
-				            },
-				            grid: {
-				            	left:'80px'
-				            },
-				            tooltip: {},
-				            legend: {
-						        data:[],
-						        left: 'left'
-						    },
-				            xAxis: {
-				            	name:"级别",
-//				                data: ["20/7","21/7","22/7","23/7","24/7","25/7","26/7"]
-								data:xVal,
-								nameTextStyle:{
-					        		color:'#5bc0de'
-					        	},
-					        	axisLine:{
-					        		lineStyle:{
-					        			color:'#5bc0de'
-					        		}
-					        	},
-					        	axisLabel:{
-					        		borderColor:'#5bc0de'
-					        	}
-				            },
-				            yAxis: {
-				            	name:"数量/条",
-				            	nameTextStyle:{
-					        		color:'#5bc0de'
-					        	},
-					        	splitLine:{
-					        		lineStyle:{
-					        			color:'#5bc0de'
-					        		}
-					        	},
-					        	axisLine:{
-					        		lineStyle:{
-					        			color:'#5bc0de'
-					        		}
-					        	}
-				            },
-				            series: [ {
-					            name:'数量',
-					            type:'bar',
-					            barWidth: '60%',
-					            itemStyle:{
-                                    normal:{
-                                        color:'#5bc0de'
-                                    }
-                                },
-								data:yVal
-					        }]
-		        	});
-		        	
-		        	//饼图
-		        	var myChart02 = echarts.init(document.getElementById('logChart02'));
-		        	myChart02.setOption({
-		        		title : {
-					        text: '日志级别数量统计',
-					        x:'center',
-					        textStyle:{
-				        		color:'#5bc0de'
-				        	}
-					    },
-					    tooltip : {
-					        trigger: 'item',
-					        formatter: "{a} <br/>{b} : {c} ({d}%)"
-					    },
-					    legend: {
-					        orient: 'vertical',
-					        left: 'left',
-					        data: []
-					    },
-					    color:["#5bc0de","#1BB2D8","#99D2DD","#88B0BB","#1C7099","#038CC4","#75ABD0","#AFD6DD","#1790CFs"],
-					    series : [
-					        {
-					            name: '百分比',
-					            type: 'pie',
-					            radius : '55%',
-					            center: ['50%', '60%'],
-					            /* data:[
-					                {value:335, name:'alert multi control'},
-					                {value:310, name:'alert_multi_verify'},
-					                {value:234, name:'cur_yottabyte'},
-					                {value:135, name:'share'},
-					                {value:1548, name:'cj test'}
-					            ], */
-					            data:pieVAl,
-					            itemStyle: {
-					                emphasis: {
-					                    shadowBlur: 10,
-					                    
-					                    shadowOffsetX: 0,
-					                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-					                }
-					            }
-					        }
-					    ]
-		        	});
-		        	window.addEventListener("resize",function(){
-		        		myChart01.resize();
-		        		myChart02.resize();
-		            });
-		        	var html1Num2 = 0;
-		        	 myChart01.on('click', function (params) {
-			        		//console.log(params)
-			        		//获取x轴值
-			        		xParam = params.name;
-			        		localStorage.setItem("allDeviceSearchWord",xParam);
-			        		//拼接导航
-			        		var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+html1Num2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
-			        		//移除导航菜单选中属性
-			        		$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
-			        		//添加导航菜单
-			        		$('.page-tabs-content', parent.document).click().append(html);
-			        		var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+html1Num2+'" seamless="" style="display: inline;"></iframe>'
-			        		//移除其他页面
-			        		$('#content-main', parent.document).click().children("iframe").hide();
-			        		$('#content-main', parent.document).click().append(iframe);
-			        		html1Num2++;
-						   
-						});
-		        	 myChart02.on('click', function (params) {
-			        		//console.log(params)
-			        		//获取x轴值
-			        		xParam = params.name;
-			        		localStorage.setItem("allDeviceSearchWord",xParam);
-			        		//拼接导航
-			        		var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+html1Num2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
-			        		//移除导航菜单选中属性
-			        		$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
-			        		//添加导航菜单
-			        		$('.page-tabs-content', parent.document).click().append(html);
-			        		var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+html1Num2+'" seamless="" style="display: inline;"></iframe>'
-			        		//移除其他页面
-			        		$('#content-main', parent.document).click().children("iframe").hide();
-			        		$('#content-main', parent.document).click().append(iframe);
-			        		html1Num2++;
-						   
-						});
-				},
-				error:function(err){
-					
-				}
-			});
-			
-        	//获取当前日期
-			var day1 = new Date();
-			//昨天日期
-			//day1.setTime(day1.getTime()-24*60*60*1000);
-			//拼接昨天日期格式 yy-mm-dd
-			var mon = day1.getMonth()+1;
-			var da = day1.getDate();
-			if( mon < 10){
-				mon = "0"+(day1.getMonth()+1);
-			}
-			if(da < 10){
-				da = "0"+ (day1.getDate());
-			}
-			var s1 = day1.getFullYear()+"-" + mon + "-" + da;
-			var myChart03 = echarts.init(document.getElementById('logChart03'))
-			myChart03.setOption({
-        		title: {
-    				text:s1+" 数据量统计",
-		        	x:'center',
-		        	textStyle:{
-		        		color:'#5bc0de'
-		        	}
-	            },
-	            tooltip: {
-	            	trigger: 'axis',
-			         axisPointer: {
-			            type: 'cross',
-			            label: {
-			                backgroundColor: '#6a7985'
-			            }
-			        } ,
-	            	formatter: '{b} 时<br /> {a} : {c} 条'
-	            },
-	            legend: {
-			        data:[],
-			        left: 'left'
-				},
-	            xAxis: {
-	            	name:"时间/时",
-	            	nameTextStyle:{
-		        		color:'#5bc0de'
-		        	},
-		        	axisLine:{
-		        		lineStyle:{
-		        			color:'#5bc0de'
-		        		}
-		        	},
-		        	boundaryGap: false,
-	                data: ["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
-	            },
-	            yAxis: {
-	            	name:"数量/条",
-	            	axisLine:{
-		        		lineStyle:{
-		        			color:'#5bc0de'
-		        		}
-		        	},
-		        	splitLine:{
-		        		lineStyle:{
-		        			color:'#5bc0de'
-		        		}
-		        	},
-	            	nameTextStyle:{
-		        		color:'#5bc0de'
-		        	}
-	            },
-	            series: [ {
-		            name:'日志数量',
-		            type:'line',
-		            smooth:true,
-		            areaStyle: {normal: {}},
-		            itemStyle:{
-                        normal:{
-                            color:'#5bc0de'
-                        }
-                    },
-		            data:[]
-		        }]
-        	});
-        	window.addEventListener("resize",function(){
-                myChart03.resize();
-            });
-        	
-        	//获取首页折线图数据函数
-        	function getIndexLineChartData(){
-        		
-            	//折线图
-            	var sendLineObj = {};
-            	sendLineObj.equipmentid ="";
-            	sendLineObj.type = "";
-            	sendLineObj.index = "estest";
-            	sendLineObj.param = s1;
-    			//发送Ajax请求数据
-    			$.ajax({
-					type:"post",
-					url:"../../log/getCountGroupByTime.do",
-					data:sendLineObj,
-					async:true,
-					success:function(data){
-						var obj = data[0];
-						//var xVal = [];
-						var yVal = [];
-						/* for(var i in obj){
-							yVal.push(obj[i])
-						} */
-						for(var i = 0;i<24;i++){
-							if(i < 10){
-								i = "0"+i;
-							}
-							yVal.push(obj[i]);
-						}
-						//yVal = obj;
-						myChart03.setOption({
-					        series: [{
-					            data: yVal
-					        }]
-					    });
-					},
-					error:function(err){
-						
-					}
-				});
-        	}
-        	//首次 执行一次
-        	getIndexLineChartData()
-        	//轮训执行获取折线图数据        1分钟
-        	setInterval(getIndexLineChartData,60000);
-			
-        	//echart自适应
-        	/* window.addEventListener("resize",function(){
-        		myChart01.resize();
-                myChart02.resize();
-                myChart03.resize();
-            }); */
-            var logArr = [];
-            var html = "";
-            //获取日志
-            function getLogsData(){
-            	$.ajax({
-	            	type:"post",
-	            	data:{"words":"error"},
-	            	/* url:"data.json", */
-	            	url:"../../log/getLogListByLevel.do",
-	            	dataType:"json",
-	            	async:true,
-	            	success:function(data){
-	            		var arr = data;
-	            		for(var i in arr){
-	            			logArr[i] = arr[i];
-	            			var obj= arr[i];
-	            			/* html += '<li>'
-	    						+		'<span>#'+obj.operation_level+'#</span><span>#'+obj.ip+'#</span>'
-	    						+		'<p>'+obj.operation_des+'</p>'
-	    						+		'<small class="block text-muted"><i class="glyphicon glyphicon-time"></i>'+obj.logtime+'</small>'
-	    						+	'</li>'  */
-	    					if(i >= 30){
-	    						break;
-	    					}
-	            		} 
-	            		//拼接日志列表
-	            		if(logArr.length != 0){
-	            			$(".noErr").remove();
-	            			splitLogs(logArr);	            			
-	            		}else{
-	            			 clearInterval(interval);
-	            		}           		
-	            		//$('.moveLogs').html(html);
-	            		
-	            	}
-	            });
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/datepicker/js/plugins/moment.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/datepicker/js/datepicker.all.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+
+<script type="text/javascript">
+    $(".goToLogSearch").click(function(){
+        //获得ifarme父级左侧导航菜单的对应a标签
+        var $a = $('#side-menu', parent.document).click().find("[data-href ='logPro/searchLogs.html']");
+        parentClick($a);
+    })
+    //左边导航点击函数  $a对应子目录
+    function parentClick($a){
+        //获得a标签最外层父级li下的a标签
+        var $aPA = $a.parent().parent().prev("a");
+        $a[0].click();
+        if(!$aPA.parent().hasClass("active")){
+            setTimeout(clickNav,100);
+        }
+        function clickNav(){
+            $aPA[0].click();
+        }
+
+    }
+    //获取当前日期
+    var day1 = new Date();
+    //拼接昨天日期格式 yy-mm-dd
+    var mon = day1.getMonth()+1;
+    var da = day1.getDate();
+    if( mon < 10){
+        mon = "0"+(day1.getMonth()+1);
+    }
+    if(da < 10){
+        da = "0"+ (day1.getDate());
+    }
+    var day_c = day1.getFullYear()+"-" + mon + "-" + da;
+    //定义七天前时间
+    var date2 = new Date(day1);
+    date2.setDate(day1.getDate()-6);
+    var day_7 = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+date2.getDate();
+    //更改折线图标题
+    $(".line_title").html(day_c+" 数据量统计");
+
+    //柱状图
+    var myChart01 = echarts.init(document.getElementById('logChart01'));
+    myChart01.setOption({
+        title: {
+            text: '日志级别数量统计',
+            x:'center',
+            textStyle:{
+                color:'#5bc0de'
             }
-            //获取数据
-            getLogsData();  
-            //拼接日志列表函数
-            function splitLogs(logArr){
-            	html = ""
-            	//创建索引
-            	var index = 0; 
-            	//循化拼接
-            	for(var i in logArr){
-            		var obj = logArr[i];
-           			 html = '<li data-index="'+index+'" title="点击查看详情" data-type="'+obj.type+'">'
-						+		'<span class="logLevel">#'+obj.operation_level+'#</span><span class="logIp">#'+obj.ip+'#</span><span class="logEquipmentName" style="float:right;font-weight:600;">#'+obj.equipmentname+'#</span>'
-						+		'<p>'+obj.operation_des+'</p>'
-						+		'<small class="block text-muted logTime"><i class="glyphicon glyphicon-time"></i>'+obj.logtime+'</small>'
-						+	'</li>'
-					index++;
-            		$('.moveLogs').append(html);
-            	}
+
+        },
+        grid: {
+            left:'80px'
+        },
+        tooltip: {},
+        legend: {
+            data:[],
+            left: 'left'
+        },
+        xAxis: {
+            name:"级别",
+            //data:xVal,
+            data:[],
+            nameTextStyle:{
+                color:'#5bc0de'
+            },
+            axisLine:{
+                lineStyle:{
+                    color:'#5bc0de'
+                }
+            },
+            axisLabel:{
+                borderColor:'#5bc0de'
             }
-           	var logIndex = 0;//日志数组中的索引
-           	
-            //滚动函数
-            var doscroll = function(){
-            	if(logIndex >= logArr.length - 3){
-            		//重新获取数据
-            		getLogsData();
-            		//splitLogs(logArr)
-            		logIndex = 0;
-            	}
-				var $parent = $('.moveLogs');
-				var $first = $parent.find('li:first');
-				var height = $first.height() + 20;
-				$first.animate({
-				    marginTop: -height + 'px'
-				}, 1000, function() {
-					/*var html = splitLogs(logArr[logIndex]);
-					$parent.append(html);
-					logIndex++;*/
-					logIndex++;
-					//删除第一个li
-					$first.remove();
-					
-				});    
-			};
-			//定时器 每过2s  滚动一次
-			var interval = setInterval(function(){doscroll()}, 3000);
-			
-			//鼠标进入 停止滚动
-			$(".moveLogs").hover(function(){//
-				//清除定时器
-				clearInterval(interval);
-			},function(){//离开 恢复滚动
-				//启动定时器 
-				interval = setInterval(function(){doscroll()}, 3000);
-			})
-			
-			//日志列表点击事件
-			$(".moveLogs").on("click","li",function(){
-				//延时器
-				setTimeout(function(){
-					//清除定时器
-					clearInterval(interval)
-				},1000);
-				//获得日志索引
-				var index =  $(this).attr("data-index");
-				//获取数据
-				var logtime = $(this).children(".logTime").text();
-				var operation_level = $(this).children(".logLevel").html().split("#")[1];
-				var type = $(this).attr("data-type");
-				var equipmentname = $(this).children(".logEquipmentName").html().split("#")[1];
-				var ip = $(this).children(".logIp").html().split("#")[1];
-				var operation_des = $(this).children("p").html();
-				//显示弹窗 日志详情
-				//拼接弹窗 html		
-				var html = '<div class="layer_box" style="padding:10px 30px 20px 30px;">'
-						+		'<div class="row" style="line-height:50px">'
-						+			'<div class="col-xs-3">时间:</div>'
-						+			'<div class="col-xs-9 layCen">'+logtime+'</div>'
-						+		'</div>'
-						+		'<div class="row" style="line-height:50px">'
-						+			'<div class="col-xs-3">级别:</div>'
-						+			'<div class="col-xs-9 layCen">'+operation_level+'</div>'
-						+		'</div>'
-						+		'<div class="row" style="line-height:50px" class="ltype">'
-						+			'<div class="col-xs-3">日志类型:</div>'
-						+			'<div class="col-xs-9 layCen">'+type+'</div>'
-						+		'</div>'
-						+		'<div class="row" style="line-height:50px">'
-						+			'<div class="col-xs-3">资产名称:</div>'
-						+			'<div class="col-xs-9 layCen">'+equipmentname+'</div>'
-						+		'</div>'
-						+		'<div class="row" style="line-height:50px">'
-						+			'<div class="col-xs-3">IP:</div>'
-						+			'<div class="col-xs-9 layCen">'+ip+'</div>'
-						+		'</div>'
-						+		'<div class="row" style="line-height:24px">'
-						+			'<div class="col-xs-3">日志内容:</div>'
-						+			'<div class="col-xs-9 layCen logdes" style="word-wrap: break-word;">'+operation_des+'</div>'
-						+		'</div>'
-						+	'</div>'	
-						
-				//弹窗
-				layer.open({
-			 		type: 1,
-			 		title:"详细日志",//标题
-					area: ['600px', 'auto'], //宽高
-			 		content: html
-				});
-				//关闭按钮
-				$(".layui-layer-close1").click(function(){
-					//启动定时器 
-					interval = setInterval(function(){doscroll()}, 3000);
-				})
-			})
-			
-		//统计模块实现方法
-		//日志数量
-			function getlogsCount(){
-				$.ajax({
-					url:'../../log/getIndicesCount.do',
-					cache: false ,//清除缓存
-					data:'',
-					type:"post",  //提交方式  
-			        dataType:"json", //数据类型  
-					success:function(data){
-						//填充数据
-						$(".allLogsCount").html(parseInt(data[0].indices).toLocaleString());//全部日志
-						$(".errorLogsCount").html(parseInt(data[0].indiceserror).toLocaleString());
-					}
-				});
-			}
-			getlogsCount();
-			//定时查询数据 1分钟查询一次	
-			setInterval(getlogsCount,60000);
-			//流量数据
-			function getFlowCount(){
-				$.ajax({
-					url:'../../log/getIndicesCountByType.do',
-					cache: false ,//清除缓存
-					data:'',
-					type:"post",  //提交方式  
-			        dataType:"json", //数据类型  
-					success:function(data){
-						//填充数据
-						$(".flowCount").html(parseInt(data[0].indices_defaultpacket).toLocaleString());//全部日志
-					}
-				});
-			}
-			getFlowCount();	
-			//定时查询数据 1分钟查询一次	
-			setInterval(getFlowCount,60000);	
-			var htmlNum3 = 0;
-			//error日志点击跳转到日志检索页面
-			$(".errorLogsCount").click(function(){
-				localStorage.setItem("allDeviceSearchWord",'error');
-        		//拼接导航
-        		var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+htmlNum3+'">error日志检索<i class="fa fa-times-circle"></i></a>'
-        		//移除导航菜单选中属性
-        		$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
-        		//添加导航菜单
-        		$('.page-tabs-content', parent.document).click().append(html);
-        		var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+htmlNum3+'" seamless="" style="display: inline;"></iframe>'
-        		//移除其他页面
-        		$('#content-main', parent.document).click().children("iframe").hide();
-        		$('#content-main', parent.document).click().append(iframe);
-        		htmlNum3++;
-			}),
-			
-			//数字时钟
-			$(document).ready(function() {
+        },
+        yAxis: {
+            name:"数量/条",
+            nameTextStyle:{
+                color:'#5bc0de'
+            },
+            splitLine:{
+                lineStyle:{
+                    color:'#5bc0de'
+                }
+            },
+            axisLine:{
+                lineStyle:{
+                    color:'#5bc0de'
+                }
+            }
+        },
+        series: [{
+            name:'数量',
+            type:'bar',
+            barWidth: '60%',
+            itemStyle:{
+                normal:{
+                    color:'#5bc0de'
+                }
+            },
+            //data:yVal
+            data:[]
+        }]
+    });
 
-			// 创建 月份 星期
-			//var monthNames = [ "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月" ]; 
-			var monthNames = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ]; 
-			var dayNames= ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"]
-			
-			// 创建新的日期函数
-			var newDate = new Date();
-			// 设置日期
-			newDate.setDate(newDate.getDate());
-			// 填充到页面中   
-			$('#Date').html( newDate.getFullYear() + "/" + monthNames[newDate.getMonth()] + '/' +  newDate.getDate() + ' ' +dayNames[newDate.getDay()]);
-			
-			setInterval( function() {
-				// Create a newDate() object and extract the seconds of the current time on the visitor's
-				var seconds = new Date().getSeconds();
-				// Add a leading zero to seconds value
-				$("#sec").html(( seconds < 10 ? "0" : "" ) + seconds);
-				},1000);
-				
-			setInterval( function() {
-				// Create a newDate() object and extract the minutes of the current time on the visitor's
-				var minutes = new Date().getMinutes();
-				// Add a leading zero to the minutes value
-				$("#min").html(( minutes < 10 ? "0" : "" ) + minutes);
-			    },1000);
-				
-			setInterval( function() {
-				// Create a newDate() object and extract the hours of the current time on the visitor's
-				var hours = new Date().getHours();
-				// Add a leading zero to the hours value
-				$("#hours").html(( hours < 10 ? "0" : "" ) + hours);
-			    }, 1000);
+    //饼图
+    var myChart02 = echarts.init(document.getElementById('logChart02'));
+    myChart02.setOption({
+        title : {
+            text: '日志级别数量统计',
+            x:'center',
+            textStyle:{
+                color:'#5bc0de'
+            }
+        },
+        tooltip : {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+        },
+        legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: []
+        },
+        color:["#5bc0de","#1BB2D8","#99D2DD","#88B0BB","#1C7099","#038CC4","#75ABD0","#AFD6DD","#1790CFs"],
+        series : [
+            {
+                name: '百分比',
+                type: 'pie',
+                radius : '55%',
+                center: ['50%', '60%'],
+                /* data:[
+                    {value:335, name:'alert multi control'},
+                    {value:310, name:'alert_multi_verify'},
+                    {value:234, name:'cur_yottabyte'},
+                    {value:135, name:'share'},
+                    {value:1548, name:'cj test'}
+                ], */
+                // data:pieVAl,
+                data:[],
+                itemStyle: {
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowOffsetX: 0,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        ]
+    });
+    window.addEventListener("resize",function(){
+        myChart01.resize();
+        myChart02.resize();
+    });
+    var html1Num2 = 0;
+    myChart01.on('click', function (params) {
+        //console.log(params)
+        //获取x轴值
+        xParam = params.name;
+        localStorage.setItem("allDeviceSearchWord",xParam);
+        //拼接导航
+        var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+html1Num2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
+        //移除导航菜单选中属性
+        $('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+        //添加导航菜单
+        $('.page-tabs-content', parent.document).click().append(html);
+        var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+html1Num2+'" seamless="" style="display: inline;"></iframe>'
+        //移除其他页面
+        $('#content-main', parent.document).click().children("iframe").hide();
+        $('#content-main', parent.document).click().append(iframe);
+        html1Num2++;
+    });
+    myChart02.on('click', function (params) {
+        //console.log(params)
+        //获取x轴值
+        xParam = params.name;
+        localStorage.setItem("allDeviceSearchWord",xParam);
+        //拼接导航
+        var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+html1Num2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
+        //移除导航菜单选中属性
+        $('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+        //添加导航菜单
+        $('.page-tabs-content', parent.document).click().append(html);
+        var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+html1Num2+'" seamless="" style="display: inline;"></iframe>'
+        //移除其他页面
+        $('#content-main', parent.document).click().children("iframe").hide();
+        $('#content-main', parent.document).click().append(iframe);
+        html1Num2++;
 
-			
-			}); 
+    });
+    $(function(){
+        $(".startTime").val(day_7);
+        $(".endTime").val(day_c);
+        //年月日范围
+        $('.barDate').datePicker({
+            hasShortcut: true,
+            format: 'YYYY-MM-DD',
+            isRange: true,
+            shortcutOptions: [{
+                name: '最近7天',
+                day: '-7,0'
+            }, {
+                name: '最近30天',
+                day: '-30,0'
+            }, {
+                name: '最近90天',
+                day: '-90, 0'
+            }, {
+                name: '全部',
+                day: '-, 0'
+            }],
+            hide:function(){
+                var startTime = $(".barStart").val();
+                var endTime = $(".barEnd").val();
+                //console.log(startTime+'-----'+endTime)
+                //获取数据
+                getBarAndPieData(startTime,endTime,1,0);
+            }
+        })
+        //年月日范围
+        $('.pieDate').datePicker({
+            hasShortcut: true,
+            format: 'YYYY-MM-DD',
+            isRange: true,
+            shortcutOptions: [{
+                name: '最近7天',
+                day: '-7,0'
+            }, {
+                name: '最近30天',
+                day: '-30,0'
+            }, {
+                name: '最近90天',
+                day: '-90, 0'
+            }, {
+                name: '全部',
+                day:'-,0'
+            }],
+            hide:function(){
+                var startTime = $(".pieStart").val();
+                var endTime = $(".pieEnd").val();
+                //console.log(startTime+'-----'+endTime)
+                //获取数据
+                getBarAndPieData(startTime,endTime,0,1);
+            }
+        })
+    })
+    //获取柱状图饼图数据   starttime-开始时间   endtime-结束时间   isBar-是否改变柱状图数据  isPie-是否改变饼图数据
+    function getBarAndPieData(starttime,endtime,isBar,isPie){
+        //柱状图  饼图
+        $.ajax({
+            type:"post",
+            url:"../../log/getCountGroupByParam.do",
+            data:{"index":"estest","type":"","param":"operation_level","starttime":starttime,"endtime":endtime},
+            async:true,
+            success:function(data){
+                var obj = data[0];
+                var xVal = [];//x轴数据
+                var yVal = [];//y轴数据
+                var pieVAl = [];//饼图数据
+                for(var i in obj){
+                    var pieObj = {};
+                    xVal.push(i);
+                    yVal.push(obj[i])
+                    pieObj.value = obj[i];
+                    pieObj.name = i;
+                    pieVAl.push(pieObj)
+                }
+                //判断是否填充柱状图数据
+                if(isBar){
+                    myChart01.setOption({
+                        xAxis:{
+                            data:xVal
+                        },
+                        series: [{
+                            data:yVal
+                        }]
+                    })
+                }
+                //判断是否填充饼状图数据
+                if(isPie){
+                    myChart02.setOption({
+                        series: [{
+                            data:pieVAl
+                        }]
+                    })
+                }
+            }
+        })
+    }
+    //初始加载数据
+    getBarAndPieData(day_7,day_c,1,1);
 
-			
-		</script>
-		
-	</body>
+
+    //折线图
+    var myChart03 = echarts.init(document.getElementById('logChart03'))
+    myChart03.setOption({
+        title: {
+            //text:day_c+" 数据量统计",
+            x:'center',
+            textStyle:{
+                color:'#5bc0de'
+            }
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                label: {
+                    backgroundColor: '#6a7985'
+                }
+            } ,
+            formatter: '{b} 时<br /> {a} : {c} 条'
+        },
+        legend: {
+            data:[],
+            left: 'left'
+        },
+        xAxis: {
+            name:"时间/时",
+            nameTextStyle:{
+                color:'#5bc0de'
+            },
+            axisLine:{
+                lineStyle:{
+                    color:'#5bc0de'
+                }
+            },
+            boundaryGap: false,
+            data: ["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"]
+        },
+        yAxis: {
+            name:"数量/条",
+            axisLine:{
+                lineStyle:{
+                    color:'#5bc0de'
+                }
+            },
+            splitLine:{
+                lineStyle:{
+                    color:'#5bc0de'
+                }
+            },
+            nameTextStyle:{
+                color:'#5bc0de'
+            }
+        },
+        series: [ {
+            name:'日志数量',
+            type:'line',
+            smooth:true,
+            areaStyle: {normal: {}},
+            itemStyle:{
+                normal:{
+                    color:'#5bc0de'
+                }
+            },
+            data:[]
+        }]
+    });
+    window.addEventListener("resize",function(){
+        myChart03.resize();
+    });
+
+    //获取首页折线图数据函数
+    function getIndexLineChartData(){
+
+        //折线图
+        var sendLineObj = {};
+        sendLineObj.equipmentid ="";
+        sendLineObj.type = "";
+        sendLineObj.index = "estest";
+        sendLineObj.param = day_c;
+        //发送Ajax请求数据
+        $.ajax({
+            type:"post",
+            url:"../../log/getCountGroupByTime.do",
+            data:sendLineObj,
+            async:true,
+            success:function(data){
+                var obj = data[0];
+                //var xVal = [];
+                var yVal = [];
+                /* for(var i in obj){
+                    yVal.push(obj[i])
+                } */
+                for(var i = 0;i<24;i++){
+                    if(i < 10){
+                        i = "0"+i;
+                    }
+                    yVal.push(obj[i]);
+                }
+                //yVal = obj;
+                myChart03.setOption({
+                    series: [{
+                        data: yVal
+                    }]
+                });
+            },
+            error:function(err){
+
+            }
+        });
+    }
+    //首次 执行一次
+    getIndexLineChartData()
+    //轮训执行获取折线图数据        1分钟
+    setInterval(getIndexLineChartData,60000);
+
+    //echart自适应
+    /* window.addEventListener("resize",function(){
+        myChart01.resize();
+        myChart02.resize();
+        myChart03.resize();
+    }); */
+    var logArr = [];
+    var html = "";
+    //获取日志
+    function getLogsData(){
+        $.ajax({
+            type:"post",
+            data:{"words":"error"},
+            /* url:"data.json", */
+            url:"../../log/getLogListByLevel.do",
+            dataType:"json",
+            async:true,
+            success:function(data){
+                var arr = data;
+                for(var i in arr){
+                    logArr[i] = arr[i];
+                    var obj= arr[i];
+                    /* html += '<li>'
+                        +		'<span>#'+obj.operation_level+'#</span><span>#'+obj.ip+'#</span>'
+                        +		'<p>'+obj.operation_des+'</p>'
+                        +		'<small class="block text-muted"><i class="glyphicon glyphicon-time"></i>'+obj.logtime+'</small>'
+                        +	'</li>'  */
+                    if(i >= 30){
+                        break;
+                    }
+                }
+                //拼接日志列表
+                if(logArr.length != 0){
+                    $(".noErr").remove();
+                    splitLogs(logArr);
+                }else{
+                    clearInterval(interval);
+                }
+                //$('.moveLogs').html(html);
+
+            }
+        });
+    }
+    //获取数据
+    getLogsData();
+    //拼接日志列表函数
+    function splitLogs(logArr){
+        html = ""
+        //创建索引
+        var index = 0;
+        //循化拼接
+        for(var i in logArr){
+            var obj = logArr[i];
+            html = '<li data-index="'+index+'" title="点击查看详情" data-type="'+obj.type+'">'
+                +		'<span class="logLevel">#'+obj.operation_level+'#</span><span class="logIp">#'+obj.ip+'#</span><span class="logEquipmentName" style="float:right;font-weight:600;">#'+obj.equipmentname+'#</span>'
+                +		'<p>'+obj.operation_des+'</p>'
+                +		'<small class="block text-muted logTime"><i class="glyphicon glyphicon-time"></i>'+obj.logtime+'</small>'
+                +	'</li>'
+            index++;
+            $('.moveLogs').append(html);
+        }
+    }
+    var logIndex = 0;//日志数组中的索引
+
+    //滚动函数
+    var doscroll = function(){
+        if(logIndex >= logArr.length - 3){
+            //重新获取数据
+            getLogsData();
+            //splitLogs(logArr)
+            logIndex = 0;
+        }
+        var $parent = $('.moveLogs');
+        var $first = $parent.find('li:first');
+        var height = $first.height() + 20;
+        $first.animate({
+            marginTop: -height + 'px'
+        }, 1000, function() {
+            /*var html = splitLogs(logArr[logIndex]);
+            $parent.append(html);
+            logIndex++;*/
+            logIndex++;
+            //删除第一个li
+            $first.remove();
+
+        });
+    };
+    //定时器 每过2s  滚动一次
+    var interval = setInterval(function(){doscroll()}, 3000);
+
+    //鼠标进入 停止滚动
+    $(".moveLogs").hover(function(){//
+        //清除定时器
+        clearInterval(interval);
+    },function(){//离开 恢复滚动
+        //启动定时器
+        interval = setInterval(function(){doscroll()}, 3000);
+    })
+
+    //日志列表点击事件
+    $(".moveLogs").on("click","li",function(){
+        //延时器
+        setTimeout(function(){
+            //清除定时器
+            clearInterval(interval)
+        },1000);
+        //获得日志索引
+        var index =  $(this).attr("data-index");
+        //获取数据
+        var logtime = $(this).children(".logTime").text();
+        var operation_level = $(this).children(".logLevel").html().split("#")[1];
+        var type = $(this).attr("data-type");
+        var equipmentname = $(this).children(".logEquipmentName").html().split("#")[1];
+        var ip = $(this).children(".logIp").html().split("#")[1];
+        var operation_des = $(this).children("p").html();
+        //显示弹窗 日志详情
+        //拼接弹窗 html
+        var html = '<div class="layer_box" style="padding:10px 30px 20px 30px;">'
+            +		'<div class="row" style="line-height:50px">'
+            +			'<div class="col-xs-3">时间:</div>'
+            +			'<div class="col-xs-9 layCen">'+logtime+'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:50px">'
+            +			'<div class="col-xs-3">级别:</div>'
+            +			'<div class="col-xs-9 layCen">'+operation_level+'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:50px" class="ltype">'
+            +			'<div class="col-xs-3">日志类型:</div>'
+            +			'<div class="col-xs-9 layCen">'+type+'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:50px">'
+            +			'<div class="col-xs-3">资产名称:</div>'
+            +			'<div class="col-xs-9 layCen">'+equipmentname+'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:50px">'
+            +			'<div class="col-xs-3">IP:</div>'
+            +			'<div class="col-xs-9 layCen">'+ip+'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:24px">'
+            +			'<div class="col-xs-3">日志内容:</div>'
+            +			'<div class="col-xs-9 layCen logdes" style="word-wrap: break-word;">'+operation_des+'</div>'
+            +		'</div>'
+            +	'</div>'
+
+        //弹窗
+        layer.open({
+            type: 1,
+            title:"详细日志",//标题
+            area: ['600px', 'auto'], //宽高
+            content: html
+        });
+        //关闭按钮
+        $(".layui-layer-close1").click(function(){
+            //启动定时器
+            interval = setInterval(function(){doscroll()}, 3000);
+        })
+    })
+
+    //统计模块实现方法
+    //日志数量
+    function getlogsCount(){
+        $.ajax({
+            url:'../../log/getIndicesCount.do',
+            cache: false ,//清除缓存
+            data:'',
+            type:"post",  //提交方式
+            dataType:"json", //数据类型
+            success:function(data){
+                //填充数据
+                $(".allLogsCount").html(parseInt(data[0].indices).toLocaleString());//全部日志
+                $(".errorLogsCount").html(parseInt(data[0].indiceserror).toLocaleString());
+            }
+        });
+    }
+    getlogsCount();
+    //定时查询数据 1分钟查询一次
+    setInterval(getlogsCount,60000);
+    //流量数据
+    function getFlowCount(){
+        $.ajax({
+            url:'../../log/getIndicesCountByType.do',
+            cache: false ,//清除缓存
+            data:'',
+            type:"post",  //提交方式
+            dataType:"json", //数据类型
+            success:function(data){
+                //填充数据
+                $(".flowCount").html(parseInt(data[0].indices_defaultpacket).toLocaleString());//全部日志
+            }
+        });
+    }
+    getFlowCount();
+    //定时查询数据 1分钟查询一次
+    setInterval(getFlowCount,60000);
+    var htmlNum3 = 0;
+    //error日志点击跳转到日志检索页面
+    $(".errorLogsCount").click(function(){
+        localStorage.setItem("allDeviceSearchWord",'error');
+        //拼接导航
+        var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+htmlNum3+'">error日志检索<i class="fa fa-times-circle"></i></a>'
+        //移除导航菜单选中属性
+        $('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+        //添加导航菜单
+        $('.page-tabs-content', parent.document).click().append(html);
+        var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+htmlNum3+'" seamless="" style="display: inline;"></iframe>'
+        //移除其他页面
+        $('#content-main', parent.document).click().children("iframe").hide();
+        $('#content-main', parent.document).click().append(iframe);
+        htmlNum3++;
+    }),
+
+        //数字时钟
+        $(document).ready(function() {
+
+            // 创建 月份 星期
+            //var monthNames = [ "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月" ];
+            var monthNames = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ];
+            var dayNames= ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"]
+
+            // 创建新的日期函数
+            var newDate = new Date();
+            // 设置日期
+            newDate.setDate(newDate.getDate());
+            // 填充到页面中
+            $('#Date').html( newDate.getFullYear() + "/" + monthNames[newDate.getMonth()] + '/' +  newDate.getDate() + ' ' +dayNames[newDate.getDay()]);
+
+            setInterval( function() {
+                // Create a newDate() object and extract the seconds of the current time on the visitor's
+                var seconds = new Date().getSeconds();
+                // Add a leading zero to seconds value
+                $("#sec").html(( seconds < 10 ? "0" : "" ) + seconds);
+            },1000);
+
+            setInterval( function() {
+                // Create a newDate() object and extract the minutes of the current time on the visitor's
+                var minutes = new Date().getMinutes();
+                // Add a leading zero to the minutes value
+                $("#min").html(( minutes < 10 ? "0" : "" ) + minutes);
+            },1000);
+
+            setInterval( function() {
+                // Create a newDate() object and extract the hours of the current time on the visitor's
+                var hours = new Date().getHours();
+                // Add a leading zero to the hours value
+                $("#hours").html(( hours < 10 ? "0" : "" ) + hours);
+            }, 1000);
+
+
+        });
+
+
+</script>
+
+</body>
 </html>

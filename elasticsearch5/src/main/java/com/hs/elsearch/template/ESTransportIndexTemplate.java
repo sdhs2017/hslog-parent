@@ -1,5 +1,6 @@
 package com.hs.elsearch.template;
 
+import org.apache.log4j.Logger;
 import org.elasticsearch.action.admin.indices.close.CloseIndexResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
@@ -25,11 +26,20 @@ import java.io.IOException;
  * @create: 2019-08-14 14:18
  **/
 
-@Component
+//@Component
 public class ESTransportIndexTemplate {
 
-    @Autowired
-    TransportClient transportClient;
+    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+
+    /*@Autowired
+    TransportClient transportClient;*/
+
+    private  TransportClient transportClient;
+
+    public ESTransportIndexTemplate(TransportClient transportClient){
+        logger.info(" 初始化 ESTransportIndexTemplate ... ");
+        this.transportClient = transportClient;
+    }
 
     /**
      *

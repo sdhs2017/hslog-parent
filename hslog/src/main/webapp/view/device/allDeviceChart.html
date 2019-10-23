@@ -1,416 +1,478 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title></title>
-		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
-		<style type="text/css">
-			html, body, div{
-			    margin:0;
-			    padding:0;
-			}
-			html,body{
-				font-size:14px;
-				font-family: "微软雅黑";
-				background:#f3f3f4;
-				padding: 10px;
-				color:#676a6c;
-				height:100%;
-			}
-			h1,h2,h3,h4,h5,h6,em,i {
-			    font-weight: 100;
-			    font-style: normal;
-			}
-			ul,ol,li {
-			    list-style-type: none;
-			}
-			a {
-			    color: #666;
-			    text-decoration: none;
-			    outline: 0;
-			}
-			a:hover{
-				text-decoration: none;
-			}
-			.row{
-				margin: 0!important;
-			}
-			::-webkit-scrollbar-track {
-				background-color:#F5F5F5
-			}
-			::-webkit-scrollbar {
-				width:6px;
-				background-color:#F5F5F5
-			}
-			::-webkit-scrollbar-thumb {
-				background-color:#999
-			}
-			#box{
-				padding:10px;
-				background-color: #fff;
-				width: 100%;
-				min-height: 100%;
-				/* min-height: 800px; */
-				/* overflow-y: auto; */
-				border-top: 4px solid rgb(231, 234, 236);
-			}
-			.top_title{
-				font-size: 18px;
-				font-weight: 600;
-			    color: inherit;
-			    padding-left: 10px;
-			    width: 100%;
-				height: 50px;
-				line-height: 40px;
-				margin-bottom: 20px;
-				border-bottom:1px solid #e7eaec;
-			}
-			.content{
-				min-height:100%;
-				padding: 20px 50px;
-			}
-			.content:after { 
-				display: block; 
-				clear: both; 
-				content: ""; 
-				visibility: hidden; 
-				height: 0; 
-			}
-			.content h3{
-				margin-bottom:50px;
-				margin-top:0;
-			}
-			.echartsBox{
-				width:100%;
-				height:100%;
-				/* height: 600px; */
-			}
-			.echartsBox:after { 
-				display: block; 
-				clear: both; 
-				content: ""; 
-				visibility: hidden; 
-				height: 0; 
-			}
-			.eLogType{
-				display:inline-block;
-				width:auto;
-			}
-			.echartsBox>div{
-				width:45%;
-				/* height:600px; */
-				height:60vh;				
-				float:left;
-			}
-			#barBox{
-				margin-right:20px;
-			}
-			#pieBox{
-				margin-left:20px;
-			}
-			.toolsBox{
-				padding-right:50px;
-				height: 32px;
-			}
-			.toolsBox .dropdown{
-				float:right;
-			}
-			.dropdown button{
-				border:0;
-				color:#2c76bd;
-			}
-			.dropdown button:hover{
-				border:0;
-				background:#f2f2f2;
-				color:#2c76bd;
-			}
-			.dropdown-menu{
-				left: -95px;
-			}
-			.dropdown-menu  li{
-				cursor:pointer;
-				padding:3px 10px;
-			}
-			.dropdown-menu  li:hover{
-				background:#f8f8f8;
-				
-			}
-			.dropdown-menu  li a:hover{
-				color:#2c76bd;
-				background:none;
-			}
-			.dropdown-menu  li a{
-				color:#2c76bd;
-				padding:0;
-				font-size:13px;
-			}
-			.dropdown-menu  li p{
-				margin-bottom:0;
-				font-size:12px;
-			}
-		</style>
-		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
-	</head>
-	<body>
-		<div id="box">
-			<div class="top_title">
-				全部资产报表
-			</div>
-			<div class="toolsBox">
-				<div class="dropdown">
-  					<button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-  					  	导出
-    					<span class="caret"></span>
-  					</button>
-  					<ul class="dropdown-menu" >
-	    				<li class="downloadPDF">
-	    					<a href="#">PDF格式</a>
-	    					<p>报表导出为PDF格式文件</p>
-	    				</li>
-  					</ul>
-				</div>
-			</div>
-			<div class="content">			
-				<h3 style="text-align:center;font-weight:600;">日志级别数量统计</h3>
-				<div style="margin-bottom:10px;">
-					<label>日志类型 ：</label>
-					<select class="form-control eLogType">
-						<option value="">All</option>
-						<option value="syslog">syslog</option>
-						<option value="winlog">winlog</option>
-						<option value="log4j">log4j</option>
-						<option value="mysql">mysql</option>				
-					</select>
-					
-				</div>
-				<div class="echartsBox">
-					<div id="barBox"></div>
-					<div id="pieBox"></div>
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link rel="stylesheet" type="text/css" href="../../js/datepicker/css/datepicker.css"/>
+	<style type="text/css">
+		html, body, div{
+			margin:0;
+			padding:0;
+		}
+		html,body{
+			font-size:14px;
+			font-family: "微软雅黑";
+			background:#f3f3f4;
+			padding: 10px;
+			color:#676a6c;
+			height:100%;
+		}
+		h1,h2,h3,h4,h5,h6,em,i {
+			font-weight: 100;
+			font-style: normal;
+		}
+		ul,ol,li {
+			list-style-type: none;
+		}
+		a {
+			color: #666;
+			text-decoration: none;
+			outline: 0;
+		}
+		a:hover{
+			text-decoration: none;
+		}
+		.row{
+			margin: 0!important;
+		}
+		::-webkit-scrollbar-track {
+			background-color:#F5F5F5
+		}
+		::-webkit-scrollbar {
+			width:6px;
+			background-color:#F5F5F5
+		}
+		::-webkit-scrollbar-thumb {
+			background-color:#999
+		}
+		#box{
+			padding:10px;
+			background-color: #fff;
+			width: 100%;
+			min-height: 100%;
+			/* min-height: 800px; */
+			/* overflow-y: auto; */
+			border-top: 4px solid rgb(231, 234, 236);
+		}
+		.top_title{
+			font-size: 18px;
+			font-weight: 600;
+			color: inherit;
+			padding-left: 10px;
+			width: 100%;
+			height: 50px;
+			line-height: 40px;
+			margin-bottom: 20px;
+			border-bottom:1px solid #e7eaec;
+		}
+		.content{
+			min-height:100%;
+			padding: 20px 50px;
+		}
+		.content:after {
+			display: block;
+			clear: both;
+			content: "";
+			visibility: hidden;
+			height: 0;
+		}
+		.content h3{
+			margin-bottom:50px;
+			margin-top:0;
+		}
+		.echartsBox{
+			width:100%;
+			height:100%;
+			/* height: 600px; */
+		}
+		.echartsBox:after {
+			display: block;
+			clear: both;
+			content: "";
+			visibility: hidden;
+			height: 0;
+		}
+		.eLogType{
+			display:inline-block;
+			width:auto;
+		}
+		.echartsBox>div{
+			width:45%;
+			/* height:600px; */
+			height:60vh;
+			float:left;
+		}
+		#barBox{
+			margin-right:20px;
+		}
+		#pieBox{
+			margin-left:20px;
+		}
+		.toolsBox{
+			padding-right:50px;
+			height: 32px;
+		}
+		.toolsBox .dropdown{
+			float:right;
+		}
+		.dropdown button{
+			border:0;
+			color:#2c76bd;
+		}
+		.dropdown button:hover{
+			border:0;
+			background:#f2f2f2;
+			color:#2c76bd;
+		}
+		.dropdown-menu{
+			left: -95px;
+		}
+		.dropdown-menu  li{
+			cursor:pointer;
+			padding:3px 10px;
+		}
+		.dropdown-menu  li:hover{
+			background:#f8f8f8;
+
+		}
+		.dropdown-menu  li a:hover{
+			color:#2c76bd;
+			background:none;
+		}
+		.dropdown-menu  li a{
+			color:#2c76bd;
+			padding:0;
+			font-size:13px;
+		}
+		.dropdown-menu  li p{
+			margin-bottom:0;
+			font-size:12px;
+		}
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<body>
+<div id="box">
+	<div class="top_title">
+		全部资产报表
+	</div>
+	<div class="toolsBox">
+		<div class="dropdown">
+			<button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+				导出
+				<span class="caret"></span>
+			</button>
+			<ul class="dropdown-menu" >
+				<li class="downloadPDF">
+					<a href="#">PDF格式</a>
+					<p>报表导出为PDF格式文件</p>
+				</li>
+			</ul>
+		</div>
+	</div>
+	<div class="content">
+		<h3 style="text-align:center;font-weight:600;">日志级别数量统计</h3>
+		<div style="margin-bottom:10px; display:flex;align-items: center;">
+			<label>日志类型 ：</label>
+			<select class="form-control eLogType">
+				<option value="">All</option>
+				<option value="syslog">syslog</option>
+				<option value="winlog">winlog</option>
+				<option value="log4j">log4j</option>
+				<option value="mysql">mysql</option>
+			</select>
+			<div class="datepickerBox" style="width:365px;display:flex; height: 35px;line-height: 35px;padding-left:20px;">
+				<span style="font-weight:600;">日期范围：</span>
+				<div class="c-datepicker-date-editor  J-datepicker-range-day dateWapper" style="border:0;box-shadow: 0px 0px 7px 1px #4781bb;color:#56a4ef;">
+					<i class="c-datepicker-range__icon kxiconfont icon-clock"></i>
+					<input placeholder="开始日期" name="" class="c-datepicker-data-input only-date startTime" style="color:#56a4ef;" value="">
+					<span class="c-datepicker-range-separator">-</span>
+					<input placeholder="结束日期" name="" class="c-datepicker-data-input only-date endTime" style="color:#56a4ef;" value="">
 				</div>
 			</div>
 		</div>
-		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="js/jspdf.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="js/imgDownToPDF.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
-		<script type="text/javascript">
-			var myChart01;
-			var myChart02;
-			var sendObj = {};
-			sendObj.type = "";
-			sendObj.index = "estest";
-			sendObj.param = "operation_level";
-			function getEchartData(sendObj){
-				$.ajax({
-					type:"post",
-					url:"../../log/getCountGroupByParam.do",
-					data:sendObj,
-					async:true,
-					success:function(data){
-						var obj = data[0];
-						var xVal = [];//x轴数据
-						var yVal = [];//y轴数据						
-						var pieVAl = [];//饼图数据
-						for(var i in obj){
-							var pieObj = {};
-							xVal.push(i);
-							yVal.push(obj[i])
-							pieObj.value = obj[i];
-							pieObj.name = i;
-							pieVAl.push(pieObj)
-						}
-						//柱状图
-			        	myChart01 = echarts.init(document.getElementById('barBox'));
-			        	myChart01.setOption({
-			        		backgroundColor:'#293846', //rgba设置透明度0.1
-			        		title: {
-			        				text: '',
-						        	x:'center'
-					            },
-					            tooltip: {},
-					            toolbox: {
-							        feature: {
-							            dataView: {show: true, readOnly: false},
-							          /*   restore: {show: true}, */
-							            saveAsImage: {show: true}
-							        }
-								},
-								grid: {
-					            	left:'80px'
-					            },
-					            legend: {
-							        data:[],
-							        left: 'left'
-							    },
-					            xAxis: {
-					            	name:"日志级别",
-					            	nameTextStyle:{
-						        		color:'#5bc0de'
-						        	},
-						        	axisLine:{
-						        		lineStyle:{
-						        			color:'#5bc0de'
-						        		}
-						        	},
-	//				                data: ["20/7","21/7","22/7","23/7","24/7","25/7","26/7"]
-									data:xVal
-					            },
-					            yAxis: {
-					            	name:"数量",
-					            	axisLine:{
-						        		lineStyle:{
-						        			color:'#5bc0de'
-						        		}
-						        	},
-						        	splitLine:{
-						        		lineStyle:{
-						        			color:'#5bc0de'
-						        		}
-						        	},
-					            	nameTextStyle:{
-						        		color:'#5bc0de'
-						        	}
-					            },
-					            series: [ {
-						            name:'数量',
-						            type:'bar',
-						            barWidth: '60%',
-						            itemStyle:{
-	                                    normal:{
-	                                        color:'#5bc0de'
-	                                    }
-	                                },
-									data:yVal
-						        }]
-			        	});
-			        	
-			        	//饼图
-			        	myChart02 = echarts.init(document.getElementById('pieBox'));
-			        	myChart02.setOption({
-			        		backgroundColor:'#293846',
-			        		title : {
-						        text: '',
-						        x:'center'
-						    },
-						    tooltip : {
-						        trigger: 'item',
-						        formatter: "{a} <br/>{b} : {c} ({d}%)"
-						    },
-						    toolbox: {
-						        feature: {
-						            dataView: {show: true, readOnly: false},
-						          /*   restore: {show: true}, */
-						            saveAsImage: {show: true}
-						        }
-							},
-						    legend: {
-						        orient: 'vertical',
-						        left: 'left',
-						        textStyle:{
-						        	color:'#fff'
-						        },
-						        data: xVal
-						    },
-						    color:["#5bc0de","#1BB2D8","#99D2DD","#88B0BB","#1C7099","#038CC4","#75ABD0","#AFD6DD","#1790CFs"],
-						    series : [
-						        {
-						            name: '百分比',
-						            type: 'pie',
-						            radius : '55%',
-						            center: ['50%', '60%'],
-						            /* data:[
-						                {value:335, name:'alert multi control'},
-						                {value:310, name:'alert_multi_verify'},
-						                {value:234, name:'cur_yottabyte'},
-						                {value:135, name:'share'},
-						                {value:1548, name:'cj test'}
-						            ], */
-						            data:pieVAl,
-						            itemStyle: {
-						                emphasis: {
-						                    shadowBlur: 10,
-						                    shadowOffsetX: 0,
-						                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-						                }
-						            }
-						        }
-						    ]
-			        	});
-			        	window.addEventListener("resize",function(){
-			        		myChart01.resize();
-			        		myChart02.resize();
-			            });
-		 /************************************新增代码******************************************/
-		 				 var htmlNum2 = 0;
-			        	 myChart01.on('click', function (params) {
-				        		//console.log(params)
-				        		//获取x轴值
-				        		xParam = params.name;
-				        		localStorage.setItem("allDeviceSearchWord",xParam);
-				        		//拼接导航
-				        		var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+htmlNum2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
-				        		//移除导航菜单选中属性
-				        		$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
-				        		//添加导航菜单
-				        		$('.page-tabs-content', parent.document).click().append(html);
-				        		var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+htmlNum2+'" seamless="" style="display: inline;"></iframe>'
-				        		//移除其他页面
-				        		$('#content-main', parent.document).click().children("iframe").hide();
-				        		$('#content-main', parent.document).click().append(iframe);
-				        		htmlNum2++;
-							   
-							});
-			        	 myChart02.on('click', function (params) {
-				        		//console.log(params)
-				        		//获取x轴值
-				        		xParam = params.name;
-				        		localStorage.setItem("allDeviceSearchWord",xParam);
-				        		//拼接导航
-				        		var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+htmlNum2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
-				        		//移除导航菜单选中属性
-				        		$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
-				        		//添加导航菜单
-				        		$('.page-tabs-content', parent.document).click().append(html);
-				        		var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+htmlNum2+'" seamless="" style="display: inline;"></iframe>'
-				        		//移除其他页面
-				        		$('#content-main', parent.document).click().children("iframe").hide();
-				        		$('#content-main', parent.document).click().append(iframe);
-				        		htmlNum2++;
-							   
-							});
-		/************************************新增代码******************************************/
-					},
-					error:function(err){
-						
-					}
-				});
-	 			 				
-	 		}
-			//下拉框改变时 触发查询图表数据函数
-			$(".eLogType").change(function(){
-				//获取下拉框中的值
-			    var val=$(".eLogType").val();
-			   	sendObj.type = val;
-			    //发送 请求数据
-			   	getEchartData(sendObj);
-			});
-			
-			getEchartData(sendObj);
-			
-			var imgTop = 10;//图片在pdf页中距离顶端偏移量
-			//导出按钮点击事件
-			$(".dropdown-menu .downloadPDF").click(function(){
-				 var imgBase64Arr = [];//用于存放图表Base64格式
-				 //添加数据
-		      	imgBase64Arr.push(myChart01.getDataURL());
-		      	imgBase64Arr.push(myChart02.getDataURL());
-		      	var canvas = $("canvas");
-		      	var contentWidth = canvas.width();
-			    var contentHeight = canvas.height();
-				downloadToPDF(imgBase64Arr,40,contentWidth,contentHeight)
-			})
-		</script>
-	</body>
+		<div class="echartsBox">
+			<div id="barBox"></div>
+			<div id="pieBox"></div>
+		</div>
+	</div>
+</div>
+<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/datepicker/js/plugins/moment.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/datepicker/js/datepicker.all.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/jspdf.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/imgDownToPDF.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/echarts.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    //获取当前日期
+    var day1 = new Date();
+    //拼接昨天日期格式 yy-mm-dd
+    var mon = day1.getMonth()+1;
+    var da = day1.getDate();
+    if( mon < 10){
+        mon = "0"+(day1.getMonth()+1);
+    }
+    if(da < 10){
+        da = "0"+ (day1.getDate());
+    }
+    var day_c = day1.getFullYear()+"-" + mon + "-" + da;
+    //定义七天前时间
+    var date2 = new Date(day1);
+    date2.setDate(day1.getDate()-6);
+    var day_7 = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+date2.getDate();
+
+    var myChart01;
+    var myChart02;
+    var sendObj = {};
+    sendObj.type = "";
+    sendObj.index = "estest";
+    sendObj.param = "operation_level";
+    sendObj.starttime = day_7;
+    sendObj.endtime = day_c;
+    function getEchartData(sendObj){
+        $.ajax({
+            type:"post",
+            url:"../../log/getCountGroupByParam.do",
+            data:sendObj,
+            async:true,
+            success:function(data){
+                var obj = data[0];
+                var xVal = [];//x轴数据
+                var yVal = [];//y轴数据
+                var pieVAl = [];//饼图数据
+                for(var i in obj){
+                    var pieObj = {};
+                    xVal.push(i);
+                    yVal.push(obj[i])
+                    pieObj.value = obj[i];
+                    pieObj.name = i;
+                    pieVAl.push(pieObj)
+                }
+                //柱状图
+                myChart01 = echarts.init(document.getElementById('barBox'));
+                myChart01.setOption({
+                    backgroundColor:'#293846', //rgba设置透明度0.1
+                    title: {
+                        text: '',
+                        x:'center'
+                    },
+                    tooltip: {},
+                    toolbox: {
+                        feature: {
+                            dataView: {show: true, readOnly: false},
+                            /*   restore: {show: true}, */
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    grid: {
+                        left:'80px'
+                    },
+                    legend: {
+                        data:[],
+                        left: 'left'
+                    },
+                    xAxis: {
+                        name:"日志级别",
+                        nameTextStyle:{
+                            color:'#5bc0de'
+                        },
+                        axisLine:{
+                            lineStyle:{
+                                color:'#5bc0de'
+                            }
+                        },
+                        //				                data: ["20/7","21/7","22/7","23/7","24/7","25/7","26/7"]
+                        data:xVal
+                    },
+                    yAxis: {
+                        name:"数量",
+                        axisLine:{
+                            lineStyle:{
+                                color:'#5bc0de'
+                            }
+                        },
+                        splitLine:{
+                            lineStyle:{
+                                color:'#5bc0de'
+                            }
+                        },
+                        nameTextStyle:{
+                            color:'#5bc0de'
+                        }
+                    },
+                    series: [ {
+                        name:'数量',
+                        type:'bar',
+                        barWidth: '60%',
+                        itemStyle:{
+                            normal:{
+                                color:'#5bc0de'
+                            }
+                        },
+                        data:yVal
+                    }]
+                });
+
+                //饼图
+                myChart02 = echarts.init(document.getElementById('pieBox'));
+                myChart02.setOption({
+                    backgroundColor:'#293846',
+                    title : {
+                        text: '',
+                        x:'center'
+                    },
+                    tooltip : {
+                        trigger: 'item',
+                        formatter: "{a} <br/>{b} : {c} ({d}%)"
+                    },
+                    toolbox: {
+                        feature: {
+                            dataView: {show: true, readOnly: false},
+                            /*   restore: {show: true}, */
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                        textStyle:{
+                            color:'#fff'
+                        },
+                        data: xVal
+                    },
+                    color:["#5bc0de","#1BB2D8","#99D2DD","#88B0BB","#1C7099","#038CC4","#75ABD0","#AFD6DD","#1790CFs"],
+                    series : [
+                        {
+                            name: '百分比',
+                            type: 'pie',
+                            radius : '55%',
+                            center: ['50%', '60%'],
+                            /* data:[
+                                {value:335, name:'alert multi control'},
+                                {value:310, name:'alert_multi_verify'},
+                                {value:234, name:'cur_yottabyte'},
+                                {value:135, name:'share'},
+                                {value:1548, name:'cj test'}
+                            ], */
+                            data:pieVAl,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                });
+                window.addEventListener("resize",function(){
+                    myChart01.resize();
+                    myChart02.resize();
+                });
+                /************************************新增代码******************************************/
+                var htmlNum2 = 0;
+                myChart01.on('click', function (params) {
+                    //console.log(params)
+                    //获取x轴值
+                    xParam = params.name;
+                    localStorage.setItem("allDeviceSearchWord",xParam);
+                    //拼接导航
+                    var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+htmlNum2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
+                    //移除导航菜单选中属性
+                    $('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+                    //添加导航菜单
+                    $('.page-tabs-content', parent.document).click().append(html);
+                    var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+htmlNum2+'" seamless="" style="display: inline;"></iframe>'
+                    //移除其他页面
+                    $('#content-main', parent.document).click().children("iframe").hide();
+                    $('#content-main', parent.document).click().append(iframe);
+                    htmlNum2++;
+
+                });
+                myChart02.on('click', function (params) {
+                    //console.log(params)
+                    //获取x轴值
+                    xParam = params.name;
+                    localStorage.setItem("allDeviceSearchWord",xParam);
+                    //拼接导航
+                    var html ='<a href="javascript:;" class="active J_menuTab" data-id="searchLogs'+htmlNum2+'">'+xParam+'日志检索<i class="fa fa-times-circle"></i></a>'
+                    //移除导航菜单选中属性
+                    $('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+                    //添加导航菜单
+                    $('.page-tabs-content', parent.document).click().append(html);
+                    var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/searchLogs.html?v=4.0" frameborder="0" data-id="searchLogs'+htmlNum2+'" seamless="" style="display: inline;"></iframe>'
+                    //移除其他页面
+                    $('#content-main', parent.document).click().children("iframe").hide();
+                    $('#content-main', parent.document).click().append(iframe);
+                    htmlNum2++;
+
+                });
+                /************************************新增代码******************************************/
+            },
+            error:function(err){
+
+            }
+        });
+
+    }
+    $(function(){
+        $(".startTime").val(day_7);
+        $(".endTime").val(day_c);
+        //年月日范围
+        $('.dateWapper').datePicker({
+            hasShortcut: true,
+            format: 'YYYY-MM-DD',
+            isRange: true,
+            shortcutOptions: [{
+                name: '最近7天',
+                day: '-7,0'
+            }, {
+                name: '最近30天',
+                day: '-30,0'
+            }, {
+                name: '最近90天',
+                day: '-90, 0'
+            }, {
+                name: '全部',
+                day: '-, 0'
+            }],
+            hide:function(){
+                sendObj.starttime = $(".startTime").val();
+                sendObj.endtime = $(".endTime").val();
+                sendObj.type = $(".eLogType").val();
+                getEchartData(sendObj);
+            }
+        })
+    })
+
+    //下拉框改变时 触发查询图表数据函数
+    $(".eLogType").change(function(){
+        //获取下拉框中的值
+        var val=$(".eLogType").val();
+        sendObj.type = val;
+        sendObj.starttime = $(".startTime").val();
+        sendObj.endtime = $(".endTime").val();
+        //发送 请求数据
+        getEchartData(sendObj);
+    });
+
+    getEchartData(sendObj);
+
+    var imgTop = 10;//图片在pdf页中距离顶端偏移量
+    //导出按钮点击事件
+    $(".dropdown-menu .downloadPDF").click(function(){
+        var imgBase64Arr = [];//用于存放图表Base64格式
+        //添加数据
+        imgBase64Arr.push(myChart01.getDataURL());
+        imgBase64Arr.push(myChart02.getDataURL());
+        var canvas = $("canvas");
+        var contentWidth = canvas.width();
+        var contentHeight = canvas.height();
+        downloadToPDF(imgBase64Arr,40,contentWidth,contentHeight)
+    })
+</script>
+</body>
 </html>

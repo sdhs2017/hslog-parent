@@ -1,5 +1,6 @@
 package com.hs.elsearch.template;
 
+import org.apache.log4j.Logger;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeRequest;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
@@ -26,11 +27,20 @@ import java.util.Map;
  * @create: 2019-08-14 14:17
  **/
 
-@Component
+//@Component
 public class ESTransportCrudTemplate {
 
-    @Autowired
-    TransportClient transportClient;
+    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+
+    /*@Autowired
+    TransportClient transportClient;*/
+
+    private  TransportClient transportClient;
+
+    public ESTransportCrudTemplate(TransportClient transportClient){
+        logger.info(" 初始化 ESTransportCrudTemplate ... ");
+        this.transportClient = transportClient;
+    }
 
     /*
      * <===========查询相关============>

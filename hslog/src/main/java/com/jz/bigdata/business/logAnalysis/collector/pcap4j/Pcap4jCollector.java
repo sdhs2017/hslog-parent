@@ -50,14 +50,14 @@ public class Pcap4jCollector implements Callable<String>{
 		} catch (PcapNativeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
+			//System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
-			System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
+			//System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
 			e.printStackTrace();
 		} catch (NotOpenException e) {
 			// TODO Auto-generated catch block
-			System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
+			//System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
 			e.printStackTrace();
 		}
 	

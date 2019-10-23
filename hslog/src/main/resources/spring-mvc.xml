@@ -38,11 +38,13 @@
     
     <!-- 测试添加的扫描包的方法 -->
 	<!-- 因spring-mybitis。xml过滤了controller 在这必须加上controller 否则将找不到路径controller直接配置-->
-    <context:component-scan base-package="com.jz.bigdata" >    
+    <context:component-scan base-package="com.jz.bigdata" >
         <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/> 
          <!--   <context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/> --> 
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>    
      </context:component-scan>
+
+	<context:component-scan base-package="com.hs.elsearch" />
 	
 	
 <!-- 	 <tx:annotation-driven transaction-manager="transactionManager"/>  

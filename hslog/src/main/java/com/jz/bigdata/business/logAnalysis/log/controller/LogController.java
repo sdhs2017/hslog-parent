@@ -26,6 +26,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.elasticsearch.action.index.IndexRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -41,16 +43,20 @@ import com.jz.bigdata.business.logAnalysis.log.entity.App_file;
 import com.jz.bigdata.business.logAnalysis.log.entity.DHCP;
 import com.jz.bigdata.business.logAnalysis.log.entity.DNS;
 import com.jz.bigdata.business.logAnalysis.log.entity.DefaultPacket;
+import com.jz.bigdata.business.logAnalysis.log.entity.Http;
+import com.jz.bigdata.business.logAnalysis.log.entity.Https;
 import com.jz.bigdata.business.logAnalysis.log.entity.Log4j;
 import com.jz.bigdata.business.logAnalysis.log.entity.Mysql;
 import com.jz.bigdata.business.logAnalysis.log.entity.Netflow;
 import com.jz.bigdata.business.logAnalysis.log.entity.PacketFilteringFirewal;
 import com.jz.bigdata.business.logAnalysis.log.entity.Syslog;
+import com.jz.bigdata.business.logAnalysis.log.entity.Tcp;
 import com.jz.bigdata.business.logAnalysis.log.entity.Unknown;
 import com.jz.bigdata.business.logAnalysis.log.entity.Winlog;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
+import com.jz.bigdata.common.equipment.EquipmentConstant;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.safeStrategy.entity.SafeStrategy;
@@ -70,29 +76,31 @@ import net.sf.json.JSONArray;
 @RequestMapping("/log")
 public class LogController extends BaseController{
 
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	@Resource(name="logService")
 	private IlogService logService;
-	
+
 	@Resource(name = "EquipmentService")
 	private IEquipmentService equipmentService;
-	
-	@Resource(name ="configProperty")  
-    private ConfigProperty configProperty;
-	
-	@Resource(name ="SafeStrategyService")  
-    private ISafeStrategyService safeStrategyService;
-	
+
+	@Resource(name ="configProperty")
+	private ConfigProperty configProperty;
+
+	@Resource(name ="SafeStrategyService")
+	private ISafeStrategyService safeStrategyService;
+
 	@Resource(name="AlarmService")
 	private IAlarmService alarmService;
-	
+
 	@Resource(name ="UsersService")
 	private IUsersService usersService;
-	
+
 	@Autowired protected ClientTemplate clientTemplate;
-	
+
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
-	
-	
+
+
 	/**
 	 * 轮巡导出状态
 	 * @return
@@ -107,8 +115,8 @@ public class LogController extends BaseController{
 	public void setExportProcess(String exportProcess) {
 		this.exportProcess = exportProcess;
 	}
-	
-	
+
+
 	/**
 	 * @param request
 	 * @return 获取索引数据ById
@@ -129,7 +137,7 @@ public class LogController extends BaseController{
 		System.out.println(result);
 		return result;
 	}
-	
+
 	/**
 	 * @param request
 	 * @return 删除结果String（DELETED、NOT_FOUND、NOOP）
@@ -151,13 +159,13 @@ public class LogController extends BaseController{
 			for(int i=0;i<ids.length;i++) {
 				result = logService.deleteById(configProperty.getEs_index(), types[i], ids[i]);
 			}
-			
+
 		}
-		
-		
+
+
 		return result;
 	}
-	
+
 	@ResponseBody
 	@RequestMapping(value="/createIndexAndMapping",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="初始化数据结构")
@@ -175,30 +183,58 @@ public class LogController extends BaseController{
 			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
 			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
 			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
-			
+
 			// 网络数据包
 			/*logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_HTTP, new Http().toMapping());
 			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_HTTPS, new Https().toMapping());
 			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_TCP, new Tcp().toMapping());*/
 			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
-			
+
+			// 更新index的settings属性
+			Map<String, Object> settingmap = new HashMap<>();
+			settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
+			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+			logService.updateSettings(configProperty.getEs_index(), settingmap);
+			// 在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
+			try {
+				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
+				List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
+
+				if(repositories.isEmpty()) {
+					Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
+					if (!result) {
+						map.put("state", true);
+						map.put("msg", "备份仓库初始化失败！");
+						return JSONArray.fromObject(map).toString();
+					}
+				}
+			} catch (Exception e) {
+				Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
+				if (!result) {
+					map.put("state", true);
+					map.put("msg", "备份仓库初始化失败！");
+					return JSONArray.fromObject(map).toString();
+				}
+			}
+
+
 			map.put("state", true);
-			map.put("msg", "数据结构初始化成功！");
+			map.put("msg", "初始化成功！");
 			return JSONArray.fromObject(map).toString();
-			
+
 		} catch (Exception e) {
-			System.out.println(e.getMessage());
+			logger.error(e.getMessage());
 			map.put("state", false);
 			map.put("msg", "数据结构初始化失败！");
 			return JSONArray.fromObject(map).toString();
 		}
-		
+
 	}
-	
-	
+
+
 	/**
 	 * @param request
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getListByType")
@@ -206,23 +242,23 @@ public class LogController extends BaseController{
 	public List<Map<String, Object>> getListByType(HttpServletRequest request) {
 		String index = request.getParameter("index");
 		String type = request.getParameter("type");
-		
+
 		List<Map<String, Object>> list = logService.index(index, type);
-		
+
 		return list;
-		
+
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计各个日志级别的数据量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByParam")
 	@DescribeLog(describe="读取日志级别数据量")
 	public List<Map<String, Object>> getCountGroupByParam(HttpServletRequest request) {
-		
+
 		String index = configProperty.getEs_index();
 		String type = request.getParameter("type");
 		String [] types = null;
@@ -232,7 +268,9 @@ public class LogController extends BaseController{
 		String param = request.getParameter("param");
 		String time = request.getParameter("time");
 		String equipmentid = request.getParameter("equipmentid");
-		
+		String starttime = request.getParameter("starttime");
+		String endtime = request.getParameter("endtime");
+
 		Map<String, String> map = new HashMap<>();
 		if (equipmentid!=null&&!equipmentid.equals("")) {
 			map.put("equipmentid", equipmentid);
@@ -240,16 +278,22 @@ public class LogController extends BaseController{
 		if (time!=null&&!time.equals("")) {
 			map.put("logdate", time);
 		}
-		
-		List<Map<String, Object>> list = logService.groupBy(index, types, param, map);
-		
+		if (starttime!=null&&!starttime.equals("")) {
+			starttime = starttime+" 00:00:00";
+		}
+		if (endtime!=null&&!endtime.equals("")) {
+			endtime = endtime+" 23:59:59";
+		}
+
+		List<Map<String, Object>> list = logService.groupBy(index, types, param, starttime, endtime, map);
+
 		return list;
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计事件的数据量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByEvent")
@@ -264,16 +308,16 @@ public class LogController extends BaseController{
 		String dates = request.getParameter("param");
 		String equipmentid = request.getParameter("equipmentid");
 		String groupby = "event_type";
-		
+
 		List<Map<String, Object>> list = logService.getEventListGroupByEventType(index, types, dates, equipmentid, groupby);
-		
+
 		return list;
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计各个事件的数据量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByEventType")
@@ -298,15 +342,15 @@ public class LogController extends BaseController{
 			}
 			list.add(map);
 		}
-		
+
 		return list;
 	}
-	
-	
+
+
 	/**
 	 * @param request
 	 * 统计各时间段的数据量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByTime")
@@ -318,12 +362,12 @@ public class LogController extends BaseController{
 		if (type!=null&&!type.equals("")) {
 			types = type.split(",");
 		}
-		
+
 		String param = request.getParameter("param");
 		String equipmentid = request.getParameter("equipmentid");
 		String [] hours = {"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"};
 		List<Map<String, Object>> list = logService.getListGroupByTime(index, types, param,equipmentid);
-		
+
 		Map<String, Object> map = new HashMap<>();
 		for(String hour : hours) {
 			map.put(hour, list.get(0).get(hour)!=null?list.get(0).get(hour):0);
@@ -332,11 +376,11 @@ public class LogController extends BaseController{
 		list.add(map);
 		return list;
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计某时间段内的事件数量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByEventstype")
@@ -353,9 +397,9 @@ public class LogController extends BaseController{
 		Date enddate = new Date();
 		String endtime = format.format(enddate);
 		DecimalFormat df = new DecimalFormat("#.00");
-		
+
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		List<SafeStrategy> safelist = safeStrategyService.selectByEquipmentId(equipmentid);
 		for (SafeStrategy safeStrategy : safelist) {
 			String dates = safeStrategy.getTime();
@@ -366,7 +410,7 @@ public class LogController extends BaseController{
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
 			List<Map<String, Object>> loglist = logService.getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
-			
+
 			if (!loglist.get(0).isEmpty()) {
 				float per = Float.valueOf(loglist.get(0).get(safeStrategy.getEvent_type()).toString())/safeStrategy.getNumber();
 				Map<String, Object> map = new HashMap<String, Object>();
@@ -384,14 +428,14 @@ public class LogController extends BaseController{
 				list.add(map);
 			}
 		}
-		
+
 		return list;
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计url
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByUrl")
@@ -409,13 +453,13 @@ public class LogController extends BaseController{
 		// 时间段
 		String starttime = request.getParameter("startTime");
 		String endtime = request.getParameter("endTime");
-		
+
 		String ipv4_dst_addr = request.getParameter("ipv4_dst_addr");
 		String application_layer_protocol = request.getParameter("application_layer_protocol");
-		
+
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("requestorresponse", "request");
-		
+
 		if (des_ip!=null&&!des_ip.equals("")) {
 			map.put("des_ip", des_ip);
 		}
@@ -440,10 +484,10 @@ public class LogController extends BaseController{
 		if (application_layer_protocol!=null&&!application_layer_protocol.equals("")) {
 			map.put("application_layer_protocol", application_layer_protocol);
 		}
-		
+
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 		list = logService.groupBy(index, types, groupby, map);
-		
+
 		List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 		for(Entry<String, Object> key : list.get(0).entrySet()) {
 			Map<String,Object> tMap = new HashMap<>();
@@ -451,15 +495,15 @@ public class LogController extends BaseController{
 			tMap.put("count", key.getValue());
 			tmplist.add(tMap);
 		}
-		
-		
+
+
 		return JSONArray.fromObject(tmplist).toString();
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计应用资产的IP访问次数
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getDstIPCountGroupByHTTPSrcIP")
@@ -470,7 +514,7 @@ public class LogController extends BaseController{
 		String [] types = {"defaultpacket"};
 		// 资产的ip
 		String ipv4_dst_addr = request.getParameter("ipv4_dst_addr");
-		
+
 		// 构建参数map
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("requestorresponse", "request");
@@ -478,16 +522,16 @@ public class LogController extends BaseController{
 		if ((ipv4_dst_addr!=null&&!ipv4_dst_addr.equals(""))) {
 			map.put("ipv4_dst_addr", ipv4_dst_addr);
 		}
-		
+
 		list = logService.groupBy(index, types, groupby, map);
-		
+
 		long ipv4_dst_addr_count = logService.getCount(index, types, map);
-		
+
 		// 中心圆数据统计
 		Map<String,Object> ipv4_dst_addr_Map = new HashMap<>();
 		ipv4_dst_addr_Map.put("ipv4_dst_addr", ipv4_dst_addr);
 		ipv4_dst_addr_Map.put("count", ipv4_dst_addr_count);
-		
+
 		// IP访问次数统计
 		List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 		for(Entry<String, Object> key : list.get(0).entrySet()) {
@@ -496,18 +540,18 @@ public class LogController extends BaseController{
 			tMap.put("count", key.getValue());
 			tmplist.add(tMap);
 		}
-		
+
 		Map<String,Object> result = new HashMap<>();
 		result.put("ipv4_dst_addr", ipv4_dst_addr_Map);
 		result.put("source", tmplist);
-		
+
 		return JSONArray.fromObject(result).toString();
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计domain被IP访问的次数
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getVisitCountGroupByHttpSourceIP")
@@ -518,7 +562,7 @@ public class LogController extends BaseController{
 		String [] types = {"defaultpacket"};
 		// 资产的ip和端口
 		String domain_url = request.getParameter("domain_url");
-		
+
 		// 构建参数map
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("requestorresponse", "request");
@@ -526,16 +570,16 @@ public class LogController extends BaseController{
 		if ((domain_url!=null&&!domain_url.equals(""))) {
 			map.put("domain_url", domain_url);
 		}
-		
+
 		list = logService.groupBy(index, types, groupby, map);
-		
+
 		long domain_url_count = logService.getCount(index, types, map);
-		
+
 		Map<String,Object> domainMap = new HashMap<>();
 		domainMap.put("domain_url", domain_url);
 		domainMap.put("count", domain_url_count);
-		
-		
+
+
 		List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 		for(Entry<String, Object> key : list.get(0).entrySet()) {
 			Map<String,Object> tMap = new HashMap<>();
@@ -543,18 +587,18 @@ public class LogController extends BaseController{
 			tMap.put("count", key.getValue());
 			tmplist.add(tMap);
 		}
-		
+
 		Map<String,Object> result = new HashMap<>();
 		result.put("domain", domainMap);
 		result.put("source", tmplist);
-		
+
 		return JSONArray.fromObject(result).toString();
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计domain下全url被访问的次数
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getCountGroupByHttpComUrl")
@@ -582,7 +626,7 @@ public class LogController extends BaseController{
 			map.put("endtime", endtime+" 23:59:59");
 		}
 		list = logService.groupBy(index, types, groupby, map);
-		
+
 		List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 		for(Entry<String, Object> key : list.get(0).entrySet()) {
 			Map<String,Object> tMap = new HashMap<>();
@@ -590,14 +634,14 @@ public class LogController extends BaseController{
 			tMap.put("count", key.getValue());
 			tmplist.add(tMap);
 		}
-		
+
 		return JSONArray.fromObject(tmplist).toString();
 	}
-		
+
 	/**
 	 * @param request
 	 * 统计单个url被IP访问的次数
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getVisitCountOfComUrlGroupByHttpSourceIP")
@@ -609,7 +653,7 @@ public class LogController extends BaseController{
 		// 资产的ip和端口
 		String domain_url = request.getParameter("domain_url");
 		String complete_url = request.getParameter("complete_url");
-		
+
 		// 构建参数map
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("requestorresponse", "request");
@@ -620,16 +664,16 @@ public class LogController extends BaseController{
 			map.put("complete_url", complete_url);
 		}
 		list = logService.groupBy(index, types, groupby, map);
-		
+
 		//map.put("domain_url", domain_url);
-		
+
 		long complete_url_count = logService.getCount(index, types, map);
-		
+
 		Map<String,Object> complete_urlMap = new HashMap<>();
 		complete_urlMap.put("complete_url", complete_url);
 		complete_urlMap.put("count", complete_url_count);
-		
-		
+
+
 		List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 		for(Entry<String, Object> key : list.get(0).entrySet()) {
 			Map<String,Object> tMap = new HashMap<>();
@@ -637,18 +681,18 @@ public class LogController extends BaseController{
 			tMap.put("count", key.getValue());
 			tmplist.add(tMap);
 		}
-		
+
 		Map<String,Object> result = new HashMap<>();
 		result.put("complete_url", complete_urlMap);
 		result.put("source", tmplist);
-		
+
 		return JSONArray.fromObject(result).toString();
 	}
-	
+
 	/**
-	 * 
+	 *
 	 * @param request
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getListOrderByParam")
@@ -660,22 +704,22 @@ public class LogController extends BaseController{
 		String  order = request.getParameter("order");
 		String page = request.getParameter("page");
 		String size = request.getParameter("size");
-		
+
 		List<Map<String, Object>> list = logService.orderBy(configProperty.getEs_index(), type, param, order,page,size);
 		Map<String, Object> map = new HashMap<>();
 		map = list.get(0);
 		list.remove(0);
 		map.put("list", list);
-		
+
 		String result = JSONArray.fromObject(map).toString();
-		
+
 		System.out.println("---------------result----------------");
 		System.err.println(result);
 		return result;
 	}
-	
-	
-	
+
+
+
 	/**
 	 * 通过设备id获取该设备日志列表
 	 * @param request
@@ -686,12 +730,12 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getLogListByEquipment.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="条件获取设备日志数据")
 	public String getLogListByEquipment(HttpServletRequest request,Equipment equipment) {
-		
+
 		String ztData = request.getParameter("hsData");
 		if(ztData!=null) {
 			ObjectMapper mapper = new ObjectMapper();
 			Map<String, String> map = new HashMap<String, String>();
-			
+
 			try {
 				map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 			} catch (JsonParseException e) {
@@ -706,7 +750,7 @@ public class LogController extends BaseController{
 			}
 			equipment.setId(map.get("id"));
 			equipment=equipmentService.selectOneEquipment(equipment);
-			
+
 			String starttime = "";
 			String endtime = "";
 			if (map.get("starttime")!=null) {
@@ -722,16 +766,16 @@ public class LogController extends BaseController{
 				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				endtime = format.format(new Date());
 			}
-			
+
 			Object pageObject = map.get("page");
 			String page = pageObject.toString();
 			map.remove("page");
 			Object sizeObject = map.get("size");
 			String size = sizeObject.toString();
 			map.remove("size");
-			
+
 			String type = equipment.getLogType();
-			
+
 			/*int logType = equipment.getLogType();
 			if(EquipmentConstant.LOGTYPE_SYSLOG==logType){
 				type = EquipmentConstant.LOGTYPE_SYSLOG_EN;
@@ -748,13 +792,13 @@ public class LogController extends BaseController{
 			}else{
 				type = null;
 			}*/
-			
+
 			String equipmentId = equipment.getId();
-			
+
 			map.put("equipmentid", equipmentId);
 			map.remove("id");
 			ArrayList<String> arrayList = new ArrayList<>();
-			
+
 			if (type.equals("netflow")) {
 				arrayList.add("defaultpacket");
 			}
@@ -762,15 +806,15 @@ public class LogController extends BaseController{
 			if (type!=null) {
 				types = arrayList.toArray(new String[arrayList.size()]);
 			}
-			
+
 			List<Map<String, Object>> list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
-			
+
 			Map<String, Object> allmap = new HashMap<>();
 			allmap = list.get(0);
 			list.remove(0);
 			allmap.put("list", list);
 			String result = JSONArray.fromObject(allmap).toString();
-			
+
 			String replace=result.replace("\\\\005", "<br/>");
 			System.out.println("---------------result----------------");
 			System.err.println(result);
@@ -782,10 +826,10 @@ public class LogController extends BaseController{
 			String result = JSONArray.fromObject(allmap).toString();
 			return result;
 		}
-		
-		
+
+
 	}
-	
+
 	/**
 	 * 通过关键字获取日志信息
 	 * @param requestt
@@ -795,10 +839,10 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getLogListByContent",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="查询日志数据")
 	public String getLogListByContent(HttpServletRequest request,HttpSession session) {
-		
+
 		String ztData = request.getParameter("hsData");
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		
+
 		Map<String, String> mapper = toMap(ztData);
 		Object wordso = mapper.get("words");
 		Object pageo = mapper.get("page");
@@ -807,47 +851,50 @@ public class LogController extends BaseController{
 		if (wordso!=null) {
 			keyWords = wordso.toString();
 		}
-		
+
 		String page = pageo.toString();
 		String size = sizeo.toString();
-		
+
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW,LogType.LOGTYPE_DNS,LogType
 				.LOGTYPE_DHCP};
 
+		Map<String, Object> map = new HashMap<>();
 		List<Map<String, Object>> list =null;
-		
+
 		try {
 			if (userrole.equals("1")) {
 				list = logService.getListByContent(configProperty.getEs_index(), types, keyWords,page,size);
 			}else {
 				list = logService.getListByContent(configProperty.getEs_index(), types, keyWords,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 			}
-			
+			map.put("state", true);
 		} catch (Exception e) {
+			logger.error(e.getMessage());
 			e.printStackTrace();
+			map.put("state", false);
 		}
 
-		Map<String, Object> map = new HashMap<>();
+
 		map = list.get(0);
 		list.remove(0);
 		map.put("list", list);
-		
+
 		String result = JSONArray.fromObject(map).toString();
 //		System.out.println("result ="+result);
 		String replace=result.replace("\\\\005", "<br/>");
 //		System.out.println("---------------result----------------");
-		
+
 		return replace;
 	}
-	
+
 	/**
 	 * 组合查询
 	 * @param requestt
 	 * @author jiyourui
-	 * @return 
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
@@ -858,24 +905,24 @@ public class LogController extends BaseController{
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String ztData = request.getParameter("hsData");
 		System.out.println(ztData);
-		
+
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
-		
+
 		map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 		map.remove("page");
 		map.remove("size");
-		
+
 		String page = pageo.toString();
 		String size = sizeo.toString();
-		
-		
+
+
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
-		
+
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
 			map.remove("type");
@@ -899,18 +946,18 @@ public class LogController extends BaseController{
 		allmap.put("list", list);
 		String result = JSONArray.fromObject(allmap).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
 	}
-	
+
 	/**
 	 * 组合查询
 	 * @param requestt
 	 * @author jiyourui
-	 * @return 
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
@@ -920,26 +967,26 @@ public class LogController extends BaseController{
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String ztData = request.getParameter("hsData");
-		
+
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
-		
+
 		map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
-		
+
 		String page = pageo.toString();
 		String size = sizeo.toString();
 		map.remove("page");
 		map.remove("size");
-		
+
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
 		Map<String, String[]> param = new HashMap<>();
 		String[] multified = {"ipv4_dst_addr","ipv4_src_addr"};
 		param.put(map.get("ip"), multified);
-		
+
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
 			map.remove("type");
@@ -963,59 +1010,59 @@ public class LogController extends BaseController{
 		allmap.put("list", list);
 		String result = JSONArray.fromObject(allmap).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
 	}
-	
-	
+
+
 	/**
 	 * 查询+导出
 	 * @param requestt
 	 * @author jiyourui
-	 * @return 
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
 	@RequestMapping(value="/exportLogList",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="导出查询的日志数据")
 	public String exportLogList(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
-		
+
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		Object username = session.getAttribute(Constant.SESSION_USERNAME);
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmss");
-		
+
 		String hsData = request.getParameter("hsData");
 		Map<String, Object> allmap= new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
-		
+
 		map = removeMapEmptyValue(mapper.readValue(hsData, Map.class));
-		
+
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 		Object exportSizeo = map.get("exportSize");
-		
+
 		map.remove("page");
 		map.remove("size");
 		map.remove("exportSize");
-		
+
 		String page = pageo.toString();
 		String size = sizeo.toString();
 		String exportSize = exportSizeo.toString();
-		
-		
+
+
 		Integer sizeInt = Integer.valueOf(exportSize);
 		int filesizes = 10000;
-		
+
 		int forsize = sizeInt/filesizes;
 		int modsize = sizeInt%filesizes;
-		
+
 		int fileSize = 0;
-		
+
 		Map<String, Object> resultmap = new HashMap<>();
 		if (forsize>0&&modsize>0) {
 			fileSize = forsize+1;
@@ -1032,13 +1079,13 @@ public class LogController extends BaseController{
 			resultmap.put("value", "0-1");
 			setExportProcess(JSONArray.fromObject(resultmap).toString());
 		}
-		
+
 		try {
 			for(int i=1;i<=forsize;i++) {
-				
+
 				page = String.valueOf(i);
 				String filesize = String.valueOf(filesizes);
-				
+
 				ArrayList<String> arrayList = new ArrayList<>();
 				List<Map<String, Object>> list = null;
 				if (map.get("type")!=null&&!map.get("type").equals("")) {
@@ -1061,17 +1108,17 @@ public class LogController extends BaseController{
 						list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,filesize);
 					}
 				}
-				
+
 				// 设置表格头
-		        Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容"};
-		        List<Object> headList = Arrays.asList(head);
+				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容"};
+				List<Object> headList = Arrays.asList(head);
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
-		        list.remove(0);
-		        CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
-		        
-		        if (i==forsize&&modsize==0) {
-		        	resultmap.put("state", "finished");
+				list.remove(0);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+
+				if (i==forsize&&modsize==0) {
+					resultmap.put("state", "finished");
 					resultmap.put("value", i+"-"+fileSize);
 					setExportProcess(JSONArray.fromObject(resultmap).toString());
 				}else {
@@ -1079,15 +1126,15 @@ public class LogController extends BaseController{
 					resultmap.put("value", i+"-"+fileSize);
 					setExportProcess(JSONArray.fromObject(resultmap).toString());
 				}
-		       
+
 			}
 			if (modsize>0) {
 				page = String.valueOf(forsize+1);
 				String filesize = String.valueOf(modsize);
-				
+
 				ArrayList<String> arrayList = new ArrayList<>();
 				List<Map<String, Object>> list = null;
-				
+
 				if (map.get("type")!=null&&!map.get("type").equals("")) {
 					arrayList.add(map.get("type"));
 					String [] types = arrayList.toArray(new String[arrayList.size()]);
@@ -1108,18 +1155,18 @@ public class LogController extends BaseController{
 						list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,filesize);
 					}
 				}
-				
+
 				// 设置表格头
-		        Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容" };
-		        List<Object> headList = Arrays.asList(head);
-		        
-		        Date date = new Date();
-		        // 过滤第一条，第一条数据为总数统计
-		        list.remove(0);
-		        // 开始写入csv文件
-		        CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
-		        if (forsize>0) {
-		        	resultmap.put("state", "finished");
+				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容" };
+				List<Object> headList = Arrays.asList(head);
+
+				Date date = new Date();
+				// 过滤第一条，第一条数据为总数统计
+				list.remove(0);
+				// 开始写入csv文件
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				if (forsize>0) {
+					resultmap.put("state", "finished");
 					resultmap.put("value", fileSize+"-"+fileSize);
 					setExportProcess(JSONArray.fromObject(resultmap).toString());
 				}else {
@@ -1135,18 +1182,18 @@ public class LogController extends BaseController{
 			allmap.put("msg", "日志导出失败");
 			e.printStackTrace();
 		}
-		
+
 		String result = JSONArray.fromObject(allmap).toString();
-		
+
 		return result;
 	}
-	
+
 
 	public String Callback() {
 
 		return null;
-    }
-	
+	}
+
 	/*public static Map<String, String> mapRemoveWithNullByRecursion(Map<String, String> map){
 		Set<Entry<String, String>> set = map.entrySet();
 		Iterator<Entry<String, String>> it = set.iterator();
@@ -1164,15 +1211,15 @@ public class LogController extends BaseController{
 		}
 		return map;
 	}*/
-	
+
 	/**
 	 * DNS组合查询
 	 * @param requestt
 	 * @author jiyourui
-	 * @return 
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
@@ -1183,21 +1230,21 @@ public class LogController extends BaseController{
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter("hsData");
 		System.out.println(hsData);
-		
+
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
-		
+
 		map = removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
-		
+
 		map.remove("page");
 		map.remove("size");
-		
+
 		String page = pageo.toString();
 		String size = sizeo.toString();
-		
+
 		String starttime = "";
 		String endtime = "";
 		if (map.get("starttime")!=null) {
@@ -1210,10 +1257,10 @@ public class LogController extends BaseController{
 			endtime = end.toString();
 			map.remove("endtime");
 		}
-		
+
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
-		
+
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
 			map.remove("type");
@@ -1237,19 +1284,19 @@ public class LogController extends BaseController{
 		allmap.put("list", list);
 		String result = JSONArray.fromObject(allmap).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
-	
+
 	}
-	
+
 	/**
 	 * http组合查询
 	 * @param requestt
 	 * @author jiyourui
-	 * @return 
-	 * @throws IOException 
-	 * @throws JsonMappingException 
-	 * @throws JsonParseException 
+	 * @return
+	 * @throws IOException
+	 * @throws JsonMappingException
+	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
@@ -1259,21 +1306,21 @@ public class LogController extends BaseController{
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter("hsData");
-		
+
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
-		
+
 		map = removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
-		
+
 		map.remove("page");
 		map.remove("size");
-		
+
 		String page = pageo.toString();
 		String size = sizeo.toString();
-		
+
 		String starttime = "";
 		String endtime = "";
 		if (map.get("starttime")!=null) {
@@ -1286,10 +1333,10 @@ public class LogController extends BaseController{
 			endtime = end.toString();
 			map.remove("endtime");
 		}
-		
+
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
-		
+
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
 			map.remove("type");
@@ -1313,39 +1360,39 @@ public class LogController extends BaseController{
 		allmap.put("list", list);
 		String result = JSONArray.fromObject(allmap).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
-	
+
 	}
-	
+
 	public static Map<String,String> removeMapEmptyValue(Map<String,String> paramMap){
 		Set<String> set = paramMap.keySet();
 		Iterator<String> it = set.iterator();
 		List<String> listKey = new ArrayList<String>();
 		while (it.hasNext()) {
-		  String str = it.next();
-		  if(paramMap.get(str)==null || "".equals(paramMap.get(str))){
-			  listKey.add(str) ;
-		  }
+			String str = it.next();
+			if(paramMap.get(str)==null || "".equals(paramMap.get(str))){
+				listKey.add(str) ;
+			}
 		}
 		for (String key : listKey) {
-		    paramMap.remove(key);
+			paramMap.remove(key);
 		}
 		return paramMap;
 	}
-	
+
 	/**
 	 * 组合查询日志事件
 	 * @param requestt
 	 * @author jiyourui
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping(value="/getEventListByBlend",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="组合查询日志事件")
 	public String getEventListByBlend(HttpServletRequest request,HttpSession session) {
 		// receive parameter
-		
+
 		String type = request.getParameter("type");
 		String starttime = request.getParameter("startTime");
 		String endtime = request.getParameter("endTime");
@@ -1358,7 +1405,7 @@ public class LogController extends BaseController{
 		String page = request.getParameter("page");
 		String size = request.getParameter("size");
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		
+
 		Map<String, String> map = new HashMap<String, String>();
 		map.put("event", "event");
 		if (starttime!=null&&!starttime.equals("")) {
@@ -1385,27 +1432,27 @@ public class LogController extends BaseController{
 		if (equipmentid!=null&&!equipmentid.equals("")) {
 			map.put("equipmentid", equipmentid);
 		}
-		
+
 		List<Map<String, Object>> list =null;
-		
+
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 		if (userrole.equals("1")) {
 			list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,size);
 		}else {
 			list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 		}
-		
+
 		Map<String, Object> allmap = new HashMap<>();
 		allmap = list.get(0);
 		list.remove(0);
 		allmap.put("list", list);
-		
+
 		String result = JSONArray.fromObject(allmap).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
 	}
-	
+
 	/**
 	 * 通过事件获取日志信息(未完成)
 	 * @param requestt
@@ -1415,16 +1462,16 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getLogListByLevel",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="通过事件查询日志信息")*/
 	public String getLogListByEvent(HttpServletRequest request) {
-		
+
 		// 获取动作列表(事件)
 		String actions = request.getParameter("actions");
 		// 时间
-		
+
 		// 资产id
-		
-		
+
+
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-		
+
 		Map<String, String> map = new HashMap<>();
 		//map.put("operation_level", keyWords);
 		List<Map<String, Object>> list =null;
@@ -1434,10 +1481,10 @@ public class LogController extends BaseController{
 		}
 		String result = JSONArray.fromObject(list).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
 	}
-	
+
 	/**
 	 * 通过日志级别获取日志信息
 	 * @param requestt
@@ -1447,11 +1494,11 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getLogListByLevel",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="通过日志级别查询数据")
 	public String getLogListByLevel(HttpServletRequest request) {
-		
+
 		String keyWords = request.getParameter("words");
-		
+
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-		
+
 		Map<String, String> map = new HashMap<>();
 		map.put("operation_level", keyWords);
 		List<Map<String, Object>> list =null;
@@ -1461,10 +1508,10 @@ public class LogController extends BaseController{
 		}
 		String result = JSONArray.fromObject(list).toString();
 		String replace=result.replace("\\\\005", "<br/>");
-		
+
 		return replace;
 	}
-	
+
 	/**
 	 * 获取索引数据的数量
 	 * @param request
@@ -1474,14 +1521,14 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getIndicesCount",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="获取索引数据的数量")
 	public String getIndicesCount(HttpServletRequest request) {
-		
-		
+
+
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 		//String[] types = null;
 		String equipmentid = request.getParameter("equipmentid");
 		Map<String, Object> map = new HashMap<>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		// error日志条数统计
 		try {
 			long count = 0;
@@ -1490,13 +1537,13 @@ public class LogController extends BaseController{
 			if (equipmentid!=null&&!equipmentid.equals("")) {
 				mappram.put("equipmentid", equipmentid);
 			}
-			
+
 			count = logService.getCount(configProperty.getEs_index(), types, mappram);
 			map.put("indiceserror", count);
 		} catch (Exception e) {
 			map.put("indiceserror", "获取异常");
 		}
-		
+
 		// 正常数据统计
 		try {
 			long count = 0;
@@ -1513,11 +1560,11 @@ public class LogController extends BaseController{
 		}
 		list.add(map);
 		String result = JSONArray.fromObject(list).toString();
-		
+
 		return result;
 	}
-	
-	
+
+
 	/**
 	 * 首页获取索引中流量数据的数量
 	 * @param request
@@ -1527,13 +1574,13 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getIndicesCountByType",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="首页获取索引中流量数据的数量")
 	public String getIndicesCountByType(HttpServletRequest request) {
-		
+
 		// index中type为defaultpacket的数据量统计
 		String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
 		//String[] types = null;
 		Map<String, Object> map = new HashMap<>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		try {
 			long count = 0;
 			count = logService.getCount(configProperty.getEs_index(), types,null);
@@ -1543,10 +1590,10 @@ public class LogController extends BaseController{
 		}
 		list.add(map);
 		String result = JSONArray.fromObject(list).toString();
-		
+
 		return result;
 	}
-	
+
 	/**
 	 * 获取事件数据的数量
 	 * @param requestt
@@ -1556,13 +1603,13 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getEventsCount",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="获取事件数据的数量")
 	public String getEventsCount(HttpServletRequest request) {
-		
-		
+
+
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 		String equipmentid = request.getParameter("equipmentid");
 		Map<String, Object> map = new HashMap<>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		
+
 		try {
 			Map<String, String> mappram = new HashMap<>();
 			mappram.put("event", "event");
@@ -1576,7 +1623,7 @@ public class LogController extends BaseController{
 		} catch (Exception e) {
 			map.put("eventserror", "获取异常");
 		}
-		
+
 		try {
 			long count = 0;
 			Map<String, String> mappram = new HashMap<>();
@@ -1587,21 +1634,21 @@ public class LogController extends BaseController{
 			}else {
 				count = logService.getCount(configProperty.getEs_index(), types,mappram);
 			}
-			
+
 			map.put("events", count);
 		} catch (Exception e) {
 			map.put("events", "获取异常");
 		}
 		list.add(map);
 		String result = JSONArray.fromObject(list).toString();
-		
+
 		return result;
 	}
-	
+
 	/**
 	 * @param request
 	 * 统计netflow源IP、目的IP、源端口、目的端口的数量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getTopGroupByIPOrPort")
@@ -1617,7 +1664,7 @@ public class LogController extends BaseController{
 		// 时间段
 		String starttime = request.getParameter("startTime");
 		String endtime = request.getParameter("endTime");
-		
+
 		Map<String, String> searchmap = new HashMap<>();
 		if (application_layer_protocol!=null&&!application_layer_protocol.equals("")) {
 			searchmap.put("application_layer_protocol", "http");
@@ -1629,12 +1676,12 @@ public class LogController extends BaseController{
 		if (endtime!=null&&!endtime.equals("")) {
 			searchmap.put("endtime", endtime+" 23:59:59");
 		}
-		
+
 		Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
-		
+
 		if (groupby!=null) {
 			List<Map<String, Object>> list = logService.groupBy(index, types, groupby+".raw", searchmap);
-			
+
 			List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 			for(Entry<String, Object> key : list.get(0).entrySet()) {
 				Map<String,Object> tMap = new HashMap<>();
@@ -1646,7 +1693,7 @@ public class LogController extends BaseController{
 		}else {
 			for(String param:groupbys) {
 				List<Map<String, Object>> list = logService.groupBy(index, types, param, searchmap);
-				
+
 				List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 				for(Entry<String, Object> key : list.get(0).entrySet()) {
 					Map<String,Object> tMap = new HashMap<>();
@@ -1656,39 +1703,39 @@ public class LogController extends BaseController{
 				}
 				map.put(param.replace(".raw", ""), tmplist);
 			}
-			
+
 		}
-		
+
 		return JSONArray.fromObject(map).toString();
 	}
-	
+
 	/**
 	 * @param request
 	 * 通过netflow源IP、目的IP、源端口、目的端口的一项作为条件统计其他三项的数量
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getIPAndPortTop")
 	@DescribeLog(describe="通过netflow源IP、目的IP、源端口、目的端口的一项作为条件统计其他三项的数量")
 	public String getIPAndPortTop(HttpServletRequest request) {
-		
+
 		String index = configProperty.getEs_index();
 		String groupby = request.getParameter("groupfiled");
 		String iporport = request.getParameter("iporport");
-		
+
 		String [] groupbys = {"ipv4_dst_addr","ipv4_src_addr","l4_dst_port","l4_src_port"};
 		String[] types = {"defaultpacket"};
-		
+
 		Map<String, String> searchmap = new HashMap<>();
 		if (groupby!=null&&iporport!=null) {
 			searchmap.put(groupby, iporport);
 		}
-		
+
 		Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
 		for(String param:groupbys) {
 			if (!param.equals(groupby)) {
 				List<Map<String, Object>> list = logService.groupBy(index, types, param, searchmap,10);
-				
+
 				List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 				for(Entry<String, Object> key : list.get(0).entrySet()) {
 					Map<String,Object> tMap = new HashMap<>();
@@ -1699,48 +1746,48 @@ public class LogController extends BaseController{
 				map.put(param, tmplist);
 			}
 		}
-		
+
 		return JSONArray.fromObject(map).toString();
 	}
-	
+
 	/**
 	 * @param request
 	 * 通过netflow数据获取网络拓扑数据
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getTopologicalData")
 	@DescribeLog(describe="通过netflow数据获取网络拓扑数据")
 	public String getTopologicalData(HttpServletRequest request) {
-		
+
 		String index = configProperty.getEs_index();
 		String groupby = request.getParameter("groupfiled");
 		String iporport = request.getParameter("iporport");
 		String count = request.getParameter("count");
-		
+
 		// 双向划线
 		String [] groupbys = {"ipv4_dst_addr","ipv4_src_addr"};
 		String[] types = {"defaultpacket"};
-		
+
 		Map<String, String> searchmap = new HashMap<>();
 		if (groupby!=null&&iporport!=null) {
 			searchmap.put(groupby, iporport);
 		}
-		
+
 		Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
-		
+
 		//System.out.println(new Date().getTime());
 		long starttime = new Date().getTime();
-		
+
 		for(String param:groupbys) {
 			if (!param.equals(groupby)) {
 				// 第一层数据结果
 				List<Map<String, Object>> list1 = logService.groupBy(index, types, param, searchmap,5);
-				
+
 				List<Map<String, Object>> datalist = new LinkedList<Map<String, Object>>();
 				List<Map<String, Object>> linkslist = new LinkedList<Map<String, Object>>();
-				
-				
+
+
 				// 组织data中的数据内容中心点
 				Map<String,Object> dataMap = new HashMap<>();
 				dataMap.put("node", 1);
@@ -1767,8 +1814,8 @@ public class LogController extends BaseController{
 					}
 					linksMap1.put("count", key1.getValue());
 					linkslist.add(linksMap1);
-					
-					
+
+
 					// 第二层查询条件和数据结果
 					searchmap.put(groupby, key1.getKey());
 					List<Map<String, Object>> list2 = logService.groupBy(index, types, param, searchmap,5);
@@ -1790,17 +1837,17 @@ public class LogController extends BaseController{
 							linksMap2.put("source", "level3\n"+key2.getKey());
 							linksMap2.put("target", "level2\n"+key1.getKey());
 						}
-						
+
 						linksMap2.put("count", key2.getValue());
 						linkslist.add(linksMap2);
-						
+
 						/*searchmap.put(groupby, key1.getKey());
 						List<Map<String, Object>> itelists = logService.groupBy(index, types, param, searchmap,5);
 						Map<String,Object> itemap = itelists.get(0);*/
 					}
-					
-					
-					
+
+
+
 				}
 				map.put("data", datalist);
 				map.put("links", linkslist);
@@ -1811,45 +1858,56 @@ public class LogController extends BaseController{
 		long ms = endtime-starttime;
 		long time = (endtime-starttime)/1000;
 		//System.out.println("----------------------聚合消耗时间："+time+"s ==========="+ms+"ms");
-		
+
 		return JSONArray.fromObject(map).toString();
 	}
-	
-	
+
+
 	/**
 	 * @param request
 	 * 通过netflow数据获取网络拓扑图
-	 * @return 
+	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping("/getNetworkTopological")
 	@DescribeLog(describe="通过netflow数据获取网络拓扑数据")
 	public String getNetworkTopological(HttpServletRequest request) {
-		
+
 		String index = configProperty.getEs_index();
-		
+
 		// 双向划线
 		String [] groupbys = {"ipv4_src_addr","ipv4_dst_addr"};
 		String[] types = {"defaultpacket"};
-		
+
+		String starttime = request.getParameter("starttime");
+		String endtime = request.getParameter("endtime");
 		Map<String, String> searchmap = new HashMap<>();
 		// 设置时间段为一周
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(new Date());
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String endtime = sdf.format(cal.getTime());
-		cal.add(Calendar.DATE, -7);
-		String starttime = sdf.format(cal.getTime());
+		if (endtime!=null&&!endtime.equals("")) {
+			endtime = endtime+" 23:59:59";
+		}else {
+			endtime = sdf.format(cal.getTime());
+		}
+		if (starttime!=null&&!starttime.equals("")) {
+			starttime = starttime+" 00:00:00";
+		}else {
+			cal.add(Calendar.DATE, -7);
+			starttime = sdf.format(cal.getTime());
+		}
+
 		searchmap.put("starttime", starttime);
 		searchmap.put("endtime", endtime);
-		
+
 		Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
-		
+
 		List<Map<String, Object>> datalist = new LinkedList<Map<String, Object>>();
 		List<Map<String, Object>> linkslist = new LinkedList<Map<String, Object>>();
 		// 临时map
 		Map<String,Object> tMap = new HashMap<>();
-		
+
 		for(String param:groupbys) {
 
 			// 第一层数据结果
@@ -1866,12 +1924,11 @@ public class LogController extends BaseController{
 					}
 				}
 			}
-			
+
 		}
-		
+
 		linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
-		System.out.println("---------------------------"+linkslist.size()+"-------------------------------");
-		
+
 		// 遍历第一层数据结果
 		for(Entry<String, Object> key : tMap.entrySet()) {
 			// 组织data中的数据内容
@@ -1882,11 +1939,11 @@ public class LogController extends BaseController{
 		}
 		map.put("data", datalist);
 		map.put("links", linkslist);
-		
-		
+
+
 		return JSONArray.fromObject(map).toString();
 	}
-	
+
 	/**
 	 * 导入历史数据
 	 * @param requestt
@@ -1896,7 +1953,7 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/importHistoricalData",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="导入历史数据")
 	public String importHistoricalData(HttpServletRequest request) {
-		
+
 		String filepath = request.getParameter("filepath");
 		String DEFAULT_REGEX = "^ java.|^   at";
 		//日志类型
@@ -1906,37 +1963,37 @@ public class LogController extends BaseController{
 		PacketFilteringFirewal packetFilteringFirewal;
 		Mysql mysql;
 		Syslog syslog;
-		
+
 		//初始化：获取设备列表、map
 		Map<String, Equipment> equipmentMap = equipmentService.selectAllEquipment();
-				
+
 		Set<String> ipadressSet = equipmentService.selectAllIPAdress();
-				
+
 		Map<String, String> equipmentLogType = equipmentService.selectLog_level();
-				
+
 		Set<String> eventType = alarmService.selectByEmailState();
-		
+
 		Map<String, Object> map = new HashMap<>();
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 		List<IndexRequest> requests = new ArrayList<IndexRequest>();
-		
+
 		File file = new File(filepath);
-		
+
 		try{
-			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create(); 
+			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
 			String json;
-			
+
 			//	资产、ip地址
 			Equipment equipment;
 			String ipadress;
-			
+
 			StringBuilder builder = new StringBuilder();
-            BufferedReader br = new BufferedReader(new FileReader(file));//构造一个BufferedReader类来读取文件
-            String log = null;
-            
-            //使用readLine方法，一次读一行
-            while((log = br.readLine())!=null){
-				
+			BufferedReader br = new BufferedReader(new FileReader(file));//构造一个BufferedReader类来读取文件
+			String log = null;
+
+			//使用readLine方法，一次读一行
+			while((log = br.readLine())!=null){
+
 				// 日志过滤正则
 				// log4j日志信息过滤条件
 				Pattern facility_pattern = Pattern.compile("local3:");
@@ -1960,12 +2017,12 @@ public class LogController extends BaseController{
 				// mysql日志
 				Pattern mysqlpattern = Pattern.compile("timestamp");
 				Matcher mysqlmatcher = mysqlpattern.matcher(log);
-				
+
 				if (facility_matcher.find()) {
 					logType = LogType.LOGTYPE_LOG4J;
 					synchronized (log) {
 						String logleft = log.substring(0, log.indexOf(facility_matcher.group(0))+facility_matcher.group(0).length());
-						
+
 						Matcher m = pattern.matcher(log.replace(logleft, ""));
 						//判断是否符合正则表达式 如果符合，表明这是一条开始数据
 						if(m.find()) {
@@ -2010,7 +2067,7 @@ public class LogController extends BaseController{
 								builder.delete(0, builder.length());
 							}
 							builder.append(log);
-							
+
 						}
 					}
 				}else if (logtype_matcher.find()&&dmg_matcher.find()) {
@@ -2145,26 +2202,26 @@ public class LogController extends BaseController{
 					clientTemplate.bulk(requests);
 					requests.clear();
 				}
-            }
-            br.close();
-            map.put("result", "导入历史数据成功！");
-        }catch(Exception e){
-        	requests.clear();
-            map.put("result", "导入历史数据失败！");
-            e.printStackTrace();
-        }finally {
+			}
+			br.close();
+			map.put("result", "导入历史数据成功！");
+		}catch(Exception e){
+			requests.clear();
+			map.put("result", "导入历史数据失败！");
+			e.printStackTrace();
+		}finally {
 			if (requests.size()>0) {
 				clientTemplate.bulk(requests);
 			}
 		}
-		
+
 		list.add(map);
 		String result = JSONArray.fromObject(list).toString();
-		
+
 		return result;
 	}
-	
-	
+
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 

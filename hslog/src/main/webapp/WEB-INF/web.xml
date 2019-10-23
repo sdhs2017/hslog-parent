@@ -27,6 +27,7 @@
   <listener>
     <listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
   </listener>
+  <!-- spring mvc 前段控制器-->
   <servlet>
     <servlet-name>SpringMVC</servlet-name>
     <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
@@ -44,6 +45,7 @@
   <welcome-file-list>
     <welcome-file>/Login.jsp</welcome-file>
   </welcome-file-list>
+  <!-- session 过期时间-->
   <session-config>
     <session-timeout>30</session-timeout>
   </session-config>

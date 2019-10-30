@@ -1,26 +1,30 @@
 package com.hs.elsearch.dao.impl;
 
 import com.hs.elsearch.dao.IElasticsearchDao;
+import com.hs.elsearch.template.ESTransportIndexTemplate;
 import com.hs.elsearch.template.ESTransportSearchTemplate;
 import com.hs.elsearch.template.bak.ClientTemplate;
 import org.apache.directory.api.util.Strings;
 import org.apache.log4j.Logger;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.index.query.*;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
+import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @program: hslog-parent
@@ -39,31 +43,44 @@ public class ElasticsearchDao implements IElasticsearchDao {
         this.clientTemplate = clientTemplate;
     }*/
 
+    // 默认排序字段
+    String orderField = "logdate";
+
+    // 默认排序方式
+    SortOrder desc = SortOrder.DESC;
+
     @Autowired
     ESTransportSearchTemplate searchTemplate;
+    @Autowired
+    ESTransportIndexTemplate indexTemplate;
 
     @Override
-    public long getCount(Map<String, String> map, String[] types, String... indices) {
+    public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String, Object> settings, String type, String mapping) throws Exception {
+        return indexTemplate.createOrUpdateTemplateOfIndex(tempalateName,tempalatePattern,settings,type,mapping);
+    }
+
+    @Override
+    public long getCount(Map<String, String> map, String starttime,String endtime, String[] types, String... indices) {
 
         long result = 0;
 
         BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+
+        // 其他查询条件
         if (map!=null&&!map.isEmpty()) {
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            // 时间段处理
-            if (map.get("starttime")!=null&&map.get("endtime")!=null) {
-                queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(map.get("starttime")).lte(map.get("endtime")));
-                map.remove("starttime");
-                map.remove("endtime");
-            }else if (map.get("starttime")!=null) {
-                queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(map.get("starttime")).lte(format.format(new Date())));
-                map.remove("starttime");
-            }else if (map.get("endtime")!=null) {
-                queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(map.get("endtime")));
-                map.remove("endtime");
-            }else {
-                queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
-            }
+            // 遍历map中查询条件
             for(Map.Entry<String, String> entry : map.entrySet()){
                 if (entry.getKey().equals("event")) {
                     // 字段不为null查询
@@ -79,22 +96,116 @@ public class ElasticsearchDao implements IElasticsearchDao {
                     queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }
             }
-            try {
-                result = searchTemplate.getCountByQuery(queryBuilder, types,indices);
-            } catch (Exception e) {
-                result = 0;
-            }
-        }else {
 
-            try {
-                result = searchTemplate.getCountByQuery(null, types,indices);
-            } catch (Exception e){
-                result = 0;
-            }
-
+        }
+        try {
+            result = searchTemplate.getCountByQuery(queryBuilder, types, indices);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = 0;
         }
 
         return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, Map<String, String> map, String... indices) {
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    queryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    queryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
+					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
+				}*/else {
+                    queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        // 聚合条件处理
+        String count = groupByField+"_count";
+        // 聚合查询group by
+        AggregationBuilder aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(Terms.Order.count(false));
+
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(queryBuilder, aggregationBuilder, types, indices);
+
+        Terms terms  = aggregations.get(count);
+
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+
+        Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+
+        for(Terms.Bucket bucket:terms.getBuckets()) {
+            bucketmap.put(bucket.getKeyAsString(), bucket.getDocCount());
+        }
+
+        list.add(bucketmap);
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getListByDateHistogramAggregation(String[] types, String starttime, String endtime, String dateHistogramField, Map<String, String> map, String... indices) {
+
+        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+
+        for (Map.Entry<String,String> entry : map.entrySet()){
+            TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue());
+            queryBuilder.must(termQueryBuilder);
+        }
+
+        AggregationBuilder aggregationBuilder =
+                AggregationBuilders
+                        .dateHistogram("agg")
+                        .field(dateHistogramField)
+                        .dateHistogramInterval(DateHistogramInterval.HOUR);
+
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(queryBuilder, aggregationBuilder, types, indices);
+        Histogram agg = aggregations.get("agg");
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        // For each entry
+        for (Histogram.Bucket entry : agg.getBuckets()) {
+            Map<String, Object> aggmap = new HashMap<>();
+            DateTime key = (DateTime) entry.getKey();    // Key
+            String keyAsString = entry.getKeyAsString(); // Key as String
+            long docCount = entry.getDocCount();         // Doc count
+            aggmap.put("hour",key.hourOfDay().getAsString());
+            aggmap.put("count",docCount);
+            list.add(aggmap);
+
+        }
+        return list;
     }
 
     @Override
@@ -128,5 +239,35 @@ public class ElasticsearchDao implements IElasticsearchDao {
         highlightBuilder.fragmentSize(500);
 
         return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,highlightBuilder,page,size,types,indices);
+    }
+
+    @Override
+    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types, String... indices) {
+
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+
+        for(Map.Entry<String, String> entry : map.entrySet()){
+			/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+			boolQueryBuilder.must(matchqueryBuilder);*/
+            QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
+            boolQueryBuilder.must(wildcardqueryBuilder);
+        }
+
+        // 构建排序体,指定排序字段
+        SortBuilder sortBuilder = SortBuilders.fieldSort(orderField).order(desc);
+
+        return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,types,indices);
     }
 }

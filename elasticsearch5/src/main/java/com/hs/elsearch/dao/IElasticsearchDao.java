@@ -56,5 +56,27 @@ public interface IElasticsearchDao {
      */
     public List<Map<String, Object>> getListByContent(String content,String userid,int page,int size,String[] types,String... indices);
 
+    /**
+     *
+     * @param map
+     * @param starttime
+     * @param endtime
+     * @param types
+     * @param indices
+     * @return
+     */
     public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices);
+
+    /**
+     *
+     * @param map
+     * @param starttime
+     * @param endtime
+     * @param from
+     * @param size
+     * @param types
+     * @param indices
+     * @return
+     */
+    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types,String... indices);
 }

@@ -64,18 +64,18 @@ public class ElasticsearchDao implements IElasticsearchDao {
 
         long result = 0;
 
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         // 时间段处理
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
         // 其他查询条件
@@ -84,22 +84,29 @@ public class ElasticsearchDao implements IElasticsearchDao {
             for(Map.Entry<String, String> entry : map.entrySet()){
                 if (entry.getKey().equals("event")) {
                     // 字段不为null查询
-                    queryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
                 }else if(entry.getKey().equals("event_level")){
                     // 范围查询
-                    queryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(0).lte(3));
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(0).lte(3));
                 }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
                     // 短语匹配
-                    queryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
+                }else if (entry.getKey().equals("operation_level")) {
+                    // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                    String [] operation_level = entry.getValue().split(",");
+                    boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
+                }else if(entry.getKey().equals("dns_domain_name")){
+                    QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+                    boolQueryBuilder.must(queryBuilder);
                 }else {
                     // 不分词精确查询
-                    queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }
             }
 
         }
         try {
-            result = searchTemplate.getCountByQuery(queryBuilder, types, indices);
+            result = searchTemplate.getCountByQuery(boolQueryBuilder, types, indices);
         } catch (Exception e) {
             e.printStackTrace();
             result = 0;
@@ -110,31 +117,34 @@ public class ElasticsearchDao implements IElasticsearchDao {
 
     @Override
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, Map<String, String> map, String... indices) {
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         // 时间段查询条件处理
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
             for(Map.Entry<String, String> entry : map.entrySet()){
                 if (entry.getKey().equals("logdate")) {
-                    queryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
                 }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
                     // 短语匹配
-                    queryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
                 }/*else if (entry.getKey().equals("application_layer_protocol")) {
 					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
 				}*/else {
-                    queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }
             }
         }
@@ -145,7 +155,7 @@ public class ElasticsearchDao implements IElasticsearchDao {
         AggregationBuilder aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(Terms.Order.count(false));
 
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(queryBuilder, aggregationBuilder, types, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, types, indices);
 
         Terms terms  = aggregations.get(count);
 
@@ -164,23 +174,42 @@ public class ElasticsearchDao implements IElasticsearchDao {
     @Override
     public List<Map<String, Object>> getListByDateHistogramAggregation(String[] types, String starttime, String endtime, String dateHistogramField, Map<String, String> map, String... indices) {
 
-        BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         // 时间段查询条件处理
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
         for (Map.Entry<String,String> entry : map.entrySet()){
-            TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue());
-            queryBuilder.must(termQueryBuilder);
+            if (entry.getKey().equals("event_type")){
+                boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+            }else if (entry.getKey().equals("event_level")){
+                int gte = 0;
+                int lte = 7;
+                if (Integer.valueOf(entry.getValue())==1) {
+                    gte = 0;
+                    lte = 3;
+                }else if (Integer.valueOf(entry.getValue())==2) {
+                    gte = 4;
+                    lte = 5;
+                }else if (Integer.valueOf(entry.getValue())==3) {
+                    gte = 6;
+                    lte = 7;
+                }
+                boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(gte).lte(lte));
+            }else {
+                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue());
+                boolQueryBuilder.must(termQueryBuilder);
+            }
+
         }
 
         AggregationBuilder aggregationBuilder =
@@ -190,7 +219,7 @@ public class ElasticsearchDao implements IElasticsearchDao {
                         .dateHistogramInterval(DateHistogramInterval.HOUR);
 
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(queryBuilder, aggregationBuilder, types, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, types, indices);
         Histogram agg = aggregations.get("agg");
 
         List<Map<String, Object>> list = new ArrayList<>();
@@ -259,15 +288,63 @@ public class ElasticsearchDao implements IElasticsearchDao {
         }
 
         for(Map.Entry<String, String> entry : map.entrySet()){
-			/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
-			boolQueryBuilder.must(matchqueryBuilder);*/
-            QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
-            boolQueryBuilder.must(wildcardqueryBuilder);
+            if (entry.getKey().equals("operation_level")) {
+                // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                String [] operation_level = entry.getValue().split(",");
+                boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
+            }else if(entry.getKey().equals("dns_domain_name")){
+                QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+                boolQueryBuilder.must(queryBuilder);
+            }else{
+                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
+                boolQueryBuilder.must(termQueryBuilder);
+            }
+
         }
 
         // 构建排序体,指定排序字段
         SortBuilder sortBuilder = SortBuilders.fieldSort(orderField).order(desc);
 
         return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,types,indices);
+    }
+
+    @Override
+    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+
+        for(Map.Entry<String, String> entry : map.entrySet()){
+			/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+			boolQueryBuilder.must(matchqueryBuilder);*/
+            /*QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
+            boolQueryBuilder.must(wildcardqueryBuilder);*/
+            if (entry.getKey().equals("operation_level")) {
+                // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                String [] operation_level = entry.getValue().split(",");
+                boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
+            }else if(entry.getKey().equals("dns_domain_name")){
+                QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+                boolQueryBuilder.must(queryBuilder);
+            }else{
+                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
+                boolQueryBuilder.must(termQueryBuilder);
+            }
+        }
+
+        // 构建排序体,指定排序字段
+        SortBuilder sortBuilder = SortBuilders.fieldSort(orderField).order(desc);
+
+        return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,from,size,types,indices);
     }
 }

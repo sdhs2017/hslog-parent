@@ -166,7 +166,7 @@ public class ESTransportSearchTemplate {
      * @param indices
      * @return
      */
-    public List<Map<String, Object>> getListByBuilder(QueryBuilder queryBuilder, SortBuilder sortBuilder,int from,int size, String [] types, String... indices){
+    public List<Map<String, Object>> getListByBuilder(QueryBuilder queryBuilder, SortBuilder sortBuilder,Integer from,Integer size, String [] types, String... indices){
 
         SearchRequestBuilder requestBuilder = transportClient.prepareSearch(indices);
         if (types!=null&&types.length>0){

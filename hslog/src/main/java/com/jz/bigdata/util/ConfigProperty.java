@@ -37,7 +37,13 @@ public class ConfigProperty {
     
     @Value("#{prop.es_path_snapshot}")
     private String es_path_snapshot;
-    
+
+	@Value("#{prop.es_templatename}")
+	private String es_templatename;
+
+	@Value("#{prop.es_tempalatePattern}")
+	private String es_tempalatePattern;
+
     @Value("#{prop.es_index}")
     private String es_index;
 
@@ -52,6 +58,9 @@ public class ConfigProperty {
 
 	@Value("#{prop.es_number_of_replicas}")
 	private String es_number_of_replicas;
+
+	@Value("#{prop.es_number_of_shards}")
+	private String es_number_of_shards;
     
     @Value("#{prop.es_bulk}")
     private Integer es_bulk;
@@ -184,6 +193,30 @@ public class ConfigProperty {
 
 	public void setEs_number_of_replicas(String es_number_of_replicas) {
 		this.es_number_of_replicas = es_number_of_replicas;
+	}
+
+	public String getEs_number_of_shards() {
+		return es_number_of_shards;
+	}
+
+	public void setEs_number_of_shards(String es_number_of_shards) {
+		this.es_number_of_shards = es_number_of_shards;
+	}
+
+	public String getEs_templatename() {
+		return es_templatename;
+	}
+
+	public void setEs_templatename(String es_templatename) {
+		this.es_templatename = es_templatename;
+	}
+
+	public String getEs_tempalatePattern() {
+		return es_tempalatePattern;
+	}
+
+	public void setEs_tempalatePattern(String es_tempalatePattern) {
+		this.es_tempalatePattern = es_tempalatePattern;
 	}
 
 	public String getEs_index() {

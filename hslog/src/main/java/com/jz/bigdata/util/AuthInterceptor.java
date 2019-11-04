@@ -59,7 +59,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 			 * equals改为indexof(*)>0
 			 * 或者 只判断项目路径后面的相对路径
 			 */
-			if(request.getRequestURI().equals("/jzLog/users/logout.do")||request.getRequestURI().equals("/jzLog/users/registerUser.do")||request.getRequestURI().equals("/jzLog/upload/licenseUpload.do")){
+			if(request.getRequestURI().contains("/users/logout.do")||request.getRequestURI().contains("/users/registerUser.do")||request.getRequestURI().contains("/upload/licenseUpload.do")){
 				return true;
 			}else{
 				String phone=request.getParameter("phone");

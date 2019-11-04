@@ -19,7 +19,7 @@
                         http://www.springframework.org/schema/tx 
 	                    http://www.springframework.org/schema/tx/spring-tx.xsd
 	                    http://www.springframework.org/schema/data/jpa
-	                    http://www.springframework.org/schema/data/jpa/spring-jpa-1.8.xsd
+	                    http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
 				        http://www.springframework.org/schema/data/elasticsearch
 						http://www.springframework.org/schema/data/elasticsearch/spring-elasticsearch-1.0.xsd
 						http://www.springframework.org/schema/cache
@@ -815,6 +815,29 @@
 			<value>0 */2 * * * ?</value>
 		</property>
 	</bean>
+
+	<!-- CreateIndexJob定时创建index任务 -->
+	<bean id="CreateIndexJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 调用类 -->
+		<property name="targetObject">
+			<ref bean="logService"/>
+		</property>
+		<!--  调用类方法 -->
+		<property name="targetMethod">
+			<value>createIndexRegularly</value>
+		</property>
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="CreateIndexJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="CreateIndexJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+			<value>0 0 23 */1 * ?</value>
+		</property>
+	</bean>
+
 	<!-- 触发器启动 -->
 	<bean name="startQuertz" lazy-init="false" autowire="no"
 		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
@@ -822,6 +845,7 @@
 			<list>
 				<ref bean="createSnapshotJobTrigger"/>
 				<ref bean="updateRiskJobTrigger"/>
+				<ref bean="CreateIndexJobTrigger"/>
 				<!--  <ref bean="urlJobTrigger" />
                 <ref bean="domainJobTrigger" />
                 <ref bean="assetsHeartBeatJobTrigger" /> -->

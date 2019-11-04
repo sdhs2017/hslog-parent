@@ -171,30 +171,35 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="初始化数据结构")
 	public String createIndexAndMapping(HttpServletRequest request) {
 		Map<String, Object> map= new HashMap<>();
+
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+
 		try {
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_DNS, new DNS().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_DHCP, new DHCP().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
 
 			// 网络数据包
-			/*logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_HTTP, new Http().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_HTTPS, new Https().toMapping());
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_TCP, new Tcp().toMapping());*/
-			logService.createIndexAndmapping(configProperty.getEs_index(),LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
+//			logService.createIndexAndmapping(index,LogType.LOGTYPE_HTTP, new Http().toMapping());
+//			logService.createIndexAndmapping(index,LogType.LOGTYPE_HTTPS, new Https().toMapping());
+//			logService.createIndexAndmapping(index,LogType.LOGTYPE_TCP, new Tcp().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
+
 
 			// 更新index的settings属性
 			Map<String, Object> settingmap = new HashMap<>();
 			settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
 			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
-			logService.updateSettings(configProperty.getEs_index(), settingmap);
+			logService.updateSettings(index, settingmap);
 			// 在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
 			try {
 				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
@@ -211,13 +216,21 @@ public class LogController extends BaseController{
 			} catch (Exception e) {
 				Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
 				if (!result) {
-					map.put("state", true);
+					map.put("state", false);
 					map.put("msg", "备份仓库初始化失败！");
 					return JSONArray.fromObject(map).toString();
 				}
 			}
 
 
+			/*Map<String,Object> settingsMap = new HashMap<>();
+			settingsMap.put("index.max_result_window",configProperty.getEs_max_result_window());
+			settingsMap.put("index.number_of_replicas",configProperty.getEs_number_of_replicas());
+			settingsMap.put("index.number_of_shards",configProperty.getEs_number_of_shards());
+
+			logService.createTemplateOfIndex(configProperty.getEs_templatename(),configProperty.getEs_tempalatePattern(),settingsMap,LogType.LOGTYPE_SYSLOG,new Syslog().toMapping());
+			logService.createTemplateOfIndex(configProperty.getEs_templatename(),configProperty.getEs_tempalatePattern(),settingsMap,LogType.LOGTYPE_WINLOG,new Winlog().toMapping());
+*/
 			map.put("state", true);
 			map.put("msg", "初始化成功！");
 			return JSONArray.fromObject(map).toString();
@@ -322,25 +335,25 @@ public class LogController extends BaseController{
 	@ResponseBody
 	@RequestMapping("/getCountGroupByEventType")
 	@DescribeLog(describe="统计各个事件的数据量")
-	public List<Map<String, Object>> getCountGroupByEventType(HttpServletRequest request) {
+	public List<List<Map<String, Object>>> getCountGroupByEventType(HttpServletRequest request) {
 		String index = configProperty.getEs_index();
 		String type = request.getParameter("type");
 		String [] types = null;
 		if (!type.equals("")) {
 			types = type.split(",");
 		}
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		String param = request.getParameter("param");
+		List<List<Map<String, Object>>> list = new ArrayList<>();
+		String date = request.getParameter("param");
 		String equipmentid = request.getParameter("equipmentid");
 		String [] hours = {"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"};
 		// 0全部，1高危，2中等，3普通
 		for(int i=0;i<4;i++) {
-			List<Map<String, Object>> list1 = logService.getEventListGroupByTime(index, types, param,equipmentid,"event_type",i);
-			Map<String, Object> map = new HashMap<>();
+			List<Map<String, Object>> list1 = logService.getEventListGroupByTime(index, types, date,equipmentid,"event_type",i);
+			/*Map<String, Object> map = new HashMap<>();
 			for(String hour : hours) {
 				map.put(hour, list1.get(0).get(hour)!=null?list1.get(0).get(hour):0);
-			}
-			list.add(map);
+			}*/
+			list.add(list1);
 		}
 
 		return list;
@@ -365,15 +378,18 @@ public class LogController extends BaseController{
 
 		String param = request.getParameter("param");
 		String equipmentid = request.getParameter("equipmentid");
-		String [] hours = {"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"};
+		//String [] hours = {"00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"};
 		List<Map<String, Object>> list = logService.getListGroupByTime(index, types, param,equipmentid);
 
-		Map<String, Object> map = new HashMap<>();
+		/*for (Map<String, Object> map : list){
+
+		}*/
+		/*Map<String, Object> map = new HashMap<>();
 		for(String hour : hours) {
 			map.put(hour, list.get(0).get(hour)!=null?list.get(0).get(hour):0);
 		}
 		list.clear();
-		list.add(map);
+		list.add(map);*/
 		return list;
 	}
 
@@ -739,13 +755,10 @@ public class LogController extends BaseController{
 			try {
 				map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 			} catch (JsonParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (JsonMappingException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			equipment.setId(map.get("id"));
@@ -776,22 +789,6 @@ public class LogController extends BaseController{
 
 			String type = equipment.getLogType();
 
-			/*int logType = equipment.getLogType();
-			if(EquipmentConstant.LOGTYPE_SYSLOG==logType){
-				type = EquipmentConstant.LOGTYPE_SYSLOG_EN;
-			}else if(EquipmentConstant.LOGTYPE_WMI==logType){
-				type = EquipmentConstant.LOGTYPE_WMI_EN;
-			}else if(EquipmentConstant.LOGTYPE_SNMP==logType){
-				type = EquipmentConstant.LOGTYPE_SNMP_EN;
-			}else if(EquipmentConstant.LOGTYPE_LOG4J==logType){
-				type = EquipmentConstant.LOGTYPE_LOG4J_EN;
-			}else if(EquipmentConstant.LOGTYPE_MYSQL==logType){
-				type = EquipmentConstant.LOGTYPE_MYSQL_EN;
-			}else if(EquipmentConstant.LOGTYPE_FIREWALL==logType){
-				type = EquipmentConstant.LOGTYPE_FIREWALL_EN;
-			}else{
-				type = null;
-			}*/
 
 			String equipmentId = equipment.getId();
 
@@ -807,7 +804,8 @@ public class LogController extends BaseController{
 				types = arrayList.toArray(new String[arrayList.size()]);
 			}
 
-			List<Map<String, Object>> list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+			//List<Map<String, Object>> list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+			List<Map<String, Object>> list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 
 			Map<String, Object> allmap = new HashMap<>();
 			allmap = list.get(0);
@@ -816,8 +814,9 @@ public class LogController extends BaseController{
 			String result = JSONArray.fromObject(allmap).toString();
 
 			String replace=result.replace("\\\\005", "<br/>");
-			System.out.println("---------------result----------------");
-			System.err.println(result);
+			/*System.out.println("---------------result----------------");
+			System.err.println(result);*/
+			logger.info("查询资产的日志内容");
 			return replace;
 		}else {
 			Map<String, Object> allmap = new HashMap<>();
@@ -832,7 +831,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 通过关键字获取日志信息
-	 * @param requestt
+	 * @param request
 	 * @return
 	 */
 	@ResponseBody
@@ -889,7 +888,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 组合查询
-	 * @param requestt
+	 * @param request
 	 * @author jiyourui
 	 * @return
 	 * @throws IOException
@@ -952,7 +951,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 组合查询
-	 * @param requestt
+	 * @param request
 	 * @author jiyourui
 	 * @return
 	 * @throws IOException
@@ -1017,7 +1016,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 查询+导出
-	 * @param requestt
+	 * @param request
 	 * @author jiyourui
 	 * @return
 	 * @throws IOException
@@ -1214,7 +1213,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * DNS组合查询
-	 * @param requestt
+	 * @param request
 	 * @author jiyourui
 	 * @return
 	 * @throws IOException
@@ -1266,14 +1265,16 @@ public class LogController extends BaseController{
 			map.remove("type");
 			String [] types = arrayList.toArray(new String[arrayList.size()]);
 			if (userrole.equals("1")) {
-				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				//list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			}else {
 				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 			}
 		}else {
 			String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW,LogType.LOGTYPE_DNS,LogType.LOGTYPE_DHCP};
 			if (userrole.equals("1")) {
-				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				//list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			}else {
 				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 			}
@@ -1291,7 +1292,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * http组合查询
-	 * @param requestt
+	 * @param request
 	 * @author jiyourui
 	 * @return
 	 * @throws IOException
@@ -1342,14 +1343,16 @@ public class LogController extends BaseController{
 			map.remove("type");
 			String [] types = arrayList.toArray(new String[arrayList.size()]);
 			if (userrole.equals("1")) {
-				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				//list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			}else {
 				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 			}
 		}else {
 			String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW,LogType.LOGTYPE_DNS,LogType.LOGTYPE_DHCP};
 			if (userrole.equals("1")) {
-				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				//list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			}else {
 				list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 			}
@@ -1383,7 +1386,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 组合查询日志事件
-	 * @param requestt
+	 * @param request
 	 * @author jiyourui
 	 * @return
 	 */
@@ -1455,13 +1458,13 @@ public class LogController extends BaseController{
 
 	/**
 	 * 通过事件获取日志信息(未完成)
-	 * @param requestt
+	 * @param request
 	 * @return
 	 */
 	/*@ResponseBody
 	@RequestMapping(value="/getLogListByLevel",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="通过事件查询日志信息")*/
-	public String getLogListByEvent(HttpServletRequest request) {
+	/*public String getLogListByEvent(HttpServletRequest request) {
 
 		// 获取动作列表(事件)
 		String actions = request.getParameter("actions");
@@ -1483,11 +1486,11 @@ public class LogController extends BaseController{
 		String replace=result.replace("\\\\005", "<br/>");
 
 		return replace;
-	}
+	}*/
 
 	/**
 	 * 通过日志级别获取日志信息
-	 * @param requestt
+	 * @param request
 	 * @return
 	 */
 	@ResponseBody
@@ -1503,8 +1506,10 @@ public class LogController extends BaseController{
 		map.put("operation_level", keyWords);
 		List<Map<String, Object>> list =null;
 		try {
-			list = logService.getListByMap(configProperty.getEs_index(), types, map);
+			//list = logService.getListByMap(configProperty.getEs_index(), types, map);
+			list = logService.getListByMap(map, null, null, types, configProperty.getEs_index());
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		String result = JSONArray.fromObject(list).toString();
 		String replace=result.replace("\\\\005", "<br/>");
@@ -1596,7 +1601,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 获取事件数据的数量
-	 * @param requestt
+	 * @param request
 	 * @return
 	 */
 	@ResponseBody
@@ -1671,16 +1676,16 @@ public class LogController extends BaseController{
 			searchmap.put("requestorresponse", "request");
 		}
 		if (starttime!=null&&!starttime.equals("")) {
-			searchmap.put("starttime", starttime+" 00:00:00");
+			starttime = starttime+" 00:00:00";
 		}
 		if (endtime!=null&&!endtime.equals("")) {
-			searchmap.put("endtime", endtime+" 23:59:59");
+			endtime = endtime+" 23:59:59";
 		}
 
 		Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
 
 		if (groupby!=null) {
-			List<Map<String, Object>> list = logService.groupBy(index, types, groupby+".raw", searchmap);
+			List<Map<String, Object>> list = logService.groupBy(index, types, groupby+".raw", starttime, endtime, searchmap);
 
 			List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 			for(Entry<String, Object> key : list.get(0).entrySet()) {
@@ -1692,7 +1697,7 @@ public class LogController extends BaseController{
 			map.put(groupby, tmplist);
 		}else {
 			for(String param:groupbys) {
-				List<Map<String, Object>> list = logService.groupBy(index, types, param, searchmap);
+				List<Map<String, Object>> list = logService.groupBy(index, types, param, starttime, endtime, searchmap);
 
 				List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
 				for(Entry<String, Object> key : list.get(0).entrySet()) {
@@ -1946,7 +1951,7 @@ public class LogController extends BaseController{
 
 	/**
 	 * 导入历史数据
-	 * @param requestt
+	 * @param request
 	 * @return
 	 */
 	@ResponseBody

@@ -800,17 +800,25 @@
             data:sendLineObj,
             async:true,
             success:function(data){
-                var obj = data[0];
-                //var xVal = [];
+                /* var obj = data[0];
                 var yVal = [];
-                /* for(var i in obj){
-                    yVal.push(obj[i])
-                } */
                 for(var i = 0;i<24;i++){
                     if(i < 10){
                         i = "0"+i;
                     }
                     yVal.push(obj[i]);
+                } */
+                //定义数组 存放值
+                var yVal = [];
+                //循环填充组
+                for(var i in data){
+                    yVal.push(data[i].count);
+                }
+                //获得数组的长度
+                var arrLength = yVal.length
+                //循环填充值为0
+                for(var j = 0;j< 24-arrLength;j++){
+                    yVal.push(0)
                 }
                 //yVal = obj;
                 myChart03.setOption({

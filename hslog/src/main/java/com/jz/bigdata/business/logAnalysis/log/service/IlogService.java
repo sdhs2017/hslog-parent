@@ -12,24 +12,36 @@ public interface IlogService {
 
 	/**
 	 * 创建elasticsearch的index
-	 * @param index
+	 * @param index 索引名称
 	 */
 	public void createIndex(String index);
 
 	/**
 	 * 判断index是否存在
-	 * @param index
-	 * @return
+	 * @param index 索引名称
+	 * @return 存在返回true，不存在false
 	 */
 	public boolean indexExists(String index);
 
 	/**
 	 * 创建elasticsearch的index和type，并配置mapping
-	 * @param index
-	 * @param type
-	 * @param mappingproperties
+	 * @param index 索引名称
+	 * @param type 索引类型（7版本删除）
+	 * @param mappingproperties 字段属性
 	 */
 	public void createIndexAndmapping(String index, String type, String mappingproperties);
+
+	/**
+	 *
+	 * 用于初始化操作创建index的模板
+	 * @param tempalateName 模板名称
+	 * @param tempalatePattern index名称通配
+	 * @param settings 针对index模板的具体属性设置，包括分片数、副本数、最大查询值等，其中分片数设置之后是不能再修改的
+	 * @param type 在5.4版本中index的template需要指明mapping对应的type，在7版本后只需要指定mapping
+	 * @param mapping 字段属性
+	 * @return 创建成功返回true，失败false
+	 */
+	public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String,Object> settings,String type, String mapping) throws Exception;
 
 	/**
 	 * 向elasticsearch新建索引数据
@@ -47,22 +59,23 @@ public interface IlogService {
 	 * @return
 	 */
 	public long getCount(String index,String [] types,Map<String, String> map);
+	public long getCount(Map<String, String> map, String starttime,String endtime, String[] types, String... indices);
 
 	/**
 	 * 实现类sql的group by功能,包含时间范围、条件等
-	 * @param index
-	 * @param type
-	 * @param groupByField
-	 * @param starttime
-	 * @param endtime
-	 * @param map
+	 * @param index 索引名称
+	 * @param types index 的 type字段，在7版本中移除
+	 * @param groupByField 需要进行聚合的字段
+	 * @param starttime 时间范围-开始时间
+	 * @param endtime 时间范围-结束时间
+	 * @param map 其他限制条件
 	 * @return
 	 */
 	public List<Map<String, Object>> groupBy(String index,String[] types,String groupByField, String starttime, String endtime,Map<String, String> map);
 	/**
 	 * 实现类sql的group by功能
 	 * @param index
-	 * @param type
+	 * @param types
 	 * @param groupByField groupby的key值
 	 * @param map 条件参数
 	 * @return
@@ -174,12 +187,27 @@ public interface IlogService {
 
 	/**
 	 * 通过map构建的查询条件进行数据查询
-	 * @param index
-	 * @param types
-	 * @param map
-	 * @return
+	 * @param map 查询条件
+	 * @param starttime 时间范围-开始时间
+	 * @param endtime  时间范围-结束时间
+	 * @param types index type字段，在7版本中移除
+	 * @param indices 索引名称
+	 * @return 返回符合查询条件的日志内容
 	 */
-	public List<Map<String, Object>> getListByMap(String index,String[] types,Map<String, String> map);
+	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices);
+
+	/**
+	 * 通过map构建的查询条件进行数据查询
+	 * @param map 查询条件
+	 * @param starttime 时间范围-开始时间
+	 * @param endtime  时间范围-结束时间
+	 * @param page 页码
+	 * @param size 单页显示条数
+	 * @param types index type字段，在7版本中移除
+	 * @param indices 索引名称
+	 * @return 返回符合查询条件的日志内容
+	 */
+	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types,String... indices);
 
 	/**
 	 * getListByBlend重载
@@ -228,7 +256,7 @@ public interface IlogService {
 	 * @param size
 	 * @return
 	 */
-	public List<Map<String, Object>> getListByMap(String index, String[] types, String starttime, String endtime,Map<String, String> map,String page,String size);
+	/*public List<Map<String, Object>> getListByMap(String index, String[] types, String starttime, String endtime,Map<String, String> map,String page,String size);*/
 
 	/**
 	 * 通过时间段+map+userid
@@ -363,5 +391,11 @@ public interface IlogService {
 	 * @return
 	 */
 	public boolean updateSettings(String index,Map<String, Object> map) ;
+
+	/**
+	 * 定时任务：创建
+	 * @return
+	 */
+	public boolean createIndexRegularly();
 
 }

@@ -57,6 +57,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 		String commandResult = result.get(FILES_SHELL);
 		String[] strings = commandResult.split(LINE_SEPARATOR);
 
+        Pattern TPattern = Pattern.compile("[0-9][T]");
         Pattern GPattern = Pattern.compile("[0-9][G]");  
         Pattern MPattern = Pattern.compile("[0-9][M]");
         Pattern KPattern = Pattern.compile("[0-9][K]");
@@ -67,11 +68,37 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
             if (i == 0) continue;
 
             int temp = 0;
+            Matcher Tmatcher = TPattern.matcher(strings[i]);
             Matcher Gmatcher = GPattern.matcher(strings[i]);
             Matcher Mmatcher = MPattern.matcher(strings[i]);
             Matcher Kmatcher = KPattern.matcher(strings[i]);
             
-            if (Gmatcher.find()||Mmatcher.find()||Kmatcher.find()) {
+            if (Gmatcher.find()||Mmatcher.find()||Kmatcher.find()||Tmatcher.find()) {
+                Pattern systemPattern = Pattern.compile("/$");
+                Pattern dataPattern = Pattern.compile("/home");
+                Matcher systemmatcher = systemPattern.matcher(strings[i]);
+                Matcher datamatcher = dataPattern.matcher(strings[i]);
+                //System.out.println(strings[i]);
+                if (systemmatcher.find()) {
+                    String[] content = strings[i].toString().split("\\s+");
+            		/*for(String content : strings[i].toString().split("\\s+")) {
+            			System.out.println("--- "+content);
+            		};*/
+                    diskinfo.put("sys_size", content[0]);
+                    diskinfo.put("sys_used", content[1]);
+                    diskinfo.put("sys_avail", content[2]);
+                    diskinfo.put("sys_per", content[3]);
+                    diskinfo.put("sys", content[4]);
+
+                }
+                if (datamatcher.find()) {
+                    String[] content = strings[i].toString().split("\\s+");
+                    diskinfo.put("data_size", content[0]);
+                    diskinfo.put("data_used", content[1]);
+                    diskinfo.put("data_avail", content[2]);
+                    diskinfo.put("data_per", content[3]);
+                    diskinfo.put("data", content[4]);
+                }
             	if (stringBuilder.length()<1) {
             		for (String s : strings[i].split("\\s+")) {
                     	
@@ -91,7 +118,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
                     }
 				}else{
 					stringBuilder.append("   "+strings[i]);
-					System.out.println(stringBuilder.toString());
+					//System.out.println(stringBuilder.toString());
 					for (String s : stringBuilder.toString().split("\\s+")) {
                         if (temp == 0) {
                             temp++;
@@ -179,7 +206,6 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
     
     /**
      * 通过java执行shell
-     * @param type
      * @param url,user,passwd,host
      */
     public Map<String, String> doshell(String url,String user,String passwd,String host) {

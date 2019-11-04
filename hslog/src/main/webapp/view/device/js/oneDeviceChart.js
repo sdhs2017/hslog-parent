@@ -99,18 +99,18 @@ function getEchartData(sendObj){
 		data:sendObj,
 		async:true,
 		success:function(data){
-			var obj = data[0];
-			//var xVal = [];
-			var yVal = [];
-			/* for(var i in obj){
-				yVal.push(obj[i])
-			} */
-			for(var i = 0;i<24;i++){
-				if(i < 10){
-					i = "0"+i;
-				}
-				yVal.push(obj[i]);
-			}
+            //定义数组 存放值
+            var yVal = [];
+            //循环填充组
+            for(var i in data){
+                yVal.push(data[i].count);
+            }
+            //获得数组的长度
+            var arrLength = yVal.length
+            //循环填充值为0
+            for(var j = 0;j< 24-arrLength;j++){
+                yVal.push(0)
+            }
 			//yVal = obj;
 			//折线图
         	//var myChart01 = echarts.init(document.getElementById('echartsBox'));
@@ -543,7 +543,7 @@ function getEchartData2(sendObj){
 			var highArr = [];//高危 数据
 			var middleArr = [];//中危 数据
 			var lowArr = [];//地位 数据
-			for(var i = 0;i<24;i++){
+			/*for(var i = 0;i<24;i++){
 				if(i < 10){
 					i = "0"+i;
 				}
@@ -551,7 +551,38 @@ function getEchartData2(sendObj){
 				highArr.push(data[1][i]);	
 				middleArr.push(data[2][i]);	
 				lowArr.push(data[3][i]);	
+			}*/
+			//获得长度
+			let dataLength = data[0].length;
+			//循环取值
+			for(let i = 0;i<dataLength;i++){
+                wholeArr.push(data[0][i].count);
+                //判断是否数据为空 为空填充0
+                if(data[1].length === 0) {//高危
+                    highArr.push(0);
+				}else {
+                    highArr.push(data[1][i].count);
+				}
+                if(data[2].length === 0) {//中危
+                    middleArr.push(0);
+                }else {
+                    middleArr.push(data[2][i].count);
+                }
+                if(data[3].length === 0) {//普通
+                    lowArr.push(0);
+                }else {
+                    lowArr.push(data[3][i].count);
+                }
+
 			}
+			//循环填充值 0
+			for(let j = 0;j< 24-dataLength;j++){
+                wholeArr.push(0);
+                highArr.push(0);
+                middleArr.push(0);
+                lowArr.push(0);
+			}
+
 			//折线图
         	//var myChart01 = echarts.init(document.getElementById('echartsBox'));
 			myChart04 = echarts.init(document.getElementById('echartsBox2'));

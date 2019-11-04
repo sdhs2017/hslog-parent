@@ -163,9 +163,10 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 		String equipmentid = equipmentmap.get("id").toString();
 		esMap.put("equipmentid", equipmentid);
-		esMap.put("starttime", starttime);
-		esMap.put("endtime", endtime);
-		equipmentmap.put("log_count", logService.getCount(configProperty.getEs_index(), null, esMap)+"");
+		/*esMap.put("starttime", starttime);
+		esMap.put("endtime", endtime);*/
+		//equipmentmap.put("log_count", logService.getCount(configProperty.getEs_index(), null, esMap)+"");
+		equipmentmap.put("log_count", logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
 		//equipmentmap.put("log_count", "20");
 
 		equipment = JavaBeanUtil.convertMapToBean(Equipment.class, equipmentmap);
@@ -213,9 +214,9 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		for(Equipment equipment : listEquipment) {
 			Map<String, String> esMap = new HashMap<>();
 			esMap.put("equipmentid", equipment.getId());
-			esMap.put("starttime", starttime);
-			esMap.put("endtime", endtime);
-			equipment.setLog_count(logService.getCount(configProperty.getEs_index(), null, esMap)+"");;
+
+			//equipment.setLog_count(logService.getCount(configProperty.getEs_index(), null, esMap)+"");
+			equipment.setLog_count(logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
 		}
 		// 数据添加到map
 		map.put("equipment", listEquipment);

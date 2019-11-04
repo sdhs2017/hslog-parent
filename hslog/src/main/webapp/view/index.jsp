@@ -164,11 +164,35 @@
         }
 
         .rangeBox{
-            padding:10px;
+            padding:10px 20px;
+        }
+        .sysRangeValue,.dataRangeValue{
+            margin-top: 10px;
+            margin-bottom: 3px;
         }
         .rangeValue{
             margin:10px;
             font-size:12px;
+            margin-left:0;
+        }
+        .rangeBox>div{
+            margin-top:20px;
+        }
+        .allDiskBox{
+            display: flex;
+            justify-content: space-between;
+        }
+        .diskBox{
+            padding:10px 15px;
+            background:#324556;
+            font-size:12px;
+            margin:0;
+        }
+        .rangeBox>div .allDisk,.diskBox .sysAllDisk,.diskBox .dataAllDisk{
+            color:rgb(26, 179, 148);
+        }
+        .rangeBox>div .usedDisk,.diskBox .sysUsedDisk,.diskBox .dataUsedDisk{
+            color:#e4956d;
         }
         .version{
             color:#888;
@@ -226,6 +250,20 @@
         }
         .form-control[disabled], .form-control[readonly], fieldset[disabled] .form-control{
             background-color: #2d3d4c;
+        }
+        .threshold_setting,.changeIp{
+            background:0;
+            color:#337ab7;
+            border:0;
+            padding:0;
+            outline:none;
+        }
+        .threshold_setting[disabled="disabled"],.changeIp[disabled="disabled"]{
+            color:#ccc;
+            cursor: not-allowed;
+        }
+        .threshold_setting:hover,.changeIp:hover{
+            color:#ccc;
         }
     </style>
     <link rel="stylesheet" type="text/css" href="../css/indexDeepColor.css" >
@@ -367,11 +405,11 @@
         <div class="pull-right">&nbsp;版权所有 &nbsp;&copy; 2018-2019 &nbsp;山东九州信泰信息科技股份有限公司 &nbsp;</div>
         <!-- <div class="pull-right">&nbsp;版权所有 &nbsp;&copy; 2017-2018 &nbsp;山东中网云安智能科技有限公司 &nbsp;</div> -->
         <span class="threshold"></span>
-        <a class="threshold_setting">（阈值设置）</a>
+        <button class="threshold_setting">（阈值设置）</button>
         <div class="changeIpBox">
             <span style="color:#ccc;font-weight: 600;">系统IP :</span>
             <span class="ipValue"></span>
-            <a class="changeIp">（修改）</a>
+            <button class="changeIp">（修改）</button>
         </div>
     </div>
 </div>
@@ -434,11 +472,21 @@
         });
     }
     //定义阈值
-    var thresholdValue = 92;
+    var sysThresholdValue = 92;//系统盘阈值
+    var dataThresholdValue = 85;//数据盘阈值
+    var diskObj={
+        sizeNum	: '',//总容量
+        usedNum	: '',//已用容量
+        sysAllDisk	: '',//系统盘总容量
+        sysUsedDisk	: '',//系统盘已用容量
+        dataAllDisk	: '',//数据盘总容量
+        dataUsedDisk: ''//数据盘已用容量
+    };
     //系统平台阈值检测
     function thresholdWarning(){
         //清除显示的数据
         $(".threshold").html('状态获取中...');
+        $('.threshold_setting').attr('disabled',"true");
         //参数
         var obj = {};
         obj.user = "root";
@@ -447,27 +495,10 @@
         $.ajax({
             url:'../manage/getDiskUsage.do',
             data:obj,
-            type:"get",  //提交方式
+            type:"post",  //提交方式
             dataType:"json", //数据类型
             success:function(data){
-                /* if(data.error!=undefined){
-                    $(".threshold").html(data.error);
-                    $(".threshold").css("color","#d9534f");
-                }else{
-                    var sizeNum = Number(data.size);
-                    var usedNum = Number(data.used);
-                    var percentage = usedNum/sizeNum;
-                    if(percentage <= 0.8 ){
-                        $(".threshold").html("存储空间充足");
-                        $(".threshold").css("color","#1ab394");
-                    }else if(0.8 < percentage && percentage < 0.92){
-                        $(".threshold").html("存储空间即将饱和  剩余"+(sizeNum-usedNum)+"G");
-                        $(".threshold").css("color","#f0ad4e");
-                    }else if( 0.92 < percentage && percentage <= 1){
-                        $(".threshold").html("存储空间告警");
-                        $(".threshold").css("color","#d9534f");
-                    }
-                } */
+                //判断是否成功
                 if(data.error!=undefined){
                     $(".threshold").html(data.error);
                     $(".threshold").css("color","#d9534f");
@@ -475,13 +506,32 @@
                     var sizeNum = Number(data.size);
                     var usedNum = Number(data.used);
                     var percentage = (usedNum/sizeNum)*100;
-                    if(percentage < thresholdValue){
-                        $(".threshold").html("存储空间充足");
-                        $(".threshold").css("color","#1ab394");
-                    }else{
-                        $(".threshold").html("存储空间告警  剩余"+(sizeNum-usedNum)+"G");
+                    diskObj = {
+                        sizeNum	: sizeNum,//总容量
+                        usedNum	: usedNum,//已用容量
+                        sysAllDisk	: data.sys_size,//系统盘总容量
+                        sysUsedDisk	: data.sys_used,//系统盘已用容量
+                        dataAllDisk	: data.data_size,//数据盘总容量
+                        dataUsedDisk: data.data_used,//数据盘已用容量
+                    };
+                    //打开修改按钮
+                    $('.threshold_setting').removeAttr('disabled');
+                    //定义文本
+                    let thresholdStr = "";
+                    //判断阈值与实际使用大小
+                    if(sysThresholdValue <= Number(data.sys_per.split('%')[0])){
+                        thresholdStr += '系统盘空间不足，剩余' +data.sys_avail
                         $(".threshold").css("color","#d9534f");
                     }
+                    if(dataThresholdValue <= Number(data.data_per.split('%')[0])){
+                        thresholdStr +='&nbsp;&nbsp;数据盘空间不足，剩余' +data.data_avail
+                        $(".threshold").css("color","#d9534f");
+                    }
+                    if(thresholdStr == ""){
+                        thresholdStr = "磁盘空间充足"
+                        $(".threshold").css("color","#1ab394");
+                    }
+                    $(".threshold").html(thresholdStr);
                 }
             }
         });
@@ -491,14 +541,22 @@
     $(".threshold_setting").click(function(){
         //弹窗html代码
         var layerHtml = '<div class="rangeBox">'
-            + 	'<p class="rangeValue">当前阈值大小：'+thresholdValue+'%</p>'
-            +  	'<input type = "range" value="'+thresholdValue+'" class="range_control" min = "0" step=1" max = "100" oninput="rangeChange()" onchange="rangeChange()"></input>'
+            + 	'<p class="sysRangeValue">系统盘阈值大小：'+sysThresholdValue+'%</p>'
+            +  	'<input type = "range" value="'+sysThresholdValue+'" class="sysControl" min = "0" step=1" max = "100" oninput="rangeChange()" onchange="rangeChange()"></input>'
+            + 	'<p class="dataRangeValue">数据盘阈值大小：'+dataThresholdValue+'%</p>'
+            +  	'<input type = "range" value="'+dataThresholdValue+'" class="dataControl" min = "0" step=1" max = "100" oninput="rangeChange()" onchange="rangeChange()"></input>'
+            +		'<div>'
+            +			'<p class="allDiskBox"><span>总空间：<b class="allDisk">'+diskObj.sizeNum+'G</b></span><span>已用空间：<b class="usedDisk">'+diskObj.usedNum+'G</b></span></p>'
+            +			'<p class="diskBox">系统盘：<b class="sysAllDisk">'+diskObj.sysAllDisk+'</b>(总) &nbsp;&nbsp;&nbsp;&nbsp;<b class="sysUsedDisk">'+diskObj.sysUsedDisk+'</b>(已用)</p>'
+            +			'<p class="diskBox">数据盘：<b class="dataAllDisk">'+diskObj.dataAllDisk+'</b>(总)&nbsp;&nbsp;&nbsp;&nbsp; <b class="dataUsedDisk">'+diskObj.dataUsedDisk+'</b>(已用)</p>'
+            +		'</div>'
+            +		'<p style="margin-top:18px;margin-bottom:0;color:#e4956d;">注：阈值修改会影响数据采集，请慎重选择。<p>'
             + '</div>'
         //弹窗
         layer.open({
             type: 1,
             title:"阈值告警数值大小选择",//标题
-            area: ['300px', '200px'], //宽高
+            area: ['390px', '390px'], //宽高
             btn: ['确定','取消'], //按钮
             btn1:function(index){
                 //重新获得数据
@@ -511,11 +569,16 @@
     })
     //当拖拽按钮时 数值发生改变 执行函数
     function rangeChange(){
-        //获取数值
-        var rangeVal = $(".range_control").val();
+        //获取系统盘数值
+        var sysRangeVal = $(".sysControl").val();
+        //获取数据盘数值
+        var dataRangeVal = $(".dataControl").val();
         //显示改变
-        $(".rangeValue").html("当前阈值大小："+rangeVal+"%");
-        thresholdValue = rangeVal;
+        $(".sysRangeValue").html("系统盘阈值大小："+sysRangeVal+"%");
+        //显示改变
+        $(".dataRangeValue").html("数据盘阈值大小："+dataRangeVal+"%");
+        sysThresholdValue = sysRangeVal;
+        dataThresholdValue = dataRangeVal;
     }
     thresholdWarning();
     //定时查看阈值情况  100分钟 查看一次
@@ -646,7 +709,7 @@
                     var obj = {};
                     //获取用户id
                     var userObj = JSON.parse(localStorage.getItem("LoginUser"));
-                    obj.id = userObj[0].id;
+                    obj.id = userObj.id;
                     obj.oldPassword = oldPw;
                     obj.password = newPw;
                     //成功函数
@@ -746,6 +809,8 @@
 
     //获取ip地址
     function getIp(){
+        $(".ipValue").html("IP获取中...");
+        $(".changeIp").attr("disabled","true");
         $.ajax({
             type:"post",
             url:"../ip/getIp.do",
@@ -755,10 +820,10 @@
             async:true,
             success:function(data){
                 //填充ip数据
-                //$(".ipValue").html(data);
                 if(data[0].success == "true"){
                     //填充ip数据
                     $(".ipValue").html(data[0].message);
+                    $('.changeIp').removeAttr("disabled");
                 }else if(data[0].success == "false"){
                     $(".ipValue").html(data[0].message);
                 }

@@ -59,9 +59,23 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 			 * equals改为indexof(*)>0
 			 * 或者 只判断项目路径后面的相对路径
 			 */
-			if(request.getRequestURI().contains("/users/logout.do")||request.getRequestURI().contains("/users/registerUser.do")||request.getRequestURI().contains("/upload/licenseUpload.do")){
+			if(request.getRequestURI().contains("/users/logout.do")||request.getRequestURI().contains("/users/registerUser.do")){
+				return true;
+			}else if(request.getRequestURI().contains("/upload/licenseUpload.do")){
+				//TODO
+				/**
+				 * 校验上传文件是否合法
+				 */
+				return true;
+			}else if(request.getRequestURI().contains("apiLog")){
+				//TODO
+				/**
+				 * 通过api token访问，需要处理安全问题
+				 * 权限校验逻辑与登录校验逻辑相同
+				 */
 				return true;
 			}else{
+				//登陆，校验
 				String phone=request.getParameter("phone");
 				String password=request.getParameter("password");
 				User user =new User();

@@ -1,3 +1,4 @@
+/*
 package com.hs.elsearch.template.bak;
 
 import org.apache.log4j.Logger;
@@ -313,10 +314,12 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 
 
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @return
-	 */
+	 *//*
+
 	public boolean createIndex(String index) {
 		// TODO Auto-generated method stub
 		boolean result = false;
@@ -330,12 +333,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return result;
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param type
 	 * @param json
 	 * 实现索引新增通过json
-	 */
+	 *//*
+
 	public void insert(String index, String type, String json) {
 		// TODO Auto-generated method stub
 		IndexRequestBuilder response = this.client.prepareIndex(index, type);
@@ -343,12 +348,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		response.execute().actionGet();
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param type
 	 * @param json
 	 * 实现索引新增通过json
-	 */
+	 *//*
+
 	public IndexRequest insertNo(String index, String type, String json) {
 		// TODO Auto-generated method stub
 		IndexRequestBuilder response = this.client.prepareIndex(index, type).setSource(json);
@@ -356,7 +363,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return request;
 	}
 
-	/**
+	*/
+/**
 	 *
 	 * @param index
 	 * @param type
@@ -366,7 +374,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	 * @throws ExecutionException
 	 * @throws IOException
 	 * 更新索引
-	 */
+	 *//*
+
 	public void update(String index,String type,String id,Map<String, String> map) throws InterruptedException, ExecutionException, IOException {
 
 		XContentBuilder builder = XContentFactory.jsonBuilder();
@@ -382,7 +391,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		UpdateResponse updateResponse = client.update(updateRequest).get();
 		GetResult result = updateResponse.getGetResult();
 	}
-	/**
+	*/
+/**
 	 *
 	 * @param index
 	 * @param type
@@ -392,7 +402,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	 * @throws ExecutionException
 	 * @throws IOException
 	 * 更新索引
-	 */
+	 *//*
+
 	public void merge(String index,String type,String id,Map<String, String> map) throws InterruptedException, ExecutionException, IOException {
 
 		XContentBuilder builder = XContentFactory.jsonBuilder();
@@ -411,12 +422,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		GetResult result = updateResponse.getGetResult();
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param type
 	 * @param id
 	 * 删除索引通过id
-	 */
+	 *//*
+
 	public String delete(String index, String type, String id) {
 		// TODO Auto-generated method stub
 		DeleteResponse response = this.client.prepareDelete(index, type, id)
@@ -425,12 +438,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return result.toString();
 	}
 
-	/**
+	*/
+/**
 	 *
 	 * @param index
 	 * @return
 	 * 删除索引
-	 */
+	 *//*
+
 	public boolean deleteByIndex(String index) {
 		boolean result = false;
 		DeleteIndexResponse dResponse = client.admin().indices().prepareDelete(index)
@@ -440,12 +455,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return result;
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param types
 	 * @return
 	 * 获取index+type下的索引数据条数
-	 */
+	 *//*
+
 	public long count(String index, String [] types,QueryBuilder queryBuilder) {
 		SearchRequestBuilder searchRequestBuilder = client.prepareSearch(index);
 		if (types!=null&&types.length>0) {
@@ -459,14 +476,16 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return length;
 	}
 
-	/**
+	*/
+/**
 	 *
 	 * @param queryBuilder
 	 * @param types
 	 * @param indices
 	 * @return
 	 * 获取indices+types+query条件的日志数
-	 */
+	 *//*
+
 	public long getCountByQuery(QueryBuilder queryBuilder, String [] types,String... indices) {
 
 		SearchRequestBuilder searchRequestBuilder = client.prepareSearch(indices);
@@ -482,12 +501,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return length;
 	}
 
-	/**
+	*/
+/**
 	 * @param indices
 	 * @param type
 	 * @param id
 	 * @return
-	 */
+	 *//*
+
 	public List<Map<String, Object>>  prepareSearch(final String indices, final String type, final String id) {
 		SearchResponse searchResponse = null;
 		searchResponse = this.client.prepareSearch(indices).setTypes(type).get();
@@ -527,14 +548,16 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return getResponse.getSourceAsString();
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param type
 	 * @param param
 	 * @param order
 	 * @return
 	 * 实现sql order by
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListOrderByParam(String index, String type,String param,SortOrder order,Map<String,String> conditions,Integer from,Integer size) {
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
 
@@ -590,12 +613,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 //		return list;
 //	}
 
-	/**
+	*/
+/**
 	 * @param indices
 	 * @param queryBuilder
 	 * @return 删除文档量
 	 * 实现通过查询批量删除
-	 */
+	 *//*
+
 	public long countDeleteByQuery(String [] indices,QueryBuilder queryBuilder) {
 
 		BulkByScrollResponse response = DeleteByQueryAction.INSTANCE.newRequestBuilder(client).filter(queryBuilder).source(indices).get();
@@ -608,13 +633,15 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	}
 
 
-	/**
+	*/
+/**
 	 *
 	 * @param indices 需要合并的索引
 	 * @param maxNumSegments 合并段数
 	 * @param onlyExpungeDeletes 是否仅合并删除段
 	 * @return
-	 */
+	 *//*
+
 	public ForceMergeResponse indexForceMerge(String [] indices,int maxNumSegments,boolean onlyExpungeDeletes) {
 
 		ForceMergeRequest request = new ForceMergeRequest(indices);
@@ -635,12 +662,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	}
 
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param type
 	 * @return
 	 * 查询type下的所有数据
-	 */
+	 *//*
+
 	public List<Map<String, Object>> selectAll(String index,String type,String orderfield,SortOrder order) {
 		// TODO Auto-generated method stub
 
@@ -666,10 +695,12 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 * @param requests
 	 * 批量提交
-	 */
+	 *//*
+
 	public void bulk(List<IndexRequest> requests) {
 		BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -683,12 +714,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		}
 	}
 
-	/**
+	*/
+/**
 	 * 初始化mapping
 	 * @param index
 	 * @param type
 	 * @param template mapping配置
-	 */
+	 *//*
+
 	@SuppressWarnings("deprecation")
 	public Boolean addMapping(String index, String type,String template) {
 		boolean result = false;
@@ -699,9 +732,11 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 
 		if (this.indexExists(index)) {
 			// 更新index的setting属性
-			/*UpdateSettingsRequest request = new UpdateSettingsRequest(index);
+			*/
+/*UpdateSettingsRequest request = new UpdateSettingsRequest(index);
 			request.settings(settings);
-			UpdateSettingsResponse response = this.client.admin().indices().updateSettings(request).actionGet();*/
+			UpdateSettingsResponse response = this.client.admin().indices().updateSettings(request).actionGet();*//*
+
 
 			// 添加mapping信息
 			PutMappingRequest mapping = Requests.putMappingRequest(index).type(type).source(template);
@@ -715,18 +750,22 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 
 	}
 
-	/**
+	*/
+/**
 	 * 更新index的setting属性
 	 * @param index
 	 * @param map
 	 * @return
-	 */
+	 *//*
+
 	public boolean updateSettings(String index,Map<String, Object> map) {
 		boolean result = false;
-		/*Builder settings = Settings.builder()
+		*/
+/*Builder settings = Settings.builder()
 				.put("index.max_result_window", 100000000)
 				//.put("index.number_of_shards", 5)
-				.put("index.number_of_replicas",2);*/
+				.put("index.number_of_replicas",2);*//*
+
 		// 更新index的setting属性
 		UpdateSettingsRequest request = new UpdateSettingsRequest(index);
 		request.settings(map);
@@ -736,13 +775,15 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return result;
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param types
 	 * @param queryBuilder
 	 * @return List<Map<String, Object>>
 	 * template层
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListByQueryBuilder(String index,String[] types,QueryBuilder queryBuilder,String orderfield,SortOrder order) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -772,14 +813,16 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 * 分页
 	 * @param index
 	 * @param types
 	 * @param queryBuilder
 	 * @return List<Map<String, Object>>
 	 * template层
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListByQueryBuilder(String index,String[] types,QueryBuilder queryBuilder,String orderfield,SortOrder order,Integer from,Integer size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -809,13 +852,15 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param types
 	 * @param queryBuilder
 	 * @return searchHit[]
 	 * template层
-	 */
+	 *//*
+
 	public SearchHit [] getHitsByQueryBuilder(String index,String[] types,QueryBuilder queryBuilder,String orderfield,SortOrder order,Integer from,Integer size) {
 
 		SearchRequestBuilder searchRequestBuilder = client.prepareSearch(index);
@@ -848,7 +893,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return searchHits;
 	}
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param types
 	 * @param dates
@@ -856,7 +902,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	 * @param eid
 	 * @return
 	 * template层
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListGroupByQueryBuilder(String index,String[] types,String dates,String param,String eid) {
 
 		SearchRequestBuilder sBuilder = client.prepareSearch(index);
@@ -878,11 +925,13 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 			Querydate = QueryBuilders.boolQuery().must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
 		}
 
-		/*String [] date = dates.split("-");
+		*/
+/*String [] date = dates.split("-");
 		QueryBuilder querytime = QueryBuilders.boolQuery()
 				.must(QueryBuilders.matchPhraseQuery("logtime_year", date[0]))
 				.must(QueryBuilders.matchPhraseQuery("logtime_month", date[1]))
-				.must(QueryBuilders.matchPhraseQuery("logtime_day", date[2]));*/
+				.must(QueryBuilders.matchPhraseQuery("logtime_day", date[2]));*//*
+
 
 		if(eid!=null&&!eid.equals("")) {
 			QueryBuilder queryequipmentid = QueryBuilders.boolQuery()
@@ -922,7 +971,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 *
 	 * @param index
 	 * @param types
@@ -930,7 +980,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	 * @param queryBuilder
 	 * @return
 	 * template层  实现sql group by
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListGroupByQueryBuilder(String index,String[] types,String groupby,QueryBuilder queryBuilder) {
 
 		SearchRequestBuilder sBuilder = client.prepareSearch(index);
@@ -968,7 +1019,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 *
 	 * @param index
 	 * @param types
@@ -977,7 +1029,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	 * @param size
 	 * @return
 	 * template层  实现sql group by
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListGroupByQueryBuilder(String index,String[] types,String groupby,QueryBuilder queryBuilder,int size) {
 
 		SearchRequestBuilder sBuilder = client.prepareSearch(index);
@@ -1014,7 +1067,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 *
 	 * @param index
 	 * @param types
@@ -1023,7 +1077,8 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 	 * @param size
 	 * @return
 	 * template层  实现sql group by
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getListGroupByQueryBuilder(String index,String[] types,String[] groupbys,QueryBuilder queryBuilder,int size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
@@ -1074,11 +1129,13 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return list;
 	}
 
-	/**
+	*/
+/**
 	 * 通过名称查询备份仓库
 	 * @param repositories 备份仓库名称
 	 * @return
-	 */
+	 *//*
+
 	public List<Map<String, Object>> getRepositoriesInfo(String... repositories) {
 		GetRepositoriesRequest getRepositoriesRequest = new  GetRepositoriesRequest();
 		getRepositoriesRequest.repositories(repositories);
@@ -1094,12 +1151,14 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return repositorieslist;
 	}
 
-	/**
+	*/
+/**
 	 * 创建备份仓库
 	 * @param repositoryName 备份仓库名称
 	 * @param repoPath 备份仓库路径
 	 * @return
-	 */
+	 *//*
+
 	public Boolean createRepositories(String repositoryName,String repoPath) {
 
 		PutRepositoryRequest request = new PutRepositoryRequest();
@@ -1118,11 +1177,13 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 
 	}
 
-	/**
+	*/
+/**
 	 * 删除备份仓库
 	 * @param repositoryName
 	 * @return
-	 */
+	 *//*
+
 	public Boolean deleteRepositories(String repositoryName) {
 		DeleteRepositoryRequest request = new DeleteRepositoryRequest(repositoryName);
 		request.timeout(TimeValue.timeValueMinutes(1));
@@ -1132,3 +1193,4 @@ public class ClientTemplate implements IndexSearchEngine<SearchHit>, NodeOperati
 		return response.isAcknowledged();
 	}
 }
+*/

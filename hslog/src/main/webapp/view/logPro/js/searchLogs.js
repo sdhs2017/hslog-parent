@@ -595,6 +595,16 @@ function showLogs(logsArr){
                 if(obj.application_layer_protocol == undefined){
                     obj.application_layer_protocol = "-"
                 }
+                if(obj.request_type == undefined){
+                    obj.request_type = "-"
+                }
+                if(obj.request_url == undefined){
+                    obj.request_url = "-"
+                }
+                if(obj.response_state == undefined){
+                    obj.response_state = "-"
+                }
+
                 //删除日志内容的<br/>标签
                 logDesArr.push(obj.operation_des);
                 var reg = new RegExp("<br/>","g");
@@ -1003,7 +1013,8 @@ function showLogs(logsArr){
             ajaxPost('../../action/insert.do',sendObj,sfunc);
         }
     });*/
-
+    //表格拖动列宽
+    $("#logs_list").dragTableCol();
 }
 var htmlNum2 = 0;
 //点击查看设备详情
@@ -1040,8 +1051,9 @@ $("#logs_list").on("click",".more",function(){
 
     }*/
     var logType = logDetailArr[logIndex].type;
-    if(logDetailArr[logIndex].application_layer_protocol !== undefined){
-        logType == "defaultpacket_http"
+    //判断是否是http日志类型
+    if(logDetailArr[logIndex].application_layer_protocol == "http" ){
+        logType = "defaultpacket_http"
     }
     //获取日志Id
     var id = $(this).parents("tr").attr("data-id");
@@ -1557,26 +1569,3 @@ function filterObj(obj){
     }
     return obj;
 }
-
-	
-	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	

@@ -1,3 +1,4 @@
+/*
 package com.jz.bigdata.business.logAnalysis.zts.service.impl;
 
 import java.util.HashMap;
@@ -20,13 +21,15 @@ import com.jz.bigdata.business.logAnalysis.zts.service.IztslogService;
 @Service("ZtsLogServiceImpl")
 public class ZtsLogServiceImpl extends LogServiceImpl implements IztslogService{
 
-	/**
+	*/
+/**
 	 * @param index
 	 * @param types
 	 * @param map
 	 * @return
 	 * service层  精确查询  管理员
-	 */
+	 *//*
+
 	@Override
 	public List<Map<String, Object>> getListByBlend(String index,String[] types,Map<String, String> pamap,String page,String size) {
 		
@@ -141,15 +144,18 @@ public class ZtsLogServiceImpl extends LogServiceImpl implements IztslogService{
 		return list;
 	}
 	
-	/**
+	*/
+/**
 	 * @param index
 	 * @param types
 	 * @param map
 	 * @param userid
 	 * @return
 	 * service层  组合查询 非管理员
-	 */
-	@Override
+	 *//*
+
+	*/
+/*@Override
 	public List<Map<String, Object>> getListByBlend(String index,String[] types,Map<String, String> pamap,String userid,String page,String size) {
 		
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -177,10 +183,7 @@ public class ZtsLogServiceImpl extends LogServiceImpl implements IztslogService{
 		if (pamap.get("ip")!=null) {
 			boolQueryBuilder.must(QueryBuilders.termQuery("ip", pamap.get("ip")));
 		}
-		/*// hostname
-		if (pamap.get("hostname")!=null) {
-			boolQueryBuilder.should(QueryBuilders.matchQuery("hostname", pamap.get("hostname")));
-		}*/
+
 		// event_level
 		if (pamap.get("event_level")!=null) {
 			boolQueryBuilder.must(QueryBuilders.termQuery("event_level", pamap.get("event_level")));
@@ -240,5 +243,7 @@ public class ZtsLogServiceImpl extends LogServiceImpl implements IztslogService{
 		}
 		
 		return list;
-	}
+	}*//*
+
 }
+*/

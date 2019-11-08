@@ -1,11 +1,15 @@
 package com.jz.bigdata.business.logAnalysis.log.init;
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.dao.logDao.ILogIndexDao;
+import com.hs.elsearch.dao.logDao.impl.ElasticsearchDao;
+
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 
 public class JzLogESinit {
 	
@@ -15,16 +19,16 @@ public class JzLogESinit {
 		
 	}
 	
-	public void deleteIndex(String index,ClientTemplate clientTemplate){
-		clientTemplate.deleteByIndex(index);
+	public void deleteIndex(String index, ILogIndexDao logIndexDao){
+		logIndexDao.deleteByIndex(index);
 	}
 	
-	public List<Map<String, Object>> countGroupBy(String index, String[] type,String param,ClientTemplate clientTemplate){
+	public List<Map<String, Object>> countGroupBy(String index, String[] type, String param, ElasticsearchDao elasticsearchDao){
 		
-		return clientTemplate.getListGroupByQueryBuilder(index,type,param,null);
+		return elasticsearchDao.getListByAggregation(type,null,null,param,10,null,index);
 	}
 	
-	public <T> void init(String index, String type,T classes,ClientTemplate clientTemplate){
+	public <T> void init(String index, String type,T classes,ILogIndexDao logIndexDao){
 		boolean result = false;
 		 String template = "{\n" 
                    +"\t\t\"properties\":{\n"
@@ -33,8 +37,12 @@ public class JzLogESinit {
                +"}";
 		String fieldString =  getClassMapping(classes);
 		template = template.replace("{#}",fieldString);
-		clientTemplate.addMapping(index, type, template);
-	}
+        try {
+            logIndexDao.addMapping(index, type, template);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 	
 	public <T> String getClassMapping(T classes) {
 		

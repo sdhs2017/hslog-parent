@@ -1,441 +1,443 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>资产扫描</title>
-		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
-		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
-		<link rel="stylesheet" href="css/bootstrap-wizard.css" />
-		<!-- <link rel="stylesheet" type="text/css" href="../../js/bootstrap/css/bootstrap-switch.css"/> -->
-		<link rel="stylesheet" type="text/css" href="../../css/animate.min.css"/>
-		<link rel="stylesheet" type="text/css" href="css/device.css"/>
-		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
-		<style type="text/css">
-			.device_box{
-				height:600px;
-				overflow:auto;
-			}
-			.scan_device,.check_device{
-				border-color: #386c9a;
-			    background: #386c9a;
-			    /* box-shadow: 0px 0px 7px 1px #386c9a; */
-			    height: 32px;
-			    border-radius: 0;
-			}
-			.searchDeviceNameBox{
-				border-left:1px solid #ccc;
-			}
-			.device_tools>form div{
-				line-height:30px;
-			}
-			.check_device{
-				margin-left:3px;
-			}
-			.device_tools{
-				display: flex;
-    			justify-content: center;
-			}
-			.scanState{
-				float: right;
-				color: #1ab394;
-    			text-shadow: none;
-			}
-			.scanState img{
-				width:22px;
-			}
-			/* .device_tools>div{
-				width:150px;
-				height:150px;
-				border: 2px solid #4781bb;
-				margin:0 10px;
-			}
-			.device_tools .formBox{
-				width:400px;
-			} */
-		</style>
-	
-	</head>
-	
-	<body>
-		<div id="box">
-			<div class="top_title">
-				资产配置管理
-				<div class="scanState">
-					
+<head>
+	<meta charset="UTF-8">
+	<title>资产扫描</title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"></link>
+	<link rel="stylesheet" href="css/bootstrap-wizard.css" />
+	<!-- <link rel="stylesheet" type="text/css" href="../../js/bootstrap/css/bootstrap-switch.css"/> -->
+	<link rel="stylesheet" type="text/css" href="../../css/animate.min.css"/>
+	<link rel="stylesheet" type="text/css" href="css/device.css"/>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+	<style type="text/css">
+		.device_box{
+			height:600px;
+			overflow:auto;
+		}
+		.scan_device,.check_device{
+			border-color: #386c9a;
+			background: #386c9a;
+			/* box-shadow: 0px 0px 7px 1px #386c9a; */
+			height: 32px;
+			border-radius: 0;
+		}
+		.searchDeviceNameBox{
+			border-left:1px solid #ccc;
+		}
+		.device_tools>form div{
+			line-height:30px;
+		}
+		.check_device{
+			margin-left:3px;
+		}
+		.device_tools{
+			display: flex;
+			justify-content: center;
+		}
+		.scanState{
+			float: right;
+			color: #1ab394;
+			text-shadow: none;
+		}
+		.scanState img{
+			width:22px;
+		}
+		/* .device_tools>div{
+            width:150px;
+            height:150px;
+            border: 2px solid #4781bb;
+            margin:0 10px;
+        }
+        .device_tools .formBox{
+            width:400px;
+        } */
+	</style>
+
+</head>
+
+<body>
+<div id="box">
+	<div class="top_title">
+		资产配置管理
+		<div class="scanState">
+
+		</div>
+	</div>
+	<!-- <div class="device_tools">
+        <div class="radarBox">
+
+         </div>
+        <div class="formBox"></div>
+        <div class="openScan"></div>
+        <div class="checkBtn"></div>
+    </div> -->
+	<div class="device_tools row">
+		<form class="form-inline" onsubmit="return false;">
+			<div class="searchConditions">
+				<div class="searchDeviceNameBox">
+					<div class="searchBoxTitle">起始IP</div>
+					<input type="text" class="form-control startIp" placeholder="起始IP">
 				</div>
+				<div class="searchHostNameBox">
+					<div class="searchBoxTitle">结束IP</div>
+					<input type="text" class="form-control endIp"  placeholder="结束IP">
+				</div>
+				<button class="btn btn-primary scan_device" ><i class="glyphicon glyphicon-search"></i>扫描</button>
 			</div>
-			<!-- <div class="device_tools">
-				<div class="radarBox">
-				 	
-				 </div>
-				<div class="formBox"></div>
-				<div class="openScan"></div>
-				<div class="checkBtn"></div>
-			</div> -->
-			<div class="device_tools row">				
-				<form class="form-inline" onsubmit="return false;">										
-				  	<div class="searchConditions">
-				  		<div class="searchDeviceNameBox">
-							<div class="searchBoxTitle">起始IP</div>
-							<input type="text" class="form-control startIp" placeholder="起始IP">
+		</form>
+	</div>
+	<div class="row device_box">
+		<div class="col-sm-12">
+			<div class="device_list">
+				<div class="list_con">
+					<ul class="nav nav-tabs">
+						<!-- <span class="pull-right small text-muted"> x个设备</span>    -->
+					</ul>
+					<div class="tab-content">
+						<div id="tab-1" class="tab-pane active">
+							<div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+								<div class="table-responsive">
+									<table class="table table-hover" id="device_list">
+										<thead>
+										<tr>
+											<th><input type="checkbox" id="theadCheck"></th>
+											<th>IP地址</th>
+											<th>资产名称</th>
+											<th>主机名</th>
+											<th>资产类型</th>
+											<th>日志类型</th>
+											<th>进入时间</th>
+											<th>更新时间</th>
+											<th>截止时间</th>
+											<th>是否启用</th>
+											<th>响应时间</th>
+											<th>状态</th>
+											<th>操作</th>
+											<th width="45px"></th>
+										</tr>
+										</thead>
+										<tbody>
+										<!--  <tr>
+                                             <td><input type="checkbox" id="theadCheck"></td>
+                                             <td class="device_name">
+                                                 <span data-id="001">lenovo</span>
+                                             </td>
+                                             <td class="device_hostname">contos6-70-clltest</td>
+                                             <td class="device_type" data-type="1">服务器</td>
+                                             <td class="device_ip">192.168.100.20</td>
+                                             <td class="device_starttime">2017-02-03 18:00:36</td>
+                                             <td class="device_updatetime">2017-02-03 18:00:36</td>
+                                             <td class="device_endtime">2019-02-03 18:00:00</td>
+                                             <td class="device_iswork">
+                                                 <input type="checkbox" name="my-checkbox">
+                                                 是
+                                             </td>
+                                                <td class="td_tools">
+                                                    <i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>
+                                                    <i class="glyphicon glyphicon-remove device_remove" title="删除"> </i>
+                                                    <i class="glyphicon glyphicon-list-alt device_logs" title="查询设备日志"> </i>
+                                                    <i class="glyphicon glyphicon-play device_start" title="开启服务"> </i>
+                                                    <i class="glyphicon glyphicon-pause device_pause" title="暂停服务"> </i>
+                                                    <i class="glyphicon glyphicon-stop device_stop" title="关闭服务"> </i>
+                                                </td>
+                                         </tr>
+-->
+										</tbody>
+									</table>
+								</div>
+							</div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
 						</div>
-				  		<div class="searchHostNameBox">
-							<div class="searchBoxTitle">结束IP</div>
-							<input type="text" class="form-control endIp"  placeholder="结束IP">
-						</div>					
-						<button class="btn btn-primary scan_device" ><i class="glyphicon glyphicon-search"></i>扫描</button>
-				  	</div>
-				</form>
-			</div> 
-			<div class="row device_box">
-				<div class="col-sm-12">
-					<div class="device_list">
-						<div class="list_con">
-                            <ul class="nav nav-tabs">
-                                <!-- <span class="pull-right small text-muted"> x个设备</span>    -->                          
-                            </ul>
-                            <div class="tab-content">
-                                <div id="tab-1" class="tab-pane active">
-                                    <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
-                                        <div class="table-responsive">
-                                            <table class="table table-hover" id="device_list">
-                                            	<thead>
-											        <tr>
-											          	<th><input type="checkbox" id="theadCheck"></th>
-											          	<th>IP地址</th>
-											          	<th>资产名称</th>
-											          	<th>主机名</th>
-											          	<th>资产类型</th>
-											          	<th>日志类型</th>											         
-											          	<th>进入时间</th>
-											          	<th>更新时间</th>
-											          	<th>截止时间</th>
-											          	<th>是否启用</th>
-											          	<th>响应时间</th>
-											          	<th>状态</th>
-											          	<th>操作</th>
-											          	<th width="45px"></th>
-											        </tr>
-											      </thead>
-                                                <tbody>
-                                                   <!--  <tr>   
-                                                    	<td><input type="checkbox" id="theadCheck"></td>
-                                                        <td class="device_name">
-                                                        	<span data-id="001">lenovo</span>
-                                                        </td>
-                                                        <td class="device_hostname">contos6-70-clltest</td>
-                                                        <td class="device_type" data-type="1">服务器</td>
-                                                        <td class="device_ip">192.168.100.20</td>
-                                                        <td class="device_starttime">2017-02-03 18:00:36</td> 
-                                                        <td class="device_updatetime">2017-02-03 18:00:36</td>
-                                                        <td class="device_endtime">2019-02-03 18:00:00</td>  
-                                                        <td class="device_iswork">
-                                                        	<input type="checkbox" name="my-checkbox">
-                                                        	是
-                                                        </td>  
-                                                       	<td class="td_tools">
-                                                       		<i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>
-                                                       		<i class="glyphicon glyphicon-remove device_remove" title="删除"> </i>
-                                                       		<i class="glyphicon glyphicon-list-alt device_logs" title="查询设备日志"> </i>
-                                                       		<i class="glyphicon glyphicon-play device_start" title="开启服务"> </i>
-                                                       		<i class="glyphicon glyphicon-pause device_pause" title="暂停服务"> </i>
-                                                       		<i class="glyphicon glyphicon-stop device_stop" title="关闭服务"> </i>                   
-                                                       	</td>
-                                                    </tr>
- -->
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
-                                </div>
-                                
-                            </div>
-						</div>
+
 					</div>
 				</div>
 			</div>
-			<!-- <div class="bottomBox">
-				<div class="tools_page">
-					<span class="current prev">&laquo;</span>
-					<span class="current">1</span>
-					<span class="current next">&raquo;</span>
-				</div>
-				<div class="allCountBox">共检索到的资产数量为<b>0</b>台</div>
-			</div> -->
 		</div>
-		
-		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../hplus/js/contabs.min.js"></script>
-		<script src="js/prettify.js" type="text/javascript" charset="utf-8"></script>
-		<!-- <script src="js/device.js" type="text/javascript" charset="utf-8"></script> -->
-		<script  type="text/javascript">		
-			var pageIndex = 1;//页码
-			var pageSize = 15;//每页显示的条数
-			var getDeviceListInterval ;//定时器 获取扫描数据
-			var getScanStateInterval;//定时器 获取扫描状态
-			var scanState = false;//扫描状态
-			
-			//获取是否有扫描任务正在进行
-			if(localStorage.getItem('scanState')){//true 为有任务
-				scanState = true;
-				//文字提示
-				$(".scanState").html('<img src="../../img/loading.gif" /><span class="scanMes">资产扫描中</span>')
-				//开启计时器 循环获取扫描结果数据
-				getDeviceListInterval = setInterval(getScanDeviceData,1000);
-				//开启计时器 循环获取扫描状态
-				getScanStateInterval = setInterval(getScanState,1000);
-			} else{
-				//获取资产列表数据
-				getScanDeviceData("../../assets/selectAll.do");
-			}
-			
-			//扫描按钮点击事件
-			$(".scan_device").click(function(){
-				//参数
-				var obj = {};
-				//获得起始Ip
-				obj.startip = $(".startIp").val();
-				//结束ip
-				obj.endip = $(".endIp").val();
-				//判断参数合理性
-				var isIp2 =/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
-				if(scanState){
-					layer.msg("有扫描任务正在进行，请稍后",{icon:5});
-				}else if(!isIp2.test(obj.startip)){
-					layer.msg("起始ip地址不能为空或格式不正确",{icon:5});
-				}else if(!isIp2.test(obj.endip)){
-					layer.msg("结束ip地址不能为空或格式不正确",{icon:5});
-				}else{
-					//发送参数 开启扫描
-					var sfunc = function(data){
-						if(data[0].state == true){
-							//弹窗提示
-							layer.msg(data[0].msg,{icon:1});
-							//修改扫描状态
-							scanState = true;
-							//文字提示
-							$(".scanState").html('<img src="../../img/loading.gif" /><span class="scanMes">资产扫描中</span>')
-							//开启计时器 循环获取扫描结果数据
-							getDeviceListInterval = setInterval(function(){getScanDeviceData("../../assets/selectByIncrement.do")},3000);
-							//开启计时器 循环获取扫描状态
-							getScanStateInterval = setInterval(getScanState,3000);
-							//将任务存放在本地
-							localStorage.setItem('scanState','true')
-			            }else if(data[0].state==false){
-			            	layer.msg(data[0].msg,{icon:5});
-			            }
-					}
-					ajaxPost("../../collector/startMasscanCollector.do",obj,sfunc);
-				}
-			})
-			//获取扫描状态
-			function getScanState(){
-				$.ajax({
-					type:"post",
-					url:"../../collector/stateMasscanCollector.do",
-					data:"",
-					success:function(data){
-						if(data[0].state== true){
-							//更改状态
-							$(".scanState").html('<span class="scanMes">资产扫描完成</span>')
-							scanState = false;
-							//关闭计时器
-							 clearInterval(getDeviceListInterval);
-							 clearInterval(getScanStateInterval);
-							 getScanDeviceData("../../assets/selectByIncrement.do")
-							//删除本地缓存任务
-							localStorage.removeItem('scanState');
-			            }else if(data[0].state==false){
-			            	
-			            }
-					}
-				})
-			}
-			
-			//获取扫描的资产 
-			function getScanDeviceData(url){
-				/* var sfunc = function(data){
-					jointDeviceList(data);
-					
-				}
-				//发送请求
-				ajaxPost(url,'',sfunc); */			
-				$.ajax({
-					type:"post",
-					url:url,
-					data:"",
-					success:function(data){
-						if(url=='../../assets/selectAll.do'){
-							$(".device_list tbody").html('')
-						}
-							
-						jointDeviceList(data);
-					}
-				})
-			}
-			
-			//创建分页函数   pageCount-总页数
-			function creatPage(pageCount){
-				$(".tools_page").pagination1(pageCount, {
-						num_edge_entries: 1, //边缘页数
-						num_display_entries: 4, //主体页数
-						callback: pageselectCallback,
-						items_per_page: 1, //每页显示1项
-						/*prev_text: "&laquo;",
-						next_text: "&raquo;"*/
-						prev_text: "上一页",
-						next_text: "下一页"
-					});
-			}
-			//分页回调函数
-			function pageselectCallback(page_index){
-				
-				$("#theadCheck").removeAttr("checked"); 
-				if(num == true){
-					getScanDeviceData(page_index+1)
-				}
-				
-			}
-			//设备列表加载拼串   data - 数据
-			function jointDeviceList(data){
-				if(data == ''){
-					return;
-				}
-				var html = '';
-				//清空页面数据
-				//$(".device_list tbody").html("")
-				//循环取值  拼串
-				for(var i in data){
-				 	var obj = filterObj(data[i]);
-				 	var logType = '';//日志类型
-				 	if(obj.startUp == 0){
-				 		obj.startUp = "否";
-				 	}else if(obj.startUp == 1){
-				 		obj.startUp = "是";
-				 	}				 	
-				 	//设备类型
-				 	var typeArr2 = ["网络","安全","主机","应用"]
-				 	var typeArr = [
-				 	     ["交换机","路由器"],
-				 	     ["IPS","IDS","抗DDOS","防火墙"],
-				 	     ["Windows","Linux","虚拟化"],
-				 	     ["tomcat","apache","IIS","weblogic","mysql","Oracle","sqlserver","db2"]
-				 	]
-				 	var bigType = "";
-				 	var type = "";//设备类型
-				 	//获取设备type值；
-					var deType =  obj.type;
-				 	if(deType != '-'){
-				 		//截取type前两位字符
-						var str = Number(deType.substring(0,2));
-						//截取type后两位
-						var str2 =  Number(deType.substring(2));
-						bigType = typeArr2[str - 1]
-						type = typeArr[str - 1][str2 - 1];
-				 	}
-					
-				 	//时间分割  传来得时间数据 末尾有.0 将其分割出去
-				 	obj.createTime = obj.createTime.split(".")[0];
-				 	obj.upDateTime = obj.upDateTime.split(".")[0];
-				 	obj.endTime = obj.endTime.split(".")[0];
-				 	//状态
-				 	if(obj.state == '正常'){
-				 		obj.state = '<span class="label label-success">正常</span>'
-				 	}else{
-				 		obj.state = '<span class="label label-warning">超时</span>'
-				 	}
-				 	//响应时间
-				 	var responseTime = (Number((new Date() - new Date(obj.responseDate))/1000/60)).toFixed(2);
-				 	
-				 	
-				 	html = '<tr class="animated item_tr">'   
-						+		 '<td> <input type="checkbox" name="'+obj.id+'"></td>'
-						+        '<td class="device_ip">'+obj.ip+'</td>'
-			            +        '<td class="device_name">'
-			            +        	'<span data-id="'+obj.id+'" data-userid="'+obj.userId+'" data-depid="'+obj.departmentId+'">'+obj.name+'</a>'
-			            +        '</td>'
-			            +        '<td class="device_hostname">'+obj.hostName+'</td>'
-			            +        '<td class="device_type" data-type="'+obj.type+'">'+bigType+'-'+type+'</td>'
-			            +        '<td class="device_logType" data-logType="'+obj.logType+'">'+obj.logType+'</td>'			      
-			            +        '<td class="device_starttime">'+obj.createTime+'</td>'   
-			            +        '<td class="device_updatetime">'+obj.upDateTime+'</td>' 
-			            +        '<td class="device_endtime">'+obj.endTime+'</td>'
-			            +        '<td class="device_iswork">'+obj.startUp+'</td>' 
-			            +        '<td class="device_responseTime">'+responseTime+' min</td>' 
-			            +        '<td class="device_status">'+obj.state+'</td>' 
-			            +       	'<td class="td_tools">'
-			            +       		'<i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>'
-			            +       	'</td>'
-			            +		'<td class="device_threat" threat-id="'+obj.id+'"></td>'
-			            +    '</tr>'
-			          //添加到页面中
-			          $(".device_list tbody").prepend(html);
-				}
-				//检测状态
-				//checkDeviceStatus();
-				setInterval(function(){
-					getScanDeviceData("../../assets/selectAll.do");
-				},300000);
-				//添加到页面中
-				//$(".device_list tbody").html(html);
-			}
-			//修改资产按钮
-			//设备修改 点击事件 函数 list_con
-			$(".list_con").on("click",".device_revise",function(){
-				//定义按钮类型
-				var btnType = "revise";
-				//定义对象 要修改的数据
-				var obj = {};
-				//获取设备id
-				var id = $(this).parent().siblings(".device_name").children("span").attr("data-id");
-				// 储存在本地
-				sessionStorage.setItem("propertyId", id);
-				//跳转到 添加资产页面
-				location.href="updateDevice.html";
-			})
-			
-			function checkDeviceStatus(){
-				//获取列表中的设备
-				var lists = $(".item_tr");
-				
-				var respose_time;
-				var className = '';
-				
-				
-				if(lists.length == 0){
-					
-				}else{
-					for(var i=0;i < lists.length;i++){
-						respose_time = Math.floor(1+Math.random()*(15-1))
-						$(lists[i]).children('.device_responseTime').html(respose_time+' min');
-						if(respose_time>10){
-							$(lists[i]).children('.device_status').html('<span class="label label-default">离线</span>');
-						}else if(respose_time>5 && respose_time<=10){
-							$(lists[i]).children('.device_status').html('<span class="label label-warning">超时</span>');
-						}else{
-							$(lists[i]).children('.device_status').html('<span class="label label-success">正常</span>');
-						}
-					}
-				}
-			}
-			
-			
-			//数据对象过滤  null/undefined  转为'-';
-			function filterObj(obj){
-				for(var i in obj){
-					if(obj[i] == undefined || obj[i] == null || obj[i] == ""){
-						obj[i] = '-';
-					}
-				}
-				return obj;
-			}
+	</div>
+	<!-- <div class="bottomBox">
+        <div class="tools_page">
+            <span class="current prev">&laquo;</span>
+            <span class="current">1</span>
+            <span class="current next">&raquo;</span>
+        </div>
+        <div class="allCountBox">共检索到的资产数量为<b>0</b>台</div>
+    </div> -->
+</div>
 
-		</script>
-		
-    </script>
-	</body>
+<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../hplus/js/contabs.min.js"></script>
+<script src="js/prettify.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+<!-- <script src="js/device.js" type="text/javascript" charset="utf-8"></script> -->
+<script  type="text/javascript">
+    var pageIndex = 1;//页码
+    var pageSize = 15;//每页显示的条数
+    var getDeviceListInterval ;//定时器 获取扫描数据
+    var getScanStateInterval;//定时器 获取扫描状态
+    var scanState = false;//扫描状态
+
+    //表格拖动列宽
+    $("#device_list").dragTableCol();
+    //获取是否有扫描任务正在进行
+    if(localStorage.getItem('scanState')){//true 为有任务
+        scanState = true;
+        //文字提示
+        $(".scanState").html('<img src="../../img/loading.gif" /><span class="scanMes">资产扫描中</span>')
+        //开启计时器 循环获取扫描结果数据
+        getDeviceListInterval = setInterval(getScanDeviceData,1000);
+        //开启计时器 循环获取扫描状态
+        getScanStateInterval = setInterval(getScanState,1000);
+    } else{
+        //获取资产列表数据
+        getScanDeviceData("../../assets/selectAll.do");
+    }
+
+    //扫描按钮点击事件
+    $(".scan_device").click(function(){
+        //参数
+        var obj = {};
+        //获得起始Ip
+        obj.startip = $(".startIp").val();
+        //结束ip
+        obj.endip = $(".endIp").val();
+        //判断参数合理性
+        var isIp2 =/^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+        if(scanState){
+            layer.msg("有扫描任务正在进行，请稍后",{icon:5});
+        }else if(!isIp2.test(obj.startip)){
+            layer.msg("起始ip地址不能为空或格式不正确",{icon:5});
+        }else if(!isIp2.test(obj.endip)){
+            layer.msg("结束ip地址不能为空或格式不正确",{icon:5});
+        }else{
+            //发送参数 开启扫描
+            var sfunc = function(data){
+                if(data[0].state == true){
+                    //弹窗提示
+                    layer.msg(data[0].msg,{icon:1});
+                    //修改扫描状态
+                    scanState = true;
+                    //文字提示
+                    $(".scanState").html('<img src="../../img/loading.gif" /><span class="scanMes">资产扫描中</span>')
+                    //开启计时器 循环获取扫描结果数据
+                    getDeviceListInterval = setInterval(function(){getScanDeviceData("../../assets/selectByIncrement.do")},3000);
+                    //开启计时器 循环获取扫描状态
+                    getScanStateInterval = setInterval(getScanState,3000);
+                    //将任务存放在本地
+                    localStorage.setItem('scanState','true')
+                }else if(data[0].state==false){
+                    layer.msg(data[0].msg,{icon:5});
+                }
+            }
+            ajaxPost("../../collector/startMasscanCollector.do",obj,sfunc);
+        }
+    })
+    //获取扫描状态
+    function getScanState(){
+        $.ajax({
+            type:"post",
+            url:"../../collector/stateMasscanCollector.do",
+            data:"",
+            success:function(data){
+                if(data[0].state== true){
+                    //更改状态
+                    $(".scanState").html('<span class="scanMes">资产扫描完成</span>')
+                    scanState = false;
+                    //关闭计时器
+                    clearInterval(getDeviceListInterval);
+                    clearInterval(getScanStateInterval);
+                    getScanDeviceData("../../assets/selectByIncrement.do")
+                    //删除本地缓存任务
+                    localStorage.removeItem('scanState');
+                }else if(data[0].state==false){
+
+                }
+            }
+        })
+    }
+
+    //获取扫描的资产
+    function getScanDeviceData(url){
+        /* var sfunc = function(data){
+            jointDeviceList(data);
+
+        }
+        //发送请求
+        ajaxPost(url,'',sfunc); */
+        $.ajax({
+            type:"post",
+            url:url,
+            data:"",
+            success:function(data){
+                if(url=='../../assets/selectAll.do'){
+                    $(".device_list tbody").html('')
+                }
+
+                jointDeviceList(data);
+            }
+        })
+    }
+
+    //创建分页函数   pageCount-总页数
+    function creatPage(pageCount){
+        $(".tools_page").pagination1(pageCount, {
+            num_edge_entries: 1, //边缘页数
+            num_display_entries: 4, //主体页数
+            callback: pageselectCallback,
+            items_per_page: 1, //每页显示1项
+            /*prev_text: "&laquo;",
+            next_text: "&raquo;"*/
+            prev_text: "上一页",
+            next_text: "下一页"
+        });
+    }
+    //分页回调函数
+    function pageselectCallback(page_index){
+
+        $("#theadCheck").removeAttr("checked");
+        if(num == true){
+            getScanDeviceData(page_index+1)
+        }
+
+    }
+    //设备列表加载拼串   data - 数据
+    function jointDeviceList(data){
+        if(data == ''){
+            return;
+        }
+        var html = '';
+        //清空页面数据
+        //$(".device_list tbody").html("")
+        //循环取值  拼串
+        for(var i in data){
+            var obj = filterObj(data[i]);
+            var logType = '';//日志类型
+            if(obj.startUp == 0){
+                obj.startUp = "否";
+            }else if(obj.startUp == 1){
+                obj.startUp = "是";
+            }
+            //设备类型
+            var typeArr2 = ["网络","安全","主机","应用"]
+            var typeArr = [
+                ["交换机","路由器"],
+                ["IPS","IDS","抗DDOS","防火墙"],
+                ["Windows","Linux","虚拟化"],
+                ["tomcat","apache","IIS","weblogic","mysql","Oracle","sqlserver","db2"]
+            ]
+            var bigType = "";
+            var type = "";//设备类型
+            //获取设备type值；
+            var deType =  obj.type;
+            if(deType != '-'){
+                //截取type前两位字符
+                var str = Number(deType.substring(0,2));
+                //截取type后两位
+                var str2 =  Number(deType.substring(2));
+                bigType = typeArr2[str - 1]
+                type = typeArr[str - 1][str2 - 1];
+            }
+
+            //时间分割  传来得时间数据 末尾有.0 将其分割出去
+            obj.createTime = obj.createTime.split(".")[0];
+            obj.upDateTime = obj.upDateTime.split(".")[0];
+            obj.endTime = obj.endTime.split(".")[0];
+            //状态
+            if(obj.state == '正常'){
+                obj.state = '<span class="label label-success">正常</span>'
+            }else{
+                obj.state = '<span class="label label-warning">超时</span>'
+            }
+            //响应时间
+            var responseTime = (Number((new Date() - new Date(obj.responseDate))/1000/60)).toFixed(2);
+
+
+            html = '<tr class="animated item_tr">'
+                +		 '<td> <input type="checkbox" name="'+obj.id+'"></td>'
+                +        '<td class="device_ip">'+obj.ip+'</td>'
+                +        '<td class="device_name">'
+                +        	'<span data-id="'+obj.id+'" data-userid="'+obj.userId+'" data-depid="'+obj.departmentId+'">'+obj.name+'</a>'
+                +        '</td>'
+                +        '<td class="device_hostname">'+obj.hostName+'</td>'
+                +        '<td class="device_type" data-type="'+obj.type+'">'+bigType+'-'+type+'</td>'
+                +        '<td class="device_logType" data-logType="'+obj.logType+'">'+obj.logType+'</td>'
+                +        '<td class="device_starttime">'+obj.createTime+'</td>'
+                +        '<td class="device_updatetime">'+obj.upDateTime+'</td>'
+                +        '<td class="device_endtime">'+obj.endTime+'</td>'
+                +        '<td class="device_iswork">'+obj.startUp+'</td>'
+                +        '<td class="device_responseTime">'+responseTime+' min</td>'
+                +        '<td class="device_status">'+obj.state+'</td>'
+                +       	'<td class="td_tools">'
+                +       		'<i class="glyphicon glyphicon-edit device_revise" title="修改"> </i>'
+                +       	'</td>'
+                +		'<td class="device_threat" threat-id="'+obj.id+'"></td>'
+                +    '</tr>'
+            //添加到页面中
+            $(".device_list tbody").prepend(html);
+        }
+        //检测状态
+        //checkDeviceStatus();
+        setInterval(function(){
+            getScanDeviceData("../../assets/selectAll.do");
+        },300000);
+        //添加到页面中
+        //$(".device_list tbody").html(html);
+    }
+    //修改资产按钮
+    //设备修改 点击事件 函数 list_con
+    $(".list_con").on("click",".device_revise",function(){
+        //定义按钮类型
+        var btnType = "revise";
+        //定义对象 要修改的数据
+        var obj = {};
+        //获取设备id
+        var id = $(this).parent().siblings(".device_name").children("span").attr("data-id");
+        // 储存在本地
+        sessionStorage.setItem("propertyId", id);
+        //跳转到 添加资产页面
+        location.href="updateDevice.html";
+    })
+
+    function checkDeviceStatus(){
+        //获取列表中的设备
+        var lists = $(".item_tr");
+
+        var respose_time;
+        var className = '';
+
+
+        if(lists.length == 0){
+
+        }else{
+            for(var i=0;i < lists.length;i++){
+                respose_time = Math.floor(1+Math.random()*(15-1))
+                $(lists[i]).children('.device_responseTime').html(respose_time+' min');
+                if(respose_time>10){
+                    $(lists[i]).children('.device_status').html('<span class="label label-default">离线</span>');
+                }else if(respose_time>5 && respose_time<=10){
+                    $(lists[i]).children('.device_status').html('<span class="label label-warning">超时</span>');
+                }else{
+                    $(lists[i]).children('.device_status').html('<span class="label label-success">正常</span>');
+                }
+            }
+        }
+    }
+
+
+    //数据对象过滤  null/undefined  转为'-';
+    function filterObj(obj){
+        for(var i in obj){
+            if(obj[i] == undefined || obj[i] == null || obj[i] == ""){
+                obj[i] = '-';
+            }
+        }
+        return obj;
+    }
+
+</script>
+
+</body>
 </html>

@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.components.kafka.logAnalysis.SysLogKafkaConsumer;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.DescribeLog;
 
 
@@ -35,7 +36,7 @@ public class EquipmentController {
 	private IEquipmentService equipmentService;
 	
 	
-	@Autowired protected ClientTemplate clientTemplate;
+	@Autowired protected ILogCrudDao logCrudDao;
 
 
 	
@@ -252,7 +253,7 @@ public class EquipmentController {
 ////			return  Constant.failureMessage();
 //		}
 		
-		SysLogKafkaConsumer m = new SysLogKafkaConsumer(equipment,clientTemplate);
+		SysLogKafkaConsumer m = new SysLogKafkaConsumer(equipment,logCrudDao);
 		Thread t = new Thread(m);
 		t.start();
 		return Constant.successMessage();

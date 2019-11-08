@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.elasticsearch.action.index.IndexRequest;
 
 import com.google.gson.Gson;
@@ -19,7 +20,7 @@ import com.jz.bigdata.business.logAnalysis.log.entity.Syslog;
 import com.jz.bigdata.business.logAnalysis.log.entity.Winlog;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
@@ -32,11 +33,11 @@ public class SysLogKafkaConsumer implements Runnable {
 
 	private final ConsumerConnector consumer;
 	boolean suspended=false;
-    private ClientTemplate template;
+    private ILogCrudDao logCrudDao;
 	public static Map<String,Object> map=new HashMap<String,Object>();
 	
 	public static List<Object> list=new ArrayList<Object>();
-	 public SysLogKafkaConsumer(Equipment equipment,ClientTemplate clientTemplate) {
+	 public SysLogKafkaConsumer(Equipment equipment,ILogCrudDao logCrudDao) {
 		Properties props = new Properties();
 		//zookeeper 配置
 //		props.put("zookeeper.connect", "124.133.246.61:2281");
@@ -131,7 +132,7 @@ public class SysLogKafkaConsumer implements Runnable {
 								log4j.setDeptid("155");
 								log4j.setEquipmentid("efbbf7dd70b9476590050faabf3ab3d3");
 								json = gson.toJson(log4j);
-								requests.add(template.insertNo("estest", "log4j", json));
+								requests.add(logCrudDao.insertNotCommit("estest", "log4j", json));
 								//清空数据
 								builder.delete(0, builder.length());
 							}
@@ -155,7 +156,7 @@ public class SysLogKafkaConsumer implements Runnable {
 					winlog.setDeptid("161");
 					winlog.setEquipmentid("1b114cded1cf4512a59af58ad844c81e");
 					json = gson.toJson(winlog);
-					requests.add(template.insertNo("estest", "winlog", json));
+					requests.add(logCrudDao.insertNotCommit("estest", "winlog", json));
 				}else {
 					Syslog syslog = new Syslog(log);
 					syslog.setUserid("b3286efc86434783aad60ce89f141d92");
@@ -163,11 +164,11 @@ public class SysLogKafkaConsumer implements Runnable {
 					syslog.setEquipmentid("5c0a4bc613eb4876ab1216fe3b594624");
 					json = gson.toJson(syslog);
 					System.out.println(json);
-					requests.add(template.insertNo("estest", "syslog", json));
+					requests.add(logCrudDao.insertNotCommit("estest", "syslog", json));
 				}
 				
 				if (requests.size()==10) {
-					template.bulk(requests);
+					logCrudDao.bulkInsert(requests);
 					requests.clear();
 				}
 				

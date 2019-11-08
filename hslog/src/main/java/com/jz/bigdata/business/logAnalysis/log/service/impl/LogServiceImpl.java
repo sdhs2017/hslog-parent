@@ -7,25 +7,19 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 
-import com.hs.elsearch.dao.IElasticsearchDao;
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.dao.logDao.ILogIndexDao;
+import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
-import org.elasticsearch.common.text.Text;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MultiMatchQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,7 +32,8 @@ import com.jz.bigdata.common.safeStrategy.entity.SafeStrategy;
 import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.common.users.service.IUsersService;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
+
 import com.jz.bigdata.util.ConfigProperty;
 
 import joptsimple.internal.Strings;
@@ -46,9 +41,12 @@ import joptsimple.internal.Strings;
 @Service(value="logService")
 public class LogServiceImpl implements IlogService {
 
-	@Autowired protected ClientTemplate clientTemplate;
+	//@Autowired protected ESTransportCrudTemplate clientTemplate;
+    @Autowired protected ILogCrudDao logCrudDao;
 
-	@Autowired protected IElasticsearchDao elasticsearchDao;
+    @Autowired protected ILogIndexDao logIndexDao;
+
+	@Autowired protected ILogSearchDao elasticsearchDao;
 
 	@Resource(name ="SafeStrategyService")
 	private ISafeStrategyService safeStrategyService;
@@ -75,13 +73,13 @@ public class LogServiceImpl implements IlogService {
 	@Override
 	public List<Map<String, Object>> index(String index,String type) {
 		// TODO Auto-generated method stub
-		return clientTemplate.selectAll(index, type,"logdate",SortOrder.DESC);
+        String [] types = {type};
+		return elasticsearchDao.getListByMap(null,null,null, types,index);
 	}
 
 	@Override
 	public void insert(String index,String type,String json) {
-		// TODO Auto-generated method stub
-		clientTemplate.insert(index, type, json);
+		logCrudDao.insert(index, type, json);
 	}
 
 	@Override
@@ -93,24 +91,30 @@ public class LogServiceImpl implements IlogService {
 	@Override
 	public String deleteById(String index,String type,String id) {
 		// TODO Auto-generated method stub
-		return clientTemplate.delete(index, type, id);
+		return logCrudDao.deleteById(index, type, id);
 	}
 
 	@Override
 	public void createIndex(String index) {
 		// TODO Auto-generated method stub
-		clientTemplate.createIndex(index);
+		logIndexDao.createIndex(index);
 	}
 
 	@Override
-	public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, String starttime,
+	public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, int size, String starttime,
 											 String endtime, Map<String, String> termsmap) {
 
-
-		return elasticsearchDao.getListByAggregation(types,starttime,endtime,groupByField,termsmap,index);
+		return elasticsearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,termsmap,index);
 	}
 
 	@Override
+	public List<Map<String, Object>> groupBy(String index, String[] types, String[] groupByField, int size, String starttime,
+											 String endtime, Map<String, String> map) {
+
+		return elasticsearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,map,index);
+	}
+
+	/*@Override
 	public List<Map<String, Object>> groupBy(String index, String[] types, String param, Map<String, String> termsmap) {
 
 		List<Map<String, Object>> list = null;
@@ -135,9 +139,9 @@ public class LogServiceImpl implements IlogService {
 				}else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
 					// 短语匹配
 					queryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
-				}/*else if (entry.getKey().equals("application_layer_protocol")) {
+				}*//*else if (entry.getKey().equals("application_layer_protocol")) {
 					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
-				}*/else {
+				}*//*else {
 					queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
 				}
 			}
@@ -147,75 +151,8 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return list;
-	}
+	}*/
 
-	@Override
-	public List<Map<String, Object>> groupBy(String index, String[] types, String param,Map<String, String> termsmap,int size) {
-
-		List<Map<String, Object>> list = null;
-		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-		Map<String, String> map = new HashMap<>();
-		map.putAll(termsmap);
-		if (map!=null&&!map.isEmpty()) {
-			if (map.get("starttime")!=null&&map.get("endtime")!=null) {
-				queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(map.get("starttime")).lte(map.get("endtime")));
-				map.remove("starttime");
-				map.remove("endtime");
-			}else if (map.get("starttime")!=null) {
-				queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(map.get("starttime")));
-				map.remove("starttime");
-			}else if (map.get("endtime")!=null) {
-				queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(map.get("endtime")));
-				map.remove("endtime");
-			}
-			for(Map.Entry<String, String> entry : map.entrySet()){
-				if (entry.getKey().equals("logdate")) {
-					queryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
-				}else {
-					queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
-				}
-			}
-			list = clientTemplate.getListGroupByQueryBuilder(index, types, param,queryBuilder,size);
-		}else {
-			list = clientTemplate.getListGroupByQueryBuilder(index, types, param,null,size);
-		}
-
-		return list;
-	}
-
-	@Override
-	public List<Map<String, Object>> groupBy(String index, String[] types, String[] param,Map<String, String> termsmap,int size) {
-
-		List<Map<String, Object>> list = null;
-		BoolQueryBuilder queryBuilder = QueryBuilders.boolQuery();
-		Map<String, String> map = new HashMap<>();
-		map.putAll(termsmap);
-		if (map!=null&&!map.isEmpty()) {
-			if (map.get("starttime")!=null&&map.get("endtime")!=null) {
-				queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(map.get("starttime")).lte(map.get("endtime")));
-				map.remove("starttime");
-				map.remove("endtime");
-			}else if (map.get("starttime")!=null) {
-				queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(map.get("starttime")));
-				map.remove("starttime");
-			}else if (map.get("endtime")!=null) {
-				queryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(map.get("endtime")));
-				map.remove("endtime");
-			}
-			for(Map.Entry<String, String> entry : map.entrySet()){
-				if (entry.getKey().equals("logdate")) {
-					queryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
-				}else {
-					queryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
-				}
-			}
-			list = clientTemplate.getListGroupByQueryBuilder(index, types, param,queryBuilder,size);
-		}else {
-			list = clientTemplate.getListGroupByQueryBuilder(index, types, param,null,size);
-		}
-
-		return list;
-	}
 
 	/**
 	 *
@@ -266,7 +203,7 @@ public class LogServiceImpl implements IlogService {
 	 * @return
 	 * service层
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListGroupByEvent(String index,String[] types,String equipmentid,String event_type,String starttime,String endtime) {
 
 		QueryBuilder queryBuilder = null;
@@ -280,7 +217,7 @@ public class LogServiceImpl implements IlogService {
 		List<Map<String, Object>> list = clientTemplate.getListGroupByQueryBuilder(index, types, "event_type", queryBuilder);
 
 		return list;
-	}
+	}*/
 	/**
 	 * @param index
 	 * @param types
@@ -312,7 +249,12 @@ public class LogServiceImpl implements IlogService {
 			calendar.add(Calendar.MINUTE, -Integer.valueOf(dates));
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
-			List<Map<String, Object>> loglist = getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
+            Map<String,String> safemap = new HashMap<>();
+            safemap.put("equipmentid",equipmentid);
+            safemap.put("event_type",event_type);
+            //List<Map<String, Object>> loglist = getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
+            List<Map<String, Object>> loglist = this.groupBy(index, types,event_type, 10,starttime, endtime,safemap);
+
 
 			if (!loglist.get(0).isEmpty()) {
 				float per = Float.valueOf(loglist.get(0).get(safeStrategy.getEvent_type()).toString())/safeStrategy.getNumber();
@@ -386,42 +328,17 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	/**
-	 * @param index
-	 * @param types
-	 * @param dates
-	 * @param equipmentid
-	 * @param groupby
+	 * 新
+	 * @param index 索引名称
+	 * @param types 索引的type字段，7版本移除
+	 * @param today 时间
+	 * @param equipmentid 设备id
+	 * @param groupby 聚合字段
 	 * @return
-	 * todo
-	 * service层
 	 */
 	@Override
 	public List<Map<String, Object>> getEventListGroupByEventType(String index,String[] types,String today,String equipmentid,String groupby) {
 
-
-		/*QueryBuilder queryBuilder = null;
-		String [] date = dates.split("-");
-		QueryBuilder querytime = QueryBuilders.boolQuery()
-				.must(QueryBuilders.matchPhraseQuery("logtime_year", date[0]))
-				.must(QueryBuilders.matchPhraseQuery("logtime_month", date[1]))
-				.must(QueryBuilders.matchPhraseQuery("logtime_day", date[2]));
-		QueryBuilder existquery = QueryBuilders.boolQuery()
-				.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
-
-		if(equipmentid!=null&&!equipmentid.equals("")) {
-			QueryBuilder queryequipmentid = QueryBuilders.boolQuery()
-					.must(QueryBuilders.termQuery("equipmentid", equipmentid));
-			queryBuilder = QueryBuilders.boolQuery()
-					.must(querytime)
-					.must(existquery)
-					.must(queryequipmentid);
-		}else {
-			queryBuilder = QueryBuilders.boolQuery()
-					.must(existquery)
-					.must(querytime);
-		}
-		List<Map<String, Object>> list = clientTemplate.getListGroupByQueryBuilder(index, types, groupby, queryBuilder);
-*/
 
 		Date nowTime = new Date();
 		SimpleDateFormat yyyyMMdd_format = new SimpleDateFormat("yyyy-MM-dd");
@@ -439,16 +356,16 @@ public class LogServiceImpl implements IlogService {
 		if (today.equals(yyyyMMdd_format.format(nowTime))) {
 			String starttime = today+" 00:00:00";
 			String endtime = format.format(nowTime);
-			list = elasticsearchDao.getListByAggregation(types,starttime,endtime,groupby,map,index);
+			list = elasticsearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
 		}else {
 			String starttime = today+" 00:00:00";
 			String endtime = today+" 23:59:59";
-			list = elasticsearchDao.getListByAggregation(types,starttime,endtime,groupby,map,index);
+			list = elasticsearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
 		}
 		return list;
 	}
 
-	@Override
+	/*@Override
 	public List<Map<String, Object>> orderBy(String index, String type, String param,String order,String page,String size) {
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
 
@@ -474,7 +391,7 @@ public class LogServiceImpl implements IlogService {
 		Map<String,String> map = new HashMap<String,String>();
 		list = clientTemplate.getListOrderByParam(index, type, param, sortOrder,map,fromInt,sizeInt);
 		return list;
-	}
+	}*/
 
 	/**
 	 * 通过资产获取日志
@@ -520,10 +437,10 @@ public class LogServiceImpl implements IlogService {
 	}*/
 
 	@Override
-	public void createIndexAndmapping(String index, String type,String mappingproperties) {
+	public void createIndexAndmapping(String index, String type,String mappingproperties) throws Exception {
 
 		if (mappingproperties!=null&&!mappingproperties.equals("")) {
-			clientTemplate.addMapping(index, type, mappingproperties);
+			logIndexDao.addMapping(index, type, mappingproperties);
 		}
 
 
@@ -541,7 +458,7 @@ public class LogServiceImpl implements IlogService {
 	 * @return
 	 * service层 混合查询 列+正文内容
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByContent(String index,String[] types,String content,String page,String size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -567,10 +484,6 @@ public class LogServiceImpl implements IlogService {
 			if (content.contains(" ")&&content.length()>10) {
 				//String length  = (content.split(" ").length)+"";
 
-				//multiMatchQueryBuilder  = QueryBuilders.multiMatchQuery(content, "operation_des").fuzziness("AUTO");
-				//multiMatchQueryBuilder = QueryBuilders.disMaxQuery().add(QueryBuilders.matchQuery("operation_des", content));
-				//multiMatchQueryBuilder = QueryBuilders.queryStringQuery(content).field("operation_des").minimumShouldMatch(length);
-				//multiMatchQueryBuilder = QueryBuilders.matchPhraseQuery("operation_des",content);
 				multiMatchQueryBuilder = QueryBuilders.matchQuery("operation_des", content).operator(Operator.AND);
 				count = clientTemplate.count(index, types, multiMatchQueryBuilder);
 				if (count<1) {
@@ -644,7 +557,7 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return list;
-	}
+	}*/
 
 	/**
 	 * @param index
@@ -654,14 +567,14 @@ public class LogServiceImpl implements IlogService {
 	 * @return
 	 * service层 混合查询 列+正文内容
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByContent(String index,String[] types,String content,String userid,String page,String size) {
-		/**
+		*//**
 		 * 1.功能菜单点击日志检索，弹出页面
 		 * 2.日志检索页面点击检索按钮
 		 * 2.1有条件
 		 * 2.2无条件
-		 */
+		 *//*
 
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -674,6 +587,11 @@ public class LogServiceImpl implements IlogService {
 			fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
 			sizeInt = Integer.parseInt(size);
 		}
+
+		Map<String,String> map = new HashMap<>();
+		if (userid!=null&&!userid.equals("")){
+		    map.put("userid",userid);
+        }
 
 		QueryBuilder user = QueryBuilders.termQuery("userid", userid);
 		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -753,24 +671,29 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return list;
-	}
+	}*/
 
 	@Override
 	public List<Map<String, Object>> getListByContent(String content,String userid,String page,String size,String[] types,String... indices){
 
-		int intofpage = Integer.valueOf(page);
-		int intofsize = Integer.valueOf(size);
-		return elasticsearchDao.getListByContent(content,userid,intofpage,intofsize,types,indices);
+		Integer fromInt = 0;
+		Integer sizeInt = 10;
+
+		if (page!=null&&size!=null) {
+			fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
+			sizeInt = Integer.parseInt(size);
+		}
+		return elasticsearchDao.getListByContent(content,userid,fromInt,sizeInt,types,indices);
 	}
 
 	/**
 	 * @param index
 	 * @param types
-	 * @param map
+	 * @param pamap
 	 * @return
 	 * service层  组合查询+关键字
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByBlend(String index,String[] types,Map<String, String> pamap,String page,String size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -901,17 +824,17 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return list;
-	}
+	}*/
 
 	/**
 	 * @param index
 	 * @param types
-	 * @param map
+	 * @param pamap
 	 * @param userid
 	 * @return
 	 * service层  组合查询+关键字
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByBlend(String index,String[] types,Map<String, String> pamap,String userid,String page,String size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -1039,17 +962,19 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return list;
-	}
+	}*/
 
 
 	/**
 	 * @param index
 	 * @param types
-	 * @param content
+	 * @param starttime
+	 * @param endtime
+	 * @param map
 	 * @return
 	 * service层  时间段+map
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByMap(String index,String[] types,String starttime,String endtime,Map<String, String> map) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -1072,7 +997,7 @@ public class LogServiceImpl implements IlogService {
 
 
 		return list;
-	}
+	}*/
 
 	/**
 	 * @param index
@@ -1134,11 +1059,14 @@ public class LogServiceImpl implements IlogService {
 	/**
 	 * @param index
 	 * @param types
-	 * @param content
+	 * @param starttime
+	 * @param endtime
+	 * @param map
+	 * @param userid
 	 * @return
 	 * service层  时间段+map+分页
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByMap(String index,String[] types,String starttime,String endtime,Map<String, String> map,String userid, String page,String size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -1180,7 +1108,7 @@ public class LogServiceImpl implements IlogService {
 		list.addAll(clientTemplate.getListByQueryBuilder(index, types, boolQueryBuilder,"logdate",SortOrder.DESC,fromInt,sizeInt));
 
 		return list;
-	}
+	}*/
 
 	/**
 	 * service层
@@ -1248,14 +1176,37 @@ public class LogServiceImpl implements IlogService {
 		return list;
 	}
 
+	@Override
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) {
+
+		Integer fromInt = 0;
+		Integer sizeInt = 10;
+		long count = 0;
+		if (page!=null&&size!=null) {
+			fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
+			sizeInt = Integer.parseInt(size);
+		}
+
+		List<Map<String, Object>> list = new ArrayList<>();
+		//日志总量
+		count = elasticsearchDao.getCount(map,starttime,endtime,types,indices);
+		Map<String, Object> mapcount = new HashMap<String,Object>();
+		mapcount.put("count", count);
+
+		list.add(mapcount);
+
+		list.addAll(elasticsearchDao.getLogListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
+		return list;
+	}
+
 	/**
 	 * @param index
 	 * @param types
-	 * @param content
+	 * @param multifieldparam
 	 * @return
 	 * service层  单个查询条件多匹配查询
 	 */
-	@Override
+	/*@Override
 	public List<Map<String, Object>> getListByMultiField(String index,String[] types,Map<String, String[]> multifieldparam,Map<String, String> param, String page,String size) {
 
 		List<Map<String, Object>> list = new LinkedList<Map<String, Object>>();
@@ -1313,16 +1264,12 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return list;
-	}
+	}*/
 
 	/**
-	 * @param index
-	 * @param types
-	 * @param map + content
-	 * @return
 	 * service层
 	 */
-	public List<Map<String, Object>> getListByMapAndContent(String index,String[] types,Map<String, String> map,String content) {
+	/*public List<Map<String, Object>> getListByMapAndContent(String index,String[] types,Map<String, String> map,String content) {
 
 		String [] keys = {"equipmentid","operation_level","operation_des"};
 		BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -1334,8 +1281,8 @@ public class LogServiceImpl implements IlogService {
 			}
 		}
 		for(Map.Entry<String, String> entry : map.entrySet()){
-			/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
-			boolQueryBuilder.must(matchqueryBuilder);*/
+			*//*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+			boolQueryBuilder.must(matchqueryBuilder);*//*
 			QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
 			boolQueryBuilder.should(wildcardqueryBuilder);
 		}
@@ -1344,7 +1291,7 @@ public class LogServiceImpl implements IlogService {
 
 		return list;
 	}
-
+*/
 	public <T> String getClassMapping(T classes) {
 
 		StringBuilder fieldstring = new StringBuilder();
@@ -1398,7 +1345,7 @@ public class LogServiceImpl implements IlogService {
 	@Override
 	public String searchById(String index, String type, String id) {
 
-		return clientTemplate.searchById(index,type,id);
+		return logCrudDao.searchById(index,type,id).toString();
 	}
 
 	@Override
@@ -1491,7 +1438,7 @@ public class LogServiceImpl implements IlogService {
 				}
 			}
 			try {
-				result = clientTemplate.countDeleteByQuery(indices, queryBuilder);
+				result = logCrudDao.countDeleteByQuery(queryBuilder,indices);
 			} catch (Exception e) {
 				result = 0;
 			}
@@ -1518,7 +1465,7 @@ public class LogServiceImpl implements IlogService {
 		// 该合并操作针对删除数据后希望释放存储空间
 		boolean onlyExpungeDeletes = true;
 
-		return clientTemplate.indexForceMerge(indices, maxNumSegments, onlyExpungeDeletes);
+		return logIndexDao.indexForceMerge(indices, maxNumSegments, onlyExpungeDeletes);
 
 	}
 
@@ -1546,7 +1493,7 @@ public class LogServiceImpl implements IlogService {
 			System.out.println("删除数据条数："+delete_count);
 			indexForceMergeForDelete(indices);
 
-			boolean startresult = collectorService.startKafkaCollector(equipmentService, clientTemplate, configProperty,
+			boolean startresult = collectorService.startKafkaCollector(equipmentService, logCrudDao, configProperty,
 					alarmService, usersService);
 
 			if (startresult) {
@@ -1560,37 +1507,37 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public boolean indexExists(String index) {
+	public boolean indexExists(String index) throws Exception {
 
-		return clientTemplate.indexExists(index);
+		return logIndexDao.indexExists(index);
 	}
 
 	@Override
 	public boolean createRepositories(String repositoryName, String repoPath) {
 
-		return clientTemplate.createRepositories(repositoryName, repoPath);
+		return logIndexDao.createRepositories(repositoryName, repoPath);
 	}
 
 	@Override
 	public List<Map<String, Object>> getRepositoriesInfo(String... repositoryName) {
 
-		return clientTemplate.getRepositoriesInfo(repositoryName);
+		return logIndexDao.getRepositoriesInfo(repositoryName);
 	}
 
 	@Override
 	public boolean deleteRepositories(String repositoryName) {
 
-		return clientTemplate.deleteRepositories(repositoryName);
+		return logIndexDao.deleteRepositories(repositoryName);
 	}
 
 	@Override
 	public boolean updateSettings(String index, Map<String, Object> map) {
 
-		return clientTemplate.updateSettings(index, map);
+		return logIndexDao.updateSettings(index, map);
 	}
 
 	@Override
-	public boolean createIndexRegularly() {
+	public boolean createIndexRegularly() throws Exception {
 
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		Calendar c = Calendar.getInstance();
@@ -1599,25 +1546,25 @@ public class LogServiceImpl implements IlogService {
 		String index = configProperty.getEs_index().replace("*",format.format(c.getTime()));
 		System.out.println(index);
 
-		if(clientTemplate.indexExists(index)){
+		if(logIndexDao.indexExists(index)){
 			System.out.println(index+"  已存在！");
 			return true;
 		}else {
 
 			try {
-				clientTemplate.addMapping(index, LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
-				clientTemplate.addMapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
+				logIndexDao.addMapping(index, LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
 
-				clientTemplate.addMapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
 			}catch (Exception e){
 				e.printStackTrace();
 				System.out.println("创建index失败！！！");

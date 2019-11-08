@@ -1,14 +1,12 @@
 package com.jz.bigdata.business.logAnalysis.collector.pcap4j;
 
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.packet.IpV4Packet;
@@ -20,7 +18,7 @@ import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.DefaultPacket;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
 
 public class PacketStream {
@@ -36,7 +34,8 @@ public class PacketStream {
 	boolean iDestroy = false;
 	
 	ConfigProperty configProperty;
-	ClientTemplate clientTemplate;
+	//ClientTemplate clientTemplate;
+	ILogCrudDao logCurdDao;
 	Gson gson;
 	String json;
 	
@@ -47,10 +46,10 @@ public class PacketStream {
 	List<IndexRequest> requests ;
 	
 	
-	public PacketStream(ConfigProperty configProperty,ClientTemplate clientTemplate,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap)
+	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap)
 	{
 		this.configProperty = configProperty;
-		this.clientTemplate = clientTemplate;
+		this.logCurdDao = logCurdDao;
 		this.gson = gson;
 		this.requests = requests;
 		this.domainSet = domainSet;
@@ -68,6 +67,10 @@ public class PacketStream {
 			// 识别http数据包的正则表达式
 			String httpRequest = "^(POST|GET) /[^\\s]* HTTP/1.[0,1]";
 			String httpResponse = "^HTTP/1.[0,1] [0-9]{0,3} *";
+
+			// index名称定义
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+			String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 			
 			if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
@@ -86,7 +89,8 @@ public class PacketStream {
 								//System.out.println("--urlmap---"+urlmap);
 							}
 							json = gson.toJson(http);
-							requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
+							//requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
+							requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 						} catch (Exception e) {
 							System.out.println("---------------范式化失败·······---------"+e.getMessage());
 							e.printStackTrace();
@@ -105,10 +109,11 @@ public class PacketStream {
 							}
 						}else {
 							json = gson.toJson(defaultpacket);
-							requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
+							requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 						}*/
 						json = gson.toJson(defaultpacket);
-						requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
+						//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+						requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 					}
 				}
 				
@@ -124,16 +129,17 @@ public class PacketStream {
 					}
 				}else {
 					json = gson.toJson(defaultpacket);
-					requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
+					requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 				}*/
 				json = gson.toJson(defaultpacket);
-				requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
+				//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+				requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 			}
 			
 		
 			if (requests.size()==configProperty.getEs_bulk()) {
 				try {
-					clientTemplate.bulk(requests);
+					logCurdDao.bulkInsert(requests);
 					requests.clear();
 				} catch (Exception e) {
 					logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());

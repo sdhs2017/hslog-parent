@@ -145,6 +145,11 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		List<Equipment> list = equipmentDao.selectEquipment(equipment);
 		List<Equipment> listEquipment = (List<Equipment>) list.get(0);
 
+		List<Equipment> myList = new ArrayList<>();
+
+		if (listEquipment.size()<1){
+			return  myList;
+		}
 		// equipment=listEquipment.get(0);
 		// System.out.println(equipment.getConfidentiality());
 
@@ -171,7 +176,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 		equipment = JavaBeanUtil.convertMapToBean(Equipment.class, equipmentmap);
 //		equipment = JavaBeanUtil.convertMapToBean(new Equipment(), equipmentmap);
-		List<Equipment> myList = new ArrayList<>();
+
 		myList.add(equipment);
 		return myList;
 		//return listEquipment;

@@ -155,7 +155,7 @@
 
         // Prefixes a hash of styles with the current vendor
         prefix: function( style ) {
-            
+
             for ( var key in style ) {
                 style[ prefix + key ] = style[ key ];
             }
@@ -192,7 +192,7 @@
             var message = 'Failed to detect CSS 3D support';
 
             if( console && console.warn ) {
-                
+
                 // Print warning to the console
                 console.warn( message );
 
@@ -277,19 +277,19 @@
                 '}');
             var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
             if (userAgent.indexOf("Firefox") > -1) { //判断是否Firefox浏览器
-            	 utils.inject( '.node {' +
-                 'position: relative;' +
-                 'display: block;' +
-                 '}');
+                utils.inject( '.node {' +
+                    'position: relative;' +
+                    'display: block;' +
+                    '}');
             };
             if (userAgent.indexOf("Chrome") > -1) {//判断是否Chrome浏览器
-            	 utils.inject( '.node {' +
-            		'position: relative;' +
+                utils.inject( '.node {' +
+                    'position: relative;' +
                     'display: block;' +
-                 '}');	
+                    '}');
             }
             // Node styles
-           
+
 
             // Face styles
             utils.inject( '.face {' +
@@ -331,7 +331,7 @@
                 // Build a scene graph for elements
                 $root = $( markup.node ).addClass( 'root' );
                 $base = $root;
-                
+
                 // Process each element and insert into hierarchy
                 $kids.each( function( index, el ) {
 
@@ -361,7 +361,7 @@
                         'background': opts.shading,
                         'opacity': 0.0
                     });
-                    
+
                     // Begin folded
                     $node = $( markup.node ).append( $item );
                     $node.css(utils.prefix({
@@ -433,292 +433,291 @@ obj.iporport = rankingListVal.split('-')[2];
 $(".top_title").html(rankingListVal.split('-')[1]+':'+rankingListVal.split('-')[2]);//类型：值
 
 var listName = {
-	"ipv4_src_addr":"源IP",
-	"ipv4_dst_addr":"目的IP",
-	"l4_src_port":"源端口",
-	"l4_dst_port":"目的端口"
+    "ipv4_src_addr":"源IP",
+    "ipv4_dst_addr":"目的IP",
+    "l4_src_port":"源端口",
+    "l4_dst_port":"目的端口"
 }
 //成功方法函数
 var sfunc = function(data){//成功
-	//用于区分哪一个 列表 累加
-	var m = 0;
-	/*var startIpObj = data[0].ipv4_src_addr;//源ip数组集合
-	var endIpObj = data[0].ipv4_dst_addr;//目的ip数组集合
-	var startPortObj  = data[0].l4_src_port;//源端口数组集合
-	var endPortObj = data[0].l4_dst_port;//目的端口数组集合			
-*/	
-	for(var i in data[0]){		
-		if(m == 0){
-			//加载列表
-			splitList(listName[i],data[0][i],'nigiri');
-			//设置第一个条件框名称
-			$(".cond1_title").html(listName[i]);
-		}else if(m == 1){
-			splitList(listName[i],data[0][i],'maki');
-			//设置第一个条件框名称
-			$(".cond2_title").html(listName[i]);
-		}else if(m == 2){
-			splitList(listName[i],data[0][i],'sashimi');
-			//设置第一个条件框名称
-			$(".cond3_title").html(listName[i]);
-		}
-		
-		m++;
-	}
-	//触发下拉效果
-	if ( $.fn.makisu.enabled ) {
-	    var $sashimi = $( '.sashimi' );
-	    var $nigiri = $( '.nigiri' );
-	    var $maki = $( '.maki' );
-	    // Create Makisus
-	    $nigiri.makisu({
-	        selector: 'dd',
-	        overlap: 0.85,
-	        speed: 1.5
-	    });
+    //用于区分哪一个 列表 累加
+    var m = 0;
+    /*var startIpObj = data[0].ipv4_src_addr;//源ip数组集合
+    var endIpObj = data[0].ipv4_dst_addr;//目的ip数组集合
+    var startPortObj  = data[0].l4_src_port;//源端口数组集合
+    var endPortObj = data[0].l4_dst_port;//目的端口数组集合
+*/
+    for(var i in data[0]){
+        if(m == 0){
+            //加载列表
+            splitList(listName[i],data[0][i],'nigiri');
+            //设置第一个条件框名称
+            $(".cond1_title").html(listName[i]);
+        }else if(m == 1){
+            splitList(listName[i],data[0][i],'maki');
+            //设置第一个条件框名称
+            $(".cond2_title").html(listName[i]);
+        }else if(m == 2){
+            splitList(listName[i],data[0][i],'sashimi');
+            //设置第一个条件框名称
+            $(".cond3_title").html(listName[i]);
+        }
 
-	    $maki.makisu({
-	        selector: 'dd',
-	        overlap: 0.6,
-	        speed: 0.85
-	    });
+        m++;
+    }
+    //触发下拉效果
+    if ( $.fn.makisu.enabled ) {
+        var $sashimi = $( '.sashimi' );
+        var $nigiri = $( '.nigiri' );
+        var $maki = $( '.maki' );
+        // Create Makisus
+        $nigiri.makisu({
+            selector: 'dd',
+            overlap: 0.85,
+            speed: 1.5
+        });
 
-	    $sashimi.makisu({
-	        selector: 'dd',
-	        overlap: 0.2,
-	        speed: 0.5
-	    });
+        $maki.makisu({
+            selector: 'dd',
+            overlap: 0.6,
+            speed: 0.85
+        });
 
-	    // Open all
-	    
-	    $( '.list' ).makisu( 'open' );
+        $sashimi.makisu({
+            selector: 'dd',
+            overlap: 0.2,
+            speed: 0.5
+        });
 
-	    // Toggle on click
+        // Open all
 
-	    $( '.toggle' ).on( 'click', function() {
-	        $( '.list' ).makisu( 'toggle' );
-	    });
+        $( '.list' ).makisu( 'open' );
 
-	    // Disable all links
+        // Toggle on click
 
-	    $( '.demo a' ).click( function( event ) {
-	        event.preventDefault();
-	    });
+        $( '.toggle' ).on( 'click', function() {
+            $( '.list' ).makisu( 'toggle' );
+        });
 
-	} else {
+        // Disable all links
 
-	    $( '.warning' ).show();
-	}
-	 var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
-     if (userAgent.indexOf("Firefox") > -1) { //判断是否Firefox浏览器
-     	$(".node").hover(function(){
-     		$(this).css("display","inline");
-     	},function(){
-     		$(this).css("display","block");
-     	})
-     }
+        $( '.demo a' ).click( function( event ) {
+            event.preventDefault();
+        });
+
+    } else {
+
+        $( '.warning' ).show();
+    }
+    var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+    if (userAgent.indexOf("Firefox") > -1) { //判断是否Firefox浏览器
+        $(".node").hover(function(){
+            $(this).css("display","inline");
+        },function(){
+            $(this).css("display","block");
+        })
+    }
 }
 //失败回调函数
 var efunc = function(data){
-	layer.msg('操作失败',{icon: 5});
+    layer.msg('操作失败',{icon: 5});
 }
 //发送请求
 ajaxPost("../../log/getIPAndPortTop.do",obj,sfunc,"",efunc);
 
 //拼接列表  title-列表名   data-列表数据   eleClassName-列表class名
 function splitList(title, data,eleClassName){
-	var html = '<dt>'+title+'排行榜</dt>';
-	var count = '';
-	for(var i = 0;i<data.length;i++){
-		var className = '';//class名 用于颜色显示
-		//判断顺序 添加class名
-		if(i == 0){
-			className = 'firstItem';
-		}else if(i == 1){
-			className = 'secondItem';
-		}else if(i == 2){
-			className = 'thirdItem';
-		}
-		var obj = data[i];	
-		//判断次数大小 超过一万 做万位处理
-		if(obj.count > 10000){
-			count = (Number(obj.count) / 10000).toFixed(1) + ' 万';
-		}else {
-			count = obj.count;
-		}
-		html += '<dd onclick="ddClick($(this))" ondragstart="drag(event)" draggable="true" class="'+className+'"><a href="#"><span class="rankingOrder">'+(i+1)+'</span><span class="rankingText">'+obj.IpOrPort+'</span><span class="rankingNum">'+count+'</span></a></dd>'	    
-		//添加到页面中
-		$("."+eleClassName).html(html);
-		/*$("dd").click(function(){
-			console.log($(this).children('a').children(".rankingText").html())
-		})*/
-	}
+    var html = '<dt>'+title+'排行榜</dt>';
+    var count = '';
+    for(var i = 0;i<data.length;i++){
+        var className = '';//class名 用于颜色显示
+        //判断顺序 添加class名
+        if(i == 0){
+            className = 'firstItem';
+        }else if(i == 1){
+            className = 'secondItem';
+        }else if(i == 2){
+            className = 'thirdItem';
+        }
+        var obj = data[i];
+        //判断次数大小 超过一万 做万位处理
+        if(obj.count > 10000){
+            count = (Number(obj.count) / 10000).toFixed(1) + ' 万';
+        }else {
+            count = obj.count;
+        }
+        html += '<dd onclick="ddClick($(this))" ondragstart="drag(event)" draggable="true" class="'+className+'"><a href="#"><span class="rankingOrder">'+(i+1)+'</span><span class="rankingText">'+obj.IpOrPort+'</span><span class="rankingNum">'+count+'</span></a></dd>'
+        //添加到页面中
+        $("."+eleClassName).html(html);
+        /*$("dd").click(function(){
+            console.log($(this).children('a').children(".rankingText").html())
+        })*/
+    }
 }
 //点击列表（dd） 事件
 function ddClick($this,event){
-	//获得当前点击行的值
-	var targetVal = $this.children("a").children(".rankingText").html();
-	//获得当前点击的位置
-	var e = window.event||event||arguments.callee.caller.arguments[0];
-	var startLeft = $(e.target).offset().left;
-	var startTop = $(e.target).offset().top;
-	//获得当前点击的类别的id
-	var parentId = $this.parents('dl').attr("id");
-	//获得结束盒子
-	var endDiv = "";
-	if(parentId == 'list01'){
-		endDiv = $(".cond1_text");
-	}else if(parentId == 'list02'){
-		endDiv = $(".cond2_text");
-	}else if(parentId == 'list03'){
-		endDiv = $(".cond3_text");
-	}
-	//判断结束盒子里的值是否等于当前点击的值
-	if($(endDiv).children("div").length ==  0 || targetVal !== $(endDiv).children("div").children('.val').html()){
-		//创建动画盒子
-		var outer = createBall(targetVal),//outer框
-			inner = outer.firstElementChild//内部框
-		//设置动画盒子的初始位置
-		$(".outer").css({left:startLeft,top:startTop})
-		//计算水平移动的位置
-		var instanceX = endDiv.offset().left - startLeft;
-		var instanceY = endDiv.offset().top - startTop;
-		outer.style.transform = 'translate3d('+instanceX+'px,0,0)';//水平方向匀速移动，参考样式设置
-		inner.style.transform = 'translate3d(0,'+instanceY+'px,0)';//垂直方向变速运动，参考样式设置
-		inner.style.opacity = 0;
-		//延时0.5s填充数据
-		setTimeout(function(){
-			endDiv.html('<div><span class="val">'+targetVal+'</span><i class=" fa fa-times"></i></div>');
-			//删除动画盒子
-			$(".outer").remove();
-		},500)
-		//初始化
-		outer = inner = null;
-	}
-	
-	
-	
+    //获得当前点击行的值
+    var targetVal = $this.children("a").children(".rankingText").html();
+    //获得当前点击的位置
+    var e = window.event||event||arguments.callee.caller.arguments[0];
+    var startLeft = $(e.target).offset().left;
+    var startTop = $(e.target).offset().top;
+    //获得当前点击的类别的id
+    var parentId = $this.parents('dl').attr("id");
+    //获得结束盒子
+    var endDiv = "";
+    if(parentId == 'list01'){
+        endDiv = $(".cond1_text");
+    }else if(parentId == 'list02'){
+        endDiv = $(".cond2_text");
+    }else if(parentId == 'list03'){
+        endDiv = $(".cond3_text");
+    }
+    //判断结束盒子里的值是否等于当前点击的值
+    if($(endDiv).children("div").length ==  0 || targetVal !== $(endDiv).children("div").children('.val').html()){
+        //创建动画盒子
+        var outer = createBall(targetVal),//outer框
+            inner = outer.firstElementChild//内部框
+        //设置动画盒子的初始位置
+        $(".outer").css({left:startLeft,top:startTop})
+        //计算水平移动的位置
+        var instanceX = endDiv.offset().left - startLeft;
+        var instanceY = endDiv.offset().top - startTop;
+        outer.style.transform = 'translate3d('+instanceX+'px,0,0)';//水平方向匀速移动，参考样式设置
+        inner.style.transform = 'translate3d(0,'+instanceY+'px,0)';//垂直方向变速运动，参考样式设置
+        inner.style.opacity = 0;
+        //延时0.5s填充数据
+        setTimeout(function(){
+            endDiv.html('<div><span class="val">'+targetVal+'</span><i class=" fa fa-times"></i></div>');
+            //删除动画盒子
+            $(".outer").remove();
+        },500)
+        //初始化
+        outer = inner = null;
+    }
+
+
+
 }
 //创建动画盒子
 function createBall(targetVal){
-	var inner = document.createElement('div'),
-		outer = document.createElement('div');
-	inner.classList.add('inner');
-	outer.classList.add('outer');
-	inner.innerHTML = targetVal;
-	outer.appendChild(inner);
-	document.body.appendChild(outer);
-	return outer;
+    var inner = document.createElement('div'),
+        outer = document.createElement('div');
+    inner.classList.add('inner');
+    outer.classList.add('outer');
+    inner.innerHTML = targetVal;
+    outer.appendChild(inner);
+    document.body.appendChild(outer);
+    return outer;
 }
 
 
 //拖拽开始函数
-function drag(event){	
-	var e = window.event||event||arguments.callee.caller.arguments[0];
-	var eParent =  $(e.target).parents("dl").attr("id");
-	//console.log( $(e.target).children('.rankingText').html())
-	var eVal = $(e.target).children('.rankingText').html();
-	e.dataTransfer.setData("text/plain",eParent+"-"+eVal);
-	// 存储当前拖动的对象的id
-	//e.dataTransfer.setData("Text",e.target);
-	
+function drag(event){
+    var e = window.event||event||arguments.callee.caller.arguments[0];
+    var eParent =  $(e.target).parents("dl").attr("id");
+    //console.log( $(e.target).children('.rankingText').html())
+    var eVal = $(e.target).children('.rankingText').html();
+    e.dataTransfer.setData("text/plain",eParent+"-"+eVal);
+    // 存储当前拖动的对象的id
+    //e.dataTransfer.setData("Text",e.target);
+
 }
 //拖拽停止 放下动作函数
 function drop(event){
-	var e = window.event||event||arguments.callee.caller.arguments[0];
-	//清除默认行为
-	e.preventDefault();
-	e.stopPropagation();
-	var text = e.dataTransfer.getData("text/plain");
-	if($(e.target).attr("class") == "cond1_text" && text.split("-")[0] == "list01"){
-		if($(".cond1_text").children('div').length == 0){
-			$(".cond1_text").html('<div><span class="val">'+text.split("-")[1]+'</span><i class=" fa fa-times"></i></div>')
-		}
-	}else if($(e.target).attr("class") == "cond2_text" && text.split("-")[0] == "list02"){
-		if($(".cond2_text").children('div').length == 0){
-			$(".cond2_text").html('<div><span class="val">'+text.split("-")[1]+'</span><i class=" fa fa-times"></i></div>')
-		}
-	}else if($(e.target).attr("class") == "cond3_text" && text.split("-")[0] == "list03"){
-		if($(".cond3_text").children('div').length == 0){
-			$(".cond3_text").html('<div><span class="val">'+text.split("-")[1]+'</span><i class=" fa fa-times"></i></div>')
-		}
-	}
+    var e = window.event||event||arguments.callee.caller.arguments[0];
+    //清除默认行为
+    e.preventDefault();
+    e.stopPropagation();
+    var text = e.dataTransfer.getData("text/plain");
+    if($(e.target).attr("class") == "cond1_text" && text.split("-")[0] == "list01"){
+        if($(".cond1_text").children('div').length == 0){
+            $(".cond1_text").html('<div><span class="val">'+text.split("-")[1]+'</span><i class=" fa fa-times"></i></div>')
+        }
+    }else if($(e.target).attr("class") == "cond2_text" && text.split("-")[0] == "list02"){
+        if($(".cond2_text").children('div').length == 0){
+            $(".cond2_text").html('<div><span class="val">'+text.split("-")[1]+'</span><i class=" fa fa-times"></i></div>')
+        }
+    }else if($(e.target).attr("class") == "cond3_text" && text.split("-")[0] == "list03"){
+        if($(".cond3_text").children('div').length == 0){
+            $(".cond3_text").html('<div><span class="val">'+text.split("-")[1]+'</span><i class=" fa fa-times"></i></div>')
+        }
+    }
 }
 function allowDrop(event){
-	var e = window.event||event||arguments.callee.caller.arguments[0];
-	//清除默认行为
-	e.preventDefault();
+    var e = window.event||event||arguments.callee.caller.arguments[0];
+    //清除默认行为
+    e.preventDefault();
 }
 
 //鼠标悬停
 $(".cond1_text,.cond2_text,.cond3_text").hover(function(){
-	$(this).find("i").css("display","inline-block");
+    $(this).find("i").css("display","inline-block");
 },function(){
-	$(this).find("i").css("display","none");
+    $(this).find("i").css("display","none");
 })
 //删除所选的查询条件
 $(".cond1_text,.cond2_text,.cond3_text").on("click","i",function(){
-	$(this).parent().remove();
+    $(this).parent().remove();
 })
 var htmlNum = 0;
 var sendObj = {};
 //查看日志
 $(".btnBox").click(function(){
-	sendObj.type = "netflow";
-	sendObj.ipv4_src_addr = "";
-	sendObj.ipv4_dst_addr = "";
-	sendObj.l4_src_port = "";
-	sendObj.l4_dst_port = "";
-	
-	differentiateType(rankingListVal.split('-')[1],rankingListVal.split('-')[2])
-	//获取参数
-	var tit1 = $(".cond1_title").html(); 
-	var val1 = $(".cond1_text").find(".val").html();
-	differentiateType(tit1,val1)
-	
-	var tit2 = $(".cond2_title").html(); 
-	var val2 = $(".cond2_text").find(".val").html();
-	differentiateType(tit2,val2)
+    sendObj.type = "defaultpacket";
+    sendObj.ipv4_src_addr = "";
+    sendObj.ipv4_dst_addr = "";
+    sendObj.l4_src_port = "";
+    sendObj.l4_dst_port = "";
 
-	var tit3 = $(".cond3_title").html(); 
-	var val3 = $(".cond3_text").find(".val").html();
-	differentiateType(tit3,val3)
+    differentiateType(rankingListVal.split('-')[1],rankingListVal.split('-')[2])
+    //获取参数
+    var tit1 = $(".cond1_title").html();
+    var val1 = $(".cond1_text").find(".val").html();
+    differentiateType(tit1,val1)
 
-	//跳转页面
-	// 储存在本地
-	//sessionStorage.setItem("netflowSearchObj",JSON.stringify(sendObj));
-	var objstr = JSON.stringify(sendObj).replace(/"/g,"'");
-	//拼接导航
-	var html ='<a href="javascript:;" class="active J_menuTab" data-obj="'+objstr+'" data-id="netflowLogs'+htmlNum+'">'+rankingListVal.split('-')[2]+'日志 <i class="fa fa-times-circle"></i></a>'
-	//移除导航菜单选中属性
-	$('.page-tabs-content', parent.document).click().children("a").removeClass("active");
-	//添加导航菜单
-	$('.page-tabs-content', parent.document).click().append(html);
-	var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/netflowLogs.html" frameborder="0" data-id="netflowLogs'+htmlNum+'" seamless="" style="display: inline;"></iframe>'
-	//移除其他页面
-	$('#content-main', parent.document).click().children("iframe").hide();
-	$('#content-main', parent.document).click().append(iframe);
-	htmlNum++;
+    var tit2 = $(".cond2_title").html();
+    var val2 = $(".cond2_text").find(".val").html();
+    differentiateType(tit2,val2)
+
+    var tit3 = $(".cond3_title").html();
+    var val3 = $(".cond3_text").find(".val").html();
+    differentiateType(tit3,val3)
+    //跳转页面
+    // 储存在本地
+    //sessionStorage.setItem("netflowSearchObj",JSON.stringify(sendObj));
+    var objstr = JSON.stringify(sendObj).replace(/"/g,"'");
+    //拼接导航
+    var html ='<a href="javascript:;" class="active J_menuTab" data-obj="'+objstr+'" data-id="netflowLogs'+htmlNum+'">'+rankingListVal.split('-')[2]+'日志 <i class="fa fa-times-circle"></i></a>'
+    //移除导航菜单选中属性
+    $('.page-tabs-content', parent.document).click().children("a").removeClass("active");
+    //添加导航菜单
+    $('.page-tabs-content', parent.document).click().append(html);
+    var iframe = '<iframe class="J_iframe" width="100%" height="100%" src="logPro/netflowLogs.html" frameborder="0" data-id="netflowLogs'+htmlNum+'" seamless="" style="display: inline;"></iframe>'
+    //移除其他页面
+    $('#content-main', parent.document).click().children("iframe").hide();
+    $('#content-main', parent.document).click().append(iframe);
+    htmlNum++;
 })
 
 //判参数类型函数
 function differentiateType(name,val){
-	switch(name){
-		case "源IP":
-			sendObj.ipv4_src_addr = val;
-		    break;
-		case "目的IP":
-			sendObj.ipv4_dst_addr = val;
-		    break;
-		case "源端口":
-			sendObj.l4_src_port= val;
-		    break;
-		case "目的端口":
-			sendObj.l4_dst_port = val;
-		    break;
-		default:
-		    
-		    break;
-	}
+    switch(name){
+        case "源IP":
+            sendObj.ipv4_src_addr = val;
+            break;
+        case "目的IP":
+            sendObj.ipv4_dst_addr = val;
+            break;
+        case "源端口":
+            sendObj.l4_src_port= val;
+            break;
+        case "目的端口":
+            sendObj.l4_dst_port = val;
+            break;
+        default:
+
+            break;
+    }
 }
 

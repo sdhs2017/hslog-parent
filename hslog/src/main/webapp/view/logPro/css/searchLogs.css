@@ -1,7 +1,7 @@
 /* 基础重置样式 */
 html, body, div{
-    margin:0;
-    padding:0;
+	margin:0;
+	padding:0;
 }
 html,body{
 	font-size:12px;
@@ -12,16 +12,16 @@ html,body{
 	height:100%;
 }
 h1,h2,h3,h4,h5,h6,em,i {
-    font-weight: 100;
-    font-style: normal;
+	font-weight: 100;
+	font-style: normal;
 }
 ul,ol,li {
-    list-style-type: none;
+	list-style-type: none;
 }
 a {
-   color: #428bca!important;
-    text-decoration: none;
-    outline: 0;
+	color: #428bca!important;
+	text-decoration: none;
+	outline: 0;
 }
 a:hover{
 	text-decoration: none;
@@ -43,15 +43,15 @@ a:hover{
 	padding:10px;
 	background-color: #fff;
 	width: 100%;
-	min-   height: 100%;
+	min-height: 100%;
 	border-top: 4px solid rgb(231, 234, 236);
 }
 .top_title{
 	font-size: 18px;
 	font-weight: 600;
-    color: inherit;
-    padding-left: 10px;
-    width: 100%;
+	color: inherit;
+	padding-left: 10px;
+	width: 100%;
 	height: 50px;
 	line-height: 40px;
 	margin-bottom: 20px;
@@ -81,7 +81,7 @@ a:hover{
 	color:#2c76bd;
 	border:1px solid #2c76bd;
 }
- #pause_service{
+#pause_service{
 	background:none;
 	color:#f0ad4e;
 	border:1px solid #f0ad4e;
@@ -90,8 +90,8 @@ a:hover{
 	background:none;
 	color:#2c76bd;
 	border:1px solid #2c76bd;
-} 
- #initialize{
+}
+#initialize{
 	background:none;
 	color:#2c76bd;
 	border:1px solid #2c76bd;
@@ -149,7 +149,7 @@ a:hover{
 	cursor: pointer;
 	overflow: hidden;
 	white-space:nowrap;
-	text-overflow:ellipsis; 
+	text-overflow:ellipsis;
 	outline: none;
 	position:relative;
 }
@@ -179,10 +179,10 @@ a:hover{
 	border-bottom:1px solid #ccc;
 	background: #F7F7F7;
 	display: -webkit-flex;
-    display: -moz-flex;
-    display: -o-flex;
-    display: -ms-flex;
-    display: flex;
+	display: -moz-flex;
+	display: -o-flex;
+	display: -ms-flex;
+	display: flex;
 }
 .tools_page{
 	padding: 0 10px;
@@ -205,10 +205,10 @@ a:hover{
 }
 .current{
 	border: 1px solid #ddd;
-	
+
 }
 .tools_page a {
-    text-decoration: none;
+	text-decoration: none;
 	border: 1px solid #ddd;
 }
 .tools_page a:hover{
@@ -216,11 +216,11 @@ a:hover{
 }
 .prev{
 	border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px
+	border-bottom-left-radius: 4px
 }
 .next{
 	border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
+	border-bottom-right-radius: 4px;
 }
 /*.tools_page a, .tools_page span {
     display: inline-block;
@@ -229,8 +229,8 @@ a:hover{
 	margin-bottom: 5px;
 }*/
 .tools_page .current {
-    background: #2c76bd;
-    color: #fff;
+	background: #2c76bd;
+	color: #fff;
 	border: 1px solid #2c76bd;
 }
 
@@ -244,7 +244,7 @@ a:hover{
 	/* height: 690px; */
 	min-height:555px;
 	border-left:1px solid #ccc ;
-  	box-shadow:inset 0 0 10px #ccc;  
+	box-shadow:inset 0 0 10px #ccc;
 }
 
 #logs_list i{
@@ -262,27 +262,39 @@ a:hover{
 #logs_list tbody tr td{
 	/* height:50px;
 	line-height:50px; */
-    padding:10px 8px;
+	padding:10px 8px;
 	border-left:1px solid #e7eaec;
 }
 #logs_list>tbody>tr>td{
-	white-space: nowrap; 
+	white-space: nowrap;
 	/* word-wrap: break-word; */
-	overflow: hidden; 
-	text-overflow: ellipsis; 
-	-webkit-box-orient: vertical; 
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-box-orient: vertical;
 	-moz-binding:url('ellipsis.xml#ellipsis');
 	-webkit-line-clamp:1;   /*显示行数*/
 	margin:0;
 }
-.logs_Mes>p{	
-	/* display: -webkit-box; 
-	display: -moz-box;  */ 
-	white-space: nowrap; 
+.logs_Mes>p{
+	/* display: -webkit-box;
+	display: -moz-box;  */
+	white-space: nowrap;
 	/* word-wrap: break-word; */
-	overflow: hidden; 
-	text-overflow: ellipsis; 
-	-webkit-box-orient: vertical; 
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-box-orient: vertical;
+	-moz-binding:url('ellipsis.xml#ellipsis');
+	-webkit-line-clamp:1;   /*显示行数*/
+	margin:0;
+}
+.logs_Mes>p>script{
+	/* display: -webkit-box;
+	display: -moz-box;  */
+	white-space: nowrap;
+	/* word-wrap: break-word; */
+	overflow: hidden;
+	text-overflow: ellipsis;
+	-webkit-box-orient: vertical;
 	-moz-binding:url('ellipsis.xml#ellipsis');
 	-webkit-line-clamp:1;   /*显示行数*/
 	margin:0;
@@ -291,7 +303,7 @@ a:hover{
 	content:"...";
 } */
 #logs_list em{
-	background: yellow;	
+	background: yellow;
 }
 .con_title{
 	line-height: 40px;
@@ -309,11 +321,11 @@ a:hover{
 .logs_con p>span{
 	color: #333;
 	padding-right:20px;
-	
+
 }
 .layui-layer-content{
 	padding: 10px;
-	
+
 }
 .layer_box{
 	min-height: 300px;
@@ -353,7 +365,7 @@ a:hover{
 	line-height:46px;
 	background:#F1F1F1;
 	border-bottom:1px solid #ccc;
-	
+
 }
 .log_filter{
 	height: 50px;
@@ -365,33 +377,33 @@ a:hover{
 }
 .log_filter form{
 	display: -webkit-flex;
-    display: -moz-flex;
-    display: -o-flex;
-    display: -ms-flex;
-    display: flex;
-    align-items:center;
-    height:50px;
+	display: -moz-flex;
+	display: -o-flex;
+	display: -ms-flex;
+	display: flex;
+	align-items:center;
+	height:50px;
 }
 .log_filter form .form-group{
 	flex:1;
 }
 .log_filter input{
 	width: 100%;
-    height: 28px;
-    font-size: 12px;
-    line-height: 28px;
+	height: 28px;
+	font-size: 12px;
+	line-height: 28px;
 }
 .log_filter button{
 	height: 28px;
-    line-height: 14px;
-    font-size: 12px;
-    padding: 0 6px;
+	line-height: 14px;
+	font-size: 12px;
+	padding: 0 6px;
 }
 .label{
-    display: inline-block;
-    width: 57px;
-    height: 20px;
-    line-height: 16px;
+	display: inline-block;
+	width: 57px;
+	height: 20px;
+	line-height: 16px;
 }
 #pageBox{
 	line-height:37px;
@@ -417,22 +429,13 @@ a:hover{
 }
 .maxShowData{
 	width: auto;
-    height: 24px;
-    line-height: 24px;
-    display: inline-block!important;
-    padding: 0;
-    font-size: 13px;
-    margin: 0 5px;
+	height: 24px;
+	line-height: 24px;
+	display: inline-block!important;
+	padding: 0;
+	font-size: 13px;
+	margin: 0 5px;
 }
 .layui-laypage a, .layui-laypage span{
 	padding:0 12px!important;
 }
-
-
-
-
-
-
-
-
-

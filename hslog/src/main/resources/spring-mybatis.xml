@@ -677,10 +677,10 @@
 		</property>	
 	</bean>-->
 
-	<bean id="clientTemplate" class="com.hs.elsearch.template.bak.ClientTemplate">
+	<!--<bean id="clientTemplate" class="com.hs.elsearch.template.bak.ClientTemplate">
 		<constructor-arg ref="elasticsearch5"/>
-		<!--<constructor-arg value="article"/>-->
-	</bean>
+		&lt;!&ndash;<constructor-arg value="article"/>&ndash;&gt;
+	</bean>-->
 
 	<bean id="searchTemplate" class="com.hs.elsearch.template.ESTransportSearchTemplate">
 		<constructor-arg ref="elasticsearch5"/>
@@ -694,9 +694,17 @@
 		<constructor-arg ref="elasticsearch5"/>
 	</bean>
 
-	<bean id="elasticsearchDao" class="com.hs.elsearch.dao.impl.ElasticsearchDao">
+	<bean id="logIndexDao" class="com.hs.elsearch.dao.logDao.impl.LogIndexDaoImpl">
+	</bean>
+
+	<bean id="logCrudDao" class="com.hs.elsearch.dao.logDao.impl.LogCurdDaoImpl">
+	</bean>
+
+	<bean id="elasticsearchDao" class="com.hs.elsearch.dao.logDao.impl.ElasticsearchDao">
 		<!--<constructor-arg ref="clientTemplate"/>-->
 	</bean>
+    <bean id="flowSearchDao" class="com.hs.elsearch.dao.flowDao.impl.FlowSearchDao">
+    </bean>
 
 	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">

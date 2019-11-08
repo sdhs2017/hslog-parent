@@ -295,7 +295,7 @@
 					layer.msg('操作失败',{icon: 5});
 				}
 				//发送请求
-				ajaxPost("../../log/getTopGroupByIPOrPort.do",{"startTime":startTime,"endTime":endTime},sfunc,"",efunc);
+				ajaxPost("../../flow/getTopGroupByIPOrPort.do",{"startTime":startTime,"endTime":endTime},sfunc,"",efunc);
 	 	}
 
 		//拼接排行榜通用方法 arr-列表数组   elem-页面中列表展示的位置（class名）

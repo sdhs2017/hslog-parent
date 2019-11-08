@@ -52,14 +52,14 @@
 			var url = '';
 			if(tagObj.complete_url == undefined){	
 				if(tagObj.ipv4_dst_addr == undefined){ //应用画像业务流
-					url = "../../log/getVisitCountGroupByHttpSourceIP.do"
+					url = "../../flow/getVisitCountGroupByHttpSourceIP.do"
 					$(".top_title").html("'"+tagObj.domain_url+"' 业务流")
 				}else{ //应用资产画像业务流
-					url = "../../log/getDstIPCountGroupByHTTPSrcIP.do";
+					url = "../../flow/getDstIPCountGroupByHTTPSrcIP.do";
 					$(".top_title").html("'"+tagObj.ipv4_dst_addr+"' 业务流")
 				}				
 			}else{ //功能业务流
-				url = "../../log/getVisitCountOfComUrlGroupByHttpSourceIP.do "
+				url = "../../flow/getVisitCountOfComUrlGroupByHttpSourceIP.do "
 				$(".top_title").html("'"+tagObj.complete_url+"' 业务流")
 			}
 			

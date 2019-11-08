@@ -1,14 +1,23 @@
 package com.hs.elsearch.template;
 
 import org.apache.log4j.Logger;
+import org.elasticsearch.action.admin.cluster.repositories.delete.DeleteRepositoryRequest;
+import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesRequest;
+import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesResponse;
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryRequest;
+import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryResponse;
 import org.elasticsearch.action.admin.indices.close.CloseIndexResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
 import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
+import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeRequest;
+import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.admin.indices.mapping.put.PutMappingResponse;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
+import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
+import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsResponse;
 import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplateRequest;
 import org.elasticsearch.action.admin.indices.template.get.GetIndexTemplatesRequest;
 import org.elasticsearch.action.admin.indices.template.get.GetIndexTemplatesResponse;
@@ -21,12 +30,17 @@ import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.Requests;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.IndexTemplateMetaData;
+import org.elasticsearch.cluster.metadata.RepositoryMetaData;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.repositories.fs.FsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -77,7 +91,7 @@ public class ESTransportIndexTemplate {
         if (this.indexExists(index)) {
             /*
              * 如果索引存在,则增加type，指定mapping。
-             * 如果type、mapping也存在，并且mapping不一致，贼会报错
+             * 如果type、mapping也存在，并且mapping不一致，也会报错
              */
             PutMappingRequest mapping = Requests.putMappingRequest(index).type(type).source(mappingproperties);
             PutMappingResponse mappingResponse = transportClient.admin().indices().putMapping(mapping).actionGet();
@@ -87,6 +101,27 @@ public class ESTransportIndexTemplate {
             CreateIndexResponse indexResponse = transportClient.admin().indices().prepareCreate(index).addMapping(type, mappingproperties).get();
             result = indexResponse.isAcknowledged();
         }
+        return result;
+    }
+
+    /**
+     * 更新index setting
+     * @param index 索引名
+     * @param map setting的map方式
+     * @return
+     */
+    public boolean updateSettings(String index,Map<String, Object> map) {
+        boolean result = false;
+		/*Builder settings = Settings.builder()
+				.put("index.max_result_window", 100000000)
+				//.put("index.number_of_shards", 5)
+				.put("index.number_of_replicas",2);*/
+        // 更新index的setting属性
+        UpdateSettingsRequest request = new UpdateSettingsRequest(index);
+        request.settings(map);
+        UpdateSettingsResponse response = this.transportClient.admin().indices().updateSettings(request).actionGet();
+        result = response.isAcknowledged();
+
         return result;
     }
 
@@ -302,5 +337,90 @@ public class ESTransportIndexTemplate {
         AcknowledgedResponse deleteTemplateAcknowledge = indicesAdminClient.deleteTemplate(request).actionGet();
 
         return deleteTemplateAcknowledge.isAcknowledged();
+    }
+
+    /**
+     * 通过名称查询备份仓库
+     * @param repositories 备份仓库名称
+     * @return
+     */
+    public List<Map<String, Object>> getRepositoriesInfo(String... repositories) {
+        GetRepositoriesRequest getRepositoriesRequest = new  GetRepositoriesRequest();
+        getRepositoriesRequest.repositories(repositories);
+        GetRepositoriesResponse respose = transportClient.admin().cluster().getRepositories(getRepositoriesRequest).actionGet();
+        List<RepositoryMetaData> list = respose.repositories();
+        List<Map<String, Object>> repositorieslist = new ArrayList<Map<String,Object>>();
+        for(RepositoryMetaData metadata:list) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("name", metadata.name());
+            map.putAll(metadata.settings().getAsMap());
+            repositorieslist.add(map);
+        }
+        return repositorieslist;
+    }
+
+    /**
+     * 创建备份仓库
+     * @param repositoryName 备份仓库名称
+     * @param repoPath 备份仓库路径
+     * @return
+     */
+    public Boolean createRepositories(String repositoryName,String repoPath) {
+
+        PutRepositoryRequest request = new PutRepositoryRequest();
+        request.name(repositoryName);
+        request.type(FsRepository.TYPE);
+
+        Map<String, Object> map = new HashMap<>();
+        //map.put("location", "/home/elsearch/es_backups/my_backup/");
+        map.put("location", repoPath);
+        map.put("compress", true);
+        request.settings(map);
+
+        PutRepositoryResponse response = transportClient.admin().cluster().putRepository(request).actionGet();
+
+        return response.isAcknowledged();
+
+    }
+
+    /**
+     * 删除备份仓库
+     * @param repositoryName
+     * @return
+     */
+    public Boolean deleteRepositories(String repositoryName) {
+        DeleteRepositoryRequest request = new DeleteRepositoryRequest(repositoryName);
+        request.timeout(TimeValue.timeValueMinutes(1));
+        request.timeout("1m");
+
+        AcknowledgedResponse response = transportClient.admin().cluster().deleteRepository(request).actionGet();
+        return response.isAcknowledged();
+    }
+
+
+    /**
+     *
+     * @param indices 需要合并的索引
+     * @param maxNumSegments 合并段数
+     * @param onlyExpungeDeletes 是否仅合并删除段
+     * @return
+     */
+    public ForceMergeResponse indexForceMerge(String [] indices,int maxNumSegments,boolean onlyExpungeDeletes) {
+
+        ForceMergeRequest request = new ForceMergeRequest(indices);
+        // 要合并的段数。 要完全合并索引，请将其设置为1.默认为只检查是否需要执行合并，如果需要，则执行它。
+        if (maxNumSegments!=-1) {
+            request.maxNumSegments(maxNumSegments);
+        }
+        // 合并进程是否只删除其中包含删除内容的段,此标志只允许合并已删除的段。默认为false。
+        if (onlyExpungeDeletes) {
+            request.onlyExpungeDeletes(true);
+        }
+        // 默认强制合并后执行刷新
+        request.flush(true);
+
+        ForceMergeResponse response = transportClient.admin().indices().forceMerge(request).actionGet();
+
+        return response;
     }
 }

@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.NotOpenException;
@@ -47,7 +48,7 @@ import com.jz.bigdata.common.serviceInfo.service.IServiceInfoService;
 import com.jz.bigdata.common.url.dao.IUrlDao;
 import com.jz.bigdata.common.users.service.IUsersService;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.Uuid;
 
@@ -114,11 +115,12 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 	
 	@SuppressWarnings("finally")
-	public boolean initKafkaCollector(IEquipmentService equipmentService,ClientTemplate clientTemplate,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService){
+	public boolean initKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUsersService usersService){
+
 		boolean result = false;
 		try{
 //			if(!flag){
-				kc = new KafkaCollector(equipmentService,clientTemplate,configProperty,alarmService,usersService);
+				kc = new KafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
 				flag = true;
 //			}
 			result = true;
@@ -128,18 +130,22 @@ public class CollectorServiceImpl implements ICollectorService{
 
 		
 	}
-	
+
 	/**
 	 * 启动kafka采集器
-	 * @param equipment
-	 * @param clientTemplate
+	 * @param equipmentService
+	 * @param logCurdDao
+	 * @param configProperty
+	 * @param alarmService
+	 * @param usersService
 	 * @return
 	 */
-	public boolean startKafkaCollector(IEquipmentService equipmentService,ClientTemplate clientTemplate,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService){
+	@Override
+	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService){
 		boolean result = false;
 		//如果为true，则表示已经开启，反之，则为未开启，需要初始化
 		
-		initKafkaCollector(equipmentService,clientTemplate,configProperty,alarmService,usersService);
+		initKafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
 		if(!kc.isStarted()){
 
 			t = new Thread(kc);
@@ -254,7 +260,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	/**
 	 * 开启pcap4j
 	 */
-	public String startPcap4jCollector(ClientTemplate clientTemplate,ConfigProperty configProperty) {
+	public String startPcap4jCollector(ILogCrudDao logCurdDao,ConfigProperty configProperty) {
 		
 		Map<String, Object> map = new HashMap<>();
 		
@@ -316,7 +322,8 @@ public class CollectorServiceImpl implements ICollectorService{
         PacketListener listener = new PacketListener() {
         	public void gotPacket(Packet packet) {
         		try {
-        			packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
+        			//packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
+        			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
        				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());

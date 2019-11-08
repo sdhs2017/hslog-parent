@@ -155,7 +155,7 @@ public class ESTransportCrudTemplate {
      *     }
      *     '
      */
-    public long countDeleteByQuery(String [] indices, QueryBuilder queryBuilder) {
+    public long countDeleteByQuery(QueryBuilder queryBuilder,String... indices) {
         BulkByScrollResponse response = DeleteByQueryAction.INSTANCE
                 .newRequestBuilder(transportClient)
                 .filter(queryBuilder)

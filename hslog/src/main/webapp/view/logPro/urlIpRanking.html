@@ -234,7 +234,7 @@
 			var sendObj = {};//参数
 			sendObj.groupfiled = "ipv4_dst_addr";
 			sendObj.application_layer_protocol = "http,https"
-			var url = "../../log/getTopGroupByIPOrPort.do"
+			var url = "../../flow/getTopGroupByIPOrPort.do"
 			//获取存放在标签页标题中的数据
 			var getObj = $('.page-tabs-content', parent.document).click().children("a.active").attr("data-obj");
 			//判断是否是功能url排行榜
@@ -244,7 +244,7 @@
 				rankingTitle = "应用排行";
 				sendObj.ipv4_dst_addr = obj.ipv4_dst_addr;
 				sendObj.application_layer_protocol="http";
-				url = "../../log/getCountGroupByUrl.do";
+				url = "../../flow/getCountGroupByUrl.do";
 				$(".top_title").html("'"+obj.ipv4_dst_addr +"' 应用画像")
 			}
 			//填充标题

@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
@@ -20,7 +21,7 @@ import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.business.logAnalysis.log.entity.Https;
 import com.jz.bigdata.business.logAnalysis.log.entity.Tcp;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
 
 public class TcpStream {
@@ -35,7 +36,7 @@ public class TcpStream {
 	boolean iDestroy = false;
 	
 	ConfigProperty configProperty;
-	ClientTemplate clientTemplate;
+	ILogCrudDao logCrudDao;
 	Gson gson;
 	String json;
 	
@@ -52,12 +53,12 @@ public class TcpStream {
 	private HashMap<String,TcpPacket> recvpacketBuffer=new HashMap<String,TcpPacket>();
 	
 	
-	public TcpStream(String server,String client,ConfigProperty configProperty,ClientTemplate clientTemplate,Gson gson)
+	public TcpStream(String server,String client,ConfigProperty configProperty,ILogCrudDao logCrudDao,Gson gson)
 	{
 		this.server = server;
 		this.client = client;
 		this.configProperty = configProperty;
-		this.clientTemplate = clientTemplate;
+		this.logCrudDao = logCrudDao;
 		this.gson = gson;
 	}
 	
@@ -84,7 +85,7 @@ public class TcpStream {
 		if (getSubUtil(hexStringToString(tcpPacket.toHexString()), httpRequest)!=""||getSubUtil(hexStringToString(tcpPacket.toHexString()), httpResponse)!="") {
 			http =new Http(packet);
 			json = gson.toJson(http);
-			requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_HTTP, json));
+			requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_HTTP, json));
 			System.out.println(http.getIpv4_src_addr());
 		}else if (hexstring.contains("170303")||hexstring.contains("160301")||hexstring.contains("150303")||hexstring.contains("160303")||hexstring.contains("140303")) {
 			TcpStream tcpStream=new TcpStream();
@@ -92,18 +93,18 @@ public class TcpStream {
 				https=new Https(packet);
 				https.setProtocol_type(tcpStream.GetEncryptionProtocol(packet));
 				json = gson.toJson(https);
-				requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_HTTPS, json));
+				requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_HTTPS, json));
 				System.out.println(https.getSource_ip());
 			}else if (tcpPacket.getHeader().getAck()&&hexstring.indexOf("170303")>40) {
 				https=new Https(packet);
 				https.setProtocol_type(tcpStream.GetEncryptionProtocol(packet));
 				json = gson.toJson(https);
-				requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_HTTPS, json));
+				requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_HTTPS, json));
 				System.out.println(https.getSource_ip());
 			}else{
 				tcp=new Tcp(packet);
 				json = gson.toJson(tcp);
-				requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_TCP, json));
+				requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_TCP, json));
 				System.out.println(tcp.getSource_ip());
 			}
 //			}else {
@@ -123,11 +124,11 @@ public class TcpStream {
 		}else {
 			tcp=new Tcp(packet);
 			json = gson.toJson(tcp);
-			requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_TCP, json));
+			requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_TCP, json));
 		}
 	
 		if (requests.size()==configProperty.getEs_bulk()) {
-			clientTemplate.bulk(requests);
+			logCrudDao.bulkInsert(requests);
 			requests.clear();
 		}
 

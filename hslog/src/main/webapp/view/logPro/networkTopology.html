@@ -468,7 +468,7 @@
             layer.msg('操作失败',{icon: 5});
         }
         //发送请求
-        ajaxPost("../../log/getNetworkTopological.do",{"starttime":starttime,"endtime":endtime},sfunc,"",efunc);
+        ajaxPost("../../flow/getNetworkTopological.do",{"starttime":starttime,"endtime":endtime},sfunc,"",efunc);
     }
     //缩放
     var zoom = d3.zoom()

@@ -25,227 +25,232 @@
 		.actionLayer_box{
 			padding:20px 10px;
 		}
-		
+		table th:focus{
+			outline:none!important;
+		}
 	</style>
 </head>
 <body>
-	<div id="box">
-		<div class="top_title">
-			动作列表
-		</div>
-		<div class="tableCon">
-			<table id="actionTable" data-toggle="table" data-classes="table  table-hover " style="width:100%">
-                <thead>
-                    <tr>
-                    	<th data-checkbox="true"></th>
-                    	<th >动作名称</th>    
-                    	<th>创建人</th> 
-                    	<!-- <th>资产名称</th>  -->
-                    	<th>日志类型</th>
-                    	<th>关键字</th>    
-                    	<!-- <th>资产所属人</th> -->
-                    	<th>是否启用</th>  
-                    	<th>操作</th>                   	                	
-                    </tr>
-                </thead>
-                <tbody>
-                	<!-- <tr>
-                		<td class="action_checkBox"><input type="checkbox"></td>
-                		<td class="action_name">登录</td>
-                		<td class="action_user">李洪连</td>
-                		<td class="action_eqName">aooo</td>
-                		<td class="action_logType">syslog</td>
-                		<td class="action_keyWords">1234658</td>
-                		<td class="action_eqUser">李洪连</td>
-                		<td class="action_state">是</td>
-                		<td class="action_tools" data-aIndex="0">
-                			<i class="glyphicon glyphicon-edit edit" title="修改"></i>
-                			<i class="glyphicon glyphicon-remove removeAction" title="删除"></i>
-                		</td>
-                	</tr>
-                	<tr>
-                		<td class="action_checkBox"><input type="checkbox"></td>
-                		<td class="action_name">登录</td>
-                		<td class="action_user">李洪连</td>
-                		<td class="action_eqName">aooo</td>
-                		<td class="action_logType">syslog</td>
-                		<td class="action_keyWords">1234658</td>
-                		<td class="action_eqUser">李洪连</td>
-                		<td class="action_state">是</td>
-                		<td class="action_tools" data-aIndex="1">
-                			<i class="glyphicon glyphicon-edit edit" title="修改"></i>
-                			<i class="glyphicon glyphicon-remove removeAction" title="删除"></i>
-                		</td>
-                	</tr> -->
-                </tbody>
-            </table>
-		</div>
+<div id="box">
+	<div class="top_title">
+		动作列表
 	</div>
-	
-	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
-	<script type="text/javascript">
-		//定义数组存放获取来的数据
-		var actionArr = [];
-		//加载数据
-		getData();	
-		//获取数据方法
-		function getData(){
-			//成功回调函数
-			var sFunc = function(data){
-				actionArr = data[0];
-				var html = '';
-				//定义索引
-				var dataIndex = 0;
-				//循环遍历添加数据
-				for(var i in data[0]){
-					var obj = data[0][i];
-					var actionState = '是';
-					//数值替换显示
-					if(obj.state == 0){
-						actionState = '否'
-					}
-					//拼接
-					html += '<tr>'
-		                 +		'<td class="action_checkBox bs-checkbox"><input type="checkbox"></td>'
-		                 +		'<td class="action_name">'+obj.name+'</td>'
-		                 +		'<td class="action_user">'+obj.userName+'</td>'
-		                 /* +		'<td class="action_eqName">'+obj.equipmentName+'</td>' */
-		                 +		'<td class="action_logType">'+obj.type+'</td>'
-		                 +		'<td class="action_keyWords">'+obj.feature+'</td>'
-		                 /* +		'<td class="action_eqUser">'+obj.equipmentUserName+'</td>' */
-		                 +		'<td class="action_state">'+actionState+'</td>'
-		                 +      '<td class="action_tools" data-aIndex="'+dataIndex+'">'
-				         +       	'<i class="glyphicon glyphicon-edit edit" title="修改"></i>'
-				         +       	'<i class="glyphicon glyphicon-remove removeAction" title="删除"></i>'
-				         +       '</td>'
-		                 +	'</tr>'
-		            //索引++
-		            dataIndex++;
-				}
-				//添加到页面中
-				$("#actionTable tbody").html(html);
-			}
-			ajaxPost('../../action/selectAll.do','',sFunc)
-		}
-		//修改
-		$("#actionTable").on("click",".edit",function(){
-			//获得当前操作索引
-			var eventIndex = $(this).parent().attr("data-aIndex");
-			//获得id
-			var actionId = actionArr[eventIndex].id;
-			//获得动作名
-			var actionName = actionArr[eventIndex].name;
-			//获得状态
-			var actionState = actionArr[eventIndex].state;
-			//拼接弹窗内容
-			var html = '<div class="actionLayer_box">'
-					 +		'<div class="row" style="line-height:40px">'
-					 +			'<div class="col-xs-3">动作名称:</div>'
-					 +			'<div class="col-xs-9 layCen">'
-					 +				'<input type="text" class="form-control name" value="'+actionName+'"/>'
-					 +			'</div>'
-					 +		'</div>' 
-					 +		'<div class="row" style="line-height:40px">'
-					 +			'<div class="col-xs-3">是否启用:</div>'
-					 +			'<div class="col-xs-9 layCen">'
-					 +				'<input type="radio" name="state" value="1" checked class="yes">是'
-	      			 +				'<input type="radio" name="state" value="0" class="no">否'
-					 +			'</div>'
-					 +		'</div>'
-					 + '</div>'
-					 
-			//弹窗
-			layer.open({
-		 		type: 1,
-		 		title:"修改",//标题
-				area: ['420px', 'auto'], //宽高
-				btn: ['确定','取消'], //按钮
-				btn1:function(index){
-					//获得修改后的动作名
-					var name = $(".name").val();
-					//获得状态
-					var state = $("input[name='state']:checked").val();
-					//判断值的合法性
-					if(name == ''){//动作名值为空
-						layer.msg('动作名不能为空',{icon: 5});
-					}else if(name == actionName && state == actionState){//未做修改
-						layer.msg('未做任何修改',{icon: 5});
-					}else{
-						//传参
-						var obj = {};
-						obj.id = actionId;
-						obj.state = state;
-						obj.name = name;
-						//成功回调函数
-						var sFunc = function(data){
-							if(data.success == "true"){//成功
-								layer.msg(data.message,{icon: 1});
-								//重新获取数据
-								getData();	
-								//关闭弹窗
-								layer.close(index);
-							}else if(data.success == "false"){//失败
-								layer.msg(data.message,{icon: 5});
-							} 
-						}
-						ajaxPost("../../action/updateById.do",obj,sFunc)
-					}
-				},
-		 		content: html
-			});
-			//修改状态
-			if(actionState == 0){//状态为0-否
-				$(".yes").removeAttr("checked");
-				$(".no").attr("checked","checked");
-			}			
-		})
-		//删除
-		$("#actionTable").on("click",".removeAction",function(){
-			//获得当前操作索引
-			var eventIndex = $(this).parent().attr("data-aIndex");
-			//询问框
-			layer.confirm('确定删除？', {
-			  btn: ['确定','取消'] //按钮
-			}, function(index){
-				layer.close(index);
-				//成功回调函数
-				var sfunc = function(data){//成功
-					if(data.success == "true"){
-						layer.msg(data.message,{icon: 1});
-						//重新加载数据
-						getData();
-					}else if(data.success == "false"){//失败
-						layer.msg(data.message,{icon: 5});
-					} 
-				}
-				//失败回调函数
-				var efunc = function(data){
-					console.log(data)
-					layer.msg('操作失败',{icon: 5});
-				}
-				//发送请求
-				ajaxPost("../../action/delete.do ",{id:actionArr[eventIndex].id},sfunc,);
-			}, function(){
-				  layer.close();
-			});
-		})
-		//全选框
-		$("#actionTable>thead").on("click","input",function(){
-			if($(this)[0].checked == true){
-				//更改状态
-				$("#actionTable>tbody input[type=checkbox]").prop("checked", "checked");
-			}else if($(this)[0].checked == false){
-				//更改状态
-				$("#actionTable>tbody input[type=checkbox]").removeAttr("checked"); 
-			}
-		})
-	</script>
+	<div class="tableCon">
+		<table id="actionTable" data-toggle="table" data-classes="table  table-hover " style="width:100%">
+			<thead>
+			<tr>
+				<th data-checkbox="true"></th>
+				<th >动作名称</th>
+				<th>创建人</th>
+				<!-- <th>资产名称</th>  -->
+				<th>日志类型</th>
+				<th>关键字</th>
+				<!-- <th>资产所属人</th> -->
+				<th>是否启用</th>
+				<th>操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			<!-- <tr>
+                <td class="action_checkBox"><input type="checkbox"></td>
+                <td class="action_name">登录</td>
+                <td class="action_user">李洪连</td>
+                <td class="action_eqName">aooo</td>
+                <td class="action_logType">syslog</td>
+                <td class="action_keyWords">1234658</td>
+                <td class="action_eqUser">李洪连</td>
+                <td class="action_state">是</td>
+                <td class="action_tools" data-aIndex="0">
+                    <i class="glyphicon glyphicon-edit edit" title="修改"></i>
+                    <i class="glyphicon glyphicon-remove removeAction" title="删除"></i>
+                </td>
+            </tr>
+            <tr>
+                <td class="action_checkBox"><input type="checkbox"></td>
+                <td class="action_name">登录</td>
+                <td class="action_user">李洪连</td>
+                <td class="action_eqName">aooo</td>
+                <td class="action_logType">syslog</td>
+                <td class="action_keyWords">1234658</td>
+                <td class="action_eqUser">李洪连</td>
+                <td class="action_state">是</td>
+                <td class="action_tools" data-aIndex="1">
+                    <i class="glyphicon glyphicon-edit edit" title="修改"></i>
+                    <i class="glyphicon glyphicon-remove removeAction" title="删除"></i>
+                </td>
+            </tr> -->
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    //定义数组存放获取来的数据
+    var actionArr = [];
+    //加载数据
+    getData();
+    //获取数据方法
+    function getData(){
+        //成功回调函数
+        var sFunc = function(data){
+            actionArr = data[0];
+            var html = '';
+            //定义索引
+            var dataIndex = 0;
+            //循环遍历添加数据
+            for(var i in data[0]){
+                var obj = data[0][i];
+                var actionState = '是';
+                //数值替换显示
+                if(obj.state == 0){
+                    actionState = '否'
+                }
+                //拼接
+                html += '<tr>'
+                    +		'<td class="action_checkBox bs-checkbox"><input type="checkbox"></td>'
+                    +		'<td class="action_name">'+obj.name+'</td>'
+                    +		'<td class="action_user">'+obj.userName+'</td>'
+                    /* +		'<td class="action_eqName">'+obj.equipmentName+'</td>' */
+                    +		'<td class="action_logType">'+obj.type+'</td>'
+                    +		'<td class="action_keyWords">'+obj.feature+'</td>'
+                    /* +		'<td class="action_eqUser">'+obj.equipmentUserName+'</td>' */
+                    +		'<td class="action_state">'+actionState+'</td>'
+                    +      '<td class="action_tools" data-aIndex="'+dataIndex+'">'
+                    +       	'<i class="glyphicon glyphicon-edit edit" title="修改"></i>'
+                    +       	'<i class="glyphicon glyphicon-remove removeAction" title="删除"></i>'
+                    +       '</td>'
+                    +	'</tr>'
+                //索引++
+                dataIndex++;
+            }
+            //添加到页面中
+            $("#actionTable tbody").html(html);
+            //表格拖动列宽
+            $("#actionTable").dragTableCol();
+        }
+        ajaxPost('../../action/selectAll.do','',sFunc)
+    }
+    //修改
+    $("#actionTable").on("click",".edit",function(){
+        //获得当前操作索引
+        var eventIndex = $(this).parent().attr("data-aIndex");
+        //获得id
+        var actionId = actionArr[eventIndex].id;
+        //获得动作名
+        var actionName = actionArr[eventIndex].name;
+        //获得状态
+        var actionState = actionArr[eventIndex].state;
+        //拼接弹窗内容
+        var html = '<div class="actionLayer_box">'
+            +		'<div class="row" style="line-height:40px">'
+            +			'<div class="col-xs-3">动作名称:</div>'
+            +			'<div class="col-xs-9 layCen">'
+            +				'<input type="text" class="form-control name" value="'+actionName+'"/>'
+            +			'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:40px">'
+            +			'<div class="col-xs-3">是否启用:</div>'
+            +			'<div class="col-xs-9 layCen">'
+            +				'<input type="radio" name="state" value="1" checked class="yes">是'
+            +				'<input type="radio" name="state" value="0" class="no">否'
+            +			'</div>'
+            +		'</div>'
+            + '</div>'
+
+        //弹窗
+        layer.open({
+            type: 1,
+            title:"修改",//标题
+            area: ['420px', 'auto'], //宽高
+            btn: ['确定','取消'], //按钮
+            btn1:function(index){
+                //获得修改后的动作名
+                var name = $(".name").val();
+                //获得状态
+                var state = $("input[name='state']:checked").val();
+                //判断值的合法性
+                if(name == ''){//动作名值为空
+                    layer.msg('动作名不能为空',{icon: 5});
+                }else if(name == actionName && state == actionState){//未做修改
+                    layer.msg('未做任何修改',{icon: 5});
+                }else{
+                    //传参
+                    var obj = {};
+                    obj.id = actionId;
+                    obj.state = state;
+                    obj.name = name;
+                    //成功回调函数
+                    var sFunc = function(data){
+                        if(data.success == "true"){//成功
+                            layer.msg(data.message,{icon: 1});
+                            //重新获取数据
+                            getData();
+                            //关闭弹窗
+                            layer.close(index);
+                        }else if(data.success == "false"){//失败
+                            layer.msg(data.message,{icon: 5});
+                        }
+                    }
+                    ajaxPost("../../action/updateById.do",obj,sFunc)
+                }
+            },
+            content: html
+        });
+        //修改状态
+        if(actionState == 0){//状态为0-否
+            $(".yes").removeAttr("checked");
+            $(".no").attr("checked","checked");
+        }
+    })
+    //删除
+    $("#actionTable").on("click",".removeAction",function(){
+        //获得当前操作索引
+        var eventIndex = $(this).parent().attr("data-aIndex");
+        //询问框
+        layer.confirm('确定删除？', {
+            btn: ['确定','取消'] //按钮
+        }, function(index){
+            layer.close(index);
+            //成功回调函数
+            var sfunc = function(data){//成功
+                if(data.success == "true"){
+                    layer.msg(data.message,{icon: 1});
+                    //重新加载数据
+                    getData();
+                }else if(data.success == "false"){//失败
+                    layer.msg(data.message,{icon: 5});
+                }
+            }
+            //失败回调函数
+            var efunc = function(data){
+                console.log(data)
+                layer.msg('操作失败',{icon: 5});
+            }
+            //发送请求
+            ajaxPost("../../action/delete.do ",{id:actionArr[eventIndex].id},sfunc,);
+        }, function(){
+            layer.close();
+        });
+    })
+    //全选框
+    $("#actionTable>thead").on("click","input",function(){
+        if($(this)[0].checked == true){
+            //更改状态
+            $("#actionTable>tbody input[type=checkbox]").prop("checked", "checked");
+        }else if($(this)[0].checked == false){
+            //更改状态
+            $("#actionTable>tbody input[type=checkbox]").removeAttr("checked");
+        }
+    })
+</script>
 </body>
 </html>

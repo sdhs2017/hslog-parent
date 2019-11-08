@@ -1,9 +1,9 @@
-package com.hs.elsearch.dao;
+package com.hs.elsearch.dao.logDao;
 
 import java.util.List;
 import java.util.Map;
 
-public interface IElasticsearchDao {
+public interface ILogSearchDao {
 
 
     /**
@@ -16,6 +16,7 @@ public interface IElasticsearchDao {
      * @return 创建成功返回true，失败false
      */
     public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String,Object> settings,String type, String mapping) throws Exception;
+
 
     /**
      * 通过查询条件获取日志数
@@ -37,8 +38,21 @@ public interface IElasticsearchDao {
      * @param indices 索引名称
      * @return 返回聚合结果
      */
-    public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField,
+    public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size,
                                                            Map<String, String> map,String... indices);
+
+    /**
+     * 带条件的聚合查询
+     * @param types idnex types字段，7版本中移除
+     * @param starttime 时间范围-开始时间
+     * @param endtime  时间范围-结束时间
+     * @param groupByFields 多字段聚合字段
+     * @param map 其他条件
+     * @param indices 索引名称
+     * @return 返回聚合结果
+     */
+    public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size,
+                                                          Map<String, String> map,String... indices);
 
 
     public List<Map<String, Object>> getListByDateHistogramAggregation(String[] types, String starttime, String endtime, String dateHistogramField,
@@ -79,4 +93,17 @@ public interface IElasticsearchDao {
      * @return
      */
     public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types,String... indices);
+
+    /**
+     *
+     * @param map
+     * @param starttime
+     * @param endtime
+     * @param from
+     * @param size
+     * @param types
+     * @param indices
+     * @return
+     */
+    public List<Map<String, Object>> getLogListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types,String... indices);
 }

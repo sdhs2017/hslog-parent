@@ -1,6 +1,5 @@
 package com.hs.elsearch.template;
 
-import com.hs.elsearch.template.bak.ClientTemplate;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;

@@ -7,13 +7,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.elasticsearch.action.index.IndexRequest;
 
 import com.google.gson.Gson;
 import com.jz.bigdata.business.logAnalysis.log.entity.Winlog;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-import com.hs.elsearch.template.bak.ClientTemplate;
+//import com.hs.elsearch.template.bak.ClientTemplate;
 
 import kafka.consumer.ConsumerConfig;
 import kafka.consumer.ConsumerIterator;
@@ -27,11 +28,11 @@ public class WinLogKafkaConsumer implements Runnable {
 	private final ConsumerConnector consumer;
 	boolean suspended=false;
     private Equipment equ;
-    private ClientTemplate template;
+    private ILogCrudDao logCrudDao;
 	public static Map<String,Object> map=new HashMap<String,Object>();
 
 	public static List<Object> list=new ArrayList<Object>();
-	 public WinLogKafkaConsumer(Equipment equipment,ClientTemplate clientTemplate) {
+	 public WinLogKafkaConsumer(Equipment equipment,ILogCrudDao logCrudDao) {
 		Properties props = new Properties();
 		//zookeeper 配置
 //		props.put("zookeeper.connect", "jzhadoop-h11:2181");
@@ -52,7 +53,7 @@ public class WinLogKafkaConsumer implements Runnable {
 
 		consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
 		equ=equipment;
-		template = clientTemplate;
+		logCrudDao = logCrudDao;
 	}
 	
 	
@@ -100,9 +101,9 @@ public class WinLogKafkaConsumer implements Runnable {
 				
 				String json = gson.toJson(winlog);
 				
-				requests.add(template.insertNo("estest", "winlog", json));
+				requests.add(logCrudDao.insertNotCommit("estest", "winlog", json));
 				if (requests.size()==2) {
-					template.bulk(requests);
+					logCrudDao.bulkInsert(requests);
 					requests.clear();
 				}
 				

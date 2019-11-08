@@ -1,3 +1,4 @@
+/*
 package com.jz.bigdata.business.logAnalysis.zts.controller;
 
 import java.io.IOException;
@@ -76,7 +77,8 @@ public class ZtsLogController extends LogController{
 		
 	}
 	
-	/**
+	*/
+/**
 	 * 组合查询
 	 * @param requestt
 	 * @author jiyourui
@@ -84,7 +86,8 @@ public class ZtsLogController extends LogController{
 	 * @throws IOException 
 	 * @throws JsonMappingException 
 	 * @throws JsonParseException 
-	 */
+	 *//*
+
 	@SuppressWarnings("unchecked")
 	@ResponseBody
 	@RequestMapping(value="/getLogListByBlend",produces = "application/json; charset=utf-8")
@@ -137,3 +140,4 @@ public class ZtsLogController extends LogController{
 	}
 	
 }
+*/

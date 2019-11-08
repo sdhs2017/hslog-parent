@@ -18,14 +18,14 @@
 		}
 		.btnTools button{
 			color: #5bc0de!important;
-    		border: 1px solid #5bc0de!important;
-    		font-size:12px!important;
-    		transition: all .2s linear;
+			border: 1px solid #5bc0de!important;
+			font-size:12px!important;
+			transition: all .2s linear;
 		}
 		.btnTools button:hover{
 			background: 0;
-		    transform: translate3d(0 ,-1px ,0);
-		    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+			transform: translate3d(0 ,-1px ,0);
+			box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 		}
 		.event_tools i{
 			margin-right:5px;
@@ -47,16 +47,16 @@
 		}
 		.selectAction:hover{
 			color: #1ab394;
-	    	text-decoration: underline;
-	    	background: 0;
-	    	border:0;
+			text-decoration: underline;
+			background: 0;
+			border:0;
 		}
 		.selectedActionBox{
 			border: 0;
-		    background: 0;
-		    color: #56a4ef;
-		    box-shadow: 0px 0px 7px 1px #4781bb;
-		    min-height:50px;
+			background: 0;
+			color: #56a4ef;
+			box-shadow: 0px 0px 7px 1px #4781bb;
+			min-height:50px;
 		}
 		.selectedActionBox li{
 			height:26px;
@@ -75,7 +75,7 @@
 		}
 		.sortable-ghost{
 			background:#3b5773;
-		} 
+		}
 		.selectedActionBox li:hover{
 			/* background:#3b5773; */
 		}
@@ -84,8 +84,8 @@
 			cursor:pointer;
 		}
 		.selectedActionBox li:nth-of-type(odd) {
-		    /* background-color: #2f455c; */
-		   
+			/* background-color: #2f455c; */
+
 		}
 		.actionBox{
 			width:1100px;
@@ -117,7 +117,7 @@
 		.actionContent{
 			height:90%;
 		}
-		.actionContent iframe{			
+		.actionContent iframe{
 			border:0;
 			height:100%;
 		}
@@ -125,371 +125,377 @@
 			margin-left:10px;
 			color:#9b664c;
 		}
+		table th:focus{
+			outline:none!important;
+		}
 	</style>
 </head>
 <body>
-	<div id="box">
-		<div class="top_title">
-			事件列表
-		</div>
-		<div class="eventTools">
-			<div class="btnTools">
-				<button  class="btn btn-info" id="add_event" title="添加新的事件"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加</button>
-			</div>			
-		</div>
-		<div class="tableCon">
-			<table id="eventTable" data-toggle="table" data-classes="table  table-hover " style="width:100%">
-                <thead>
-                    <tr>
-                    	<th data-checkbox="true"></th>
-                    	<th>事件名称</th>    
-                    	<th>创建人</th>
-                    	<th>动作名称</th>
-                    	<th>描述</th>
-                    	<th>是否启用</th>  
-                    	<th>操作</th>                   	                	
-                    </tr>
-                </thead>
-                <tbody>
-                	<!-- <tr>
-                		<td class="action_checkBox"><input type="checkbox"></td>
-                		<td class="action_name">登录</td>
-                		<td class="action_user">李洪连</td>
-                		<td class="action_eqName">aooo</td>
-                		<td class="action_logType">syslog</td>
-                		<td class="action_keyWords">1234658</td>
-                		<td class="action_eqUser">李洪连</td>
-                		<td class="action_state">是</td>
-                		<td class="action_tools" data-aIndex="0">
-                			<i class="glyphicon glyphicon-edit edit" title="修改"></i>
-                			<i class="glyphicon glyphicon-remove removeAction" title="删除"></i>
-                		</td>
-                	</tr>  -->
-                </tbody>
-            </table>
-		</div>
-		
-		<div class="actionBox">
-			<div>
-				<button class="btn btn-info comfirmSelect">确认选择</button>
-				<span class="closeIframe"><i class="glyphicon glyphicon-remove-circle"></i></span>
-			</div>
-			<div class="actionContent">
-				<iframe id="actionIframe" name="actionIframe" src="../actionManage/actionManage.html" width="100%"></iframe>
-			</div>
+<div id="box">
+	<div class="top_title">
+		事件列表
+	</div>
+	<div class="eventTools">
+		<div class="btnTools">
+			<button  class="btn btn-info" id="add_event" title="添加新的事件"><i class="glyphicon glyphicon-plus"></i>&nbsp;添加</button>
 		</div>
 	</div>
-	
-	<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
-	<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
-	<script type="text/javascript">
-		var eventListArr = [];//用于存放事件列表
-		//加载数据
-		getData();	
-		//获取数据方法
-		function getData(){
-			//成功回调函数
-			var sFunc = function(data){
-				eventListArr = data;
-				var html = '';
-				//定义索引
-				var dataIndex = 0;
-				//循环遍历添加数据
-				for(var i in data){
-					var obj = data[i];
-					var actionState = '是';
-					//数值替换显示
-					if(obj.state == 0){
-						actionState = '否'
-					}
-					//去除最后一位','
-					obj.actionName = obj.actionName.substring(0,obj.actionName.length - 1);
-					//拼接
-					html += '<tr>'
-		                 +		'<td class="event_checkBox  bs-checkbox"><input type="checkbox"></td>'
-		                 +		'<td class="event_name">'+obj.name+'</td>'
-		                 +		'<td class="event_user">'+obj.userName+'</td>'
-		                 +		'<td class="event_user">'+obj.actionName+'</td>'
-		                 +		'<td class="event_message">'+obj.message+'</td>'
-		                 +		'<td class="event_state">'+actionState+'</td>'
-		                 +      '<td class="event_tools" data-aIndex="'+dataIndex+'">'
-				         +       	'<i class="glyphicon glyphicon-edit edit" title="修改"></i>'
-				         +       	'<i class="glyphicon glyphicon-remove removeEvent" title="删除"></i>'
-				         +       '</td>'
-		                 +	'</tr>'
-		            //索引++
-		            dataIndex++;
-				}
-				//添加到页面中
-				$("#eventTable tbody").html(html);
-			}
-			ajaxPost('../../event/selectAll.do','',sFunc)
-		}
-		//添加事件
-		$("#add_event").click(function(){
-			//显示弹窗
-			//layHtml();
-			//添加页面
-			//拼接导航
-			location.href="addEvent.html";
-		})
-		
-		//确认选择动作列表弹窗弹窗
-		$(".comfirmSelect").click(function(){ 
-			//获得动作数据
-			var arr = document.getElementById('actionIframe').contentWindow.actionArr;
-			//var arr = [{id:"1",name:"登陆1"},{id:"2",name:"登陆2"}];
-			//选择列表中被选中的动作
-			var elements = $("#actionIframe").contents().find("#actionTable tbody input[type=checkbox]:checked").click();//jquery
-			console.log(elements)
-			//循环获取id
-			for(var i = 0; i < elements.length; i++){
-				//获得索引
-				var index = $(elements[i]).parent().siblings(".action_tools").attr("data-aindex");
-				/* ids += arr[index].id+',';
-				actionName += arr[index].name+',';
-				//将选中的动作添加到添加事件选项中
-				$(".selectedActionBox").html(actionName); */
-				var actionLi = '';
-				actionLi = '<li class="actionLi" data-id="'+arr[index].id+'">'+arr[index].name+'<i class="glyphicon glyphicon-remove removeActionLi" title="删除"></i></li>'
-				$(".selectedActionBox").append(actionLi);
-				//删除动作方法
-				$(".removeActionLi").click(function(){
-					$(this).parent().remove();
-				})
-			}
-			//隐藏弹窗
-			$(".actionBox").css("display","none")
-		})
-		//关闭动作列表弹窗
-		$(".closeIframe").click(function(){
-			//隐藏弹窗
-			$(".actionBox").css("display","none")
-		})
-		
-		
-		
-		
-		//修改
-		$("#eventTable").on("click",".edit",function(){
-			//获得当前操作索引
-			var eventIndex = $(this).parent().attr("data-aIndex");
-			// 储存在本地
-			sessionStorage.setItem("eventId", eventListArr[eventIndex].id);
-			//跳转到 添加资产页面
-			location.href="addEvent.html";
-			//获取此次事件的数据
-			//成功回调函数
-			var sfunc = function(data){//成功
-				layHtml('edit',eventIndex,data);
-				/* if(data.success == "true"){
-					layer.msg(data.message,{icon: 1});
-					//显示弹窗
-					layHtml('edit',eventIndex,data);
-					console.log(data)
-				}else if(data.success == "false"){//失败
-					layer.msg(data.message,{icon: 5});
-				}  */
-				
-				
-			}
-			//失败回调函数
-			var efunc = function(data){
-				console.log(data)
-				layer.msg('操作失败',{icon: 5});
-			}
-			//发送请求
-			//ajaxPost("../../event/selectEventAction.do ",{id:eventListArr[eventIndex].id},sfunc,);
-			
-		})
-		//删除
-		$("#eventTable").on("click",".removeEvent",function(){
-			//获得当前操作索引
-			var eventIndex = $(this).parent().attr("data-aIndex");
-			//询问框
-			layer.confirm('确定删除？', {
-			  btn: ['确定','取消'] //按钮
-			}, function(index){
-				layer.close(index);
-				//成功回调函数
-				var sfunc = function(data){//成功
-					if(data.success == "true"){
-						layer.msg(data.message,{icon: 1});
-						//重新加载数据
-						getData();
-					}else if(data.success == "false"){//失败
-						layer.msg(data.message,{icon: 5});
-					} 
-				}
-				//失败回调函数
-				var efunc = function(data){
-					console.log(data)
-					layer.msg('操作失败',{icon: 5});
-				}
-				//发送请求
-				ajaxPost("../../event/delete.do ",{id:eventListArr[eventIndex].id},sfunc,);
-			}, function(){
-				  layer.close();
-			});
-		})
-		
-		//弹窗
-		function layHtml(btnType,eventIndex,obj){
-			//拼接弹窗内容
-			var html = '<div class="eventLayer_box">'
-					 +		'<div class="row" style="line-height:40px">'
-					 +			'<div class="col-xs-3">事件名称:</div>'
-					 +			'<div class="col-xs-9 layCen">'
-					 +				'<input type="text" class="form-control name"/>'
-					 +			'</div>'
-					 +		'</div>' 
-					 +		'<div class="row" style="line-height:40px">'
-					 +			'<div class="col-xs-3">动作名称:</div>'
-					 +			'<div class="col-xs-9 layCen">'
-					 +				'<div><button class="btn selectAction">选择动作</button><span class="selectActionDes">(可拖拽排序)</span></div>'
-					 +				'<ul class="selectedActionBox" id="selectedActionBox"></ul>'
-					 +			'</div>'
-					 +		'</div>' 
-					 +		'<div class="row" style="line-height:40px">'
-					 +			'<div class="col-xs-3">是否启用:</div>'
-					 +			'<div class="col-xs-9 layCen">'
-					 +				'<input type="radio" name="state" value="1" checked class="yes">是'
-	      			 +				'<input type="radio" name="state" value="0" class="no">否'
-					 +			'</div>'
-					 +		'</div>'
-					 +		'<div class="row" style="line-height:40px">'
-					 +			'<div class="col-xs-3">事件描述:</div>'
-					 +			'<div class="col-xs-9 layCen">'
-					 +				'<textarea class="form-control eventDes"></textarea>'
-					 +			'</div>'
-					 +		'</div>' 
-					 + '</div>'
-			//弹窗
-			layer.open({
-		 		type: 1,
-		 		title:"添加",//标题
-				area: ['420px', 'auto'], //宽高
-				btn: ['确定','取消'], //按钮
-				btn1:function(index){
-					var ids = "";//选中的动作Id
-					//获得修改后的事件名
-					var name = $(".name").val();
-					//获得状态
-					var state = $("input[name='state']:checked").val();
-					//获得事件描述
-					var eventDes = $(".eventDes").val();
-					//获得创建人
-					var userId = JSON.parse(localStorage.getItem('LoginUser'))[0].id;
-					//循环获得添加的动作id
-					var actionList = $(".actionLi");
-					for(var i = 0;i < actionList.length;i++){
-						ids += $(actionList[i]).attr("data-id")+'-'+i+','
-					}
-					//判断值的合法性
-					if(name == ''){//事件名值为空
-						layer.msg('事件名称不能为空',{icon: 5});
-					}else if(ids == ''){//动作不能为空
-						layer.msg('未添加任何动作',{icon: 5});
-					}else if(eventDes == ''){//动作不能为空
-						layer.msg('事件描述为空',{icon: 5});
-					}else{
-						//传参
-						var obj = {};
-						obj.state = state;
-						obj.name = name;
-						obj.actionId = ids;
-						obj.message = eventDes;
-						obj.userId = userId;
-						//判断是修改还是添加
-						if(btnType == 'edit'){//修改
-							obj.id = eventListArr[eventIndex].id;
-							//成功回调函数
-							var sFunc = function(data){
-								if(data.success == "true"){//成功
-									layer.msg(data.message,{icon: 1});
-									//重新获取数据
-									getData();	
-									//关闭弹窗
-									layer.close(index);
-								}else if(data.success == "false"){//失败
-									layer.msg(data.message,{icon: 5});
-								} 
-							}
-							ajaxPost("../../event/updataById.do",obj,sFunc); 
-						}else{
-							//成功回调函数
-							var sFunc = function(data){
-								if(data.success == "true"){//成功
-									layer.msg(data.message,{icon: 1});
-									//重新获取数据
-									getData();	
-									//关闭弹窗
-									layer.close(index);
-								}else if(data.success == "false"){//失败
-									layer.msg(data.message,{icon: 5});
-								} 
-							}
-							ajaxPost("../../event/insert.do",obj,sFunc); 
-						}						
-					}
-				},
-		 		content: html
-			});
-			//修改按钮时 填充信息
-			if(btnType == 'edit'){
-				//事件名称
-				$(".name").val(eventListArr[eventIndex].name);
-				//描述
-				$(".eventDes").html(eventListArr[eventIndex].message);
-				//状态
-				//修改状态
-				if(eventListArr[eventIndex].state == 0){//状态为0-否
-					$(".yes").removeAttr("checked");
-					$(".no").attr("checked","checked");
-				}
-				//动作列表
-				//通过动作数组的长度 决定循环的次数
-				for(var i = 0;i < obj.action[0].length;i++){
-					//通过遍历每一个动作对象 判断添加动作的位置
-					for(var j in obj.action[0]){
-						//如果当前的动作对象与序列号相同则添加到页面中
-						if(obj.action[0][j].order == i){
-							var actionLi = '';
-							actionLi = '<li class="actionLi" data-id="'+obj.action[0][j].id+'">'+obj.action[0][j].name+'<i class="glyphicon glyphicon-remove removeActionLi" title="删除"></i></li>'
-							$(".selectedActionBox").append(actionLi);
-						}
-					}
-					
-				}
-				//删除动作方法
-				$(".removeActionLi").click(function(){
-					$(this).parent().remove();
-				})
-			}
-			//添加鼠标拖拽排序问题		 
-			 var list = document.getElementById("selectedActionBox");
-			 var sort = new Sortable(list,{
-				 animation: 150
-			 }); // That's all.	
-			 
-			//选择动作按钮
-			$(".selectAction").click(function(){
-				$(".actionBox").css("display","block");
-				//移除全选框的状态
-				if($("#actionIframe").contents().find("#actionTable thead input").click()[0].checked == true){
-					$("#actionIframe").contents().find("#actionTable thead input").click().removeAttr("checked");
-				}				
-				//移除弹窗中的点击事件
-				$("#actionIframe").contents().find("#actionTable").off("click",".edit",function(){});
-			})
-		}
-	</script>
+	<div class="tableCon">
+		<table id="eventTable" data-toggle="table" data-classes="table  table-hover " style="width:100%">
+			<thead>
+			<tr>
+				<th data-checkbox="true"></th>
+				<th>事件名称</th>
+				<th>创建人</th>
+				<th>动作名称</th>
+				<th>描述</th>
+				<th>是否启用</th>
+				<th>操作</th>
+			</tr>
+			</thead>
+			<tbody>
+			<!-- <tr>
+                <td class="action_checkBox"><input type="checkbox"></td>
+                <td class="action_name">登录</td>
+                <td class="action_user">李洪连</td>
+                <td class="action_eqName">aooo</td>
+                <td class="action_logType">syslog</td>
+                <td class="action_keyWords">1234658</td>
+                <td class="action_eqUser">李洪连</td>
+                <td class="action_state">是</td>
+                <td class="action_tools" data-aIndex="0">
+                    <i class="glyphicon glyphicon-edit edit" title="修改"></i>
+                    <i class="glyphicon glyphicon-remove removeAction" title="删除"></i>
+                </td>
+            </tr>  -->
+			</tbody>
+		</table>
+	</div>
+
+	<div class="actionBox">
+		<div>
+			<button class="btn btn-info comfirmSelect">确认选择</button>
+			<span class="closeIframe"><i class="glyphicon glyphicon-remove-circle"></i></span>
+		</div>
+		<div class="actionContent">
+			<iframe id="actionIframe" name="actionIframe" src="../actionManage/actionManage.html" width="100%"></iframe>
+		</div>
+	</div>
+</div>
+
+<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/Sortable.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap-table/js/bootstrap-table.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap-table/js/bootstrap-table-zh-CN.min.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    var eventListArr = [];//用于存放事件列表
+    //加载数据
+    getData();
+    //获取数据方法
+    function getData(){
+        //成功回调函数
+        var sFunc = function(data){
+            eventListArr = data;
+            var html = '';
+            //定义索引
+            var dataIndex = 0;
+            //循环遍历添加数据
+            for(var i in data){
+                var obj = data[i];
+                var actionState = '是';
+                //数值替换显示
+                if(obj.state == 0){
+                    actionState = '否'
+                }
+                //去除最后一位','
+                obj.actionName = obj.actionName.substring(0,obj.actionName.length - 1);
+                //拼接
+                html += '<tr>'
+                    +		'<td class="event_checkBox  bs-checkbox"><input type="checkbox"></td>'
+                    +		'<td class="event_name">'+obj.name+'</td>'
+                    +		'<td class="event_user">'+obj.userName+'</td>'
+                    +		'<td class="event_user">'+obj.actionName+'</td>'
+                    +		'<td class="event_message">'+obj.message+'</td>'
+                    +		'<td class="event_state">'+actionState+'</td>'
+                    +      '<td class="event_tools" data-aIndex="'+dataIndex+'">'
+                    +       	'<i class="glyphicon glyphicon-edit edit" title="修改"></i>'
+                    +       	'<i class="glyphicon glyphicon-remove removeEvent" title="删除"></i>'
+                    +       '</td>'
+                    +	'</tr>'
+                //索引++
+                dataIndex++;
+            }
+            //添加到页面中
+            $("#eventTable tbody").html(html);
+            //表格拖动列宽
+            $("#eventTable").dragTableCol();
+        }
+        ajaxPost('../../event/selectAll.do','',sFunc)
+    }
+    //添加事件
+    $("#add_event").click(function(){
+        //显示弹窗
+        //layHtml();
+        //添加页面
+        //拼接导航
+        location.href="addEvent.html";
+    })
+
+    //确认选择动作列表弹窗弹窗
+    $(".comfirmSelect").click(function(){
+        //获得动作数据
+        var arr = document.getElementById('actionIframe').contentWindow.actionArr;
+        //var arr = [{id:"1",name:"登陆1"},{id:"2",name:"登陆2"}];
+        //选择列表中被选中的动作
+        var elements = $("#actionIframe").contents().find("#actionTable tbody input[type=checkbox]:checked").click();//jquery
+        console.log(elements)
+        //循环获取id
+        for(var i = 0; i < elements.length; i++){
+            //获得索引
+            var index = $(elements[i]).parent().siblings(".action_tools").attr("data-aindex");
+            /* ids += arr[index].id+',';
+            actionName += arr[index].name+',';
+            //将选中的动作添加到添加事件选项中
+            $(".selectedActionBox").html(actionName); */
+            var actionLi = '';
+            actionLi = '<li class="actionLi" data-id="'+arr[index].id+'">'+arr[index].name+'<i class="glyphicon glyphicon-remove removeActionLi" title="删除"></i></li>'
+            $(".selectedActionBox").append(actionLi);
+            //删除动作方法
+            $(".removeActionLi").click(function(){
+                $(this).parent().remove();
+            })
+        }
+        //隐藏弹窗
+        $(".actionBox").css("display","none")
+    })
+    //关闭动作列表弹窗
+    $(".closeIframe").click(function(){
+        //隐藏弹窗
+        $(".actionBox").css("display","none")
+    })
+
+
+
+
+    //修改
+    $("#eventTable").on("click",".edit",function(){
+        //获得当前操作索引
+        var eventIndex = $(this).parent().attr("data-aIndex");
+        // 储存在本地
+        sessionStorage.setItem("eventId", eventListArr[eventIndex].id);
+        //跳转到 添加资产页面
+        location.href="addEvent.html";
+        //获取此次事件的数据
+        //成功回调函数
+        var sfunc = function(data){//成功
+            layHtml('edit',eventIndex,data);
+            /* if(data.success == "true"){
+                layer.msg(data.message,{icon: 1});
+                //显示弹窗
+                layHtml('edit',eventIndex,data);
+                console.log(data)
+            }else if(data.success == "false"){//失败
+                layer.msg(data.message,{icon: 5});
+            }  */
+
+
+        }
+        //失败回调函数
+        var efunc = function(data){
+            console.log(data)
+            layer.msg('操作失败',{icon: 5});
+        }
+        //发送请求
+        //ajaxPost("../../event/selectEventAction.do ",{id:eventListArr[eventIndex].id},sfunc,);
+
+    })
+    //删除
+    $("#eventTable").on("click",".removeEvent",function(){
+        //获得当前操作索引
+        var eventIndex = $(this).parent().attr("data-aIndex");
+        //询问框
+        layer.confirm('确定删除？', {
+            btn: ['确定','取消'] //按钮
+        }, function(index){
+            layer.close(index);
+            //成功回调函数
+            var sfunc = function(data){//成功
+                if(data.success == "true"){
+                    layer.msg(data.message,{icon: 1});
+                    //重新加载数据
+                    getData();
+                }else if(data.success == "false"){//失败
+                    layer.msg(data.message,{icon: 5});
+                }
+            }
+            //失败回调函数
+            var efunc = function(data){
+                console.log(data)
+                layer.msg('操作失败',{icon: 5});
+            }
+            //发送请求
+            ajaxPost("../../event/delete.do ",{id:eventListArr[eventIndex].id},sfunc,);
+        }, function(){
+            layer.close();
+        });
+    })
+
+    //弹窗
+    function layHtml(btnType,eventIndex,obj){
+        //拼接弹窗内容
+        var html = '<div class="eventLayer_box">'
+            +		'<div class="row" style="line-height:40px">'
+            +			'<div class="col-xs-3">事件名称:</div>'
+            +			'<div class="col-xs-9 layCen">'
+            +				'<input type="text" class="form-control name"/>'
+            +			'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:40px">'
+            +			'<div class="col-xs-3">动作名称:</div>'
+            +			'<div class="col-xs-9 layCen">'
+            +				'<div><button class="btn selectAction">选择动作</button><span class="selectActionDes">(可拖拽排序)</span></div>'
+            +				'<ul class="selectedActionBox" id="selectedActionBox"></ul>'
+            +			'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:40px">'
+            +			'<div class="col-xs-3">是否启用:</div>'
+            +			'<div class="col-xs-9 layCen">'
+            +				'<input type="radio" name="state" value="1" checked class="yes">是'
+            +				'<input type="radio" name="state" value="0" class="no">否'
+            +			'</div>'
+            +		'</div>'
+            +		'<div class="row" style="line-height:40px">'
+            +			'<div class="col-xs-3">事件描述:</div>'
+            +			'<div class="col-xs-9 layCen">'
+            +				'<textarea class="form-control eventDes"></textarea>'
+            +			'</div>'
+            +		'</div>'
+            + '</div>'
+        //弹窗
+        layer.open({
+            type: 1,
+            title:"添加",//标题
+            area: ['420px', 'auto'], //宽高
+            btn: ['确定','取消'], //按钮
+            btn1:function(index){
+                var ids = "";//选中的动作Id
+                //获得修改后的事件名
+                var name = $(".name").val();
+                //获得状态
+                var state = $("input[name='state']:checked").val();
+                //获得事件描述
+                var eventDes = $(".eventDes").val();
+                //获得创建人
+                var userId = JSON.parse(localStorage.getItem('LoginUser'))[0].id;
+                //循环获得添加的动作id
+                var actionList = $(".actionLi");
+                for(var i = 0;i < actionList.length;i++){
+                    ids += $(actionList[i]).attr("data-id")+'-'+i+','
+                }
+                //判断值的合法性
+                if(name == ''){//事件名值为空
+                    layer.msg('事件名称不能为空',{icon: 5});
+                }else if(ids == ''){//动作不能为空
+                    layer.msg('未添加任何动作',{icon: 5});
+                }else if(eventDes == ''){//动作不能为空
+                    layer.msg('事件描述为空',{icon: 5});
+                }else{
+                    //传参
+                    var obj = {};
+                    obj.state = state;
+                    obj.name = name;
+                    obj.actionId = ids;
+                    obj.message = eventDes;
+                    obj.userId = userId;
+                    //判断是修改还是添加
+                    if(btnType == 'edit'){//修改
+                        obj.id = eventListArr[eventIndex].id;
+                        //成功回调函数
+                        var sFunc = function(data){
+                            if(data.success == "true"){//成功
+                                layer.msg(data.message,{icon: 1});
+                                //重新获取数据
+                                getData();
+                                //关闭弹窗
+                                layer.close(index);
+                            }else if(data.success == "false"){//失败
+                                layer.msg(data.message,{icon: 5});
+                            }
+                        }
+                        ajaxPost("../../event/updataById.do",obj,sFunc);
+                    }else{
+                        //成功回调函数
+                        var sFunc = function(data){
+                            if(data.success == "true"){//成功
+                                layer.msg(data.message,{icon: 1});
+                                //重新获取数据
+                                getData();
+                                //关闭弹窗
+                                layer.close(index);
+                            }else if(data.success == "false"){//失败
+                                layer.msg(data.message,{icon: 5});
+                            }
+                        }
+                        ajaxPost("../../event/insert.do",obj,sFunc);
+                    }
+                }
+            },
+            content: html
+        });
+        //修改按钮时 填充信息
+        if(btnType == 'edit'){
+            //事件名称
+            $(".name").val(eventListArr[eventIndex].name);
+            //描述
+            $(".eventDes").html(eventListArr[eventIndex].message);
+            //状态
+            //修改状态
+            if(eventListArr[eventIndex].state == 0){//状态为0-否
+                $(".yes").removeAttr("checked");
+                $(".no").attr("checked","checked");
+            }
+            //动作列表
+            //通过动作数组的长度 决定循环的次数
+            for(var i = 0;i < obj.action[0].length;i++){
+                //通过遍历每一个动作对象 判断添加动作的位置
+                for(var j in obj.action[0]){
+                    //如果当前的动作对象与序列号相同则添加到页面中
+                    if(obj.action[0][j].order == i){
+                        var actionLi = '';
+                        actionLi = '<li class="actionLi" data-id="'+obj.action[0][j].id+'">'+obj.action[0][j].name+'<i class="glyphicon glyphicon-remove removeActionLi" title="删除"></i></li>'
+                        $(".selectedActionBox").append(actionLi);
+                    }
+                }
+
+            }
+            //删除动作方法
+            $(".removeActionLi").click(function(){
+                $(this).parent().remove();
+            })
+        }
+        //添加鼠标拖拽排序问题
+        var list = document.getElementById("selectedActionBox");
+        var sort = new Sortable(list,{
+            animation: 150
+        }); // That's all.
+
+        //选择动作按钮
+        $(".selectAction").click(function(){
+            $(".actionBox").css("display","block");
+            //移除全选框的状态
+            if($("#actionIframe").contents().find("#actionTable thead input").click()[0].checked == true){
+                $("#actionIframe").contents().find("#actionTable thead input").click().removeAttr("checked");
+            }
+            //移除弹窗中的点击事件
+            $("#actionIframe").contents().find("#actionTable").off("click",".edit",function(){});
+        })
+    }
+</script>
 </body>
 </html>

@@ -9,6 +9,7 @@ import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.MapUtil;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -425,7 +426,7 @@ public class FlowController {
         if (ztData!=null){
             ObjectMapper mapper = new ObjectMapper();
             // 处理map参数
-            Map<String, String> map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
+            Map<String, String> map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 
             Object pageo = map.get("page");
             Object sizeo = map.get("size");
@@ -506,7 +507,7 @@ public class FlowController {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> map = new HashMap<String, String>();
             // 处理返回的json参数，转为map
-            map = removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+            map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 
             Object pageo = map.get("page");
             Object sizeo = map.get("size");
@@ -796,29 +797,5 @@ public class FlowController {
         return JSONArray.fromObject(result).toString();
     }
 
-    /**
-     * 处理map数据，将value为空的字段删除
-     * @param paramMap 传入value可能为空的map数据
-     * @return 返回value不为空的map
-     */
-    public static Map<String,String> removeMapEmptyValue(Map<String,String> paramMap){
 
-        if (paramMap!=null){
-            Set<String> set = paramMap.keySet();
-            Iterator<String> it = set.iterator();
-            List<String> listKey = new ArrayList<String>();
-            while (it.hasNext()) {
-                String str = it.next();
-                if(paramMap.get(str)==null || "".equals(paramMap.get(str))){
-                    listKey.add(str) ;
-                }
-            }
-            for (String key : listKey) {
-                paramMap.remove(key);
-            }
-            return paramMap;
-        }else{
-            return new HashMap<String, String>();
-        }
-    }
 }

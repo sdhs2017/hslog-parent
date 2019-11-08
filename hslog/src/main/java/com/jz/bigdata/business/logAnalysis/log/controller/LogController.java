@@ -26,6 +26,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.util.*;
 import org.elasticsearch.action.index.IndexRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,11 +66,6 @@ import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.common.users.service.IUsersService;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
-import com.jz.bigdata.util.BaseController;
-import com.jz.bigdata.util.CSVUtil;
-import com.jz.bigdata.util.ConfigProperty;
-import com.jz.bigdata.util.DescribeLog;
-import com.jz.bigdata.util.Sendmail;
 
 import net.sf.json.JSONArray;
 
@@ -101,6 +97,9 @@ public class LogController extends BaseController{
 	@Autowired protected ILogCrudDao logCrudDao;
 
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
+
+	//默认查询types
+	String[] default_types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 
 
 	/**
@@ -505,7 +504,7 @@ public class LogController extends BaseController{
 			Map<String, String> map = new HashMap<String, String>();
 
 			try {
-				map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
+				map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 			} catch (JsonParseException e) {
 				e.printStackTrace();
 			} catch (JsonMappingException e) {
@@ -593,7 +592,7 @@ public class LogController extends BaseController{
 		String ztData = request.getParameter("hsData");
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 
-		Map<String, String> mapper = toMap(ztData);
+		Map<String, String> mapper = MapUtil.json2map(ztData);
 		Object wordso = mapper.get("words");
 		Object pageo = mapper.get("page");
 		Object sizeo = mapper.get("size");
@@ -660,7 +659,7 @@ public class LogController extends BaseController{
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
 
-		map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
+		map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
 		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
@@ -786,7 +785,7 @@ public class LogController extends BaseController{
 
 
 	/**
-	 * 查询+导出
+	 * 查询+导出至文件，放在服务器指定目录
 	 * @param request
 	 * @author jiyourui
 	 * @return
@@ -803,14 +802,14 @@ public class LogController extends BaseController{
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		Object username = session.getAttribute(Constant.SESSION_USERNAME);
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'T'HHmmss");
+		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'_'HH:mm:ss");
 
-		String hsData = request.getParameter("hsData");
+		String hsData = request.getParameter(ContextFront.EXPORT_DATA_CONDITIONS);
 		Map<String, Object> allmap= new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
 
-		map = removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
@@ -826,6 +825,8 @@ public class LogController extends BaseController{
 
 
 		Integer sizeInt = Integer.valueOf(exportSize);
+
+		//csv文件单个标签页存放数据条数
 		int filesizes = 10000;
 
 		int forsize = sizeInt/filesizes;
@@ -861,6 +862,7 @@ public class LogController extends BaseController{
 				if (map.get("type")!=null&&!map.get("type").equals("")) {
 					arrayList.add(map.get("type"));
 					String [] types = arrayList.toArray(new String[arrayList.size()]);
+					//
 					if (userrole.equals("1")) {
 						System.out.println("10000条数据测试开始时间：     ---------"+timeformat.format(new Date()));
 						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,filesize);
@@ -872,7 +874,7 @@ public class LogController extends BaseController{
                         list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
 					}
 				}else {
-					String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
+
 					if (userrole.equals("1")) {
 						System.out.println("10000条数据测试开始时间：     ---------"+timeformat.format(new Date()));
 						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,filesize);
@@ -1016,7 +1018,7 @@ public class LogController extends BaseController{
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
 
-		map = removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
@@ -1069,21 +1071,7 @@ public class LogController extends BaseController{
 
 
 
-	public static Map<String,String> removeMapEmptyValue(Map<String,String> paramMap){
-		Set<String> set = paramMap.keySet();
-		Iterator<String> it = set.iterator();
-		List<String> listKey = new ArrayList<String>();
-		while (it.hasNext()) {
-			String str = it.next();
-			if(paramMap.get(str)==null || "".equals(paramMap.get(str))){
-				listKey.add(str) ;
-			}
-		}
-		for (String key : listKey) {
-			paramMap.remove(key);
-		}
-		return paramMap;
-	}
+
 
 	/**
 	 * 组合查询日志事件

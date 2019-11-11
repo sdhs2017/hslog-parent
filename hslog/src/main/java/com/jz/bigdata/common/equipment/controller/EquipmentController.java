@@ -112,7 +112,7 @@ public class EquipmentController {
 	
 	/**
 	 * @param request
-	 * @param page
+	 * @param session
 	 * @return 分页测试例子
 	 */
 	@ResponseBody
@@ -132,7 +132,10 @@ public class EquipmentController {
 		String ip=request.getParameter("ip");
 		//日志类型
 		String logType =request.getParameter("logType");
-		return equipmentService.selectAllByPage(hostName,name,ip,logType, pageIndex, pageSize,session);
+		// 资产类型
+		String type = request.getParameter("type");
+
+		return equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session);
 	}
 	
 	

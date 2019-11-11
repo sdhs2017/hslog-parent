@@ -2,6 +2,7 @@ package com.hs.elsearch.dao.logDao;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface ILogSearchDao {
 
@@ -39,7 +40,7 @@ public interface ILogSearchDao {
      * @return 返回聚合结果
      */
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size,
-                                                           Map<String, String> map,String... indices);
+                                                          Map<String, String> map, String... indices);
 
     /**
      * 带条件的聚合查询
@@ -56,7 +57,7 @@ public interface ILogSearchDao {
 
 
     public List<Map<String, Object>> getListByDateHistogramAggregation(String[] types, String starttime, String endtime, String dateHistogramField,
-                                                           Map<String, String> map,String... indices);
+                                                                       Map<String, String> map,String... indices);
 
     /**
      * 全文检索

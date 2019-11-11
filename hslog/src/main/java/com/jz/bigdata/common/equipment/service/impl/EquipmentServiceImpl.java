@@ -194,11 +194,11 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * @return
 	 */
 	@Override
-	public String selectAllByPage(String hostName, String name, String ip, String logType, int pageIndex, int pageSize,HttpSession session) {
+	public String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize,HttpSession session) {
 		// 获取起始数
 		int startRecord = (pageSize * (pageIndex - 1));
 		// 获取总数
-		List count = equipmentDao.count(hostName, name, ip, logType,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString());
+		List count = equipmentDao.count(hostName, name, ip, logType,type,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString());
 		List listCount = new ArrayList<>();
 		// 获取总数集合
 		listCount = (List) count.get(0);
@@ -207,7 +207,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// 总数添加到map
 		map.put("count", (listCount.get(0)));
 		// 查询所有数据
-		List<Equipment> listEquipment = equipmentDao.selectAllByPage(hostName, name, ip, logType,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize);
+		List<Equipment> listEquipment = equipmentDao.selectAllByPage(hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize);
 		// System.err.println(listEquipment.get(0).getCreateTime());
 
 		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间

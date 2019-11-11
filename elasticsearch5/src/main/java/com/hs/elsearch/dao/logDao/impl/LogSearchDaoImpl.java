@@ -1,11 +1,9 @@
-/*
 package com.hs.elsearch.dao.logDao.impl;
 
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.hs.elsearch.template.ESTransportIndexTemplate;
 import com.hs.elsearch.template.ESTransportSearchTemplate;
 import org.apache.directory.api.util.Strings;
-import org.apache.log4j.Logger;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
@@ -22,28 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
-*/
 /**
- * @program: hslog-parent
- * @description: elasticsearch持久化层
+ * @program: hsgit
+ * @description: 实现ILogSearchDao
  * @author: jiyourui
- * @create: 2019-09-12 14:17
- **//*
-
-public class ElasticsearchDao implements ILogSearchDao {
-
-    //private static Logger logger = Logger.getLogger(ElasticsearchDao.class);
-
-    */
-/*private ClientTemplate clientTemplate;
-
-    public ElasticsearchDao(final ClientTemplate clientTemplate){
-        logger.info("module elasticsearch5 Dao层 初始化··· ···");
-        this.clientTemplate = clientTemplate;
-    }*//*
-
+ * @create: 2019-11-11 10:27
+ **/
+public class LogSearchDaoImpl implements ILogSearchDao {
 
     // 默认排序字段
     String orderField = "logdate";
@@ -149,11 +133,9 @@ public class ElasticsearchDao implements ILogSearchDao {
                 }else if (entry.getKey().equals("event_type")){
                     // 针对syslog日志的事件，该字段不为null
                     boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
-                }*/
-/*else if (entry.getKey().equals("application_layer_protocol")) {
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
 					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
-				}*//*
-else {
+				}*/else {
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }
             }
@@ -207,11 +189,9 @@ else {
                 }else if (entry.getKey().equals("event_type")){
                     // 针对syslog日志的事件，该字段不为null
                     boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
-                }*/
-/*else if (entry.getKey().equals("application_layer_protocol")) {
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
 					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
-				}*//*
-else {
+				}*/else {
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }
             }
@@ -239,9 +219,7 @@ else {
 
         List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
 
-        */
-/*Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();*//*
-
+        /*Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();*/
 
         for(Terms.Bucket bucket:terms.getBuckets()) {
 
@@ -480,14 +458,10 @@ else {
         }
 
         for(Map.Entry<String, String> entry : map.entrySet()){
-			*/
-/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
-			boolQueryBuilder.must(matchqueryBuilder);*//*
-
-            */
-/*QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
-            boolQueryBuilder.must(wildcardqueryBuilder);*//*
-
+			/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+			boolQueryBuilder.must(matchqueryBuilder);*/
+            /*QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
+            boolQueryBuilder.must(wildcardqueryBuilder);*/
             if (entry.getKey().equals("operation_level")) {
                 // 针对日志级别为复选框，将日志级别转为数组用terms查询
                 String [] operation_level = entry.getValue().split(",");
@@ -558,4 +532,4 @@ else {
         return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,from,size,types,indices);
     }
 }
-*/
+

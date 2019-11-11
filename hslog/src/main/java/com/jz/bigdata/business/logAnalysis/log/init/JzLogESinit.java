@@ -2,7 +2,7 @@ package com.jz.bigdata.business.logAnalysis.log.init;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
-import com.hs.elsearch.dao.logDao.impl.ElasticsearchDao;
+import com.hs.elsearch.dao.logDao.ILogSearchDao;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -23,9 +23,9 @@ public class JzLogESinit {
 		logIndexDao.deleteByIndex(index);
 	}
 	
-	public List<Map<String, Object>> countGroupBy(String index, String[] type, String param, ElasticsearchDao elasticsearchDao){
+	public List<Map<String, Object>> countGroupBy(String index, String[] type, String param, ILogSearchDao ILogSearchDao){
 		
-		return elasticsearchDao.getListByAggregation(type,null,null,param,10,null,index);
+		return ILogSearchDao.getListByAggregation(type,null,null,param,10,null,index);
 	}
 	
 	public <T> void init(String index, String type,T classes,ILogIndexDao logIndexDao){

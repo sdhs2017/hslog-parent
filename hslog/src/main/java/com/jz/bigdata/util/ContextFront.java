@@ -11,6 +11,6 @@ package com.jz.bigdata.util;
 
 public class ContextFront {
 
-    public static final String EXPORT_DATA_CONDITIONS = "hsData";
+    public static final String DATA_CONDITIONS = "hsData";
 
 }

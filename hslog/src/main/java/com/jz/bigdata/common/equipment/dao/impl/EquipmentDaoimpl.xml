@@ -3,7 +3,7 @@
 <mapper namespace="com.jz.bigdata.common.equipment.dao.IEquipmentDao">
 	<!-- 返回结果设置 -->
 	<resultMap id="BaseResultMap"
-		type="com.jz.bigdata.common.equipment.entity.Equipment">
+			   type="com.jz.bigdata.common.equipment.entity.Equipment">
 		<id column="id" jdbcType="VARCHAR" property="id" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="hostName" jdbcType="VARCHAR" property="hostName" />
@@ -31,7 +31,7 @@
 		<result column="domain" jdbcType="VARCHAR" property="domain" />
 		<result column="port" jdbcType="VARCHAR" property="port" />
 		<association property="user"
-			javaType="com.jz.bigdata.common.users.entity.User">
+					 javaType="com.jz.bigdata.common.users.entity.User">
 			<id property="userId" column="id" />
 			<result property="name" column="userName" />
 		</association>
@@ -41,7 +41,7 @@
 
 
 	<resultMap id="BaseResultMapUserName"
-		type="com.jz.bigdata.common.equipment.entity.Equipment">
+			   type="com.jz.bigdata.common.equipment.entity.Equipment">
 		<id column="id" jdbcType="VARCHAR" property="id" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="hostName" jdbcType="VARCHAR" property="hostName" />
@@ -87,7 +87,7 @@
 
 	<!-- 查询所有数据 -->
 	<select id="selectAll" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
-		resultMap="BaseResultMap">
+			resultMap="BaseResultMap">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
 		<!-- 引用查询字段 -->
@@ -115,7 +115,7 @@
 		select
 		<!-- 引用查询字段 -->
 		<include refid="Base_Column_List" />
-		from equipment where startUp =1 
+		from equipment where startUp =1
 
 	</select>
 
@@ -258,7 +258,7 @@
 				#{log_level,jdbcType=VARCHAR},
 			</if>
 			<if
-				test="departmentNodeId != null and  departmentNodeId !='' and  departmentNodeId !=0">
+					test="departmentNodeId != null and  departmentNodeId !='' and  departmentNodeId !=0">
 				#{departmentNodeId,jdbcType=INTEGER},
 			</if>
 			<if test="domain != null and  domain !=''">
@@ -274,7 +274,7 @@
 		<!-- delete from equipment where id in -->
 		DELETE FROM equipment  where id in
 		<foreach item="ids" index="index" collection="array" open="("
-			separator="," close=")">
+				 separator="," close=")">
 			#{ids}
 		</foreach>
 	</update>
@@ -284,10 +284,11 @@
 		name=#{name},hostName=#{hostName},type=#{type},ip=#{ip},startUp=#{startUp},logType=#{logType},
 		macAdress=#{macAdress},system=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
 		equipment.describe=#{describe},valuation=#{valuation},log_level=#{log_level},domain=#{domain},equipment.port=#{port},
+		equipment.departmentNodeId=#{departmentNodeId},
 		<!-- if判断语句 -->
 		<choose>
 			<when
-				test="upDateTime != null and upDateTime !='' and upDateTime !='null'">
+					test="upDateTime != null and upDateTime !='' and upDateTime !='null'">
 				equipment.upDateTime = #{upDateTime},
 			</when>
 			<otherwise>
@@ -307,12 +308,12 @@
 	</update>
 
 
-	<!-- <update id="updateSuperiorId" parameterType="com.jz.bigdata.common.department.entity.Department"> 
-		<if test="id != null and id !='0'"> update department set subordinate=1 where 
+	<!-- <update id="updateSuperiorId" parameterType="com.jz.bigdata.common.department.entity.Department">
+		<if test="id != null and id !='0'"> update department set subordinate=1 where
 		, id=#{id,jdbcType=INTEGER} </if> </update> -->
 	<!-- 查询单个数据 -->
 	<select id="selectEquipment" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
-		resultMap="BaseResultMapUserName">
+			resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
 		<!-- 引用查询字段 -->
@@ -325,7 +326,7 @@
 
 	<!-- 查询单个数据 -->
 	<select id="selectOneEquipment" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
-		resultMap="BaseResultMapUserName">
+			resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
 		<!-- 引用查询字段 -->
@@ -427,7 +428,7 @@
 
 	<!-- 根据事件id查询资产数据 -->
 	<select id="selectEquipmentByEventId" parameterType="java.lang.String"
-		resultMap="BaseResultMap">
+			resultMap="BaseResultMap">
 		select equipment.id, equipment.name, hostName, type,
 		ip,createTime,equipment.upDateTime,endTime,
 		startUp,userId,equipment.departmentId,logType,macAdress,system,systemVersion,assetNum,
@@ -446,7 +447,7 @@
 
 	<!-- 查询单个数据 -->
 	<select id="selectByNameIp" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
-		resultMap="BaseResultMapUserName">
+			resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
 		<!-- 引用查询字段 -->
@@ -458,24 +459,24 @@
 	<!-- 批量修改数据 -->
 	<update id="batchUpdate" parameterType="java.util.List">
 		<foreach close="" collection="list" index="index" item="item"
-			open="" separator=";">
+				 open="" separator=";">
 			update equipment
 			<set>
-			domain=#{item.domain,jdbcType=VARCHAR}
+				domain=#{item.domain,jdbcType=VARCHAR}
 			</set>
 			<where>
-			id=#{item.id,jdbcType=VARCHAR}
+				id=#{item.id,jdbcType=VARCHAR}
 			</where>
-			
+
 		</foreach>
 	</update>
 
-<!-- 删除资产事件关系表 -->
+	<!-- 删除资产事件关系表 -->
 	<update id="deleteEvent" parameterType="java.lang.String">
 		<!-- delete from equipment where id in -->
 		DELETE FROM equipment_event  where equipmentId in
 		<foreach item="ids" index="index" collection="array" open="("
-			separator="," close=")">
+				 separator="," close=")">
 			#{ids}
 		</foreach>
 	</update>

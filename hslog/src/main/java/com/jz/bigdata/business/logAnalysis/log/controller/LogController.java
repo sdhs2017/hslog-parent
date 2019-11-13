@@ -649,11 +649,11 @@ public class LogController extends BaseController{
 	public String getLogListByBlend(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new ConcurrentHashMap<String, String>();
-		map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
+		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
@@ -787,7 +787,8 @@ public class LogController extends BaseController{
 	public String exportLogList(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
 
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		Object username = session.getAttribute(Constant.SESSION_USERNAME);
+		// 使用手机号作为导出的路径
+		Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'_'HH:mm:ss");
 
@@ -886,7 +887,8 @@ public class LogController extends BaseController{
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 
 				if (i==forsize&&modsize==0) {
 					resultmap.put("state", "finished");
@@ -925,7 +927,8 @@ public class LogController extends BaseController{
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
 				// 开始写入csv文件
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 				//  根据导出文件个数返回导出状态
 				if (forsize>0) {
 					resultmap.put("state", "finished");
@@ -991,13 +994,14 @@ public class LogController extends BaseController{
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-		System.out.println(hsData);
+		//System.out.println(hsData);
+		//hsData的参数说明{日志类型：type=dns, starttime=, endtime=, dns客户端ip：dns_clientip=, dns_view=, dns域名：dns_domain_name=, dns解析数据类型：dns_ana_type=, dns服务器：dns_server=, page=1, size=12}
 
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new ConcurrentHashMap<>();
 
 		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
-		System.out.println(map);
+		//System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 
@@ -1176,15 +1180,14 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="通过日志级别查询数据")
 	public String getLogListByLevel(HttpServletRequest request) {
 
-		String keyWords = request.getParameter("words");
+		String operation_level = request.getParameter("words");
 
-		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
+		String[] types = default_types;
 
 		Map<String, String> map = new HashMap<>();
-		map.put("operation_level", keyWords);
+		map.put("operation_level", operation_level);
 		List<Map<String, Object>> list =null;
 		try {
-			//list = logService.getListByMap(configProperty.getEs_index(), types, map);
 			list = logService.getListByMap(map, null, null, types, configProperty.getEs_index());
 		} catch (Exception e) {
 			e.printStackTrace();

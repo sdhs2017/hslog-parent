@@ -68,11 +68,12 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         if (map!=null&&!map.isEmpty()) {
             // 遍历map中查询条件
             for(Map.Entry<String, String> entry : map.entrySet()){
+                // 针对事件查询在controller设定的固定值，保证事件查询的关键信息不为nul
                 if (entry.getKey().equals("event")) {
                     // 字段不为null查询
                     boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
                 }else if(entry.getKey().equals("event_levels")){
-                    // 范围查询
+                    // 范围查询，根据自定义的文字描述事件级别，对应到实际的数字事件级别
                     if (entry.getValue().equals("高危")) {
                         boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(0).lte(3));
                     }else if (entry.getValue().equals("中危")) {
@@ -84,10 +85,11 @@ public class LogSearchDaoImpl implements ILogSearchDao {
                     // 短语匹配
                     boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
                 }else if (entry.getKey().equals("operation_level")) {
-                    // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                    // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] operation_level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
                 }else if(entry.getKey().equals("dns_domain_name")){
+                    // dns域名，需要用分词匹配的方式查询
                     QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
                     boolQueryBuilder.must(queryBuilder);
                 }else {
@@ -254,28 +256,31 @@ public class LogSearchDaoImpl implements ILogSearchDao {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
-        for (Map.Entry<String,String> entry : map.entrySet()){
-            if (entry.getKey().equals("event_type")){
-                boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
-            }else if (entry.getKey().equals("event_level")){
-                int gte = 0;
-                int lte = 7;
-                if (Integer.valueOf(entry.getValue())==1) {
-                    gte = 0;
-                    lte = 3;
-                }else if (Integer.valueOf(entry.getValue())==2) {
-                    gte = 4;
-                    lte = 5;
-                }else if (Integer.valueOf(entry.getValue())==3) {
-                    gte = 6;
-                    lte = 7;
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for (Map.Entry<String,String> entry : map.entrySet()){
+                if (entry.getKey().equals("event_type")){
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }else if (entry.getKey().equals("event_level")){
+                    int gte = 0;
+                    int lte = 7;
+                    if (Integer.valueOf(entry.getValue())==1) {
+                        gte = 0;
+                        lte = 3;
+                    }else if (Integer.valueOf(entry.getValue())==2) {
+                        gte = 4;
+                        lte = 5;
+                    }else if (Integer.valueOf(entry.getValue())==3) {
+                        gte = 6;
+                        lte = 7;
+                    }
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(gte).lte(lte));
+                }else {
+                    TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue());
+                    boolQueryBuilder.must(termQueryBuilder);
                 }
-                boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(gte).lte(lte));
-            }else {
-                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue());
-                boolQueryBuilder.must(termQueryBuilder);
-            }
 
+            }
         }
 
         AggregationBuilder aggregationBuilder =
@@ -420,19 +425,22 @@ public class LogSearchDaoImpl implements ILogSearchDao {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
-        for(Map.Entry<String, String> entry : map.entrySet()){
-            if (entry.getKey().equals("operation_level")) {
-                // 针对日志级别为复选框，将日志级别转为数组用terms查询
-                String [] operation_level = entry.getValue().split(",");
-                boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
-            }else if(entry.getKey().equals("dns_domain_name")){
-                QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
-                boolQueryBuilder.must(queryBuilder);
-            }else{
-                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
-                boolQueryBuilder.must(termQueryBuilder);
-            }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("operation_level")) {
+                    // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                    String [] operation_level = entry.getValue().split(",");
+                    boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
+                }else if(entry.getKey().equals("dns_domain_name")){
+                    QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+                    boolQueryBuilder.must(queryBuilder);
+                }else{
+                    TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
+                    boolQueryBuilder.must(termQueryBuilder);
+                }
 
+            }
         }
 
         // 构建排序体,指定排序字段
@@ -457,21 +465,24 @@ public class LogSearchDaoImpl implements ILogSearchDao {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
-        for(Map.Entry<String, String> entry : map.entrySet()){
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
 			/*QueryBuilder matchqueryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
 			boolQueryBuilder.must(matchqueryBuilder);*/
             /*QueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(entry.getKey(), "*"+entry.getValue()+"*");
             boolQueryBuilder.must(wildcardqueryBuilder);*/
-            if (entry.getKey().equals("operation_level")) {
-                // 针对日志级别为复选框，将日志级别转为数组用terms查询
-                String [] operation_level = entry.getValue().split(",");
-                boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
-            }else if(entry.getKey().equals("dns_domain_name")){
-                QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
-                boolQueryBuilder.must(queryBuilder);
-            }else{
-                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
-                boolQueryBuilder.must(termQueryBuilder);
+                if (entry.getKey().equals("operation_level")) {
+                    // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                    String [] operation_level = entry.getValue().split(",");
+                    boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
+                }else if(entry.getKey().equals("dns_domain_name")){
+                    QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+                    boolQueryBuilder.must(queryBuilder);
+                }else{
+                    TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
+                    boolQueryBuilder.must(termQueryBuilder);
+                }
             }
         }
 
@@ -497,32 +508,35 @@ public class LogSearchDaoImpl implements ILogSearchDao {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
-        for(Map.Entry<String, String> entry : map.entrySet()){
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
 
-            if (entry.getKey().equals("operation_level")) {
-                // 针对日志级别为复选框，将日志级别转为数组用terms查询
-                String [] operation_level = entry.getValue().split(",");
-                boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
-            }else if(entry.getKey().equals("dns_domain_name")){
-                QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
-                boolQueryBuilder.must(queryBuilder);
-            }else if(entry.getKey().equals("event")){
-                // 针对事件查询的保证事件类型不为空
-                boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
-            }else if(entry.getKey().equals("event_levels")){
-                // 针对事件级别String转化为数字范围查询
-                if (entry.getValue().equals("高危")){
-                    boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(0).lte(3));
-                }else if (entry.getValue().equals("中危")) {
-                    boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(4).lte(5));
-                }else if (entry.getValue().equals("普通")) {
-                    boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(6).lte(7));
+                if (entry.getKey().equals("operation_level")) {
+                    // 针对日志级别为复选框，将日志级别转为数组用terms查询
+                    String [] operation_level = entry.getValue().split(",");
+                    boolQueryBuilder.must(QueryBuilders.termsQuery("operation_level", operation_level));
+                }else if(entry.getKey().equals("dns_domain_name")){
+                    QueryBuilder queryBuilder = QueryBuilders.matchQuery(entry.getKey(), entry.getValue());
+                    boolQueryBuilder.must(queryBuilder);
+                }else if(entry.getKey().equals("event")){
+                    // 针对事件查询的保证事件类型不为空
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }else if(entry.getKey().equals("event_levels")){
+                    // 针对事件级别String转化为数字范围查询
+                    if (entry.getValue().equals("高危")){
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(0).lte(3));
+                    }else if (entry.getValue().equals("中危")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(4).lte(5));
+                    }else if (entry.getValue().equals("普通")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("event_level").gte(6).lte(7));
+                    }
+                }else if (entry.getKey().equals("equipmentname")) {
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("equipmentname",entry.getValue()));
+                }else{
+                    TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
+                    boolQueryBuilder.must(termQueryBuilder);
                 }
-            }else if (entry.getKey().equals("equipmentname")) {
-                boolQueryBuilder.must(QueryBuilders.matchQuery("equipmentname",entry.getValue()));
-            }else{
-                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
-                boolQueryBuilder.must(termQueryBuilder);
             }
         }
 

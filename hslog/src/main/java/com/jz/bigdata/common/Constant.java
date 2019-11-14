@@ -8,7 +8,7 @@ package com.jz.bigdata.common;
 public class Constant {
 	
 	/**
-	 * session信息---用户ID
+	 * 	session信息---用户ID
 	 */
 	public static String SESSION_USERID = "SESSION_USERID";
 //	部门id

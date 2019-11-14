@@ -509,11 +509,13 @@ public class LogController extends BaseController{
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			// 查询设备信息
 			equipment.setId(map.get("id"));
 			equipment=equipmentService.selectOneEquipment(equipment);
 
 			String starttime = "";
 			String endtime = "";
+			// 判断查询条件，开始时间和结束时间不为null，添加到查询条件中，默认结束时间为当前时间
 			if (map.get("starttime")!=null) {
 				Object start = map.get("starttime");
 				starttime = start.toString();
@@ -535,20 +537,22 @@ public class LogController extends BaseController{
 			String size = sizeObject.toString();
 			map.remove("size");
 
-			String type = equipment.getLogType();
-
-
+			// 获取资产的日志类型
+			String logtype = equipment.getLogType();
+			// 获取资产id
 			String equipmentId = equipment.getId();
 
 			map.put("equipmentid", equipmentId);
 			map.remove("id");
 			ArrayList<String> arrayList = new ArrayList<>();
 
-			if (type.equals("netflow")) {
+			// 历史遗留，新的流量日志不会和资产绑定，该判断无效
+			if (logtype.equals("netflow")) {
 				arrayList.add("defaultpacket");
 			}
 			String [] types = null;
-			if (type!=null) {
+			// 判断资产日志类型
+			if (logtype!=null) {
 				types = arrayList.toArray(new String[arrayList.size()]);
 			}
 
@@ -594,6 +598,7 @@ public class LogController extends BaseController{
 		Object pageo = mapper.get("page");
 		Object sizeo = mapper.get("size");
 		String keyWords = null;
+		// 全文检索条件：关键字
 		if (wordso!=null) {
 			keyWords = wordso.toString();
 		}
@@ -1092,13 +1097,9 @@ public class LogController extends BaseController{
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 
 		Map<String, String> map = new HashMap<String, String>();
+		// 事件查询自定义值，该字段确认日志中是否定性事件
 		map.put("event", "event");
-		/*if (starttime!=null&&!starttime.equals("")) {
-			map.put("starttime", starttime);
-		}
-		if (endtime!=null&&!endtime.equals("")) {
-			map.put("endtime", endtime);
-		}*/
+
 		if (ip!=null&&!ip.equals("")) {
 			map.put("ip", ip);
 		}

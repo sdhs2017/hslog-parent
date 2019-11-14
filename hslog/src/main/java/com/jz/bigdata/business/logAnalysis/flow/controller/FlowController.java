@@ -421,13 +421,14 @@ public class FlowController {
     public String getFlowListByBlend(HttpServletRequest request, HttpSession session) throws JsonParseException, JsonMappingException, IOException {
         // receive parameter
         Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-        String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
+        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
         List<Map<String, Object>> list =null;
 
-        if (ztData!=null){
+        // 参数是否为空
+        if (hsData!=null){
             ObjectMapper mapper = new ObjectMapper();
             // 处理map参数
-            Map<String, String> map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
+            Map<String, String> map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 
             Object pageo = map.get("page");
             Object sizeo = map.get("size");
@@ -455,13 +456,14 @@ public class FlowController {
 
             ArrayList<String> arrayList = new ArrayList<>();
 
+            // 判断type 是否存在，不存在使用默认，存在使用参数
             if (map.get("type")!=null&&!map.get("type").equals("")) {
                 arrayList.add(map.get("type"));
                 map.remove("type");
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
                 list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
             }else {
-                String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
+                String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
                 list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
             }
             Map<String, Object> allmap = new HashMap<>();
@@ -504,6 +506,7 @@ public class FlowController {
 
         List<Map<String, Object>> list =null;
 
+        // 判断封装参数的hsdata是否为null，不是解析里面的参数内容
         if (hsData!=null){
             ObjectMapper mapper = new ObjectMapper();
             Map<String, String> map = new HashMap<String, String>();
@@ -521,6 +524,7 @@ public class FlowController {
 
             String starttime = "";
             String endtime = "";
+            // 判断时间范围查询条件是否存在，如果存在提取参数
             if (map.get("starttime")!=null) {
                 Object start = map.get("starttime");
                 starttime = start.toString();
@@ -534,6 +538,7 @@ public class FlowController {
 
             ArrayList<String> arrayList = new ArrayList<>();
 
+            // 判断type是否存在，不存在使用默认type，存在使用参数
             if (map.get("type")!=null&&!map.get("type").equals("")) {
                 arrayList.add(map.get("type"));
                 map.remove("type");
@@ -546,7 +551,7 @@ public class FlowController {
                     list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
                 }
             }else {
-                String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW,LogType.LOGTYPE_DNS,LogType.LOGTYPE_DHCP};
+                String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
                 if (userrole.equals("1")) {
                     //list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
                     list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());

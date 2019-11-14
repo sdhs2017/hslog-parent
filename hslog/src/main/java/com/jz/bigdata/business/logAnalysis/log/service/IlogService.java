@@ -3,6 +3,7 @@ package com.jz.bigdata.business.logAnalysis.log.service;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 
@@ -221,7 +222,7 @@ public interface IlogService {
 	 * @param indices 索引名
 	 * @return 返回详细日志内容
 	 */
-	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types,String... indices);
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices);
 	/**
 	 * getListByBlend重载
 	 * 通过遍历map中的查询条件进行查询

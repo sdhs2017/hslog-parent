@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -126,13 +127,9 @@ public class LogController extends BaseController{
 	@RequestMapping("/getListById")
 	@DescribeLog(describe="通过日志ID获取日志信息")
 	public String getListById(HttpServletRequest request) {
-		//index=estest&type=Log4j&id=AV6FBY7KXlvRoY9aku1N
 		String index = request.getParameter("index");
 		String type = request.getParameter("type");
 		String id = request.getParameter("id");
-//		List<Map<String, Object>> list = logService.searchById("estest", "Log4j", "AV6FBY7KXlvRoY9aku1N");
-//		String result = JSONArray.fromObject(list).toString();
-//		String result = logService.searchById("estest", "Log4j", "AV6FBY7KXlvRoY9aku1N");
 		String result = logService.searchById(index, type, id);
 		System.out.println("-----------------result:----------------------");
 		System.out.println(result);
@@ -285,7 +282,7 @@ public class LogController extends BaseController{
 		String starttime = request.getParameter("starttime");
 		String endtime = request.getParameter("endtime");
 
-		Map<String, String> map = new HashMap<>();
+		ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 		if (equipmentid!=null&&!equipmentid.equals("")) {
 			map.put("equipmentid", equipmentid);
 		}
@@ -428,7 +425,7 @@ public class LogController extends BaseController{
 			calendar.add(Calendar.MINUTE, -Integer.valueOf(dates));
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
-			Map<String,String> safemap = new HashMap<>();
+			ConcurrentHashMap<String,String> safemap = new ConcurrentHashMap<>();
 			safemap.put("equipmentid",equipmentid);
 			safemap.put("event_type",event_type);
 			//List<Map<String, Object>> loglist = logService.getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
@@ -498,10 +495,10 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="条件获取设备日志数据")
 	public String getLogListByEquipment(HttpServletRequest request,Equipment equipment) {
 
-		String ztData = request.getParameter("hsData");
+		String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
 		if(ztData!=null) {
 			ObjectMapper mapper = new ObjectMapper();
-			Map<String, String> map = new HashMap<String, String>();
+			Map<String, String> map = new ConcurrentHashMap<>();
 
 			try {
 				map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
@@ -589,7 +586,7 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="查询日志数据")
 	public String getLogListByContent(HttpServletRequest request,HttpSession session) {
 
-		String ztData = request.getParameter("hsData");
+		String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 
 		Map<String, String> mapper = MapUtil.json2map(ztData);
@@ -611,12 +608,11 @@ public class LogController extends BaseController{
 		List<Map<String, Object>> list =null;
 
 		try {
-			if (userrole.equals("1")) {
-				//list = logService.getListByContent(configProperty.getEs_index(), types, keyWords,null,page,size);
+			// 判断是否是管理员角色，是传入null，否传入用户id
+			if (userrole.equals(ContextRoles.MANAGEMENT)) {
 				list = logService.getListByContent(keyWords,null,page,size,types,configProperty.getEs_index());
 			}else {
 				list = logService.getListByContent(keyWords,session.getAttribute(Constant.SESSION_USERID).toString(),page,size,types,configProperty.getEs_index());
-				//list = logService.getListByContent(configProperty.getEs_index(), types, keyWords,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
 			}
 			map.put("state", true);
 		} catch (Exception e) {
@@ -653,14 +649,12 @@ public class LogController extends BaseController{
 	public String getLogListByBlend(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		String ztData = request.getParameter("hsData");
-		System.out.println(ztData);
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new ConcurrentHashMap<String, String>();
+		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
 
-		map = MapUtil.removeMapEmptyValue(mapper.readValue(ztData, Map.class));
-		System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 		map.remove("page");
@@ -669,6 +663,11 @@ public class LogController extends BaseController{
 		String page = pageo.toString();
 		String size = sizeo.toString();
 
+		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
+		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
+		}
+		// 从参数中将时间条件提出
 		String starttime = "";
         if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
             starttime = map.get("starttime");
@@ -681,31 +680,19 @@ public class LogController extends BaseController{
             map.remove("endtime");
         }
 
+
+
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
 
+		// 判断type是否存在，如果存在使用type值，否则使用默认
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
 			map.remove("type");
 			String [] types = arrayList.toArray(new String[arrayList.size()]);
-			if (userrole.equals("1")) {
-				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,size);
-				list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
-			}else {
-			    map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
-                list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
-			}
+			list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
 		}else {
-			String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-			if (userrole.equals("1")) {
-				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,size);
-                list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
-			}else {
-                map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
-                list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
-			}
+			list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
 		}
 		Map<String, Object> allmap = new HashMap<>();
 		allmap = list.get(0);
@@ -733,7 +720,7 @@ public class LogController extends BaseController{
 	public String getLogListByFlow(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		String ztData = request.getParameter("hsData");
+		String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new HashMap<String, String>();
@@ -758,7 +745,7 @@ public class LogController extends BaseController{
 			arrayList.add(map.get("type"));
 			map.remove("type");
 			String [] types = arrayList.toArray(new String[arrayList.size()]);
-			if (userrole.equals("1")) {
+			if (userrole.equals(ContextRoles.MANAGEMENT)) {
 				list = logService.getListByMultiField(configProperty.getEs_index(), types, param,map,page,size);
 			}else {
 				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
@@ -766,7 +753,7 @@ public class LogController extends BaseController{
 			}
 		}else {
 			String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-			if (userrole.equals("1")) {
+			if (userrole.equals(ContextRoles.MANAGEMENT)) {
 				list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,size);
 			}else {
 				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
@@ -800,41 +787,65 @@ public class LogController extends BaseController{
 	public String exportLogList(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
 
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		Object username = session.getAttribute(Constant.SESSION_USERNAME);
+		// 使用手机号作为导出的路径
+		Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'_'HH:mm:ss");
 
-		String hsData = request.getParameter(ContextFront.EXPORT_DATA_CONDITIONS);
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+		// 返回結果
 		Map<String, Object> allmap= new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> map = new HashMap<String, String>();
-
+		// 使用线程安全的map
+		Map<String, String> map = new ConcurrentHashMap<>();
 		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+
 
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 		Object exportSizeo = map.get("exportSize");
 
+		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
+		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
+		}
+
+		String starttime = null;
+		// 判断时间条件是否存在，存在将时间提出
+		if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
+			starttime = map.get("starttime");
+			map.remove("starttime");
+
+		}
+		String endtime = null;
+		if (map.get("endtime")!=null&&!map.get("endtime").equals("")){
+			endtime = map.get("endtime");
+			map.remove("endtime");
+		}
+
+
 		map.remove("page");
 		map.remove("size");
 		map.remove("exportSize");
 
-		String page = pageo.toString();
-		String size = sizeo.toString();
 		String exportSize = exportSizeo.toString();
 
 
 		Integer sizeInt = Integer.valueOf(exportSize);
 
 		//csv文件单个标签页存放数据条数
-		int filesizes = 10000;
+		int sheetsizes = 10000;
 
-		int forsize = sizeInt/filesizes;
-		int modsize = sizeInt%filesizes;
+		// 获得需要创建的csv文件格式
+		int forsize = sizeInt/sheetsizes;
+		// 取余，获得需要导出的不满10000条数据
+		int modsize = sizeInt%sheetsizes;
 
+		// 导出状态默认值
 		int fileSize = 0;
 
 		Map<String, Object> resultmap = new HashMap<>();
+		// 根据文件数设置导出状态
 		if (forsize>0&&modsize>0) {
 			fileSize = forsize+1;
 			resultmap.put("state", "doing");
@@ -852,39 +863,22 @@ public class LogController extends BaseController{
 		}
 
 		try {
+			// 先到处每个sheet页10000条的数据
 			for(int i=1;i<=forsize;i++) {
-
-				page = String.valueOf(i);
-				String filesize = String.valueOf(filesizes);
+				// 构建新的page size ，size为10000条
+				String page = String.valueOf(i);
+				String size = String.valueOf(sheetsizes);
 
 				ArrayList<String> arrayList = new ArrayList<>();
 				List<Map<String, Object>> list = null;
+				// 判断type是否存在，如果存在使用type值，否则使用默认
 				if (map.get("type")!=null&&!map.get("type").equals("")) {
 					arrayList.add(map.get("type"));
 					String [] types = arrayList.toArray(new String[arrayList.size()]);
-					//
-					if (userrole.equals("1")) {
-						System.out.println("10000条数据测试开始时间：     ---------"+timeformat.format(new Date()));
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,filesize);
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-						System.out.println("10000条数据测试结束时间：     ---------"+timeformat.format(new Date()));
-					}else {
-                        // list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,filesize);
-                        map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-					}
+					list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
 				}else {
+					list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
 
-					if (userrole.equals("1")) {
-						System.out.println("10000条数据测试开始时间：     ---------"+timeformat.format(new Date()));
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,filesize);
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-						System.out.println("10000条数据测试结束时间：     ---------"+timeformat.format(new Date()));
-					}else {
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,filesize);
-                        map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-                    }
 				}
 
 				// 设置表格头
@@ -893,7 +887,8 @@ public class LogController extends BaseController{
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 
 				if (i==forsize&&modsize==0) {
 					resultmap.put("state", "finished");
@@ -906,38 +901,22 @@ public class LogController extends BaseController{
 				}
 
 			}
+			// 导出不足10000条的剩余数据
 			if (modsize>0) {
-				page = String.valueOf(forsize+1);
-				String filesize = String.valueOf(modsize);
+				// 构建新的page size ，size为modsize
+				String page = String.valueOf(forsize+1);
+				String size = String.valueOf(modsize);
 
 				ArrayList<String> arrayList = new ArrayList<>();
 				List<Map<String, Object>> list = null;
 
+				// 判断type是否存在，如果存在使用type值，否则使用默认
 				if (map.get("type")!=null&&!map.get("type").equals("")) {
 					arrayList.add(map.get("type"));
 					String [] types = arrayList.toArray(new String[arrayList.size()]);
-					if (userrole.equals("1")) {
-						System.out.println("10000条数据测试开始时间：     ---------"+timeformat.format(new Date()));
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,filesize);
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-						System.out.println("10000条数据测试结束时间：     ---------"+timeformat.format(new Date()));
-					}else {
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,filesize);
-                        map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-					}
+					list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
 				}else {
-					String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-					if (userrole.equals("1")) {
-						System.out.println("10000条数据测试开始时间：     ---------"+timeformat.format(new Date()));
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,filesize);
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-						System.out.println("10000条数据测试结束时间：     ---------"+timeformat.format(new Date()));
-					}else {
-						//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,filesize);
-                        map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-                        list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-					}
+					list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
 				}
 
 				// 设置表格头
@@ -948,7 +927,9 @@ public class LogController extends BaseController{
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
 				// 开始写入csv文件
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//  根据导出文件个数返回导出状态
 				if (forsize>0) {
 					resultmap.put("state", "finished");
 					resultmap.put("value", fileSize+"-"+fileSize);
@@ -1012,14 +993,15 @@ public class LogController extends BaseController{
 	public String getDNSLogListByBlend(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		String hsData = request.getParameter("hsData");
-		System.out.println(hsData);
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+		//System.out.println(hsData);
+		//hsData的参数说明{日志类型：type=dns, starttime=, endtime=, dns客户端ip：dns_clientip=, dns_view=, dns域名：dns_domain_name=, dns解析数据类型：dns_ana_type=, dns服务器：dns_server=, page=1, size=12}
 
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> map = new HashMap<String, String>();
+		Map<String, String> map = new ConcurrentHashMap<>();
 
 		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
-		System.out.println(map);
+		//System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 
@@ -1029,6 +1011,7 @@ public class LogController extends BaseController{
 		String page = pageo.toString();
 		String size = sizeo.toString();
 
+		// 提出参数的时间查询条件
 		String starttime = "";
 		String endtime = "";
 		if (map.get("starttime")!=null) {
@@ -1041,21 +1024,22 @@ public class LogController extends BaseController{
 			endtime = end.toString();
 			map.remove("endtime");
 		}
-
-		if (!userrole.equals("1")) {
+		// 判断是否是非管理员角色，是传入参数用户id
+		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
 
+		// 判断type是否存在，如果存在使用type值，否则使用默认
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
 			map.remove("type");
 			String [] types = arrayList.toArray(new String[arrayList.size()]);
 			list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 		}else {
-			String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW,LogType.LOGTYPE_DNS,LogType.LOGTYPE_DHCP};
+			String[] types = {LogType.LOGTYPE_DNS};
 			list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 		}
 		Map<String, Object> allmap = new HashMap<>();
@@ -1085,14 +1069,23 @@ public class LogController extends BaseController{
 	public String getEventListByBlend(HttpServletRequest request,HttpSession session) {
 		// receive parameter
 
+		//
 		String type = request.getParameter("type");
+		// 开始时间
 		String starttime = request.getParameter("startTime");
+		// 结束时间
 		String endtime = request.getParameter("endTime");
+		// 资产ip
 		String ip = request.getParameter("ip");
+		// 资产id
 		String equipmentid = request.getParameter("equipmentid");
+		// 资产名
 		String hostname = request.getParameter("hostname");
+		// 事件级别，对应日志级别（0-8）
 		String event_level = request.getParameter("event_level");
+		// 事件级别，高中低危，0-3高危
 		String event_levels = request.getParameter("event_levels");
+		// 事件类型
 		String event_type = request.getParameter("event_type");
 		String page = request.getParameter("page");
 		String size = request.getParameter("size");
@@ -1124,7 +1117,8 @@ public class LogController extends BaseController{
 		if (equipmentid!=null&&!equipmentid.equals("")) {
 			map.put("equipmentid", equipmentid);
 		}
-		if (!userrole.equals("1")){
+		// 判断是否是非管理员角色，是传入参数用户id
+		if (!userrole.equals(ContextRoles.MANAGEMENT)){
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 
@@ -1186,15 +1180,14 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="通过日志级别查询数据")
 	public String getLogListByLevel(HttpServletRequest request) {
 
-		String keyWords = request.getParameter("words");
+		String operation_level = request.getParameter("words");
 
-		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
+		String[] types = default_types;
 
 		Map<String, String> map = new HashMap<>();
-		map.put("operation_level", keyWords);
+		map.put("operation_level", operation_level);
 		List<Map<String, Object>> list =null;
 		try {
-			//list = logService.getListByMap(configProperty.getEs_index(), types, map);
 			list = logService.getListByMap(map, null, null, types, configProperty.getEs_index());
 		} catch (Exception e) {
 			e.printStackTrace();

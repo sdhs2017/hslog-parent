@@ -604,7 +604,12 @@ function showLogs(logsArr){
                 if(obj.response_state == undefined){
                     obj.response_state = "-"
                 }
-
+                if(obj.l4_src_port == undefined){
+                    obj.l4_src_port = "-"
+                }
+                if(obj.l4_dst_port == undefined){
+                    obj.l4_dst_port = "-"
+                }
                 //删除日志内容的<br/>标签
                 logDesArr.push(obj.operation_des);
                 var reg = new RegExp("<br/>","g");

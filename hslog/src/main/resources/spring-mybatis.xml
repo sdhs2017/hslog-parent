@@ -700,7 +700,7 @@
 	<bean id="logCrudDao" class="com.hs.elsearch.dao.logDao.impl.LogCurdDaoImpl">
 	</bean>
 
-	<bean id="elasticsearchDao" class="com.hs.elsearch.dao.logDao.impl.ElasticsearchDao">
+	<bean id="logSearchDao" class="com.hs.elsearch.dao.logDao.impl.LogSearchDaoImpl">
 		<!--<constructor-arg ref="clientTemplate"/>-->
 	</bean>
     <bean id="flowSearchDao" class="com.hs.elsearch.dao.flowDao.impl.FlowSearchDao">

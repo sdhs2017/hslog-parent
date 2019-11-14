@@ -8,6 +8,7 @@ import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.ContextFront;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.MapUtil;
 import net.sf.json.JSONArray;
@@ -420,7 +421,7 @@ public class FlowController {
     public String getFlowListByBlend(HttpServletRequest request, HttpSession session) throws JsonParseException, JsonMappingException, IOException {
         // receive parameter
         Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-        String ztData = request.getParameter("hsData");
+        String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
         List<Map<String, Object>> list =null;
 
         if (ztData!=null){
@@ -499,7 +500,7 @@ public class FlowController {
     public String getHttpLogListByBlend(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
         // receive parameter
         Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-        String hsData = request.getParameter("hsData");
+        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
         List<Map<String, Object>> list =null;
 

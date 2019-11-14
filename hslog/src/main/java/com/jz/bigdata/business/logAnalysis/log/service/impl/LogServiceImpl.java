@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
@@ -46,7 +47,7 @@ public class LogServiceImpl implements IlogService {
 
     @Autowired protected ILogIndexDao logIndexDao;
 
-	@Autowired protected ILogSearchDao elasticsearchDao;
+	@Autowired protected ILogSearchDao logSearchDao;
 
 	@Resource(name ="SafeStrategyService")
 	private ISafeStrategyService safeStrategyService;
@@ -72,9 +73,8 @@ public class LogServiceImpl implements IlogService {
 
 	@Override
 	public List<Map<String, Object>> index(String index,String type) {
-		// TODO Auto-generated method stub
         String [] types = {type};
-		return elasticsearchDao.getListByMap(null,null,null, types,index);
+		return logSearchDao.getListByMap(null,null,null, types,index);
 	}
 
 	@Override
@@ -104,14 +104,14 @@ public class LogServiceImpl implements IlogService {
 	public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, int size, String starttime,
 											 String endtime, Map<String, String> termsmap) {
 
-		return elasticsearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,termsmap,index);
+		return logSearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,termsmap,index);
 	}
 
 	@Override
 	public List<Map<String, Object>> groupBy(String index, String[] types, String[] groupByField, int size, String starttime,
 											 String endtime, Map<String, String> map) {
 
-		return elasticsearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,map,index);
+		return logSearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,map,index);
 	}
 
 	/*@Override
@@ -181,11 +181,11 @@ public class LogServiceImpl implements IlogService {
 		if (today.equals(yyyyMMdd_format.format(nowTime))) {
 			String starttime = today+" 00:00:00";
 			String endtime = format.format(nowTime);
-			list = elasticsearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
+			list = logSearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
 		}else {
 			String starttime = today+" 00:00:00";
 			String endtime = today+" 23:59:59";
-			list = elasticsearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
+			list = logSearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
 		}
 
 
@@ -249,7 +249,7 @@ public class LogServiceImpl implements IlogService {
 			calendar.add(Calendar.MINUTE, -Integer.valueOf(dates));
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
-            Map<String,String> safemap = new HashMap<>();
+			ConcurrentHashMap<String,String> safemap = new ConcurrentHashMap<>();
             safemap.put("equipmentid",equipmentid);
             safemap.put("event_type",event_type);
             //List<Map<String, Object>> loglist = getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
@@ -300,7 +300,7 @@ public class LogServiceImpl implements IlogService {
 		SimpleDateFormat yyyyMMdd_format = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		Map<String, String> map = new HashMap<>();
+		ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 		// 针对事件查询的必加字段
 		map.put("event_type","");
 		if (i>=0&&i<=3){
@@ -317,11 +317,11 @@ public class LogServiceImpl implements IlogService {
 		if (today.equals(yyyyMMdd_format.format(nowTime))) {
 			String starttime = today+" 00:00:00";
 			String endtime = format.format(nowTime);
-			list = elasticsearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
+			list = logSearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
 		}else {
 			String starttime = today+" 00:00:00";
 			String endtime = today+" 23:59:59";
-			list = elasticsearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
+			list = logSearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
 		}
 
 		return list;
@@ -344,7 +344,7 @@ public class LogServiceImpl implements IlogService {
 		SimpleDateFormat yyyyMMdd_format = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-		Map<String, String> map = new HashMap<>();
+		ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 		// 针对事件查询的必加字段
 		map.put("event_type","");
 		if (equipmentid!=null&&!equipmentid.equals("")){
@@ -356,11 +356,11 @@ public class LogServiceImpl implements IlogService {
 		if (today.equals(yyyyMMdd_format.format(nowTime))) {
 			String starttime = today+" 00:00:00";
 			String endtime = format.format(nowTime);
-			list = elasticsearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
+			list = logSearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
 		}else {
 			String starttime = today+" 00:00:00";
 			String endtime = today+" 23:59:59";
-			list = elasticsearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
+			list = logSearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
 		}
 		return list;
 	}
@@ -448,7 +448,7 @@ public class LogServiceImpl implements IlogService {
 
 	@Override
 	public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String, Object> settings, String type, String mapping) throws Exception {
-		return elasticsearchDao.createTemplateOfIndex(tempalateName,tempalatePattern,settings,type,mapping);
+		return logSearchDao.createTemplateOfIndex(tempalateName,tempalatePattern,settings,type,mapping);
 	}
 
 	/**
@@ -683,7 +683,7 @@ public class LogServiceImpl implements IlogService {
 			fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
 			sizeInt = Integer.parseInt(size);
 		}
-		return elasticsearchDao.getListByContent(content,userid,fromInt,sizeInt,types,indices);
+		return logSearchDao.getListByContent(content,userid,fromInt,sizeInt,types,indices);
 	}
 
 	/**
@@ -1049,7 +1049,7 @@ public class LogServiceImpl implements IlogService {
 		mapcount.put("count", count);
 
 		list.add(mapcount);
-		//elasticsearchDao.getListByMap(map,null,null,types,indices);
+		//logSearchDao.getListByMap(map,null,null,types,indices);
 
 		list.addAll(clientTemplate.getListByQueryBuilder(index, types, boolQueryBuilder,"logdate",SortOrder.DESC,fromInt,sizeInt));
 
@@ -1149,7 +1149,7 @@ public class LogServiceImpl implements IlogService {
 
 		List<Map<String, Object>> list = clientTemplate.getListByQueryBuilder(index, types, boolQueryBuilder,"logdate",SortOrder.DESC);*/
 
-		List<Map<String, Object>> list = elasticsearchDao.getListByMap(map,null,null,types,indices);
+		List<Map<String, Object>> list = logSearchDao.getListByMap(map,null,null,types,indices);
 
 		return list;
 	}
@@ -1166,13 +1166,13 @@ public class LogServiceImpl implements IlogService {
 
 		List<Map<String, Object>> list = new ArrayList<>();
 		//日志总量
-		count = elasticsearchDao.getCount(map,starttime,endtime,types,indices);
+		count = logSearchDao.getCount(map,starttime,endtime,types,indices);
 		Map<String, Object> mapcount = new HashMap<String,Object>();
 		mapcount.put("count", count);
 
 		list.add(mapcount);
 
-		list.addAll(elasticsearchDao.getListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
+		list.addAll(logSearchDao.getListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
 		return list;
 	}
 
@@ -1189,13 +1189,13 @@ public class LogServiceImpl implements IlogService {
 
 		List<Map<String, Object>> list = new ArrayList<>();
 		//日志总量
-		count = elasticsearchDao.getCount(map,starttime,endtime,types,indices);
+		count = logSearchDao.getCount(map,starttime,endtime,types,indices);
 		Map<String, Object> mapcount = new HashMap<String,Object>();
 		mapcount.put("count", count);
 
 		list.add(mapcount);
 
-		list.addAll(elasticsearchDao.getLogListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
+		list.addAll(logSearchDao.getLogListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
 		return list;
 	}
 
@@ -1393,14 +1393,14 @@ public class LogServiceImpl implements IlogService {
 			result = clientTemplate.count(index, types,null);
 		}*/
 
-		return elasticsearchDao.getCount(map,null,null, types,index);
+		return logSearchDao.getCount(map,null,null, types,index);
 	}
 
 	@Override
 	public long getCount(Map<String, String> map, String starttime, String endtime, String[] types, String... indices) {
 
 
-		return elasticsearchDao.getCount(map,starttime,endtime, types,indices);
+		return logSearchDao.getCount(map,starttime,endtime, types,indices);
 	}
 
 	@Override

@@ -1,1245 +1,1246 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-	<head>
-		<meta charset="UTF-8">
-		<title></title>
-		<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
-		<link src="../../css/layer.css" type="text/javascript" charset="utf-8"/>
-		<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
-		<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
-		<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
-		<link rel="stylesheet" type="text/css" href="css/searchLogs.css"/>
-		<style>
-			.serviceStatus{
-				font-weight: 600;
-				/* color:#1ab394; */
-				color:#d9534f;
-			}
-			.layer_box span ,.r_content span{
-				background: yellow;
-				color:#676a6c!important;
-			}
-			#logs_list a{
-				color: #428bca;
-    			text-decoration: underline;
-			}
-			.table{
-			    table-layout: fixed;
-			}
-			/*新增代码  */
-			
-			.btnBox {
-			    width: 300px;
-			    position: absolute;
-			    left: 50%;
-			    top: 32px;
-			    margin-left: -150px;
-			}
-			/*  .searchWordsBox{
-				width: calc(100% - 630px);
-			}
-			.searchWords{
-				width:100%!important;
-			}
-			.form-group{
-				margin-left:-4px;
-			} */
-			.search_input{
-				padding-left:10px;
-			}
-			.search_input input{
-				border-radius:0;
-			}	
-			.search_input button{
-				height:34px;
-				margin-left:-4px;
-				border-radius:0;
-			}
-			/* .conditionsBox{
-				height:34px;
-				width:100px;
-				border:1px solid #ccc;
-				font-size:14px;
-				text-align:center;
-				line-height:34px;
-				position:relative;
-				top:-1px;
-				cursor:pointer;
-			}
-			.conditionsTitle{
-				height:34px;
-				width:100px;
-				color:#666;
-			}
-			.conditionsList{
-				display:none;
-				position:absolute;
-				width:386px;
-				height:235px;
-				z-index: 10;
-				background:#eee;
-				padding:10px;
-				right:0;
-				top:36px;
-				box-shadow: 0px 0px 7px 1px #ccc;
-			}
-			.conditionsList>ul{
-				padding:0;
-			}
-			.conditionsList>ul>li{
-				margin:10px 0;
-				height:35px;
-			}
-			.conditionsList>ul>li>lable,.conditionsList>ul>li>input,.conditionsList>ul>li>select{
-				float:left;
-			}
-			.conditionsList>ul>li>lable{
-				width:100px;
-				text-align: right;
-			}
-			.conditionsList>ul>li>input,.conditionsList>ul>li>select{
-				margin-left:10px;
-				width:200px!important;
-				border-radius:5px;
-			}
-			.zzBox{
-				width:100%;
-				height: 100%;
-				position:absolute;
-				z-index:8;
-				top:0;
-			} */ 
-			/* .search_input form{
-				width:100%;
-			} */
-			.searchTimeBox{
-				border: 1px solid #ccc;
-				display: flex;
-				justify-content: center;
-				float:left;
-				/* margin-right:20px; */
-				height:34px;
-				border-left:1px solid #ccc!important;
-			}
-			
-			.searchTimeBox>span{
-				width:20px;
-				text-align: center;
-				display: inline-block;
-				line-height: 34px;
-			}
-			.searchTimeBox>.searchBoxTitle{
-				border:0;
-			}
-			.searchBoxTitle{
-				height:34px;
-				margin-right:1px solid #ccc;
-				line-height:34px;
-				text-align: center;
-				width: 75px;
-				font-size:13px;
-			}
-			
-			.searchConditions{
-				width:100%;
-				height:34px;
-				margin-bottom:24px;
-				display: flex;
-				justify-content: center;
-			}
-			.searchConditions>div{
-				display: flex;
-				justify-content: left;
-				border:1px solid #ccc;
-				border-left:0;
-			}
-			.searchConditions select,.searchConditions input{
-				width:90px;
-				background:#eee;
-				border-radius:0;
-				border:0;
-				height: 32px;
-				font-size:12px;
-			}
-			.searchConditions input{
-				width:68%;
-			}	
-			.searchTimeBox>input{
-				border: 0;
-				width: 150px;
-				padding-right:0;
-				height:32px;
-				font-size:13px;
-			}
-			.endTimeRemove,.startTimeRemove{				
-				text-align:left;
-				display:inline-block;
-				height:32px;
-				width:15px!important;
-				line-height:32px;
-				cursor:pointer;
-				background:#eee;
-				position:relative;
-				top:0px;
-			}
-			#removeLogs{
-				margin-right:10px;
-				margin-left:10px;
-			}
-			#exportLogs{
-				height: 30px;
-			    /* line-height: 26px; */
-			    margin-top: 10px;
-			    font-size: 10px;
-			    padding: 0 6px;
-			    margin-right: 3px;
-			    background:#2e8ded;
-			}
-			.log_filter{
-				margin-left:0;
-			}
-			.searchLevelBox{
-				position:relative;
-			}
-			.searchedLevelBox{
-				width:100px;
-			}
-			.levelListBox{
-				display:none;
-				position:absolute;
-				width:176px;
-				border:1px solid #4781bb;
-				top:32px;
-				left:0;
-				background:#293846;
-				z-index:10;
-			}
-			.levelListBox input{
-				margin:0;
-				margin-right:5px;
-			}
-			.levelListBox li{
-				padding:5px;
-				color:#56a4ef;
-				cursor:pointer;
-			}
-			.levelListBox li:hover{
-				color:#fff;
-				background:#307fc9;
-			}
-			.zzDiv{
-				width:100%;
-				height: 100%;
-				position:absolute;
-				z-index:9;
-				top:0;
-				left:0;
-			}
-			.history_list>li{
-				text-align:left!important;
-			}
-			.form-horizontal .form-group {
-				margin-left:0;
-				margin-right:0;
-				padding:0 20px;
-			}
-			.form-horizontal .form-group label{
-				margin-bottom:5px!important;
-				font-size:14px!important;
-				color:#2e8dec!important;
-			}
-			.form-horizontal .form-group .form-control{
-				height:30px!important;
-			}
-			/* .searchTypeLevelBox{
-				position:absolute;
-				top:34px;
-				left:0;
-				width:284px;
-				border:1px solid #4781bb;
-				z-index:10;
-				padding:0 10px;
-				background:#293846;
-				box-shadow: 0px 0px 7px 1px #4781bb;
-			}
-			.searchTypeLevelBox>div{
-				padding:10px 0;
-				border-bottom:1px solid #4781bb;
-			}
-			.searchTypeLevelBox span{
-				display:inline-block;
-			}
-			.searchTypeLevelBox input{
-				margin:0;
-			}
-			.searchTypeLevelBox .type{
-				font-weight:600;
-				margin-bottom:5px;
-				color:#56a4ef;
-			}
-			.searchTypeLevelBox .level{
-				padding-left:20px;
-				display:none;
-			}
-			.searchTypeLevelBox .overSelect,.searchTypeLevelBox .closeSelect{
-				padding: 0 5px;
-			    height: 24px;
-			    font-size: 10px;
-			    margin: 5px;
-			    background:#5bc0de;
-			    color:#fff;
-			    border:0;
-			    float:right;
-			}
-			.searchTypeLevelBox .cancleAllSelect{
-				display:none;
-				float:right;
-				color:#a7b1c2;
-			}
-			.cancleAllSelect:hover{
-				cursor:pointer;
-				text-decoration: underline;
-			}
-			.searchTypeLevelBox .overSelect{				
-				
-			}
-			.searchTypeLevelBox .closeSelect{
-				background:#e4956d;
-			} */
-			.progressBox{
-				position:absolute;
-				top:-80px;
-				right:50px;
-				display: flex;
-				transition: all .2s;
-			}
-			.progressContent{
-				width:50px;
-				height:55px;			
-				border:2px solid #fff;	
-				border-bottom:0;	
-				color:#fff;
-				background: #00bcd4;
-				border-top:0;
-				margin:0 30px;
-			}
-			.progressName{
-				width:46px;
-				height:30px;
-				text-align:center;
-				/* line-height:30px; */
-				line-height: 14px;
-				word-break: break-all;
-			}
-			.progressVal{
-				width:50px;
-				height:50px;
-				position:relative;
-				left:-2px;
-				text-align:center;
-				line-height:50px;
-				border-radius: 100%;
-				border:2px solid #fff;
-				font-weight:600;
-				font-size:14px;
-				background: #00bcd4;
-				
-			}
-			.rotateClass{
-				-webkit-transition-property: -webkit-transform;
-			    -webkit-transition-duration: 1s;
-			    -moz-transition-property: -moz-transform;
-			    -moz-transition-duration: 1s;
-			    -webkit-animation: rotate 3s linear infinite;
-			    -moz-animation: rotate 3s linear infinite;
-			    -o-animation: rotate 3s linear infinite;
-			    animation: rotate 3s linear infinite;
-			}
-			@-webkit-keyframes rotate{from{-webkit-transform: rotate(0deg)}
-			    to{-webkit-transform: rotate(360deg)}
-			}
-			@-moz-keyframes rotate{from{-moz-transform: rotate(0deg)}
-			    to{-moz-transform: rotate(359deg)}
-			}
-			@-o-keyframes rotate{from{-o-transform: rotate(0deg)}
-			    to{-o-transform: rotate(359deg)}
-			}
-			@keyframes rotate{from{transform: rotate(0deg)}
-			    to{transform: rotate(359deg)}
-			}
+<head>
+	<meta charset="UTF-8">
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css"/>
+	<link src="../../css/layer.css" type="text/javascript" charset="utf-8"/>
+	<link rel="stylesheet" type="text/css" href="../../css/bootstrap-datetimepicker.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/layui.css"/>
+	<link rel="stylesheet" type="text/css" href="../../css/common.css"/>
+	<link rel="stylesheet" type="text/css" href="css/searchLogs.css"/>
+	<style>
+		.serviceStatus{
+			font-weight: 600;
+			/* color:#1ab394; */
+			color:#d9534f;
+		}
+		.layer_box span ,.r_content span{
+			background: yellow;
+			color:#676a6c!important;
+		}
+		#logs_list a{
+			color: #428bca;
+			text-decoration: underline;
+		}
+		.table{
+			table-layout: fixed;
+		}
+		/*新增代码  */
 
-		</style>
-		<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
-	</head>
-	<!-- 中泰证券 -->
-	<body>
-		<div class="progressBox">
-			
-		</div>
-		<div id="box">
-			<div class="top_title">
-				日志检索		
+		.btnBox {
+			width: 300px;
+			position: absolute;
+			left: 50%;
+			top: 32px;
+			margin-left: -150px;
+		}
+		/*  .searchWordsBox{
+            width: calc(100% - 630px);
+        }
+        .searchWords{
+            width:100%!important;
+        }
+        .form-group{
+            margin-left:-4px;
+        } */
+		.search_input{
+			padding-left:10px;
+		}
+		.search_input input{
+			border-radius:0;
+		}
+		.search_input button{
+			height:34px;
+			margin-left:-4px;
+			border-radius:0;
+		}
+		/* .conditionsBox{
+            height:34px;
+            width:100px;
+            border:1px solid #ccc;
+            font-size:14px;
+            text-align:center;
+            line-height:34px;
+            position:relative;
+            top:-1px;
+            cursor:pointer;
+        }
+        .conditionsTitle{
+            height:34px;
+            width:100px;
+            color:#666;
+        }
+        .conditionsList{
+            display:none;
+            position:absolute;
+            width:386px;
+            height:235px;
+            z-index: 10;
+            background:#eee;
+            padding:10px;
+            right:0;
+            top:36px;
+            box-shadow: 0px 0px 7px 1px #ccc;
+        }
+        .conditionsList>ul{
+            padding:0;
+        }
+        .conditionsList>ul>li{
+            margin:10px 0;
+            height:35px;
+        }
+        .conditionsList>ul>li>lable,.conditionsList>ul>li>input,.conditionsList>ul>li>select{
+            float:left;
+        }
+        .conditionsList>ul>li>lable{
+            width:100px;
+            text-align: right;
+        }
+        .conditionsList>ul>li>input,.conditionsList>ul>li>select{
+            margin-left:10px;
+            width:200px!important;
+            border-radius:5px;
+        }
+        .zzBox{
+            width:100%;
+            height: 100%;
+            position:absolute;
+            z-index:8;
+            top:0;
+        } */
+		/* .search_input form{
+            width:100%;
+        } */
+		.searchTimeBox{
+			border: 1px solid #ccc;
+			display: flex;
+			justify-content: center;
+			float:left;
+			/* margin-right:20px; */
+			height:34px;
+			border-left:1px solid #ccc!important;
+		}
+
+		.searchTimeBox>span{
+			width:20px;
+			text-align: center;
+			display: inline-block;
+			line-height: 34px;
+		}
+		.searchTimeBox>.searchBoxTitle{
+			border:0;
+		}
+		.searchBoxTitle{
+			height:34px;
+			margin-right:1px solid #ccc;
+			line-height:34px;
+			text-align: center;
+			width: 75px;
+			font-size:13px;
+		}
+
+		.searchConditions{
+			width:100%;
+			height:34px;
+			margin-bottom:24px;
+			display: flex;
+			justify-content: center;
+		}
+		.searchConditions>div{
+			display: flex;
+			justify-content: left;
+			border:1px solid #ccc;
+			border-left:0;
+		}
+		.searchConditions select,.searchConditions input{
+			width:90px;
+			background:#eee;
+			border-radius:0;
+			border:0;
+			height: 32px;
+			font-size:12px;
+		}
+		.searchConditions input{
+			width:68%;
+		}
+		.searchTimeBox>input{
+			border: 0;
+			width: 150px;
+			padding-right:0;
+			height:32px;
+			font-size:13px;
+		}
+		.endTimeRemove,.startTimeRemove{
+			text-align:left;
+			display:inline-block;
+			height:32px;
+			width:15px!important;
+			line-height:32px;
+			cursor:pointer;
+			background:#eee;
+			position:relative;
+			top:0px;
+		}
+		#removeLogs{
+			margin-right:10px;
+			margin-left:10px;
+		}
+		#exportLogs{
+			height: 30px;
+			/* line-height: 26px; */
+			margin-top: 10px;
+			font-size: 10px;
+			padding: 0 6px;
+			margin-right: 3px;
+			background:#2e8ded;
+		}
+		.log_filter{
+			margin-left:0;
+		}
+		.searchLevelBox{
+			position:relative;
+		}
+		.searchedLevelBox{
+			width:100px;
+		}
+		.levelListBox{
+			display:none;
+			position:absolute;
+			width:176px;
+			border:1px solid #4781bb;
+			top:32px;
+			left:0;
+			background:#293846;
+			z-index:10;
+		}
+		.levelListBox input{
+			margin:0;
+			margin-right:5px;
+		}
+		.levelListBox li{
+			padding:5px;
+			color:#56a4ef;
+			cursor:pointer;
+		}
+		.levelListBox li:hover{
+			color:#fff;
+			background:#307fc9;
+		}
+		.zzDiv{
+			width:100%;
+			height: 100%;
+			position:absolute;
+			z-index:9;
+			top:0;
+			left:0;
+		}
+		.history_list>li{
+			text-align:left!important;
+		}
+		.form-horizontal .form-group {
+			margin-left:0;
+			margin-right:0;
+			padding:0 20px;
+		}
+		.form-horizontal .form-group label{
+			margin-bottom:5px!important;
+			font-size:14px!important;
+			color:#2e8dec!important;
+		}
+		.form-horizontal .form-group .form-control{
+			height:30px!important;
+		}
+		/* .searchTypeLevelBox{
+            position:absolute;
+            top:34px;
+            left:0;
+            width:284px;
+            border:1px solid #4781bb;
+            z-index:10;
+            padding:0 10px;
+            background:#293846;
+            box-shadow: 0px 0px 7px 1px #4781bb;
+        }
+        .searchTypeLevelBox>div{
+            padding:10px 0;
+            border-bottom:1px solid #4781bb;
+        }
+        .searchTypeLevelBox span{
+            display:inline-block;
+        }
+        .searchTypeLevelBox input{
+            margin:0;
+        }
+        .searchTypeLevelBox .type{
+            font-weight:600;
+            margin-bottom:5px;
+            color:#56a4ef;
+        }
+        .searchTypeLevelBox .level{
+            padding-left:20px;
+            display:none;
+        }
+        .searchTypeLevelBox .overSelect,.searchTypeLevelBox .closeSelect{
+            padding: 0 5px;
+            height: 24px;
+            font-size: 10px;
+            margin: 5px;
+            background:#5bc0de;
+            color:#fff;
+            border:0;
+            float:right;
+        }
+        .searchTypeLevelBox .cancleAllSelect{
+            display:none;
+            float:right;
+            color:#a7b1c2;
+        }
+        .cancleAllSelect:hover{
+            cursor:pointer;
+            text-decoration: underline;
+        }
+        .searchTypeLevelBox .overSelect{
+
+        }
+        .searchTypeLevelBox .closeSelect{
+            background:#e4956d;
+        } */
+		.progressBox{
+			position:absolute;
+			top:-80px;
+			right:50px;
+			display: flex;
+			transition: all .2s;
+		}
+		.progressContent{
+			width:50px;
+			height:55px;
+			border:2px solid #fff;
+			border-bottom:0;
+			color:#fff;
+			background: #00bcd4;
+			border-top:0;
+			margin:0 30px;
+		}
+		.progressName{
+			width:46px;
+			height:30px;
+			text-align:center;
+			/* line-height:30px; */
+			line-height: 14px;
+			word-break: break-all;
+		}
+		.progressVal{
+			width:50px;
+			height:50px;
+			position:relative;
+			left:-2px;
+			text-align:center;
+			line-height:50px;
+			border-radius: 100%;
+			border:2px solid #fff;
+			font-weight:600;
+			font-size:14px;
+			background: #00bcd4;
+
+		}
+		.rotateClass{
+			-webkit-transition-property: -webkit-transform;
+			-webkit-transition-duration: 1s;
+			-moz-transition-property: -moz-transform;
+			-moz-transition-duration: 1s;
+			-webkit-animation: rotate 3s linear infinite;
+			-moz-animation: rotate 3s linear infinite;
+			-o-animation: rotate 3s linear infinite;
+			animation: rotate 3s linear infinite;
+		}
+		@-webkit-keyframes rotate{from{-webkit-transform: rotate(0deg)}
+			to{-webkit-transform: rotate(360deg)}
+		}
+		@-moz-keyframes rotate{from{-moz-transform: rotate(0deg)}
+			to{-moz-transform: rotate(359deg)}
+		}
+		@-o-keyframes rotate{from{-o-transform: rotate(0deg)}
+			to{-o-transform: rotate(359deg)}
+		}
+		@keyframes rotate{from{transform: rotate(0deg)}
+			to{transform: rotate(359deg)}
+		}
+
+	</style>
+	<link rel="stylesheet" id="deepColour" type="text/css" href="../../css/deepColor.css"/>
+</head>
+<!-- 中泰证券 -->
+<body>
+<div class="progressBox">
+
+</div>
+<div id="box">
+	<div class="top_title">
+		日志检索
+	</div>
+
+	<!-- 普通查询条件 -->
+	<div class="search_input" style="display:flex;max-width:1286px;">
+		<div class="searchConditions">
+			<div class="searchTimeBox">
+				<div class="searchBoxTitle">时间范围</div>
+				<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">
+				<i class="glyphicon glyphicon-remove startTimeRemove"></i>
+				<span> ~ </span>
+				<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">
+				<i class="glyphicon glyphicon-remove endTimeRemove"></i>
 			</div>
-			
-			<!-- 普通查询条件 -->
-			<div class="search_input" style="display:flex;max-width:1286px;">
-				<div class="searchConditions">
-					<div class="searchTimeBox">
-						<div class="searchBoxTitle">时间范围</div>
-						<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">  
-						<i class="glyphicon glyphicon-remove startTimeRemove"></i>	
-						<span> ~ </span>
-						<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">  		
-						<i class="glyphicon glyphicon-remove endTimeRemove"></i>	
-					</div>
-					<div class="searchTypeBox">
-						<div class="searchBoxTitle">日志类型</div>
-						<select class="form-control searchType">
-		 					<option	selected value=""></option>
-							<!--  <option  value="syslog">syslog</option>
-							<option value="winlog">winlog</option>
-							<option value="log4j">log4j</option>
-							<option value="mysql">mysql</option>
-							<option value="netflow">netflow</option>
-							<option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option> -->
-						</select>
-					</div>
-					<div class="searchLevelBox">
-						<div class="searchBoxTitle">日志级别</div>
-						<input type="text" class="searchedLevelBox" style="width:100px;color: #56a4ef;padding: 6px 12px;" readonly value=""/>
-						<div class="levelListBox">
-							<ul>
-							</ul>
-						</div>
-					</div>
-					<!-- <div class="searchLevelBox" style="position:relative;">
-							<div class="searchBoxTitle" style="width: 95px;">日志类型-级别</div>
-							<div class="selectedTypeLevelBox" title="点击选择" style="width: 190px;cursor:pointer;"></div>
-							<div class="searchTypeLevelBox">
-								<div>
-									<p class="type">
-										<input type="checkBox" value="syslog" /> syslog
-										<span class="cancleAllSelect">取消全选</span>
-									</p>
-									<p class="level">
-										<span><input type="checkBox" value="emergency" checked/> emergency</span>
-										<span><input type="checkBox" value="alert" checked/> alert</span>
-										<span><input type="checkBox" value="critical " checked/> critical </span>
-										<span><input type="checkBox" value="error" checked/> error</span>
-										<span><input type="checkBox" value="warn" checked/> warn</span>
-										<span><input type="checkBox" value="notice" checked/> notice</span>
-										<span><input type="checkBox" value="info" checked/> info</span>
-										<span><input type="checkBox" value="debug" checked/> debug</span>
-									</p>
-								</div>
-								<div>
-									<p class="type">
-										<input type="checkBox" value="winlog" /> winlog
-										<span class="cancleAllSelect">取消全选</span>
-									</p>
-									<p class="level">
-										<span><input type="checkBox" value="emergency" checked/> emergency</span>
-										<span><input type="checkBox" value="alert" checked/> alert</span>
-										<span><input type="checkBox" value="critical " checked/> critical </span>
-										<span><input type="checkBox" value="error" checked/> error</span>
-										<span><input type="checkBox" value="warn" checked/> warn</span>
-										<span><input type="checkBox" value="notice" checked/> notice</span>
-										<span><input type="checkBox" value="info" checked/> info</span>
-										<span><input type="checkBox" value="debug" checked/> debug</span>
-									</p>
-								</div>
-								<div>
-									<p class="type">
-										<input type="checkBox" value="log4j" /> log4j
-										<span class="cancleAllSelect">取消全选</span>
-									</p>
-									<p class="level">
-										<span><input type="checkBox" value="info" checked/> info</span>
-										<span><input type="checkBox" value="debug" checked/> debug</span>
-										<span><input type="checkBox" value="error" checked/> error</span>
-										<span><input type="checkBox" value="warn" checked/> warn</span>
-									</p>
-								</div>
-								<div>
-									<p class="type">
-										<input type="checkBox" value="mysql" /> mysql
-										<span class="cancleAllSelect">取消全选</span>
-									</p>
-									<p class="level">
-										<span><input type="checkBox" value="error" checked/> error</span>
-									</p>
-								</div>
-								<div>
-									<p class="type">
-										<input type="checkBox" value="packetfilteringfirewall_log" /> packetfilteringfirewall_log
-										<span class="cancleAllSelect">取消全选</span>
-									</p>
-									<p class="level">
-										<span><input type="checkBox" value="emergency" checked/> emergency</span>
-										<span><input type="checkBox" value="alert" checked/> alert</span>
-										<span><input type="checkBox" value="critical " checked/> critical </span>
-										<span><input type="checkBox" value="error" checked/> error</span>
-										<span><input type="checkBox" value="warn" checked/> warn</span>
-										<span><input type="checkBox" value="notice" checked/> notice</span>
-										<span><input type="checkBox" value="info" checked/> info</span>
-										<span><input type="checkBox" value="debug" checked/> debug</span>
-									</p>
-								</div>
-								<p><button class="overSelect">确定</button></button><button class="closeSelect">关闭</button></button></p>
-							</div>
-						</div> -->
-					<div class="searchIpBox">
-						<div class="searchBoxTitle">IP地址</div>
-						<input type="text" class="form-control searchIp"  placeholder="IP地址">
-					</div>
-					<div class="searchIpBox">
-						<div class="searchBoxTitle">资产名称</div>
-						<input type="text" class="form-control searchHostname"  placeholder="资产名称">
-					</div>
-					<button  class="btn btn-primary" id="searchLogs"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
-				</div>
+			<div class="searchTypeBox">
+				<div class="searchBoxTitle">日志类型</div>
+				<select class="form-control searchType">
+					<option	selected value=""></option>
+					<!--  <option  value="syslog">syslog</option>
+                    <option value="winlog">winlog</option>
+                    <option value="log4j">log4j</option>
+                    <option value="mysql">mysql</option>
+                    <option value="netflow">netflow</option>
+                    <option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option> -->
+				</select>
 			</div>
-			<!-- 中泰证券查询条件 -->
-			<!-- <div class="search_input" style="display:flex;max-width:1286px;">
-				<div class="search_left" style="flex:1;height:34px;border-left: 2px solid #4781bb;overflow:hidden;transition:all .5s;">
-					<div class="searchConditions" style="margin-bottom:0;">
-						<div class="searchTimeBox">
-							<div class="searchBoxTitle">时间范围</div>
-							<input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">  
-							<i class="glyphicon glyphicon-remove startTimeRemove"></i>	
-							<span> ~ </span>
-							<input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">  		
-							<i class="glyphicon glyphicon-remove endTimeRemove"></i>	
-						</div>
-						<div class="searchTypeBox">
-							<div class="searchBoxTitle">日志类型</div>
-							<select class="form-control searchType">
-			 					<option	selected value=""></option>
-								<option  value="syslog">syslog</option>
-								<option value="winlog">winlog</option>
-								<option value="log4j">log4j</option>
-								<option value="mysql">mysql</option>
-								<option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option>
-							</select>
-						</div>
-						<div class="searchLevelBox">
-							<div class="searchBoxTitle">日志级别</div>
-							<select class="form-control searchLevel"></select>
-						</div>
-						<div class="searchLevelBox" style="position:relative;">
-							<div class="searchBoxTitle" style="width: 95px;">日志类型-级别</div>
-							<div class="selectedTypeLevelBox" title="点击选择" style="width: 190px;cursor:pointer;"></div>
-							<div class="searchTypeLevelBox">
-								<div>
-									<p class="searchType"><input type="checkBox" value="syslog" />syslog</p>
-									<p class="searchLevel">
-										<input type="checkBox" value="emergency" />emergency
-										<input type="checkBox" value="alert" />alert
-									</p>
-								</div>
-							</div>
-						</div>
-						<div class="searchIpBox">
-							<div class="searchBoxTitle">IP地址</div>
-							<input type="text" class="form-control searchIp"  placeholder="IP地址">
-						</div>
-						<div class="searchIpBox">
-							<div class="searchBoxTitle">资产名称</div>
-							<input type="text" class="form-control searchHostname"  placeholder="资产名称">
-						</div>
-					</div>
-					<div class="searchConditions sc2" style="max-width: 1221px;position:relative;top:5px;z-index:0;">
-						<div class="searchUserIDBox" style="width:100%;">
-							<div class="searchBoxTitle">用户名</div>
-							<input type="text" class="form-control searchUser" style="width:100%;" placeholder="用户名">
-						</div>
-						<div class="searchUserIDBox" style="width:20%;">
-							<div class="searchBoxTitle">用户ID</div>
-							<input type="text" class="form-control searchUserID"  placeholder="用户ID">
-						</div>
-						<div class="searchLoginNameBox"  style="width:20%;">
-							<div class="searchBoxTitle">登录名</div>
-							<input type="text" class="form-control searchLoginName"  placeholder="登录名">
-						</div>
-						<div class="searchNameBox"  style="width:20%;">
-							<div class="searchBoxTitle">姓名</div>
-							<input type="text" class="form-control searchName"  placeholder="姓名">
-						</div>
-						<div class="searchPhoneBox"  style="width:20%;">
-							<div class="searchBoxTitle">手机号</div>
-							<input type="text" class="form-control searchPhone"  placeholder="手机号">
-						</div>
-						<div class="searchEmailBox"  style="width:20%;">
-							<div class="searchBoxTitle">Email</div>
-							<input type="text" class="form-control searchEmail"  placeholder="Email">
-						</div>
-					</div>
-				</div> 
-				<div class="search_right" style="flex:0,0,100px;width:100px;height:34px;position:relative;overflow:hidden;transition:all .5s;">
-					<button  class="btn btn-primary" id="searchLogs" style="height:34px;transition:all .5s;"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
-					<span class="moreConditions" style="cursor: pointer;text-decoration: underline;vertical-align: bottom;margin-left: 5px;">更多</span>
-				</div>
-			</div>
-			-->
-			<div class="row result_box">
-				<div class="col-sm-2 box_left">
-					<h5>检索历史</h5>
-					<ul class="history_list">
-						<!-- <li>1<i class="glyphicon glyphicon-remove" title="删除"></i></li> -->
+			<div class="searchLevelBox">
+				<div class="searchBoxTitle">日志级别</div>
+				<input type="text" class="searchedLevelBox" style="width:100px;color: #56a4ef;padding: 6px 12px;" readonly value=""/>
+				<div class="levelListBox">
+					<ul>
 					</ul>
 				</div>
-				<div class="col-sm-10 box_right">
-					<div class="r_tools">
-						<div class="log_filter">
-							<form class="form-inline" onsubmit="return false" onkeydown="if(event.keyCode==13)return false;">
-								<button  class="btn btn-default" id="removeLogs">删除</button>
-								<div class="form-group">
-									<input type="text" class="form-control filterWords"  placeholder="输入过滤条件">
-								</div>
-							  <button  class="btn btn-default" id="filterLogs">过滤</button>
-							</form>
+			</div>
+			<!-- <div class="searchLevelBox" style="position:relative;">
+                    <div class="searchBoxTitle" style="width: 95px;">日志类型-级别</div>
+                    <div class="selectedTypeLevelBox" title="点击选择" style="width: 190px;cursor:pointer;"></div>
+                    <div class="searchTypeLevelBox">
+                        <div>
+                            <p class="type">
+                                <input type="checkBox" value="syslog" /> syslog
+                                <span class="cancleAllSelect">取消全选</span>
+                            </p>
+                            <p class="level">
+                                <span><input type="checkBox" value="emergency" checked/> emergency</span>
+                                <span><input type="checkBox" value="alert" checked/> alert</span>
+                                <span><input type="checkBox" value="critical " checked/> critical </span>
+                                <span><input type="checkBox" value="error" checked/> error</span>
+                                <span><input type="checkBox" value="warn" checked/> warn</span>
+                                <span><input type="checkBox" value="notice" checked/> notice</span>
+                                <span><input type="checkBox" value="info" checked/> info</span>
+                                <span><input type="checkBox" value="debug" checked/> debug</span>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="type">
+                                <input type="checkBox" value="winlog" /> winlog
+                                <span class="cancleAllSelect">取消全选</span>
+                            </p>
+                            <p class="level">
+                                <span><input type="checkBox" value="emergency" checked/> emergency</span>
+                                <span><input type="checkBox" value="alert" checked/> alert</span>
+                                <span><input type="checkBox" value="critical " checked/> critical </span>
+                                <span><input type="checkBox" value="error" checked/> error</span>
+                                <span><input type="checkBox" value="warn" checked/> warn</span>
+                                <span><input type="checkBox" value="notice" checked/> notice</span>
+                                <span><input type="checkBox" value="info" checked/> info</span>
+                                <span><input type="checkBox" value="debug" checked/> debug</span>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="type">
+                                <input type="checkBox" value="log4j" /> log4j
+                                <span class="cancleAllSelect">取消全选</span>
+                            </p>
+                            <p class="level">
+                                <span><input type="checkBox" value="info" checked/> info</span>
+                                <span><input type="checkBox" value="debug" checked/> debug</span>
+                                <span><input type="checkBox" value="error" checked/> error</span>
+                                <span><input type="checkBox" value="warn" checked/> warn</span>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="type">
+                                <input type="checkBox" value="mysql" /> mysql
+                                <span class="cancleAllSelect">取消全选</span>
+                            </p>
+                            <p class="level">
+                                <span><input type="checkBox" value="error" checked/> error</span>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="type">
+                                <input type="checkBox" value="packetfilteringfirewall_log" /> packetfilteringfirewall_log
+                                <span class="cancleAllSelect">取消全选</span>
+                            </p>
+                            <p class="level">
+                                <span><input type="checkBox" value="emergency" checked/> emergency</span>
+                                <span><input type="checkBox" value="alert" checked/> alert</span>
+                                <span><input type="checkBox" value="critical " checked/> critical </span>
+                                <span><input type="checkBox" value="error" checked/> error</span>
+                                <span><input type="checkBox" value="warn" checked/> warn</span>
+                                <span><input type="checkBox" value="notice" checked/> notice</span>
+                                <span><input type="checkBox" value="info" checked/> info</span>
+                                <span><input type="checkBox" value="debug" checked/> debug</span>
+                            </p>
+                        </div>
+                        <p><button class="overSelect">确定</button></button><button class="closeSelect">关闭</button></button></p>
+                    </div>
+                </div> -->
+			<div class="searchIpBox">
+				<div class="searchBoxTitle">IP地址</div>
+				<input type="text" class="form-control searchIp"  placeholder="IP地址">
+			</div>
+			<div class="searchIpBox">
+				<div class="searchBoxTitle">资产名称</div>
+				<input type="text" class="form-control searchHostname"  placeholder="资产名称">
+			</div>
+			<button  class="btn btn-primary" id="searchLogs"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+		</div>
+	</div>
+	<!-- 中泰证券查询条件 -->
+	<!-- <div class="search_input" style="display:flex;max-width:1286px;">
+        <div class="search_left" style="flex:1;height:34px;border-left: 2px solid #4781bb;overflow:hidden;transition:all .5s;">
+            <div class="searchConditions" style="margin-bottom:0;">
+                <div class="searchTimeBox">
+                    <div class="searchBoxTitle">时间范围</div>
+                    <input type="text" class="time-input form-control" id="startTime" placeholder="起始日期" name="begin_time" readonly class="form_datetime">
+                    <i class="glyphicon glyphicon-remove startTimeRemove"></i>
+                    <span> ~ </span>
+                    <input type="text" class="time-input form-control" id="endTime" placeholder="结束日期" name="end_time" readonly class="form_datetime">
+                    <i class="glyphicon glyphicon-remove endTimeRemove"></i>
+                </div>
+                <div class="searchTypeBox">
+                    <div class="searchBoxTitle">日志类型</div>
+                    <select class="form-control searchType">
+                         <option	selected value=""></option>
+                        <option  value="syslog">syslog</option>
+                        <option value="winlog">winlog</option>
+                        <option value="log4j">log4j</option>
+                        <option value="mysql">mysql</option>
+                        <option value="packetfilteringfirewall_log">packetfilteringfirewall_log</option>
+                    </select>
+                </div>
+                <div class="searchLevelBox">
+                    <div class="searchBoxTitle">日志级别</div>
+                    <select class="form-control searchLevel"></select>
+                </div>
+                <div class="searchLevelBox" style="position:relative;">
+                    <div class="searchBoxTitle" style="width: 95px;">日志类型-级别</div>
+                    <div class="selectedTypeLevelBox" title="点击选择" style="width: 190px;cursor:pointer;"></div>
+                    <div class="searchTypeLevelBox">
+                        <div>
+                            <p class="searchType"><input type="checkBox" value="syslog" />syslog</p>
+                            <p class="searchLevel">
+                                <input type="checkBox" value="emergency" />emergency
+                                <input type="checkBox" value="alert" />alert
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="searchIpBox">
+                    <div class="searchBoxTitle">IP地址</div>
+                    <input type="text" class="form-control searchIp"  placeholder="IP地址">
+                </div>
+                <div class="searchIpBox">
+                    <div class="searchBoxTitle">资产名称</div>
+                    <input type="text" class="form-control searchHostname"  placeholder="资产名称">
+                </div>
+            </div>
+            <div class="searchConditions sc2" style="max-width: 1221px;position:relative;top:5px;z-index:0;">
+                <div class="searchUserIDBox" style="width:100%;">
+                    <div class="searchBoxTitle">用户名</div>
+                    <input type="text" class="form-control searchUser" style="width:100%;" placeholder="用户名">
+                </div>
+                <div class="searchUserIDBox" style="width:20%;">
+                    <div class="searchBoxTitle">用户ID</div>
+                    <input type="text" class="form-control searchUserID"  placeholder="用户ID">
+                </div>
+                <div class="searchLoginNameBox"  style="width:20%;">
+                    <div class="searchBoxTitle">登录名</div>
+                    <input type="text" class="form-control searchLoginName"  placeholder="登录名">
+                </div>
+                <div class="searchNameBox"  style="width:20%;">
+                    <div class="searchBoxTitle">姓名</div>
+                    <input type="text" class="form-control searchName"  placeholder="姓名">
+                </div>
+                <div class="searchPhoneBox"  style="width:20%;">
+                    <div class="searchBoxTitle">手机号</div>
+                    <input type="text" class="form-control searchPhone"  placeholder="手机号">
+                </div>
+                <div class="searchEmailBox"  style="width:20%;">
+                    <div class="searchBoxTitle">Email</div>
+                    <input type="text" class="form-control searchEmail"  placeholder="Email">
+                </div>
+            </div>
+        </div>
+        <div class="search_right" style="flex:0,0,100px;width:100px;height:34px;position:relative;overflow:hidden;transition:all .5s;">
+            <button  class="btn btn-primary" id="searchLogs" style="height:34px;transition:all .5s;"><i class="glyphicon glyphicon-search"></i>&nbsp;检索</button>
+            <span class="moreConditions" style="cursor: pointer;text-decoration: underline;vertical-align: bottom;margin-left: 5px;">更多</span>
+        </div>
+    </div>
+    -->
+	<div class="row result_box">
+		<div class="col-sm-2 box_left">
+			<h5>检索历史</h5>
+			<ul class="history_list">
+				<!-- <li>1<i class="glyphicon glyphicon-remove" title="删除"></i></li> -->
+			</ul>
+		</div>
+		<div class="col-sm-10 box_right">
+			<div class="r_tools">
+				<div class="log_filter">
+					<form class="form-inline" onsubmit="return false" onkeydown="if(event.keyCode==13)return false;">
+						<button  class="btn btn-default" id="removeLogs">删除</button>
+						<div class="form-group">
+							<input type="text" class="form-control filterWords"  placeholder="输入过滤条件">
 						</div>
-						<div class="allCountBox">共检索日志数为<b>0</b>条,最大展示<select class="form-control maxShowData"><option value="100000">10万</option><option value="200000">20万</option><option value="500000">50万</option><option value="1000000">100万</option><option value="10000000">1000万</option><option value="100000000">1亿</option></select>条</div>
-						<div id="pageBox">
-							
-						</div>
-						<button  class="btn btn-default" id="exportLogs">导出</button>
-						<!--<nav aria-label="Page navigation">
-						  	<ul class="pagination">
-						    	<li>
-						      		<a href="#" aria-label="Previous">
-						        		<span aria-hidden="true">&laquo;</span>
-						      		</a>
-						    	</li>
-						    	<li><a href="#">1</a></li>
-						    	<li>
-						      		<a href="#" aria-label="Next">
-						       	 		<span aria-hidden="true">&raquo;</span>
-						      		</a>
-						    	</li>
-						  	</ul>
-						</nav>-->                    
+						<button  class="btn btn-default" id="filterLogs">过滤</button>
+					</form>
+				</div>
+				<div class="allCountBox">共检索日志数为<b>0</b>条,最大展示<select class="form-control maxShowData"><option value="100000">10万</option><option value="200000">20万</option><option value="500000">50万</option><option value="1000000">100万</option><option value="10000000">1000万</option><option value="100000000">1亿</option></select>条</div>
+				<div id="pageBox">
+
+				</div>
+				<button  class="btn btn-default" id="exportLogs">导出</button>
+				<!--<nav aria-label="Page navigation">
+                      <ul class="pagination">
+                        <li>
+                              <a href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                              </a>
+                        </li>
+                        <li><a href="#">1</a></li>
+                        <li>
+                              <a href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                              </a>
+                        </li>
+                      </ul>
+                </nav>-->
+			</div>
+			<div class="r_content">
+				<div class="tab-content">
+					<div id="tab-1" class="tab-pane active">
+						<div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
+							<div class="table-responsive">
+								<table class="table table-hover table-striped" id="logs_list">
+									<thead>
+									<tr class="con_title">
+										<th width="35"><input type="checkbox" id="theadCheck"></th>
+										<th width="200">时间</th>
+										<th width="100">级别</th>
+										<th width="100">日志类型</th>
+										<!-- <th width="100">用户名</th> -->
+										<th width="120">资产名称</th>
+										<th width="125">IP</th>
+										<th>日志内容</th>
+										<th width="60">操作</th>
+									</tr>
+									</thead>
+									<tbody>
+									<tr>
+										<!-- <td class="logs_time">2017.7.18 10:10:10 000</td>
+                                        <td class="logs_level">123</td>
+                                        <td class="logs_level">123</td>
+                                        <td class="logs_level">123</td>
+                                        <td class="logs_Mes">
+                                            <p>Updates: 1 BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20167 139 2017-07-19 16:41:17  Written [{"success":"true","message":"操作成功！","state":"1"}] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@2e54b031] AbstractMessageConverterMethodProcessor.java org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor 20185 150</p>
+                                        </td>
+                                        <td class="logs_tools">
+                                            <i class="glyphicon glyphicon-list-alt"></i>
+                                        </td>		                         -->
+									</tr>
+									</tbody>
+								</table>
+							</div>
+						</div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
 					</div>
-					<div class="r_content">
-						<div class="tab-content">
-		                   <div id="tab-1" class="tab-pane active">
-		                       <div class="slimScrollDiv" style="position: relative; width: auto; height: 100%;"><div class="full-height-scroll" style="width: auto; height: 100%;">
-		                           <div class="table-responsive">
-		                               <table class="table table-hover table-striped" id="logs_list">
-			                               	<thead>
-										        <tr class="con_title">
-										        	<th width="35"><input type="checkbox" id="theadCheck"></th>
-										          	<th width="200">时间</th>
-										          	<th width="100">级别</th>
-										          	<th width="100">日志类型</th>
-										          	<!-- <th width="100">用户名</th> -->
-										          	<th width="120">资产名称</th>
-										          	<th width="125">IP</th>
-										          	<th>日志内容</th>
-										          	<th width="60">操作</th>  
-										        </tr>
-									         </thead>
-		                                     <tbody>
-		                                         <tr>   
-		                                             <!-- <td class="logs_time">2017.7.18 10:10:10 000</td>
-		                                             <td class="logs_level">123</td>
-		                                             <td class="logs_level">123</td>
-		                                             <td class="logs_level">123</td>
-		                                             <td class="logs_Mes">
-		                                             	<p>Updates: 1 BaseJdbcLogger.java com.jz.bigdata.business.health.test.book.dao.IBookDao.delete 20167 139 2017-07-19 16:41:17  Written [{"success":"true","message":"操作成功！","state":"1"}] as "application/json;charset=UTF-8" using [org.springframework.http.converter.StringHttpMessageConverter@2e54b031] AbstractMessageConverterMethodProcessor.java org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor 20185 150</p>
-													 </td>
-		                                             <td class="logs_tools">
-		                                             	<i class="glyphicon glyphicon-list-alt"></i>
-		                                             </td>		                         -->                                                                         	
-		                                         </tr> 
-		                                     </tbody>
-		                                 </table>
-		                             </div>
-		                         </div><div class="slimScrollBar" style="background: rgb(0, 0, 0); width: 4px; position: absolute; top: 0px; opacity: 0.4; display: none; border-radius: 7px; z-index: 99; right: 1px; height: 365.112px;"></div><div class="slimScrollRail" style="width: 4px; height: 100%; position: absolute; top: 0px; display: none; border-radius: 7px; background: rgb(51, 51, 51); opacity: 0.2; z-index: 90; right: 1px;"></div></div>
-		                     </div>
-	                               
-	                 	</div>
-					</div>
+
 				</div>
 			</div>
 		</div>
-		
-		
-		
-		<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
-		<script src="js/highLightText.js" type="text/javascript" charset="utf-8"></script>
-		<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
-		<script src="js/searchLogs.js" type="text/javascript" charset="utf-8"></script>
-		<script type="text/javascript">
-			$(function(){
-				//加载日志类型数据下拉框
-				$.ajax({
-					url:'../../staticdata/staticData.json',
-					type:"get",  //提交方式  
-			        dataType:"json", //数据类型  
-					success:function(data){
-						//$(".eLogType")
-						var logTypeArr = data.logType;
-						for(var i in logTypeArr){
-							var logTypOpt = '';
-							logTypOpt = '<option value="'+logTypeArr[i]+'">'+logTypeArr[i]+'</option>'
-							$(".searchType").append(logTypOpt)
-						}
-					}
-				});
-			});
-		
-			//更多查询条件点击按钮
-			$(".moreConditions").click(function(){
-				//改变高度
-				if($(this).html() == '更多'){
-					$(".search_left").css("height","73px");
-					$(".search_right").css("height","73px");
-					$("#searchLogs").css("height","73px");
-					$(this).html("收起");
-				}else{
-					$(".search_left").css("height","34px");
-					$(".search_right").css("height","34px");
-					$("#searchLogs").css("height","34px");
-					$(this).html("更多");
-				}	
-			})
-			//obj -》 str
-			//JSON.stringify(obj)
-			//循环删除对象中值为空的属性
-			/* function deleteEmptyVal(obj){
-				var str = '';
-				for (var i in obj) {
-					if(obj[i] == ''){
-						delete obj[i]
-					}
-				}
-			} */
-			/* $(".selectedTypeLevelBox").click(function(){
-				if($(".searchTypeLevelBox").css("display") == "block"){
-					$(".searchTypeLevelBox").css("display","none")
-				}else{
-					$(".searchTypeLevelBox").css("display","block")
-				}
-			})
-			
-			//选择日志类型 级别
-			$(".searchTypeLevelBox .type input").click(function(){
-				//判断当前多选框的状态
-				if($(this).prop("checked") == true){
-					//点击显示日志级别
-					$(this).parent().siblings(".level").css("display","block");
-					//显示全选按钮
-					$(this).siblings(".cancleAllSelect").css("display","block");
-				}else{
-					//点击隐藏日志级别
-					$(this).parent().siblings(".level").css("display","none");
-					//隐藏全选按钮
-					$(this).siblings(".cancleAllSelect").css("display","none");
-				}
-				
-			})
-			//取消全选按钮点击事件
-			$(".cancleAllSelect").click(function(){
-				//获取日志级别
-				var checkBoxArr = $(this).parents(".type").siblings(".level").find("input");
-				//判断当前点击按钮状态
-				if($(this).html() == "取消全选"){
-					//循环取消全选
-					for(var i=0;i<checkBoxArr.length;i++){
-						$(checkBoxArr[i]).removeAttr("checked")
-					}
-					//修改文字
-					$(this).html("全选"); 
-				}else if($(this).html() == "全选"){
-					//循环 - 全选
-					for(var i=0;i<checkBoxArr.length;i++){
-						$(checkBoxArr[i]).prop("checked", "checked");
-					}
-					//修改文字
-					$(this).html("取消全选");
-				}
-			}) */
-			//日志级别获得焦点事件
-			$(".searchedLevelBox").focus(function(){
-				$(".levelListBox").css("display","block")
-				//创建遮罩
-				$("body").append('<div class="zzDiv"></div>')
-			})
-			//日志级别失去焦点事件
-			/* $(".searchedLevelBox").blur(function(event){
-				$(".levelListBox").css("display","none")
-			}) */
-			//日志级别列表点击事件
-			$(".levelListBox").on("click","li",function(){
-				if($(this).children("input").prop("checked") == true){
-					$(this).children("input").removeAttr("checked")
-				}else{
-					$(this).children("input").prop("checked","checked")
-				}
-			})
-			var levels = '';//用于存储选中的日志类型
-			//遮罩点击事件
-			$("body").on("click",".zzDiv",function(){
-				//获得选中的日级别
-				levels = $(".levelListBox input:checkbox:checked").map(function(index,elem) {
-			        return $(elem).val();
-			    }).get().join(',');
-				//填充选中的值
-				if(levels.split(',') == ''){
-					$(".searchedLevelBox").val()
-				}else{
-					$(".searchedLevelBox").val(levels.split(',').length+'个级别')	
-				}
-				//删除遮罩
-				$(".zzDiv").remove();
-				//隐藏级别列表
-				$(".levelListBox").css("display","none")
-			})
-			
-			var pageSize = 12;
-			var url = "../../log/getLogListByBlend.do";
-			var sendSearchObj = {};//查询日志 参数集合
-			var exportStatus = false;//导出日志状态
-			//点击检索按钮 获取数据
-			$("#searchLogs").click(function(){
-				//定义第一次请求
-				firstGet = true;
-				//获得数据
-				getData();
-				//改变导出日志状态
-				exportStatus = false;
-			})
-			//获取数据函数
-			function getData(){	
-				currentPage = 1;
-				//定义第一次请求
-				firstGet = true;
-				logStatus = true;
-				//获得查询条件参数值
-				//获取开始时间
-				sendSearchObj.starttime = $("#startTime").val();
-				//获取结束时间
-				sendSearchObj.endtime = $("#endTime").val();
-				//获取ip地址
-				sendSearchObj.ip= $(".searchIp").val();
-				//获取主机名
-				sendSearchObj.hostname= $(".searchHostname").val();
-				//获得用户名
-				//sendSearchObj.user = $(".searchUser").val();
-				//获取日志级别
-				/* sendSearchObj.operation_level= $(".searchLevel").val();
-				if(sendSearchObj.operation_level == null){
-					sendSearchObj.operation_level = "";
-				} */
-				sendSearchObj.operation_level = levels;
-				//获取日志类型
-				sendSearchObj.type= $(".searchType").val();
-				if(sendSearchObj.type == null){
-					sendSearchObj.type = "";
-				}
-				//获取数据
-				//getLogs(url,'',sendObj);
-				getLogs(url,"",sendSearchObj,1,pageSize);
-				historySearch(sendSearchObj)
-			}
-			//检索历史记录函数  obj-检索条件
-			function historySearch(obj){
-				//获取当前系统时间
-				var newDate = new Date();
-				var currentTime =  newDate.getFullYear()+ "/" +(Number(newDate.getMonth())+1) + '/' +  newDate.getDate()+' '+newDate.getHours()+':'+newDate.getMinutes()+':'+newDate.getSeconds();
-				//定义检索条件 用于页面显示
-				var searchCon = '';
-				//循环检验查询条件  不为空则添加
-				for (var i in obj){
-					if(obj[i] != '' && obj[i] != 'undefined' && i != "id" && i != "param" && i != "order"&& i != "page"&& i != "size"){
-						searchCon += obj[i]+';';
-					}
-				}
-				//添加到检索历史列表 不为空且不存在
-				if (searchCon != '' && historyArr.indexOf(searchCon) === -1){
-					var searchHtml = '<li title="'+searchCon+'" data-startTime="'+obj.starttime+'" data-endTime="'+obj.endtime+'" data-ip="'+obj.ip+'" data-operation_level="'+obj.operation_level+'" data-hostname="'+obj.hostname+'" data-type="'+obj.type+'"><b>'+currentTime+' - </b>'+searchCon+'<i class="glyphicon glyphicon-remove" title="删除"></i></li>';
-					$(".history_list").prepend(searchHtml);
-					historyArr.push(searchCon);
-				}
-			}
-			
-			//页面加载后 获取数据
-			getData();
-			//检索历史li 绑定点击事件 点击查询
-			$(".history_list").on("click","li",function(){
-				currentPage = 1;
-				//定义第一次请求
-				firstGet = true;
-				//获取当前点击的内容
-				var searchWords = $(this).text();
-				var ev = arguments.callee.caller.arguments[0] || window.event;
-			    var $this =$(ev.target); 
-			   	if($this[0].nodeName == "LI" || $this[0].nodeName == "B" ){ 
-			   		logStatus = true;	
-			   		sendSearchObj.starttime = $(this).attr("data-startTime");
-			   		sendSearchObj.endtime = $(this).attr("data-endTime");
-			   		sendSearchObj.ip = $(this).attr("data-ip");
-			   		sendSearchObj.operation_level = $(this).attr("data-operation_level");
-			   		sendSearchObj.hostname = $(this).attr("data-hostname");
-			   		sendSearchObj.type = $(this).attr("data-type");
-			   		//获取数据
-			   		getLogs(url,"",sendSearchObj,1,pageSize);
-			   		//填充搜索框中得值
-			   		$("#startTime").val(sendSearchObj.starttime);
-					$("#endTime").val(sendSearchObj.endtime);
-					$(".searchIp").val(sendSearchObj.ip);
-					$(".searchHostname").val(sendSearchObj.hostname);						
-					$(".searchType").val(sendSearchObj.type);
-					//触发select的change事件					
-					$(".searchType").trigger("change");
-					//判断是否选择过日志级别
-					if(sendSearchObj.operation_level.split(',')[0] !== ''){//是
-						//填充日志级别个数
-						$(".searchedLevelBox").val(sendSearchObj.operation_level.split(',').length+'个级别');
-						//清空原始选择状态
-						$(".levelListBox input").removeAttr("checked");
-						//填充多选框的值
-						for(var i in sendSearchObj.operation_level.split(',')){
-							$(".levelListBox").find('input:checkbox[value="'+sendSearchObj.operation_level.split(',')[i]+'"]').prop('checked',true);
-						}
-					}
-					
-			   	}
-				
-			})
-		
-			//时间控件
-			$('#startTime').datetimepicker({  
-			    format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
-			    autoclose: true,//选择好自动关闭  
-//			    minView: 2,//只选择到小时  
-			    language: 'zh-CN', //汉化   
-			 });
-			
-			$('#endTime').datetimepicker({  
-			    format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
-			    autoclose: true,//选择好自动关闭  
-//			    minView: 2,//只选择到小时  
-			    language: 'zh-CN', //汉化   
-			 });
-		  
-			//开始时间控件 值改变事件
-		     $('#startTime').datetimepicker().on('changeDate', function(ev){
-		     	
-		    	//删除结束时间控件
-		    	$('#endTime').datetimepicker('remove');
-		    	//获取开始时间
-		  		var startDate = $("#startTime").val();
-		    	//初始化结束时间控件数据
-		  		$("#endTime ").datetimepicker({
-					format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
-				    autoclose: true,//选择好自动关闭  
-	//			    minView: 2,//只选择到小时  
-					startDate: startDate,//开始时间
-				    language: 'zh-CN', //汉化
-		   		});
-		  	}); 
-		   //结束时间控件 值改变事件
-		    $('#endTime').datetimepicker().on('changeDate', function(ev){
-		    	//删除开始时间控件
-		    	$('#startTime').datetimepicker('remove');
-		    	//获取结束时间
-		  		var endDate = $("#endTime .form-control").val();
-		    	$('#startTime').datetimepicker({  
-				    format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式  
-				    autoclose: true,//选择好自动关闭  
-	//			    minView: 2,//只选择到小时  
-					endDate:endDate,//结束时间
-				    language: 'zh-CN', //汉化   
-				 });			
-		  	});
-		   
-		   //日志类型  联动
-		   /* var typeArr = [
-			   	['<option selected value=""></option>','<option value="emergency">emergency</option>','<option value="alert">alert</option>','<option value="critical">critical</option>','<option value="error">error</option>','<option value="warn">warn</option>','<option value="notice">notice</option>','<option value="info">info</option>','<option value="debug">debug</option>'],
-		   		['<option selected value=""></option>','<option value="error">error</option>','<option value="warn">warn</option>','<option value="info">info</option>','<option value="debug">debug</option>'],
-		   		['<option selected value=""></option>','<option value="error">error</option>']
-			] */
-			var typeArr = [
-				['emergency','alert','critical','error','warn','notice','info','debug'],
-				['error','warn','info','debug'],
-				['error']
-			]
-		   $(".searchType").change(function(){
-				//获取一级下拉框中的值
-			    var opt=$(".searchType").val();
-			    //清空二级下拉框中的内容
-			    $(".levelListBox ul").html('');
-			    levels = '';
-			    if(opt == 'syslog' || opt == 'winlog' || opt == 'packetfilteringfirewall_log'){
-			    	$(".searchedLevelBox").val(typeArr[0].length+'个级别');
-			    	//往二级下拉框中循环添加内容 
-				    for(var i in typeArr[0]){
-				    	$(".levelListBox ul").append('<li><input type="checkBox" checked value="'+typeArr[0][i]+'"/>'+typeArr[0][i]+'</li>')
-				    }			    
-			    }else if(opt == 'log4j'){
-			    	$(".searchedLevelBox").val(typeArr[1].length+'个级别');
-			    	//往二级下拉框中循环添加内容 
-				    for(var i in typeArr[1]){
-				    	$(".levelListBox ul").append('<li><input type="checkBox" checked value="'+typeArr[1][i]+'"/>'+typeArr[1][i]+'</li>')
-				    }
-			    }else if(opt == 'mysql'){
-			    	$(".searchedLevelBox").val(typeArr[2].length+'个级别');
-			    	//往二级下拉框中循环添加内容 
-				    for(var i in typeArr[2]){
-				    	$(".levelListBox ul").append('<li><input type="checkBox" checked value="'+typeArr[2][i]+'"/>'+typeArr[2][i]+'</li>')
-				    }
-			    }else{
-			    	$(".searchedLevelBox").val('');
-			    }
-			    			   
-			});
-		   //日期清除
-		   $(".startTimeRemove").click(function(){
-			   $("#startTime").val("")
-		   })
-		   $(".endTimeRemove").click(function(){
-			   $("#endTime").val("")
-		   })
-		   
-		   
-		   //删除按钮（批量）日志  点击事件 函数
-			$("#removeLogs").click(function(){
-				//获取被选择的复选框
-				var checkboxs = $("#logs_list>tbody input[type=checkbox]:checked");
-				var logsId = '';
-				var logsType = '';
-				//判断是否又被选中的  没有则提示 有则继续执行删除操作
-				if(checkboxs.length == 0){
-					layer.msg('未选中任何日志',{icon: 5});
-				}else{
-					//循环拼接id值
-					for(var i = 0; i< checkboxs.length;i++){
-						//拼接日志Id
-						logsId += $(checkboxs[i]).parents("tr").attr("data-logid")+',';
-						logsType += $(checkboxs[i]).parent().siblings(".logs_type").html()+',';
-					}	
-					//调用删除函数
-					removeLogs(logsId,logsType)
-				}
-			})
-			//单个日志删除
-			$("#logs_list").on("click",".removeLog",function(){
-				var logId = $(this).parents("tr").attr("data-logid");
-				var logtype = $(this).parent().siblings(".logs_type").html();
-				removeLogs(logId,logtype)
-			})
+	</div>
+</div>
 
-			//删除日志
-			function removeLogs(logsId,logsType){				
-				//参数
-				var obj = {};
-				obj.index = "estest";
-				obj.type = logsType;
-				obj.id = logsId;
-				//询问框
-				layer.confirm('您确定删除日志信息么？', {
-				  btn: ['确定','取消'] //按钮
-				}, function(index){
-					layer.close(index);
-					$.ajax({
-						type:"post",
-						url:"../../log/deleteById.do",
-						data:obj,
-						async:false,
-						success:function(data){
-							if(data == "DELETED"){
-								currentPage = 1;
-								layer.msg('删除成功',{icon: 1});
-								firstGet = true;//第一次请求标识
-								//日志查询
-								getLogs(url,'',sendSearchObj,1,pageSize);
-							}else{
-								layer.msg('删除失败',{icon: 5});
-							}
-							
-						},
-						error:function(err){
-							layer.msg('删除失败',{icon: 5});
-							console.log(err)
-						}
-					})
-					//关闭弹窗
-					layer.close();
-				}, function(){
-				  layer.close();
-				});
-			}
-		   
-		  //数据最大显示下拉框改变事件
-			$(".maxShowData").change(function(){
-				maxShowChange('数据量过大时，细化查询条件提高查询效率')
-			})
-			
-			
-			//用于记录是否有导出任务正在进行  
-			var exporting = false;
-		  	//计时器 获取导出进度
-			var exportInterval;
-			//获取本地是否有导出任务
-			if(localStorage.getItem('exportLogs')){
-				exporting = true;
-				$(".progressBox").append('<div class="progressContent"><div class="progressName">导出中<br\>...</div><div class="progressVal rotateClass"></div></div>')
-				//从顶端滑出
-				$(".progressBox").css("top","0");
-				exportInterval = setInterval(updataProgressValue,1000);
-			};
-		  	
-			//日志导出按钮
-			$("#exportLogs").click(function(){
-				if(!exporting){
-					//加载数据
-					getData();
-					exportLogs();
-					exportStatus = true;
-				}else{
-					layer.msg('有导出任务正在进行中，请稍后',{icon: 5});
-				}
-				
-			})
-			/* <a href="javascript:void(0)" style="color:#1ab394!important;" class="pushMaxVal">（最大值）</a> */
-			//到处日志弹窗方法
-			function exportLogs(){
-				//出现弹窗
-				var layerHtml = '<form class="form-horizontal">'
-							+		'<div class="form-group">'
-					 		+			'<label  class=" control-label">总共日志条数</label>'
-					 		+			'<div>'
-					 		+				'<input type="text" class="form-control" readonly value="'+allCount+'">'
-					 		+			'</div>'
-							+		'</div>'
-							+		'<div class="form-group">'
-					 		+			'<label  class=" control-label">导出的日志条数 </label>'
-					 		+			'<div>'
-					 		+				'<input type="number" min="0" class="form-control exportSize">'
-					 		+			'</div>'
-							+		'</div>'
-							+		'<div class="form-group" style="color:#9b664c;">说明：日志以时间倒序排列导出</div>'
-							+	 '</form>'
-				//弹窗
-				layer.open({
-			 		type: 1,
-			 		title:"导出日志",//标题
-					area: ['350px', '400'], //宽高
-					btn: ['确定','取消'], //按钮
-					btn1:function(index){
-						//获得要导出的日志条数
-						var exportSize = $(".exportSize").val();
-						//判断条数是否为空
-						if(exportSize == ''){
-							layer.msg('导出日志条数为空',{icon: 5});
-						}else if(exportSize <= 0){
-							layer.msg('导出日志条数错误',{icon: 5});
-						}else{
-							//获得检索框中的条件
-							var exportObj =  sendSearchObj;
-							//添加导出日志条数条件
-							exportObj.exportSize = exportSize;
-							var hsObj = {};
-					    	hsObj.hsData = JSON.stringify(exportObj);
-					    	
-					    	//将导出任务存在localstorage中用于页面打开时加载
-							localStorage.setItem('exportLogs','true');
-							//标记任务正在进行中
-							exporting = true;
-							//创建进度盒子
-							$(".progressBox").append('<div class="progressContent"><div class="progressName">导出中<br\>...</div><div class="progressVal rotateClass"></div></div>')
-							//从顶端滑出
-							$(".progressBox").css("top","0");
-							//增加定时器 循环更新进度	
-							exportInterval = setInterval(updataProgressValue,1000);
-					    	
-							//发送请求
-							$.ajax({
-								type:"post",
-								url:"../../log/exportLogList.do",
-								//url:'',
-								data:hsObj,
-								success:function(data){
-									var obj = JSON.parse(data)[0];
-									if(obj.state == "false"){
-										closeProgress()
-										layer.msg(obj.state,{icon: 5});
-									}
-								},
-								error:function(err){
-									closeProgress()
-									console.log(err)
-								}
-							})
-							layer.close(index);
-						}
-						
-					},
-			 		content: layerHtml
-				});
-		  }
-		
-			//定时器 填充进度条数据
-			function updataProgressValue(){
-				$.ajax({
-					type:"post",
-					url:"../../log/getExportProcess.do",
-					data:'',
-					success:function(data){
-						var obj = JSON.parse(data)[0];
-						//导出成功
-						if(obj.state == "finished"){ 
-							//将导出状态跟新为false
-							exporting = false;
-							//清除定时器
-							clearInterval(exportInterval);
-							//更换状态颜色
-							$(".progressContent").css("background","#009688");
-							$(".progressVal").css("background","#009688")
-							$(".progressName").html("导出<br\>完成");
-							$(".progressVal").removeClass("rotateClass");
-							$(".progressVal").html(obj.value);
-							//删除本地保存的导出任务
-							localStorage.removeItem('exportLogs');
-							//延时隐藏导出进度
-							setTimeout(function(){
-								$(".progressBox").css("top","-80px");
-							},5000)
-							//删除进度条
-							setTimeout(function(){
-								$(".progressBox").html('');
-							},5300)
-							//导出成功弹窗
-							layer.msg('导出成功',{icon:1});
-						}else {
-							$(".progressVal").html(obj.value)
-						}
-					},
-					error:function(err){						
-						closeProgress()
-						console.log(err)
-					}
-				})
-			}
-			//导出失败关闭进程弹窗
-			function closeProgress(){
-				//删除本地保存的导出任务
-				localStorage.removeItem('exportLogs');
-				//清除定时器
-				clearInterval(exportInterval);
-				layer.msg('导出失败',{icon: 5});
-				$(".progressBox").html('');
-			}
-			
-		</script>
-	</body>
+
+
+<script src="../../js/jquery-2.1.0.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/jquery.pagination.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap/js/bootstrap-datetimepicker.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/bootstrap/js/bootstrap-datetimepicker.zh-CN.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layer.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/layui.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/laypage.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/ajax.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/highLightText.js" type="text/javascript" charset="utf-8"></script>
+<script src="../../js/commonPlugin.js" type="text/javascript" charset="utf-8"></script>
+<script src="js/searchLogs.js" type="text/javascript" charset="utf-8"></script>
+<script type="text/javascript">
+    $(function(){
+        //加载日志类型数据下拉框
+        $.ajax({
+            url:'../../staticdata/staticData.json',
+            type:"get",  //提交方式
+            dataType:"json", //数据类型
+            success:function(data){
+                //$(".eLogType")
+                var logTypeArr = data.logType;
+                for(var i in logTypeArr){
+                    var logTypOpt = '';
+                    logTypOpt = '<option value="'+logTypeArr[i]+'">'+logTypeArr[i]+'</option>'
+                    $(".searchType").append(logTypOpt)
+                }
+            }
+        });
+    });
+
+    //更多查询条件点击按钮
+    $(".moreConditions").click(function(){
+        //改变高度
+        if($(this).html() == '更多'){
+            $(".search_left").css("height","73px");
+            $(".search_right").css("height","73px");
+            $("#searchLogs").css("height","73px");
+            $(this).html("收起");
+        }else{
+            $(".search_left").css("height","34px");
+            $(".search_right").css("height","34px");
+            $("#searchLogs").css("height","34px");
+            $(this).html("更多");
+        }
+    })
+    //obj -》 str
+    //JSON.stringify(obj)
+    //循环删除对象中值为空的属性
+    /* function deleteEmptyVal(obj){
+        var str = '';
+        for (var i in obj) {
+            if(obj[i] == ''){
+                delete obj[i]
+            }
+        }
+    } */
+    /* $(".selectedTypeLevelBox").click(function(){
+        if($(".searchTypeLevelBox").css("display") == "block"){
+            $(".searchTypeLevelBox").css("display","none")
+        }else{
+            $(".searchTypeLevelBox").css("display","block")
+        }
+    })
+
+    //选择日志类型 级别
+    $(".searchTypeLevelBox .type input").click(function(){
+        //判断当前多选框的状态
+        if($(this).prop("checked") == true){
+            //点击显示日志级别
+            $(this).parent().siblings(".level").css("display","block");
+            //显示全选按钮
+            $(this).siblings(".cancleAllSelect").css("display","block");
+        }else{
+            //点击隐藏日志级别
+            $(this).parent().siblings(".level").css("display","none");
+            //隐藏全选按钮
+            $(this).siblings(".cancleAllSelect").css("display","none");
+        }
+
+    })
+    //取消全选按钮点击事件
+    $(".cancleAllSelect").click(function(){
+        //获取日志级别
+        var checkBoxArr = $(this).parents(".type").siblings(".level").find("input");
+        //判断当前点击按钮状态
+        if($(this).html() == "取消全选"){
+            //循环取消全选
+            for(var i=0;i<checkBoxArr.length;i++){
+                $(checkBoxArr[i]).removeAttr("checked")
+            }
+            //修改文字
+            $(this).html("全选");
+        }else if($(this).html() == "全选"){
+            //循环 - 全选
+            for(var i=0;i<checkBoxArr.length;i++){
+                $(checkBoxArr[i]).prop("checked", "checked");
+            }
+            //修改文字
+            $(this).html("取消全选");
+        }
+    }) */
+    //日志级别获得焦点事件
+    $(".searchedLevelBox").focus(function(){
+        $(".levelListBox").css("display","block")
+        //创建遮罩
+        $("body").append('<div class="zzDiv"></div>')
+    })
+    //日志级别失去焦点事件
+    /* $(".searchedLevelBox").blur(function(event){
+        $(".levelListBox").css("display","none")
+    }) */
+    //日志级别列表点击事件
+    $(".levelListBox").on("click","li",function(){
+        if($(this).children("input").prop("checked") == true){
+            $(this).children("input").removeAttr("checked")
+        }else{
+            $(this).children("input").prop("checked","checked")
+        }
+    })
+    var levels = '';//用于存储选中的日志类型
+    //遮罩点击事件
+    $("body").on("click",".zzDiv",function(){
+        //获得选中的日级别
+        levels = $(".levelListBox input:checkbox:checked").map(function(index,elem) {
+            return $(elem).val();
+        }).get().join(',');
+        //填充选中的值
+        if(levels.split(',') == ''){
+            $(".searchedLevelBox").val()
+        }else{
+            $(".searchedLevelBox").val(levels.split(',').length+'个级别')
+        }
+        //删除遮罩
+        $(".zzDiv").remove();
+        //隐藏级别列表
+        $(".levelListBox").css("display","none")
+    })
+
+    var pageSize = 12;
+    var url = "../../log/getLogListByBlend.do";
+    var sendSearchObj = {};//查询日志 参数集合
+    var exportStatus = false;//导出日志状态
+    //点击检索按钮 获取数据
+    $("#searchLogs").click(function(){
+        //定义第一次请求
+        firstGet = true;
+        //获得数据
+        getData();
+        //改变导出日志状态
+        exportStatus = false;
+    })
+    //获取数据函数
+    function getData(){
+        sendSearchObj = {};
+        currentPage = 1;
+        //定义第一次请求
+        firstGet = true;
+        logStatus = true;
+        //获得查询条件参数值
+        //获取开始时间
+        sendSearchObj.starttime = $("#startTime").val();
+        //获取结束时间
+        sendSearchObj.endtime = $("#endTime").val();
+        //获取ip地址
+        sendSearchObj.ip= $(".searchIp").val();
+        //获取主机名
+        sendSearchObj.hostname= $(".searchHostname").val();
+        //获得用户名
+        //sendSearchObj.user = $(".searchUser").val();
+        //获取日志级别
+        /* sendSearchObj.operation_level= $(".searchLevel").val();
+        if(sendSearchObj.operation_level == null){
+            sendSearchObj.operation_level = "";
+        } */
+        sendSearchObj.operation_level = levels;
+        //获取日志类型
+        sendSearchObj.type= $(".searchType").val();
+        if(sendSearchObj.type == null){
+            sendSearchObj.type = "";
+        }
+        //获取数据
+        //getLogs(url,'',sendObj);
+        getLogs(url,"",sendSearchObj,1,pageSize);
+        historySearch(sendSearchObj)
+    }
+    //检索历史记录函数  obj-检索条件
+    function historySearch(obj){
+        //获取当前系统时间
+        var newDate = new Date();
+        var currentTime =  newDate.getFullYear()+ "/" +(Number(newDate.getMonth())+1) + '/' +  newDate.getDate()+' '+newDate.getHours()+':'+newDate.getMinutes()+':'+newDate.getSeconds();
+        //定义检索条件 用于页面显示
+        var searchCon = '';
+        //循环检验查询条件  不为空则添加
+        for (var i in obj){
+            if(obj[i] != '' && obj[i] != 'undefined' && i != "id" && i != "param" && i != "order"&& i != "page"&& i != "size"){
+                searchCon += obj[i]+';';
+            }
+        }
+        //添加到检索历史列表 不为空且不存在
+        if (searchCon != '' && historyArr.indexOf(searchCon) === -1){
+            var searchHtml = '<li title="'+searchCon+'" data-startTime="'+obj.starttime+'" data-endTime="'+obj.endtime+'" data-ip="'+obj.ip+'" data-operation_level="'+obj.operation_level+'" data-hostname="'+obj.hostname+'" data-type="'+obj.type+'"><b>'+currentTime+' - </b>'+searchCon+'<i class="glyphicon glyphicon-remove" title="删除"></i></li>';
+            $(".history_list").prepend(searchHtml);
+            historyArr.push(searchCon);
+        }
+    }
+
+    //页面加载后 获取数据
+    getData();
+    //检索历史li 绑定点击事件 点击查询
+    $(".history_list").on("click","li",function(){
+        currentPage = 1;
+        //定义第一次请求
+        firstGet = true;
+        //获取当前点击的内容
+        var searchWords = $(this).text();
+        var ev = arguments.callee.caller.arguments[0] || window.event;
+        var $this =$(ev.target);
+        if($this[0].nodeName == "LI" || $this[0].nodeName == "B" ){
+            logStatus = true;
+            sendSearchObj.starttime = $(this).attr("data-startTime");
+            sendSearchObj.endtime = $(this).attr("data-endTime");
+            sendSearchObj.ip = $(this).attr("data-ip");
+            sendSearchObj.operation_level = $(this).attr("data-operation_level");
+            sendSearchObj.hostname = $(this).attr("data-hostname");
+            sendSearchObj.type = $(this).attr("data-type");
+            //获取数据
+            getLogs(url,"",sendSearchObj,1,pageSize);
+            //填充搜索框中得值
+            $("#startTime").val(sendSearchObj.starttime);
+            $("#endTime").val(sendSearchObj.endtime);
+            $(".searchIp").val(sendSearchObj.ip);
+            $(".searchHostname").val(sendSearchObj.hostname);
+            $(".searchType").val(sendSearchObj.type);
+            //触发select的change事件
+            $(".searchType").trigger("change");
+            //判断是否选择过日志级别
+            if(sendSearchObj.operation_level.split(',')[0] !== ''){//是
+                //填充日志级别个数
+                $(".searchedLevelBox").val(sendSearchObj.operation_level.split(',').length+'个级别');
+                //清空原始选择状态
+                $(".levelListBox input").removeAttr("checked");
+                //填充多选框的值
+                for(var i in sendSearchObj.operation_level.split(',')){
+                    $(".levelListBox").find('input:checkbox[value="'+sendSearchObj.operation_level.split(',')[i]+'"]').prop('checked',true);
+                }
+            }
+
+        }
+
+    })
+
+    //时间控件
+    $('#startTime').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式
+        autoclose: true,//选择好自动关闭
+//			    minView: 2,//只选择到小时
+        language: 'zh-CN', //汉化
+    });
+
+    $('#endTime').datetimepicker({
+        format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式
+        autoclose: true,//选择好自动关闭
+//			    minView: 2,//只选择到小时
+        language: 'zh-CN', //汉化
+    });
+
+    //开始时间控件 值改变事件
+    $('#startTime').datetimepicker().on('changeDate', function(ev){
+
+        //删除结束时间控件
+        $('#endTime').datetimepicker('remove');
+        //获取开始时间
+        var startDate = $("#startTime").val();
+        //初始化结束时间控件数据
+        $("#endTime ").datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式
+            autoclose: true,//选择好自动关闭
+            //			    minView: 2,//只选择到小时
+            startDate: startDate,//开始时间
+            language: 'zh-CN', //汉化
+        });
+    });
+    //结束时间控件 值改变事件
+    $('#endTime').datetimepicker().on('changeDate', function(ev){
+        //删除开始时间控件
+        $('#startTime').datetimepicker('remove');
+        //获取结束时间
+        var endDate = $("#endTime .form-control").val();
+        $('#startTime').datetimepicker({
+            format: 'yyyy-mm-dd hh:ii:ss',//定义时间格式
+            autoclose: true,//选择好自动关闭
+            //			    minView: 2,//只选择到小时
+            endDate:endDate,//结束时间
+            language: 'zh-CN', //汉化
+        });
+    });
+
+    //日志类型  联动
+    /* var typeArr = [
+            ['<option selected value=""></option>','<option value="emergency">emergency</option>','<option value="alert">alert</option>','<option value="critical">critical</option>','<option value="error">error</option>','<option value="warn">warn</option>','<option value="notice">notice</option>','<option value="info">info</option>','<option value="debug">debug</option>'],
+            ['<option selected value=""></option>','<option value="error">error</option>','<option value="warn">warn</option>','<option value="info">info</option>','<option value="debug">debug</option>'],
+            ['<option selected value=""></option>','<option value="error">error</option>']
+     ] */
+    var typeArr = [
+        ['emergency','alert','critical','error','warn','notice','info','debug'],
+        ['error','warn','info','debug'],
+        ['error']
+    ]
+    $(".searchType").change(function(){
+        //获取一级下拉框中的值
+        var opt=$(".searchType").val();
+        //清空二级下拉框中的内容
+        $(".levelListBox ul").html('');
+        levels = '';
+        if(opt == 'syslog' || opt == 'winlog' || opt == 'packetfilteringfirewall_log'){
+            $(".searchedLevelBox").val(typeArr[0].length+'个级别');
+            //往二级下拉框中循环添加内容
+            for(var i in typeArr[0]){
+                $(".levelListBox ul").append('<li><input type="checkBox" checked value="'+typeArr[0][i]+'"/>'+typeArr[0][i]+'</li>')
+            }
+        }else if(opt == 'log4j'){
+            $(".searchedLevelBox").val(typeArr[1].length+'个级别');
+            //往二级下拉框中循环添加内容
+            for(var i in typeArr[1]){
+                $(".levelListBox ul").append('<li><input type="checkBox" checked value="'+typeArr[1][i]+'"/>'+typeArr[1][i]+'</li>')
+            }
+        }else if(opt == 'mysql'){
+            $(".searchedLevelBox").val(typeArr[2].length+'个级别');
+            //往二级下拉框中循环添加内容
+            for(var i in typeArr[2]){
+                $(".levelListBox ul").append('<li><input type="checkBox" checked value="'+typeArr[2][i]+'"/>'+typeArr[2][i]+'</li>')
+            }
+        }else{
+            $(".searchedLevelBox").val('');
+        }
+
+    });
+    //日期清除
+    $(".startTimeRemove").click(function(){
+        $("#startTime").val("")
+    })
+    $(".endTimeRemove").click(function(){
+        $("#endTime").val("")
+    })
+
+
+    //删除按钮（批量）日志  点击事件 函数
+    $("#removeLogs").click(function(){
+        //获取被选择的复选框
+        var checkboxs = $("#logs_list>tbody input[type=checkbox]:checked");
+        var logsId = '';
+        var logsType = '';
+        //判断是否又被选中的  没有则提示 有则继续执行删除操作
+        if(checkboxs.length == 0){
+            layer.msg('未选中任何日志',{icon: 5});
+        }else{
+            //循环拼接id值
+            for(var i = 0; i< checkboxs.length;i++){
+                //拼接日志Id
+                logsId += $(checkboxs[i]).parents("tr").attr("data-logid")+',';
+                logsType += $(checkboxs[i]).parent().siblings(".logs_type").html()+',';
+            }
+            //调用删除函数
+            removeLogs(logsId,logsType)
+        }
+    })
+    //单个日志删除
+    $("#logs_list").on("click",".removeLog",function(){
+        var logId = $(this).parents("tr").attr("data-logid");
+        var logtype = $(this).parent().siblings(".logs_type").html();
+        removeLogs(logId,logtype)
+    })
+
+    //删除日志
+    function removeLogs(logsId,logsType){
+        //参数
+        var obj = {};
+        obj.index = "estest";
+        obj.type = logsType;
+        obj.id = logsId;
+        //询问框
+        layer.confirm('您确定删除日志信息么？', {
+            btn: ['确定','取消'] //按钮
+        }, function(index){
+            layer.close(index);
+            $.ajax({
+                type:"post",
+                url:"../../log/deleteById.do",
+                data:obj,
+                async:false,
+                success:function(data){
+                    if(data == "DELETED"){
+                        currentPage = 1;
+                        layer.msg('删除成功',{icon: 1});
+                        firstGet = true;//第一次请求标识
+                        //日志查询
+                        getLogs(url,'',sendSearchObj,1,pageSize);
+                    }else{
+                        layer.msg('删除失败',{icon: 5});
+                    }
+
+                },
+                error:function(err){
+                    layer.msg('删除失败',{icon: 5});
+                    console.log(err)
+                }
+            })
+            //关闭弹窗
+            layer.close();
+        }, function(){
+            layer.close();
+        });
+    }
+
+    //数据最大显示下拉框改变事件
+    $(".maxShowData").change(function(){
+        maxShowChange('数据量过大时，细化查询条件提高查询效率')
+    })
+
+
+    //用于记录是否有导出任务正在进行
+    var exporting = false;
+    //计时器 获取导出进度
+    var exportInterval;
+    //获取本地是否有导出任务
+    if(localStorage.getItem('exportLogs')){
+        exporting = true;
+        $(".progressBox").append('<div class="progressContent"><div class="progressName">导出中<br\>...</div><div class="progressVal rotateClass"></div></div>')
+        //从顶端滑出
+        $(".progressBox").css("top","0");
+        exportInterval = setInterval(updataProgressValue,1000);
+    };
+
+    //日志导出按钮
+    $("#exportLogs").click(function(){
+        if(!exporting){
+            //加载数据
+            getData();
+            exportLogs();
+            exportStatus = true;
+        }else{
+            layer.msg('有导出任务正在进行中，请稍后',{icon: 5});
+        }
+
+    })
+    /* <a href="javascript:void(0)" style="color:#1ab394!important;" class="pushMaxVal">（最大值）</a> */
+    //到处日志弹窗方法
+    function exportLogs(){
+        //出现弹窗
+        var layerHtml = '<form class="form-horizontal">'
+            +		'<div class="form-group">'
+            +			'<label  class=" control-label">总共日志条数</label>'
+            +			'<div>'
+            +				'<input type="text" class="form-control" readonly value="'+allCount+'">'
+            +			'</div>'
+            +		'</div>'
+            +		'<div class="form-group">'
+            +			'<label  class=" control-label">导出的日志条数 </label>'
+            +			'<div>'
+            +				'<input type="number" min="0" class="form-control exportSize">'
+            +			'</div>'
+            +		'</div>'
+            +		'<div class="form-group" style="color:#9b664c;">说明：日志以时间倒序排列导出</div>'
+            +	 '</form>'
+        //弹窗
+        layer.open({
+            type: 1,
+            title:"导出日志",//标题
+            area: ['350px', '400'], //宽高
+            btn: ['确定','取消'], //按钮
+            btn1:function(index){
+                //获得要导出的日志条数
+                var exportSize = $(".exportSize").val();
+                //判断条数是否为空
+                if(exportSize == ''){
+                    layer.msg('导出日志条数为空',{icon: 5});
+                }else if(exportSize <= 0){
+                    layer.msg('导出日志条数错误',{icon: 5});
+                }else{
+                    //获得检索框中的条件
+                    var exportObj =  sendSearchObj;
+                    //添加导出日志条数条件
+                    exportObj.exportSize = exportSize;
+                    var hsObj = {};
+                    hsObj.hsData = JSON.stringify(exportObj);
+
+                    //将导出任务存在localstorage中用于页面打开时加载
+                    localStorage.setItem('exportLogs','true');
+                    //标记任务正在进行中
+                    exporting = true;
+                    //创建进度盒子
+                    $(".progressBox").append('<div class="progressContent"><div class="progressName">导出中<br\>...</div><div class="progressVal rotateClass"></div></div>')
+                    //从顶端滑出
+                    $(".progressBox").css("top","0");
+                    //增加定时器 循环更新进度
+                    exportInterval = setInterval(updataProgressValue,1000);
+
+                    //发送请求
+                    $.ajax({
+                        type:"post",
+                        url:"../../log/exportLogList.do",
+                        //url:'',
+                        data:hsObj,
+                        success:function(data){
+                            var obj = data[0];
+                            if(obj.state == "false"){
+                                closeProgress()
+                                layer.msg(obj.state,{icon: 5});
+                            }
+                        },
+                        error:function(err){
+                            closeProgress()
+                            console.log(err)
+                        }
+                    })
+                    layer.close(index);
+                }
+
+            },
+            content: layerHtml
+        });
+    }
+
+    //定时器 填充进度条数据
+    function updataProgressValue(){
+        $.ajax({
+            type:"post",
+            url:"../../log/getExportProcess.do",
+            data:'',
+            success:function(data){
+                var obj = JSON.parse(data)[0];
+                //导出成功
+                if(obj.state == "finished"){
+                    //将导出状态跟新为false
+                    exporting = false;
+                    //清除定时器
+                    clearInterval(exportInterval);
+                    //更换状态颜色
+                    $(".progressContent").css("background","#009688");
+                    $(".progressVal").css("background","#009688")
+                    $(".progressName").html("导出<br\>完成");
+                    $(".progressVal").removeClass("rotateClass");
+                    $(".progressVal").html(obj.value);
+                    //删除本地保存的导出任务
+                    localStorage.removeItem('exportLogs');
+                    //延时隐藏导出进度
+                    setTimeout(function(){
+                        $(".progressBox").css("top","-80px");
+                    },5000)
+                    //删除进度条
+                    setTimeout(function(){
+                        $(".progressBox").html('');
+                    },5300)
+                    //导出成功弹窗
+                    layer.msg('导出成功',{icon:1});
+                }else {
+                    $(".progressVal").html(obj.value)
+                }
+            },
+            error:function(err){
+                closeProgress()
+                console.log(err)
+            }
+        })
+    }
+    //导出失败关闭进程弹窗
+    function closeProgress(){
+        //删除本地保存的导出任务
+        localStorage.removeItem('exportLogs');
+        //清除定时器
+        clearInterval(exportInterval);
+        layer.msg('导出失败',{icon: 5});
+        $(".progressBox").html('');
+    }
+
+</script>
+</body>
 </html>

@@ -251,7 +251,7 @@ public class KafkaCollector implements Runnable {
 			while (it.hasNext() && isStarted()) {
 				//System.out.println("---中泰数据接收-----"+it.next().message().toString());
 				String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-				System.out.println(index);
+				//System.out.println(index);
 
 				String log = it.next().message().toString();
 				

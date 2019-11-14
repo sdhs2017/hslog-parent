@@ -87,10 +87,11 @@ public class ESTransportIndexTemplate {
      */
     public Boolean addMapping(String index, String type,String mappingproperties) throws Exception {
         boolean result = false;
+        // 更新index的setting属性
         Settings.Builder settings = Settings.builder()
-                .put("index.max_result_window", 100000)
+                .put("index.max_result_window", 100000000)
                 .put("index.number_of_shards", 5)
-                .put("index.number_of_replicas",2);
+                .put("index.number_of_replicas",1);
         // 判断index是否存在
         if (this.indexExists(index)) {
             UpdateSettingsRequest request = new UpdateSettingsRequest(index);

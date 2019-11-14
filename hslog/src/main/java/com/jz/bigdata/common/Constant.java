@@ -41,7 +41,15 @@ public class Constant {
 	 */
 	public static String REGISTERPATH="com.jz.bigdata.common.users.controller.UsersController.registerUser";
 	
-	public static String uploadPATH="com.jz.bigdata.common.users.controller.FileUploadController.licenseUpload";
+	/**
+	 * 上传证书激活
+	 */
+	public static String UPLOADPATH="com.jz.bigdata.common.users.controller.FileUploadController.licenseUpload";
+	/**
+	 * api数据接口
+	 */
+	public static String APIPATH="apiLog";
+
 	/**
 	 * 执行异常错误信息
 	 */

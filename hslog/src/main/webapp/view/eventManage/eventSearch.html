@@ -62,7 +62,7 @@
 		}
 		.searchBoxTitle{
 			height:34px;
-			margin-right:1px solid #ccc;
+            margin-right:1px solid #ccc;
 			line-height:34px;
 			text-align: center;
 			width: 75px;
@@ -202,7 +202,7 @@
 	</div>
 	<!-- table-no-bordered -->
 	<div class="tableCon">
-		<table id="eventTable" data-toggle="table"  data-detail-view="true" data-classes="table table-hover " data-detail-formatter="detailFormatter" data-pagination="false" style="width:100%；">
+		<table id="eventTable" data-toggle="table"  data-detail-view="true" data-classes="table table-hover " data-detail-formatter="detailFormatter" data-pagination="false" style="width:100%;">
 			<thead>
 			<tr>
 				<th data-field="logtime"   data-valign="middle" >时间</th><!-- 时间  日志内容 事件类型  -->
@@ -252,9 +252,9 @@
             sendObj = {};
             //获取查询条件
             //获取开始时间
-            sendObj.startTime = $("#startTime").val();
+            sendObj.starttime = $("#startTime").val();
             //获取结束时间
-            sendObj.endTime = $("#endTime").val();
+            sendObj.endtime = $("#endTime").val();
             //获取ip地址
             sendObj.ip= $(".searchIp").val();
             //获取主机名

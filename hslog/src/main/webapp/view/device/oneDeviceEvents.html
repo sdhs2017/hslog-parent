@@ -306,9 +306,9 @@
             sendObj = {};
             //获取查询条件
             //获取开始时间
-            sendObj.startTime = $("#startTime").val();
+            sendObj.starttime = $("#startTime").val();
             //获取结束时间
-            sendObj.endTime = $("#endTime").val();
+            sendObj.endtime = $("#endTime").val();
             //获取事件级别
             sendObj.event_level= $(".searchLevel").val();
             //获取事件类型
@@ -324,6 +324,8 @@
             sendObj.page = page;
             //每页条数
             sendObj.size = pageSize;
+			let hsObj = {};
+			hsObj.hsData = JSON.stringify(sendObj);
             //成功回调函数
             var sfunc = function(data){
                 //清空表格数据
@@ -359,7 +361,7 @@
             }
 
             //发送请求
-            ajaxPost("../../log/getEventListByBlend.do",sendObj,sfunc);
+            ajaxPost("../../log/getEventListByBlend.do",hsObj,sfunc);
         }
         //默认加载数据
         $("#searchEvents").click();

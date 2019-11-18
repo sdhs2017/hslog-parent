@@ -272,6 +272,8 @@
             sendObj.page = page;
             //每页条数
             sendObj.size = pageSize;
+			let hsObj = {};
+			hsObj.hsData = JSON.stringify(sendObj);
             //成功回调函数
             var sfunc = function(data){
                 //清空表格数据
@@ -309,7 +311,7 @@
             }
 
             //发送请求
-            ajaxPost("../../log/getEventListByBlend.do",sendObj,sfunc);
+            ajaxPost("../../log/getEventListByBlend.do",hsObj,sfunc);
         }
         //默认加载数据
         $("#searchEvents").click();

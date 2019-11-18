@@ -72,15 +72,15 @@ public class Netflow {
 	private String ipv4_dst_addr;//目的地址
 	private String ipv4_src_addr;//原地址
 	
-	private int dst_as;
+	/*private int dst_as;
 	private int in_pkts;
 	private String first_switched;//首次转换
 	private String ipv4_next_hop;//下一个心跳
 	private int sampling_algorithm;//抽样算法
-	private int in_bytes;//容量
+	private int in_bytes;//容量*/
 	private String protocol;//协议值
 	private String protocol_name;//协议名称
-	private int tcp_flags;//tcp标志
+	/*private int tcp_flags;//tcp标志
 	private int src_as;//
 	private int output_snmp;//输出snmp
 	private int dst_mask;//
@@ -93,11 +93,11 @@ public class Netflow {
 	private int engine_id;//引擎id
 	private int input_snmp;//输入snmp
 	private String last_switched;//最后转换
-	private int sampling_interval;//采样间隔
+	private int sampling_interval;//采样间隔*/
 	private String packet_source;//数据包来源
 	
 	
-	public int getDst_as() {
+	/*public int getDst_as() {
 		return dst_as;
 	}
 
@@ -143,7 +143,7 @@ public class Netflow {
 
 	public void setIn_bytes(int in_bytes) {
 		this.in_bytes = in_bytes;
-	}
+	}*/
 
 	public String getProtocol() {
 		return protocol;
@@ -161,7 +161,7 @@ public class Netflow {
 		this.protocol_name = protocol_name;
 	}
 
-	public int getTcp_flags() {
+	/*public int getTcp_flags() {
 		return tcp_flags;
 	}
 
@@ -272,7 +272,7 @@ public class Netflow {
 	public void setSampling_interval(int sampling_interval) {
 		this.sampling_interval = sampling_interval;
 	}
-
+*/
 	public String getHost() {
 		return host;
 	}
@@ -812,7 +812,7 @@ public class Netflow {
     	Gson gson = new Gson();
     	Map<String, String> map = new HashMap<String, String>();
     	map = gson.fromJson(mapstring, map.getClass());
-		new Netflow(log, cal, map);
+		System.out.println(gson.toJson(new Netflow(log, cal, map)));
 		
 	}
 	

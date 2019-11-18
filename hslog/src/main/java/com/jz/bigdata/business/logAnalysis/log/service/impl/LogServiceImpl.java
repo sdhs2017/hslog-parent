@@ -37,7 +37,6 @@ import com.jz.bigdata.common.users.service.IUsersService;
 
 import com.jz.bigdata.util.ConfigProperty;
 
-import joptsimple.internal.Strings;
 
 @Service(value="logService")
 public class LogServiceImpl implements IlogService {
@@ -439,8 +438,18 @@ public class LogServiceImpl implements IlogService {
 	@Override
 	public void createIndexAndmapping(String index, String type,String mappingproperties) throws Exception {
 
+		// 判断mapping属性不为null时创建index
 		if (mappingproperties!=null&&!mappingproperties.equals("")) {
-			logIndexDao.addMapping(index, type, mappingproperties);
+			// settings 暂时为null
+			/**
+			 * TODO
+			 */
+			// 更新index的settings
+			Map<String,Object> settings = new HashMap<>();
+			settings.put("index.max_result_window", configProperty.getEs_max_result_window());
+			settings.put("index.number_of_shards", configProperty.getEs_number_of_shards());
+			settings.put("index.number_of_replicas",configProperty.getEs_number_of_replicas());
+			logIndexDao.addMapping(index, type,settings, mappingproperties);
 		}
 
 
@@ -1546,25 +1555,31 @@ public class LogServiceImpl implements IlogService {
 		String index = configProperty.getEs_index().replace("*",format.format(c.getTime()));
 		System.out.println(index);
 
+		// 更新index的settings
+		Map<String,Object> settings = new HashMap<>();
+		settings.put("index.max_result_window", configProperty.getEs_max_result_window());
+		settings.put("index.number_of_shards", configProperty.getEs_number_of_shards());
+		settings.put("index.number_of_replicas",configProperty.getEs_number_of_replicas());
+
 		if(logIndexDao.indexExists(index)){
 			System.out.println(index+"  已存在！");
 			return true;
 		}else {
 
 			try {
-				logIndexDao.addMapping(index, LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
-                logIndexDao.addMapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
+				logIndexDao.addMapping(index, LogType.LOGTYPE_SYSLOG, settings, new Syslog().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_WINLOG, settings, new Winlog().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_LOG4J, settings, new Log4j().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_MYSQLLOG, settings, new Mysql().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, settings, new PacketFilteringFirewal().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_NETFLOW, settings, new Netflow().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_DNS, settings, new DNS().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_DHCP, settings, new DHCP().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_APP_FILE, settings, new App_file().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_APP_APACHE, settings, new App_file().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_UNKNOWN, settings, new Unknown().toMapping());
 
-                logIndexDao.addMapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
+                logIndexDao.addMapping(index,LogType.LOGTYPE_DEFAULTPACKET, settings, new DefaultPacket().toMapping());
 			}catch (Exception e){
 				e.printStackTrace();
 				System.out.println("创建index失败！！！");

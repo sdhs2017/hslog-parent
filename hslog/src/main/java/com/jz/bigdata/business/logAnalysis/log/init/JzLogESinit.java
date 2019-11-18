@@ -38,7 +38,7 @@ public class JzLogESinit {
 		String fieldString =  getClassMapping(classes);
 		template = template.replace("{#}",fieldString);
         try {
-            logIndexDao.addMapping(index, type, template);
+            logIndexDao.addMapping(index, type,null, template);
         } catch (Exception e) {
             e.printStackTrace();
         }

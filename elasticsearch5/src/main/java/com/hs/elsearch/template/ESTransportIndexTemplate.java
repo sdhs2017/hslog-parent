@@ -85,18 +85,14 @@ public class ESTransportIndexTemplate {
      *     '
      *
      */
-    public Boolean addMapping(String index, String type,String mappingproperties) throws Exception {
+    public Boolean addMapping(String index, String type,Map<String,Object> settings,String mappingproperties) throws Exception {
         boolean result = false;
-        // 更新index的setting属性
-        Settings.Builder settings = Settings.builder()
-                .put("index.max_result_window", 100000000)
-                .put("index.number_of_shards", 5)
-                .put("index.number_of_replicas",1);
+
         // 判断index是否存在
         if (this.indexExists(index)) {
-            UpdateSettingsRequest request = new UpdateSettingsRequest(index);
+            /*UpdateSettingsRequest request = new UpdateSettingsRequest(index);
             request.settings(settings);
-            UpdateSettingsResponse response = transportClient.admin().indices().updateSettings(request).actionGet();
+            UpdateSettingsResponse response = transportClient.admin().indices().updateSettings(request).actionGet();*/
             /*
              * 如果索引存在,则增加type，指定mapping。
              * 如果type、mapping也存在，并且mapping不一致，也会报错

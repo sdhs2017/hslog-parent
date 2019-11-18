@@ -22,7 +22,7 @@ public interface ILogIndexDao {
      * @param mappingproperties 字段熟悉，json格式
      * @return 返回是否创建成功true，失败false
      */
-    public Boolean addMapping(String index, String type,String mappingproperties) throws Exception;
+    public Boolean addMapping(String index, String type, Map<String,Object> settings, String mappingproperties) throws Exception;
 
     /**
      * 查询索引是否存在

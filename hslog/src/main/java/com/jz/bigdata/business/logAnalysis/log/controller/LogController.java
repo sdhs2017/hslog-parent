@@ -1077,9 +1077,9 @@ public class LogController extends BaseController{
 		//
 		String type = request.getParameter("type");
 		// 开始时间
-		String starttime = request.getParameter("startTime");
+		String starttime = request.getParameter("starttime");
 		// 结束时间
-		String endtime = request.getParameter("endTime");
+		String endtime = request.getParameter("endtime");
 		// 资产ip
 		String ip = request.getParameter("ip");
 		// 资产id

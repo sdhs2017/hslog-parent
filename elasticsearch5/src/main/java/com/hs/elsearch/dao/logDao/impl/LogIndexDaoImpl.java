@@ -26,8 +26,8 @@ public class LogIndexDaoImpl implements ILogIndexDao {
     }
 
     @Override
-    public Boolean addMapping(String index, String type, String mappingproperties) throws Exception {
-        return indexTemplate.addMapping(index,type,mappingproperties);
+    public Boolean addMapping(String index, String type, Map<String,Object> settings, String mappingproperties) throws Exception {
+        return indexTemplate.addMapping(index,type,settings,mappingproperties);
     }
 
     @Override

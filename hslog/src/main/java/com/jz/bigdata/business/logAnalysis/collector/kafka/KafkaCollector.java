@@ -289,6 +289,8 @@ public class KafkaCollector implements Runnable {
 				// netflow日志
 				Pattern netflowpattern = Pattern.compile("\"type\":\"netflow\"");
 				Matcher netflowmatcher = netflowpattern.matcher(log);
+				Pattern netflow1pattern = Pattern.compile("\"type\" => \"netflow\"");
+				Matcher netflow1matcher = netflow1pattern.matcher(log);
 				// DNS日志
 				Pattern dnspattern = Pattern.compile("\\s+named");
 				Matcher dnsmatcher = dnspattern.matcher(log);
@@ -428,7 +430,7 @@ public class KafkaCollector implements Runnable {
 						continue;
 					}
 					
-				}else if(netflowmatcher.find()){
+				}else if(netflowmatcher.find()||netflow1matcher.find()){
 					logType = LogType.LOGTYPE_NETFLOW;
 					try {
 						netflow = new Netflow(log, cal, protocolmap);

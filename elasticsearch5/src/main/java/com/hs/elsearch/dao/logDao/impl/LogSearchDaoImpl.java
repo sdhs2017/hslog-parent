@@ -3,12 +3,14 @@ package com.hs.elsearch.dao.logDao.impl;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.hs.elsearch.template.ESTransportIndexTemplate;
 import com.hs.elsearch.template.ESTransportSearchTemplate;
+import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.util.Strings;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
+import org.elasticsearch.search.aggregations.bucket.histogram.ExtendedBounds;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
@@ -282,12 +284,23 @@ public class LogSearchDaoImpl implements ILogSearchDao {
 
             }
         }
+        // 截取endtime的yyyy-MM-dd部分，将填充范围扩展到一整天0点-23点
+        String extendedendtime = StringUtils.substringBefore(endtime," ")+" 23:59:59";
+        // 当聚合结果为空时，需要填充0，设置需要填充0的范围
+        ExtendedBounds extendedBounds = new ExtendedBounds(starttime,extendedendtime);
 
         AggregationBuilder aggregationBuilder =
                 AggregationBuilders
+                        // 聚合别名
                         .dateHistogram("agg")
+                        // 聚合字段
                         .field(dateHistogramField)
-                        .dateHistogramInterval(DateHistogramInterval.HOUR);
+                        // 聚合的方式，小时
+                        .dateHistogramInterval(DateHistogramInterval.HOUR)
+                        // 为空的话则填充0
+                        .minDocCount(0)
+                        // 需要填充0的范围
+                        .extendedBounds(extendedBounds);
 
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, types, indices);

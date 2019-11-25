@@ -144,7 +144,13 @@ public class LogController extends BaseController{
 	@RequestMapping("/deleteById")
 	@DescribeLog(describe="通过日志ID删除日志信息")
 	public String deleteById(HttpServletRequest request) {
-		String type = request.getParameter("type");
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+		List<Map<String, Object>> list = MapUtil.json2ListMap(hsData);
+		String result ="false";
+		for (Map<String, Object> map : list) {
+			result = logService.deleteById(map.get("index").toString(), map.get("type").toString(), map.get("id").toString());
+		}
+		/*String type = request.getParameter("type");
 		String id = request.getParameter("id");
 		String [] types = type.split(",");
 		String [] ids = id.split(",");
@@ -158,7 +164,7 @@ public class LogController extends BaseController{
 				result = logService.deleteById(configProperty.getEs_index(), types[i], ids[i]);
 			}
 
-		}
+		}*/
 
 
 		return result;
@@ -1073,9 +1079,43 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="组合查询日志事件")
 	public String getEventListByBlend(HttpServletRequest request,HttpSession session) {
 		// receive parameter
+        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+        //System.out.println(hsData);
+        //hsData的参数说明{日志类型：type=dns, starttime=, endtime=, dns客户端ip：dns_clientip=, dns_view=, dns域名：dns_domain_name=, dns解析数据类型：dns_ana_type=, dns服务器：dns_server=, page=1, size=12}
 
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, String> map = new ConcurrentHashMap<>();
+
+        try {
+            map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        //System.out.println(map);
+        Object pageo = map.get("page");
+        Object sizeo = map.get("size");
+
+        map.remove("page");
+        map.remove("size");
+
+        String page = pageo.toString();
+        String size = sizeo.toString();
+
+        // 提出参数的时间查询条件
+        String starttime = "";
+        String endtime = "";
+        if (map.get("starttime")!=null) {
+            Object start = map.get("starttime");
+            starttime = start.toString();
+            map.remove("starttime");
+        }
+        if (map.get("endtime")!=null) {
+            Object end = map.get("endtime");
+            endtime = end.toString();
+            map.remove("endtime");
+        }
 		//
-		String type = request.getParameter("type");
+		/*String type = request.getParameter("type");
 		// 开始时间
 		String starttime = request.getParameter("starttime");
 		// 结束时间
@@ -1093,14 +1133,14 @@ public class LogController extends BaseController{
 		// 事件类型
 		String event_type = request.getParameter("event_type");
 		String page = request.getParameter("page");
-		String size = request.getParameter("size");
+		String size = request.getParameter("size");*/
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 
-		Map<String, String> map = new HashMap<String, String>();
+		//Map<String, String> map = new HashMap<String, String>();
 		// 事件查询自定义值，该字段确认日志中是否定性事件
 		map.put("event", "event");
 
-		if (ip!=null&&!ip.equals("")) {
+		/*if (ip!=null&&!ip.equals("")) {
 			map.put("ip", ip);
 		}
 		if (hostname!=null&&!hostname.equals("")) {
@@ -1117,7 +1157,7 @@ public class LogController extends BaseController{
 		}
 		if (equipmentid!=null&&!equipmentid.equals("")) {
 			map.put("equipmentid", equipmentid);
-		}
+		}*/
 		// 判断是否是非管理员角色，是传入参数用户id
 		if (!userrole.equals(ContextRoles.MANAGEMENT)){
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());

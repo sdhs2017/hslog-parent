@@ -399,6 +399,16 @@ public class FlowController {
         linkslist = logService.groupBy(index,types,groupbys,1000,starttime,endtime,searchmap);
 
 
+        //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
+        Iterator<Map<String, Object>> iterator = linkslist.iterator();
+        while (iterator.hasNext()) {
+            Map<String, Object> linkmap = iterator.next();
+            if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
+                iterator.remove();//使用迭代器的删除方法删除
+            }/*else {
+				System.out.println("包含："+linkmap);
+			}*/
+        }
         map.put("data", datalist);
         map.put("links", linkslist);
 

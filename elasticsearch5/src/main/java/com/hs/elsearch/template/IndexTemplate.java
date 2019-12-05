@@ -51,18 +51,17 @@ import java.util.Map;
  * @create: 2019-08-14 14:18
  **/
 
-//@Component
-public class ESTransportIndexTemplate {
+public class IndexTemplate {
 
-    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+    private static Logger logger = Logger.getLogger(IndexTemplate.class);
 
     /*@Autowired
     TransportClient transportClient;*/
 
     private  TransportClient transportClient;
 
-    public ESTransportIndexTemplate(TransportClient transportClient){
-        logger.info(" 初始化 ESTransportIndexTemplate ... ");
+    public IndexTemplate(TransportClient transportClient){
+        logger.info(" 初始化 IndexTemplate ... ");
         this.transportClient = transportClient;
     }
 

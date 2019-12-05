@@ -1,11 +1,14 @@
+/*
 package com.jz.bigdata.components.elasticsearch.spring.test.test1;
 
 
+*/
 /**
  * 
  * @author Dy
  *
- */
+ *//*
+
 
 //@RunWith(Suite.class)
 //@SuiteClasses( { SpringESTest.class })
@@ -57,3 +60,4 @@ public class SpringESTest {
 
 
 }
+*/

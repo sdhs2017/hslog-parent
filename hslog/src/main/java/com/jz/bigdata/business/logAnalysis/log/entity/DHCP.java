@@ -135,6 +135,15 @@ public class DHCP {
 	String client_ip;
 	//出现问题网段
 	String network_error;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
 	
 	public String getId() {
 		return id;
@@ -270,6 +279,22 @@ public class DHCP {
 
 	public void setEvent_des(String event_des) {
 		this.event_des = event_des;
+	}
+
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
 	}
 
 	public DHCP() {
@@ -528,6 +553,7 @@ public class DHCP {
 			this.event_des = "定时任务";
 		}
 
+		this.index_suffix = "syslog";
 	}
 
 	public static String getFacility(Integer value) {

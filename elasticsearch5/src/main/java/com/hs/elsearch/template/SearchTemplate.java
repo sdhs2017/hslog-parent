@@ -13,11 +13,8 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -29,17 +26,17 @@ import java.util.Map;
  **/
 
 //@Component
-public class ESTransportSearchTemplate {
+public class SearchTemplate {
 
-    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+    private static Logger logger = Logger.getLogger(SearchTemplate.class);
 
     /*@Autowired
     TransportClient transportClient;*/
 
     private  TransportClient transportClient;
 
-    public ESTransportSearchTemplate(TransportClient transportClient){
-        logger.info(" 初始化 ESTransportSearchTemplate ... ");
+    public SearchTemplate(TransportClient transportClient){
+        logger.info(" 初始化 SearchTemplate ... ");
         this.transportClient = transportClient;
     }
 

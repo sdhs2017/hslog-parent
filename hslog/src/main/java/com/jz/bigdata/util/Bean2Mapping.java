@@ -21,7 +21,7 @@ public class Bean2Mapping {
 		// 设置需要聚合的字段
 		String [] fielddata = {
 				// 基本字段
-				"userid", "deptid", "equipmentid", "equipmentname","logtime", "hostname", "operation_facility","operation_level", "process",  "eventid", "event_type",
+				"equipmentid", "equipmentname","logtime", "hostname", "operation_facility","operation_level", "process",  "eventid", "event_type","hslog_type",
 				// dhcp字段
 				"dhcp_type","client_mac" ,"client_hostname", "error_log","network_error",
 				// dns字段
@@ -85,6 +85,11 @@ public class Bean2Mapping {
 	}
 
 	private static String getElasticSearchMappingType(String varType, String name) {
+
+		// 设置keyword类型的字段
+		String [] keywords = {
+				"userid", "deptid", "id", "process_id"
+		};
 		String es = "text";
 		switch (varType) {
 		case "Date":
@@ -104,10 +109,10 @@ public class Bean2Mapping {
 			break;
 		default:
 			// 针对id类型的字段设置为keyword
-			if (name.contains("id")) {
+			if (Arrays.asList(keywords).contains(name)) {
 				es = "keyword\"";
 			// 针对ip类型的字段设置为ip类型，新版本的elasticsearch数据类型增加了IP类型
-			} else if (name.contains("ip")&&!name.equals("equipmentname")) {
+			} else if (name.contains("ip")&&!name.equals("equipmentname")&&!name.equals("equipmentid")) {
 				es = "ip\"";
 			}else {
 				es = "text\"";

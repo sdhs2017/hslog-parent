@@ -249,7 +249,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
      * 定时任务统计客户自定义的安全策略数据
      * @return
      */
-    public String updateRisk() {
+    public String updateRisk() throws Exception {
 		
     	List<Equipment> list = equipmentService.selectAllEquipmentByRisk();
     	String index = configProperty.getEs_index();

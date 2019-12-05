@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import com.hs.business.utils.check.ContextCheck;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
@@ -82,20 +83,28 @@ public class CollectorController {
 		
 		Map<String, Object> map = new HashMap<>();
 		// 判断index是否存在，如果不存在提示执行初始化操作
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-		//boolean indexExists = logService.indexExists(configProperty.getEs_index());
-        boolean indexExists = false;
-        try {
-            indexExists = logService.indexExists(index);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (!indexExists) {
+		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
 			map.put("state", false);
 			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
 			return JSONArray.fromObject(map).toString();
 		}
+
+		/*SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+		//boolean indexExists = logService.indexExists(configProperty.getEs_index());
+		boolean indexExists = false;
+		try {
+			indexExists = logService.indexExists(index);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		if (!indexExists) {
+			map.put("state", false);
+			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
+			return JSONArray.fromObject(map).toString();
+		}*/
+
+
 		boolean result = collectorService.startKafkaCollector(equipmentService, logCrudDao, configProperty,
 				alarmService, usersService);
 		
@@ -197,9 +206,9 @@ public class CollectorController {
 		Map<String, Object> map = new HashMap<>();
 		// 判断index是否存在，如果不存在提示执行初始化操作
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+		//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 		//boolean indexExists = logService.indexExists(configProperty.getEs_index());
-        boolean indexExists = false;
+        /*boolean indexExists = false;
         try {
             indexExists = logService.indexExists(index);
         } catch (Exception e) {
@@ -208,6 +217,12 @@ public class CollectorController {
         if (!indexExists) {
 			map.put("state", false);
 			map.put("msg", "数据包采集器开启失败，请先执行初始化操作");
+			return JSONArray.fromObject(map).toString();
+		}*/
+		// 判断index是否存在，如果不存在提示执行初始化操作
+		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
+			map.put("state", false);
+			map.put("msg", "流量采集器开启失败，请先执行初始化操作");
 			return JSONArray.fromObject(map).toString();
 		}
 		

@@ -2,6 +2,7 @@ package com.hs.elsearch.dao.logDao;
 
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -13,7 +14,7 @@ public interface ILogIndexDao {
      * @param index 索引名称
      * @return  成功true 失败false
      */
-    public boolean createIndex(String index);
+    public boolean createIndex(String index) throws Exception;
 
     /**
      * 创建index下type的mapping属性
@@ -22,30 +23,30 @@ public interface ILogIndexDao {
      * @param mappingproperties 字段熟悉，json格式
      * @return 返回是否创建成功true，失败false
      */
-    public Boolean addMapping(String index, String type, Map<String,Object> settings, String mappingproperties) throws Exception;
+    public Boolean addMapping(String index, String type, Map<String, Object> settings, String mappingproperties) throws Exception;
 
     /**
      * 查询索引是否存在
-     * @param index 索引名称
+     * @param indices 索引名称
      * @return
      * @throws Exception
      */
-    public Boolean indexExists(String index) throws Exception;
+    public Boolean indexExists(String... indices) throws Exception;
 
 
     /**
      * 删除指定index
-     * @param index
+     * @param indices
      * @return
      */
-    public boolean deleteByIndex(String index);
+    public boolean deleteByIndex(String... indices) throws Exception;
 
     /**
      * 查询备份仓库信息
      * @param repositories 仓库名称
      * @return
      */
-    public List<Map<String, Object>> getRepositoriesInfo(String... repositories);
+    public List<Map<String, Object>> getRepositoriesInfo(String... repositories) throws Exception;
 
     /**
      * 创建备份仓库
@@ -53,14 +54,14 @@ public interface ILogIndexDao {
      * @param repoPath 物理路径
      * @return
      */
-    public Boolean createRepositories(String repositoryName,String repoPath);
+    public Boolean createRepositories(String repositoryName, String repoPath) throws Exception;
 
     /**
      * 删除备份仓库
      * @param repositoryName 仓库名称
      * @return
      */
-    public Boolean deleteRepositories(String repositoryName);
+    public Boolean deleteRepositories(String repositoryName) throws Exception;
 
     /**
      * 更新inde的setting属性
@@ -68,7 +69,7 @@ public interface ILogIndexDao {
      * @param map setting的map
      * @return
      */
-    public boolean updateSettings(String index,Map<String, Object> map);
+    public boolean updateSettings(String index, Map<String, Object> map) throws IOException;
 
     /**
      * 合并索引
@@ -77,7 +78,8 @@ public interface ILogIndexDao {
      * @param onlyExpungeDeletes 是否仅合并删除段
      * @return
      */
-    public ForceMergeResponse indexForceMerge(String [] indices, int maxNumSegments, boolean onlyExpungeDeletes);
+    public ForceMergeResponse indexForceMerge(String[] indices, int maxNumSegments, boolean onlyExpungeDeletes) throws Exception;
+
 
     /**
      * 用于初始化操作创建index的模板
@@ -90,4 +92,12 @@ public interface ILogIndexDao {
      */
     public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String,Object> settings,String type, String mapping) throws Exception;
 
+    /**
+     * 用于开启服务前的验证，保证elasticsearch5版本的index必须存在或者elasticsearch7版本的template必须存在
+     * @param indexOrTemplate 索引名称或者模板命名称(elasticsearch5版本传入index，elasticsearch7版本传入template)
+     * @return
+     */
+    public boolean checkOfIndexOrTemplate(String... indexOrTemplate) throws Exception;
+
+    public void initOfElasticsearch(String indexOrTemplate, String templatePattern, String type, Map<String, Object> settings, String mapping) throws Exception;
 }

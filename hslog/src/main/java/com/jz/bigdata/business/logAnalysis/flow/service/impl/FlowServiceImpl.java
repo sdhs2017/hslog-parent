@@ -31,13 +31,13 @@ public class FlowServiceImpl implements IflowService {
     }
 
     @Override
-    public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, int size, String starttime, String endtime, Map<String, String> map) {
+    public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, int size, String starttime, String endtime, Map<String, String> map) throws Exception {
 
         return flowSearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,map,index);
     }
 
     @Override
-    public List<Map<String, Object>> getFlowListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) {
+    public List<Map<String, Object>> getFlowListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception {
 
         SearchHit[] hits = null;
         Integer fromInt = 0;

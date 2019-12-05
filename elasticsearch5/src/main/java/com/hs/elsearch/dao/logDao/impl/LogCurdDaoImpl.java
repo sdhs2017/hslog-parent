@@ -1,7 +1,8 @@
 package com.hs.elsearch.dao.logDao.impl;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.hs.elsearch.template.ESTransportCrudTemplate;
+import com.hs.elsearch.template.CrudTemplate;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class LogCurdDaoImpl implements ILogCrudDao {
 
     @Autowired
-    ESTransportCrudTemplate crudTemplate;
+    CrudTemplate crudTemplate;
 
 
     @Override

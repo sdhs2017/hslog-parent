@@ -26,7 +26,7 @@ public interface IflowService {
      * @param map 其他限制条件
      * @return
      */
-    public List<Map<String, Object>> groupBy(String index,String[] types,String groupByField, int size, String starttime, String endtime,Map<String, String> map);
+    public List<Map<String, Object>> groupBy(String index,String[] types,String groupByField, int size, String starttime, String endtime,Map<String, String> map) throws Exception;
 
     /**
      * 新
@@ -40,6 +40,6 @@ public interface IflowService {
      * @param indices 索引名
      * @return 返回详细日志内容
      */
-    public List<Map<String, Object>> getFlowListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices);
+    public List<Map<String, Object>> getFlowListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception;
 
 }

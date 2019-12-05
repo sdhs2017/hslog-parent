@@ -70,16 +70,25 @@ public class Http {
 	 */
 	private Date logdate;
 	private String logtime;
-	private String logtime_minute;
+	/*private String logtime_minute;
 	private String logtime_hour;
 	private String logtime_day;
 	private String logtime_month;
-	private String logtime_year;
+	private String logtime_year;*/
 
 	/**
 	 * 操作描述
 	 */
 	private String operation_des;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
 
 	
 
@@ -227,7 +236,7 @@ public class Http {
 		this.logtime = logtime;
 	}
 
-	public String getLogtime_minute() {
+	/*public String getLogtime_minute() {
 		return logtime_minute;
 	}
 
@@ -265,7 +274,7 @@ public class Http {
 
 	public void setLogtime_year(String logtime_year) {
 		this.logtime_year = logtime_year;
-	}
+	}*/
 
 	public String getOperation_des() {
 		return operation_des;
@@ -325,6 +334,22 @@ public class Http {
 		this.domain_url = domain_url;
 	}
 
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
+
 	/**
 	 * @param packet
 	 * 构造方法，填充数据
@@ -338,14 +363,14 @@ public class Http {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		this.logdate=currentTime;
 		this.logtime =formatter.format(currentTime);
-    	String [] tmp = this.logtime.split(" ");
+    	/*String [] tmp = this.logtime.split(" ");
     	String [] date = tmp[0].split("-");
     	String [] time = tmp[1].split(":");
     	this.logtime_year = date[0];
     	this.logtime_month = date[1];
     	this.logtime_day = date[2];
     	this.logtime_hour = time[0];
-    	this.logtime_minute = time[1];
+    	this.logtime_minute = time[1];*/
 		
 		this.ipv4_src_addr=ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
 		this.l4_src_port=tcpPacket.getHeader().getSrcPort().valueAsInt()+"";
@@ -420,8 +445,8 @@ public class Http {
 			}
 			
 		}
-		
-        
+
+		this.index_suffix = "packet";
         
 	}
 		

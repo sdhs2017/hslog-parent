@@ -80,11 +80,11 @@ public class DNS {
 	 */
 	Date logdate;
 	String logtime;
-	String logtime_minute;
+	/*String logtime_minute;
 	String logtime_hour;
 	String logtime_day;
 	String logtime_month;
-	String logtime_year;
+	String logtime_year;*/
 	/**
 	 * ip地址
 	 */
@@ -153,6 +153,15 @@ public class DNS {
 	 * dns 服务器
 	 */
 	String dns_server;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
 	
 	
 	public String getId() {
@@ -330,6 +339,22 @@ public class DNS {
 		this.dns_server = dns_server;
 	}
 
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
+
 	public DNS() {
 		
 	}
@@ -415,14 +440,14 @@ public class DNS {
 				e.printStackTrace();
 			}
         	this.logtime = datematcher.group(0);
-        	String [] tmp = this.logtime.split(" ");
+        	/*String [] tmp = this.logtime.split(" ");
         	String [] date = tmp[0].split("-");
         	String [] time = tmp[1].split(":");
         	this.logtime_year = date[0];
         	this.logtime_month = date[1];
         	this.logtime_day = date[2];
         	this.logtime_hour = time[0];
-        	this.logtime_minute = time[1];
+        	this.logtime_minute = time[1];*/
         }
 		
 		if (!Strings.isNullOrEmpty(logtime)) {
@@ -459,14 +484,14 @@ public class DNS {
 					try {
 						this.logdate = dhcpformat.parse(DNSdatematcher.group(0));
 						this.logtime = format.format(logdate);
-						String [] tmptime = this.logtime.split(" ");
+						/*String [] tmptime = this.logtime.split(" ");
 			        	String [] date = tmptime[0].split("-");
 			        	String [] time = tmptime[1].split(":");
 			        	this.logtime_year = date[0];
 			        	this.logtime_month = date[1];
 			        	this.logtime_day = date[2];
 			        	this.logtime_hour = time[0];
-			        	this.logtime_minute = time[1];
+			        	this.logtime_minute = time[1];*/
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
@@ -542,8 +567,8 @@ public class DNS {
 			this.event_type="crond";
 			this.event_des="定时任务";
 		}
-		
-		
+
+		this.index_suffix = "syslog";
 		
 	}
 	

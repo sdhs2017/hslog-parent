@@ -2,7 +2,6 @@ package com.hs.elsearch.dao.logDao;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public interface ILogSearchDao {
 
@@ -16,7 +15,7 @@ public interface ILogSearchDao {
      * @param indices
      * @return
      */
-    public long getCount(Map<String,String> map, String starttime,String endtime, String [] types,String... indices);
+    public long getCount(Map<String, String> map, String starttime, String endtime, String[] types, String... indices);
 
 
     /**
@@ -30,7 +29,7 @@ public interface ILogSearchDao {
      * @return 返回聚合结果
      */
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size,
-                                                          Map<String, String> map, String... indices);
+                                                          Map<String, String> map, String... indices) throws Exception;
 
     /**
      * 带条件的聚合查询
@@ -43,11 +42,11 @@ public interface ILogSearchDao {
      * @return 返回聚合结果
      */
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size,
-                                                          Map<String, String> map,String... indices);
+                                                          Map<String, String> map, String... indices) throws Exception;
 
 
     public List<Map<String, Object>> getListByDateHistogramAggregation(String[] types, String starttime, String endtime, String dateHistogramField,
-                                                                       Map<String, String> map,String... indices);
+                                                                       Map<String, String> map, String... indices) throws Exception;
 
     /**
      * 全文检索
@@ -59,7 +58,7 @@ public interface ILogSearchDao {
      * @param indices 索引名称
      * @return 返回符合关键字的日志内容
      */
-    public List<Map<String, Object>> getListByContent(String content,String userid,int page,int size,String[] types,String... indices);
+    public List<Map<String, Object>> getListByContent(String content, String userid, int page, int size, String[] types, String... indices) throws Exception;
 
     /**
      *
@@ -70,20 +69,7 @@ public interface ILogSearchDao {
      * @param indices
      * @return
      */
-    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices);
-
-    /**
-     *
-     * @param map
-     * @param starttime
-     * @param endtime
-     * @param from
-     * @param size
-     * @param types
-     * @param indices
-     * @return
-     */
-    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types,String... indices);
+    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types, String... indices) throws Exception;
 
     /**
      *
@@ -96,5 +82,18 @@ public interface ILogSearchDao {
      * @param indices
      * @return
      */
-    public List<Map<String, Object>> getLogListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types,String... indices);
+    public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception;
+
+    /**
+     *
+     * @param map
+     * @param starttime
+     * @param endtime
+     * @param from
+     * @param size
+     * @param types
+     * @param indices
+     * @return
+     */
+    public List<Map<String, Object>> getLogListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception;
 }

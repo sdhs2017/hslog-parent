@@ -1,7 +1,7 @@
 package com.hs.elsearch.dao.logDao.impl;
 
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
-import com.hs.elsearch.template.ESTransportIndexTemplate;
+import com.hs.elsearch.template.IndexTemplate;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,7 +17,7 @@ import java.util.Map;
 public class LogIndexDaoImpl implements ILogIndexDao {
 
     @Autowired
-    ESTransportIndexTemplate indexTemplate;
+    IndexTemplate indexTemplate;
 
 
     @Override
@@ -63,5 +63,10 @@ public class LogIndexDaoImpl implements ILogIndexDao {
     @Override
     public ForceMergeResponse indexForceMerge(String[] indices, int maxNumSegments, boolean onlyExpungeDeletes) {
         return indexTemplate.indexForceMerge(indices,maxNumSegments,onlyExpungeDeletes);
+    }
+
+    @Override
+    public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String, Object> settings, String type, String mapping) throws Exception {
+        return indexTemplate.createOrUpdateTemplateOfIndex(tempalateName,tempalatePattern,settings,type,mapping);
     }
 }

@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 
 import com.google.gson.Gson;
@@ -93,6 +94,7 @@ public class SysLogKafkaConsumer implements Runnable {
 //			System.err.println(equ.getId()+equ.getUserId()+equ.getDepartmentId());
 			Gson gson = new Gson();
 			List<IndexRequest> requests = new ArrayList<IndexRequest>();
+			//BulkRequest requests = new BulkRequest();
 			StringBuilder builder = new StringBuilder();
 			while (it.hasNext()) {
 				//System.out.println("---中泰数据接收-----"+it.next().message().toString());

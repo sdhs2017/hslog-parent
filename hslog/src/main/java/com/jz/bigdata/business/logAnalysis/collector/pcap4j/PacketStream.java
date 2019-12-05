@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.apache.log4j.Logger;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
@@ -42,9 +43,9 @@ public class PacketStream {
 	private ProtocolListener listener = new TLSProtocolListener();
 	private HashMap<String,LinkedList<TcpPacket>> ackSendBuffer=new HashMap<String,LinkedList<TcpPacket>>();
 	private HashMap<String,LinkedList<TcpPacket>> ackRecvBuffer=new HashMap<String,LinkedList<TcpPacket>>();
-	
-	List<IndexRequest> requests ;
-	
+
+	//BulkRequest requests ;
+	List<IndexRequest> requests;
 	
 	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap)
 	{
@@ -70,7 +71,7 @@ public class PacketStream {
 
 			// index名称定义
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+			//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 			
 			if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
@@ -80,7 +81,7 @@ public class PacketStream {
 					if ((getSubUtil(hexStringToString(payloadString), httpRequest)!=""||getSubUtil(hexStringToString(payloadString), httpResponse)!="")&&!dst_port.equals("9300")) {
 						try {
 							http =new Http(packet);
-							
+							http.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
 							if (http.getDomain_url()!=null&&!http.getDomain_url().equals("")) {
 								domainSet.add(http.getDomain_url());
 							}
@@ -90,7 +91,8 @@ public class PacketStream {
 							}
 							json = gson.toJson(http);
 							//requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
-							requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+							//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 						} catch (Exception e) {
 							System.out.println("---------------范式化失败·······---------"+e.getMessage());
 							e.printStackTrace();
@@ -98,6 +100,7 @@ public class PacketStream {
 						
 					}else {
 						defaultpacket = new DefaultPacket(packet);
+						defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
 						if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
 							defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
 						}
@@ -113,12 +116,14 @@ public class PacketStream {
 						}*/
 						json = gson.toJson(defaultpacket);
 						//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-						requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+						//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+						requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 					}
 				}
 				
 			}else {
 				defaultpacket = new DefaultPacket(packet);
+				defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
 				if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
 					defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
 				}
@@ -133,7 +138,7 @@ public class PacketStream {
 				}*/
 				json = gson.toJson(defaultpacket);
 				//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-				requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+				requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 			}
 			
 		
@@ -142,13 +147,13 @@ public class PacketStream {
 					logCurdDao.bulkInsert(requests);
 					requests.clear();
 				} catch (Exception e) {
-					logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());
+					//logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());
 					e.printStackTrace();
 				}
 				
 			}
 		} catch (Exception e) {
-			logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());
+			//logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());
 			e.printStackTrace();
 		}
 		

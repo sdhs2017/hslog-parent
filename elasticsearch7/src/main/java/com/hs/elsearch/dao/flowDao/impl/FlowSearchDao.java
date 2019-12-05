@@ -9,6 +9,7 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.BucketOrder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
@@ -57,6 +58,10 @@ public class FlowSearchDao implements IFlowSearchDao {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
 
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
         // 遍历map中查询条件
         for(Map.Entry<String, String> entry : map.entrySet()){
             // 针对通过IP地址查询流量日志的功能，需要匹配源地址或目的地址，采用多字段查询multiMarchQuery
@@ -83,7 +88,7 @@ public class FlowSearchDao implements IFlowSearchDao {
             }
         }
         try {
-            result = searchTemplate.getCountByQuery(boolQueryBuilder, types, indices);
+            result = searchTemplate.getCountByQuery(boolQueryBuilder, indices);
         } catch (Exception e) {
             e.printStackTrace();
             result = 0;
@@ -93,7 +98,7 @@ public class FlowSearchDao implements IFlowSearchDao {
     }
 
     @Override
-    public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size, Map<String, String> map, String... indices) {
+    public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         // 时间段查询条件处理
@@ -107,6 +112,12 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
+
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
+
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
             for(Map.Entry<String, String> entry : map.entrySet()){
@@ -127,12 +138,12 @@ public class FlowSearchDao implements IFlowSearchDao {
         }
 
         // 聚合条件处理
-        String count = groupByField+"_count";
+        String count = "aggs";
         // 聚合查询group by
-        AggregationBuilder aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(Terms.Order.count(false)).size(size);
+        AggregationBuilder aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size);
 
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, types, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
 
         Terms terms  = aggregations.get(count);
 
@@ -149,7 +160,7 @@ public class FlowSearchDao implements IFlowSearchDao {
     }
 
     @Override
-    public List<Map<String, Object>> getFlowListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) {
+    public List<Map<String, Object>> getFlowListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
         // 时间段查询条件处理
@@ -162,6 +173,11 @@ public class FlowSearchDao implements IFlowSearchDao {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
         }
 
         // 遍历map中查询条件
@@ -190,6 +206,6 @@ public class FlowSearchDao implements IFlowSearchDao {
         // 构建排序体,指定排序字段
         SortBuilder sortBuilder = SortBuilders.fieldSort(orderField).order(desc);
 
-        return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,from,size,types,indices);
+        return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,from,size,indices);
     }
 }

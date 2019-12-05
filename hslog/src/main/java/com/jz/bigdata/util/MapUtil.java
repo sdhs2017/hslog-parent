@@ -63,14 +63,14 @@ public class MapUtil {
      * @return
      */
     public static Map removeMapEmptyValue(Map map){
-        System.out.println(map.toString());
+        //System.out.println(map.toString());
         Set set = map.keySet();
         for (Iterator iterator = set.iterator(); iterator.hasNext();) {
             Object obj = (Object) iterator.next();
             Object value =(Object)map.get(obj);
             remove(value, iterator);
         }
-        System.out.println(map.toString());
+        //System.out.println(map.toString());
         return map;
     }
 

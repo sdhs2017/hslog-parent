@@ -302,7 +302,7 @@ public class Log4j {
             	 fieldstring.append("\t\t\t\t\t\t,\"index\": \""
                          + "false\"" + "\n");
 			}
-             if (!fields[i].getName().equals("operation_des")&&!fields[i].getName().equals("id")&&!fields[i].getName().equals("logdate")) {
+             if (!fields[i].getName().equals("operation_des")&&!fields[i].getName().equals("id")&&!fields[i].getName().equals("logdate")&&!fields[i].getName().equals("index_suffix")&&!fields[i].getName().equals("hslog_type")) {
 				fieldstring.append("\t\t\t\t\t\t,\"fielddata\": "
                         + "true" + "\n");
 			}

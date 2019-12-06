@@ -177,15 +177,15 @@ public class IndexTemplate {
 
     /**
      * 判断指定索引是否存在
-     * @param index
+     * @param indices
      * @return
      * @throws Exception
      *
      * curl -I "IP:9200/index_name?pretty"
      */
-    public boolean indexExists(String index) throws Exception{
+    public boolean indexExists(String... indices) throws Exception{
         boolean result = false;
-        IndicesExistsRequest request = new IndicesExistsRequest(index);
+        IndicesExistsRequest request = new IndicesExistsRequest(indices);
         IndicesExistsResponse response = transportClient.admin().indices().exists(request).actionGet();
         result = response.isExists();
         return result;

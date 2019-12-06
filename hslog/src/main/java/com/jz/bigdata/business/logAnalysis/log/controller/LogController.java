@@ -190,94 +190,80 @@ public class LogController extends BaseController{
 	public String createIndexAndMapping(HttpServletRequest request) {
 		Map<String, Object> map= new HashMap<>();
 
-
-
 		try {
-			// elasticsearch版本为7时，true，进入版本7的初始化操作步骤，else进入版本5的初始化操作步骤
-			if (true){
 
-				Map<String, Object> settingmap = new HashMap<>();
-				settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
-				settingmap.put("index.number_of_shards", configProperty.getEs_number_of_shards());
-				settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
-				String templatename = "hslog";
-				String templatepattern ="hslog";
-				/*logService.createTemplateOfIndex("hslog_syslog","hslog_syslog*",settingmap,null,new MappingOfSyslog().toMapping());
-				logService.createTemplateOfIndex("hslog_packet","hslog_packet*",settingmap,null,new MappingOfNet().toMapping());*/
-				logService.initOfElasticsearch(configProperty.getEs_index(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
-				logService.initOfElasticsearch(configProperty.getEs_index(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
-				/*logService.createTemplateOfIndex(templatename,templatepattern,settingmap,null,new MappingOfFirewalls().toMapping());
-				logService.createTemplateOfIndex(templatename,templatepattern,settingmap,null,new MappingOfFilebeat().toMapping());*/
+			Map<String, Object> settingmap = new HashMap<>();
+			settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
+			settingmap.put("index.number_of_shards", configProperty.getEs_number_of_shards());
+			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+			// elasticsearch7 版本初始化template
+			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
+			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
 
-				map.put("state", true);
-				map.put("msg", "初始化成功！");
-				return JSONArray.fromObject(map).toString();
-			}else{
-				// 初始化当天的index
-				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-				String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+			// 初始化当天的index
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+			String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_SYSLOG,settingmap,new Syslog().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_WINLOG,settingmap,new Winlog().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_LOG4J,settingmap,new Log4j().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_MYSQLLOG,settingmap,new Mysql().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,settingmap,new PacketFilteringFirewal().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_NETFLOW,settingmap,new Netflow().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DNS,settingmap,new DNS().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DHCP,settingmap,new DHCP().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_APP_FILE,settingmap,new App_file().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_APP_APACHE,settingmap,new App_file().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_UNKNOWN,settingmap,new Unknown().toMapping());
+			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DEFAULTPACKET,settingmap,new DefaultPacket().toMapping());
 
-				// 网络数据包
-//			logService.createIndexAndmapping(index,LogType.LOGTYPE_HTTP, new Http().toMapping());
-//			logService.createIndexAndmapping(index,LogType.LOGTYPE_HTTPS, new Https().toMapping());
-//			logService.createIndexAndmapping(index,LogType.LOGTYPE_TCP, new Tcp().toMapping());
-				logService.createIndexAndmapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());
+			/*logService.createIndexAndmapping(index,LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
+			logService.createIndexAndmapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());*/
 
 
-				// 更新index的settings属性
-				Map<String, Object> settingmap = new HashMap<>();
-				settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
-				settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
-				logService.updateSettings(index, settingmap);
-				// 在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
-				try {
-					// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
-					List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
+			// 更新index的settings属性
+			Map<String, Object> setting = new HashMap<>();
+			setting.put("index.max_result_window", configProperty.getEs_max_result_window());
+			setting.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+			logService.updateSettings(index, setting);
+			// 在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
+			try {
+				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
+				List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
 
-					if(repositories.isEmpty()) {
-						Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
-						if (!result) {
-							map.put("state", true);
-							map.put("msg", "备份仓库初始化失败！");
-							return JSONArray.fromObject(map).toString();
-						}
-					}
-				} catch (Exception e) {
+				if(repositories.isEmpty()) {
 					Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
 					if (!result) {
-						map.put("state", false);
+						map.put("state", true);
 						map.put("msg", "备份仓库初始化失败！");
 						return JSONArray.fromObject(map).toString();
 					}
 				}
-
-
-			/*Map<String,Object> settingsMap = new HashMap<>();
-			settingsMap.put("index.max_result_window",configProperty.getEs_max_result_window());
-			settingsMap.put("index.number_of_replicas",configProperty.getEs_number_of_replicas());
-			settingsMap.put("index.number_of_shards",configProperty.getEs_number_of_shards());
-
-			logService.createTemplateOfIndex(configProperty.getEs_templatename(),configProperty.getEs_tempalatePattern(),settingsMap,LogType.LOGTYPE_SYSLOG,new Syslog().toMapping());
-			logService.createTemplateOfIndex(configProperty.getEs_templatename(),configProperty.getEs_tempalatePattern(),settingsMap,LogType.LOGTYPE_WINLOG,new Winlog().toMapping());
-*/
-				map.put("state", true);
-				map.put("msg", "初始化成功！");
-				return JSONArray.fromObject(map).toString();
+			} catch (Exception e) {
+				Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
+				if (!result) {
+					map.put("state", false);
+					map.put("msg", "备份仓库初始化失败！");
+					return JSONArray.fromObject(map).toString();
+				}
 			}
 
+			map.put("state", true);
+			map.put("msg", "初始化成功！");
+			return JSONArray.fromObject(map).toString();
+
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error(e.getMessage());
 			map.put("state", false);
 			map.put("msg", "数据结构初始化失败！");
@@ -722,21 +708,22 @@ public class LogController extends BaseController{
 	 * @param request
 	 * @author jiyourui
 	 * @return
-	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
 	 */
 	@ResponseBody
 	@RequestMapping(value="/getLogListByBlend",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="组合查询日志数据")
-	public String getLogListByBlend(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
+	public String getLogListByBlend(HttpServletRequest request,HttpSession session) {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new ConcurrentHashMap<String, String>();
-		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
@@ -800,15 +787,12 @@ public class LogController extends BaseController{
 	 * @param request
 	 * @author jiyourui
 	 * @return
-	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
 	 */
 	/*@SuppressWarnings("unchecked")
 	@ResponseBody
 	@RequestMapping(value="/getLogListByFlow",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="业务流分析-深钻-日志内容")
-	public String getLogListByFlow(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
+	public String getLogListByFlow(HttpServletRequest request,HttpSession session) {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
@@ -867,15 +851,12 @@ public class LogController extends BaseController{
 	 * @param request
 	 * @author jiyourui
 	 * @return
-	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
 	@RequestMapping(value="/exportLogList",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="导出查询的日志数据")
-	public String exportLogList(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
+	public String exportLogList(HttpServletRequest request,HttpSession session) {
 
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		// 使用手机号作为导出的路径
@@ -889,7 +870,11 @@ public class LogController extends BaseController{
 		ObjectMapper mapper = new ObjectMapper();
 		// 使用线程安全的map
 		Map<String, String> map = new ConcurrentHashMap<>();
-		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 
 		Object pageo = map.get("page");
@@ -1073,15 +1058,12 @@ public class LogController extends BaseController{
 	 * @param request
 	 * @author jiyourui
 	 * @return
-	 * @throws IOException
-	 * @throws JsonMappingException
-	 * @throws JsonParseException
 	 */
 	@SuppressWarnings("unchecked")
 	@ResponseBody
 	@RequestMapping(value="/getDNSLogListByBlend",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="DNS组合查询日志数据")
-	public String getDNSLogListByBlend(HttpServletRequest request,HttpSession session) throws JsonParseException, JsonMappingException, IOException {
+	public String getDNSLogListByBlend(HttpServletRequest request,HttpSession session) {
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
@@ -1091,7 +1073,11 @@ public class LogController extends BaseController{
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new ConcurrentHashMap<>();
 
-		map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 		//System.out.println(map);
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
@@ -1648,7 +1634,7 @@ public class LogController extends BaseController{
 	@ResponseBody
 	@RequestMapping(value="/importHistoricalData",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="导入历史数据")
-	public String importHistoricalData(HttpServletRequest request) throws Exception {
+	public String importHistoricalData(HttpServletRequest request) {
 
 		String filepath = request.getParameter("filepath");
 		String DEFAULT_REGEX = "^ java.|^   at";
@@ -1910,7 +1896,11 @@ public class LogController extends BaseController{
 			e.printStackTrace();
 		}finally {
 			if (requests.size()>0) {
-				logCrudDao.bulkInsert(requests);
+				try {
+					logCrudDao.bulkInsert(requests);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
 		}
 

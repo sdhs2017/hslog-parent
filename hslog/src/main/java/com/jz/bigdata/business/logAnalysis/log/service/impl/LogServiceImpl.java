@@ -1546,9 +1546,15 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public boolean updateSettings(String index, Map<String, Object> map) throws IOException {
+	public boolean updateSettings(String index, Map<String, Object> map) throws Exception {
 
-		return logIndexDao.updateSettings(index, map);
+		// 判断index是否存在，不存在则不需要更新
+		if (indexExists(index)){
+			return logIndexDao.updateSettings(index, map);
+		}else {
+			return true;
+		}
+
 	}
 
 	@Override

@@ -417,7 +417,7 @@ public interface IlogService {
 	 * @param map
 	 * @return
 	 */
-	public boolean updateSettings(String index,Map<String, Object> map) throws IOException;
+	public boolean updateSettings(String index,Map<String, Object> map) throws Exception;
 
 	/**
 	 * 定时任务：创建

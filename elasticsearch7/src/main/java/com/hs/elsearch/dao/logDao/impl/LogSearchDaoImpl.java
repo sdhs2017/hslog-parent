@@ -324,14 +324,14 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         return list;
     }
 
-    /*@Override
+    @Override
     public List<Map<String, Object>> getListByContent(String content, String userid, int page, int size, String[] types, String... indices) throws Exception {
 
         long count = 0;
         List<Map<String, Object>> list = new ArrayList<>();
         List<Map<String, Object>> arrayList = new ArrayList<>();
         // 针对全文检索需要查询的关键字段
-        String [] fieldNames = {"operation_level","operation_des","ip","hostname","process","operation_facility"," equipmentname"};
+        String [] fieldNames = {"operation_level","operation_des","hostname","process","operation_facility"," equipmentname","hslog_type"};
 
         // 构建查询体
         BoolQueryBuilder QueryBuilder = QueryBuilders.boolQuery();
@@ -439,9 +439,9 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         arrayList.addAll(list);
 
         return arrayList;
-    }*/
+    }
 
-    @Override
+    /*@Override
     public List<Map<String, Object>> getListByContent(String content, String userid, int page, int size, String[] types, String... indices) throws Exception {
 
         long count = 0;
@@ -507,7 +507,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         arrayList.addAll(list);
 
         return arrayList;
-    }
+    }*/
 
     @Override
     public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types, String... indices) throws Exception {

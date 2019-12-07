@@ -1,0 +1,49 @@
+<template>
+    <div class="content-bg">
+        <div class="top-title">版本信息编写</div>
+        <div class="container">
+            <quill-editor ref="myTextEditor" v-model="content" :options="editorOption"></quill-editor>
+            <el-button class="editor-btn" type="primary" @click="submit">提交</el-button>
+        </div>
+    </div>
+</template>
+
+<script>
+    import 'quill/dist/quill.core.css';
+    import 'quill/dist/quill.snow.css';
+    import 'quill/dist/quill.bubble.css';
+    import { quillEditor } from 'vue-quill-editor';
+    export default {
+        name: 'editor',
+        data: function(){
+            return {
+                content: '',
+                editorOption: {
+                    theme:'bubble',
+                    placeholder: ''
+                }
+            }
+        },
+        components: {
+            quillEditor
+        },
+        methods: {
+            onEditorChange({ editor, html, text }) {
+                this.content = html;
+            },
+            submit(){
+                console.log(this.content);
+                this.$message.success('提交成功！');
+            }
+        }
+    }
+</script>
+<style scoped>
+    .container{
+        background: #303e4e;
+    }
+
+    .editor-btn{
+        margin-top: 20px;
+    }
+</style>

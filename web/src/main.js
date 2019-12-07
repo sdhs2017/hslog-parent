@@ -34,7 +34,7 @@ if (process.env.NODE_ENV === 'development'){
     Vue.prototype.$baseUrl = '/jz';
 } else if (process.env.NODE_ENV === 'production') {
     //axios.defaults.baseURL = '../';
-    Vue.prototype.$baseUrl = '../..';
+    Vue.prototype.$baseUrl = '../hslog';
 }
 axios.defaults.timeout = 30000;
 //axios拦截器

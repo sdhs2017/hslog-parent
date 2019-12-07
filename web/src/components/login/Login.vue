@@ -138,7 +138,7 @@
                            if (res.data.success === 'true'){
                                localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                this.getLogConfig();
-                               this.$router.push('/');
+                               this.$router.push('/index');
                            }else if(res.data.success==="false"){
                                layer.msg(res.data.message,{
                                    icon: 5,

@@ -17,13 +17,13 @@ public interface ILogCrudDao {
      * @param json 数据内容
      * @return
      */
-    public IndexRequest insertNotCommit(String index, String type, String json);
+    public IndexRequest insertNotCommit(String index, String type, String json) throws Exception;
 
     /**
      * 批量提交
      * @param requests list数据
      */
-    public void bulkInsert(List<IndexRequest> requests) ;
+    public void bulkInsert(List<IndexRequest> requests) throws Exception;
 
     /**
      * 添加单条数据
@@ -31,7 +31,7 @@ public interface ILogCrudDao {
      * @param type index 的type字段，7版本移除
      * @param json 数据内容json格式
      */
-    public void insert(String index, String type, String json);
+    public void insert(String index, String type, String json) throws Exception;
 
 
     /**
@@ -41,7 +41,7 @@ public interface ILogCrudDao {
      * @param id
      * @return
      */
-    public Map<String, Object> searchById(String index, String type, String id);
+    public Map<String, Object> searchById(String index, String type, String id) throws Exception;
 
     /**
      * 通过查询体删除指定index的指定数据
@@ -49,7 +49,7 @@ public interface ILogCrudDao {
      * @param indices 索引名
      * @return 返回删除的数据量
      */
-    public long countDeleteByQuery(QueryBuilder queryBuilder,String... indices);
+    public long countDeleteByQuery(QueryBuilder queryBuilder, String... indices) throws Exception;
 
     /**
      * 通过id删除单一数据(doc)
@@ -58,7 +58,7 @@ public interface ILogCrudDao {
      * @param id
      * @return
      */
-    public String deleteById(String index, String type, String id);
+    public String deleteById(String index, String type, String id) throws Exception;
 
     /**
      * 根据不同的版本制定index的方式不同

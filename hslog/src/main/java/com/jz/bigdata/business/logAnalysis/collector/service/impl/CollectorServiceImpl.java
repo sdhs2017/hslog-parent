@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.NotOpenException;
@@ -317,6 +318,7 @@ public class CollectorServiceImpl implements ICollectorService{
 				 .create(); 
         
         List<IndexRequest> requests = new ArrayList<IndexRequest>();
+		//BulkRequest requests = new BulkRequest();
         
         //初始化listener
         PacketListener listener = new PacketListener() {

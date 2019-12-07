@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.log.service.impl;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -41,7 +42,7 @@ import com.jz.bigdata.util.ConfigProperty;
 @Service(value="logService")
 public class LogServiceImpl implements IlogService {
 
-	//@Autowired protected ESTransportCrudTemplate clientTemplate;
+	//@Autowired protected CrudTemplate clientTemplate;
     @Autowired protected ILogCrudDao logCrudDao;
 
     @Autowired protected ILogIndexDao logIndexDao;
@@ -71,13 +72,13 @@ public class LogServiceImpl implements IlogService {
 	private SortOrder sortOrder;
 
 	@Override
-	public List<Map<String, Object>> index(String index,String type) {
+	public List<Map<String, Object>> index(String index,String type) throws Exception {
         String [] types = {type};
 		return logSearchDao.getListByMap(null,null,null, types,index);
 	}
 
 	@Override
-	public void insert(String index,String type,String json) {
+	public void insert(String index,String type,String json) throws Exception {
 		logCrudDao.insert(index, type, json);
 	}
 
@@ -88,27 +89,27 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public String deleteById(String index,String type,String id) {
+	public String deleteById(String index,String type,String id) throws Exception {
 		// TODO Auto-generated method stub
 		return logCrudDao.deleteById(index, type, id);
 	}
 
 	@Override
-	public void createIndex(String index) {
+	public void createIndex(String index) throws Exception {
 		// TODO Auto-generated method stub
 		logIndexDao.createIndex(index);
 	}
 
 	@Override
 	public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, int size, String starttime,
-											 String endtime, Map<String, String> termsmap) {
+											 String endtime, Map<String, String> termsmap) throws Exception {
 
 		return logSearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,termsmap,index);
 	}
 
 	@Override
 	public List<Map<String, Object>> groupBy(String index, String[] types, String[] groupByField, int size, String starttime,
-											 String endtime, Map<String, String> map) {
+											 String endtime, Map<String, String> map) throws Exception {
 
 		return logSearchDao.getListByAggregation(types,starttime,endtime,groupByField,size,map,index);
 	}
@@ -162,7 +163,7 @@ public class LogServiceImpl implements IlogService {
 	 * TO DO 获取资产各个时段的日志数据
 	 * @return
 	 */
-	public List<Map<String, Object>> getListGroupByTime(String index,String[] types,String today,String equipmentid) {
+	public List<Map<String, Object>> getListGroupByTime(String index,String[] types,String today,String equipmentid) throws Exception {
 
 		/*String groupby = "logtime_hour";
 		List<Map<String, Object>> list = clientTemplate.getListGroupByQueryBuilder(index, types, today,groupby,equipmentid);*/
@@ -226,7 +227,7 @@ public class LogServiceImpl implements IlogService {
 	 * service层
 	 */
 	@Override
-	public List<Map<String, Object>> getEventstypeCountByEquipmentid(String index,String[] types,String equipmentid,Date enddate) {
+	public List<Map<String, Object>> getEventstypeCountByEquipmentid(String index,String[] types,String equipmentid,Date enddate) throws Exception {
 
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String endtime = format.format(enddate);
@@ -292,7 +293,7 @@ public class LogServiceImpl implements IlogService {
 
 
 	@Override
-	public List<Map<String, Object>> getEventListGroupByTime(String index,String[] types,String today,String equipmentid,String eventtype,int i) {
+	public List<Map<String, Object>> getEventListGroupByTime(String index,String[] types,String today,String equipmentid,String eventtype,int i) throws Exception {
 
 
 		Date nowTime = new Date();
@@ -336,7 +337,7 @@ public class LogServiceImpl implements IlogService {
 	 * @return
 	 */
 	@Override
-	public List<Map<String, Object>> getEventListGroupByEventType(String index,String[] types,String today,String equipmentid,String groupby) {
+	public List<Map<String, Object>> getEventListGroupByEventType(String index,String[] types,String today,String equipmentid,String groupby) throws Exception {
 
 
 		Date nowTime = new Date();
@@ -456,8 +457,13 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
+	public void initOfElasticsearch(String indexOrTemplate, String templatePattern, String type, Map<String, Object> settings, String mapping) throws Exception {
+		logIndexDao.initOfElasticsearch(indexOrTemplate,templatePattern,type,settings,mapping);
+	}
+
+	@Override
 	public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String, Object> settings, String type, String mapping) throws Exception {
-		return logSearchDao.createTemplateOfIndex(tempalateName,tempalatePattern,settings,type,mapping);
+		return logIndexDao.createTemplateOfIndex(tempalateName,tempalatePattern,settings,type,mapping);
 	}
 
 	/**
@@ -683,7 +689,7 @@ public class LogServiceImpl implements IlogService {
 	}*/
 
 	@Override
-	public List<Map<String, Object>> getListByContent(String content,String userid,String page,String size,String[] types,String... indices){
+	public List<Map<String, Object>> getListByContent(String content,String userid,String page,String size,String[] types,String... indices) throws Exception {
 
 		Integer fromInt = 0;
 		Integer sizeInt = 10;
@@ -1129,7 +1135,7 @@ public class LogServiceImpl implements IlogService {
 	 * @return
 	 */
 	@Override
-	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices) {
+	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices) throws Exception {
 
 		/*BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
@@ -1164,7 +1170,7 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) {
+	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception {
 		Integer fromInt = 0;
 		Integer sizeInt = 10;
 		long count = 0;
@@ -1186,7 +1192,7 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) {
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception {
 
 		Integer fromInt = 0;
 		Integer sizeInt = 10;
@@ -1352,7 +1358,7 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public String searchById(String index, String type, String id) {
+	public String searchById(String index, String type, String id) throws Exception {
 
 		return logCrudDao.searchById(index,type,id).toString();
 	}
@@ -1467,7 +1473,7 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public ForceMergeResponse indexForceMergeForDelete(String[] indices) {
+	public ForceMergeResponse indexForceMergeForDelete(String[] indices) throws Exception {
 
 		// 该强制合并操作不对index的segments做操作
 		int maxNumSegments = -1;
@@ -1479,7 +1485,7 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public void deleteAndForcemerge(String[] indices, String type, Map<String, String> map) {
+	public void deleteAndForcemerge(String[] indices, String type, Map<String, String> map) throws Exception {
 
 		if (type!=null&&!type.equals("")) {
 			map.put("_type", type);
@@ -1522,27 +1528,33 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public boolean createRepositories(String repositoryName, String repoPath) {
+	public boolean createRepositories(String repositoryName, String repoPath) throws Exception {
 
 		return logIndexDao.createRepositories(repositoryName, repoPath);
 	}
 
 	@Override
-	public List<Map<String, Object>> getRepositoriesInfo(String... repositoryName) {
+	public List<Map<String, Object>> getRepositoriesInfo(String... repositoryName) throws Exception {
 
 		return logIndexDao.getRepositoriesInfo(repositoryName);
 	}
 
 	@Override
-	public boolean deleteRepositories(String repositoryName) {
+	public boolean deleteRepositories(String repositoryName) throws Exception {
 
 		return logIndexDao.deleteRepositories(repositoryName);
 	}
 
 	@Override
-	public boolean updateSettings(String index, Map<String, Object> map) {
+	public boolean updateSettings(String index, Map<String, Object> map) throws Exception {
 
-		return logIndexDao.updateSettings(index, map);
+		// 判断index是否存在，不存在则不需要更新
+		if (indexExists(index)){
+			return logIndexDao.updateSettings(index, map);
+		}else {
+			return true;
+		}
+
 	}
 
 	@Override
@@ -1589,6 +1601,20 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		return true;
+	}
+
+	@Override
+	public boolean checkOfIndexOrTemplate(String... indexOrTemplate){
+		boolean result = false;
+
+		//indexOrTemplate = indexOrTemplate.replace("*","");
+		try {
+			result = logIndexDao.checkOfIndexOrTemplate(indexOrTemplate);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return result;
 	}
 
 

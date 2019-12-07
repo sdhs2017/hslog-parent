@@ -19,11 +19,11 @@ public class JzLogESinit {
 		
 	}
 	
-	public void deleteIndex(String index, ILogIndexDao logIndexDao){
+	public void deleteIndex(String index, ILogIndexDao logIndexDao) throws Exception {
 		logIndexDao.deleteByIndex(index);
 	}
 	
-	public List<Map<String, Object>> countGroupBy(String index, String[] type, String param, ILogSearchDao ILogSearchDao){
+	public List<Map<String, Object>> countGroupBy(String index, String[] type, String param, ILogSearchDao ILogSearchDao) throws Exception {
 		
 		return ILogSearchDao.getListByAggregation(type,null,null,param,10,null,index);
 	}

@@ -265,15 +265,23 @@
 		      	}
 		    }) 
 	 	})
-	 	
-		var newDate = new Date();
-		var curDate = newDate.toLocaleDateString();
-		var curYear = newDate.getFullYear();
-		var curMonth = newDate.getMonth() + 1;
-		$(".startTime").val(curYear+'-'+curMonth+'-1');
-		$(".endTime").val(curDate.replace(/\//g,'-'));
-		
-		getRankingData(curYear+'-'+curMonth+'-1',curDate.replace(/\//g,'-'));
+
+        var newDate = new Date();
+        var curDate = newDate.toLocaleDateString();
+        var curYear = newDate.getFullYear();
+        var curMonth = newDate.getMonth() + 1;
+        var curDay = newDate.getDate();
+        if(curMonth < 10){
+            curMonth = '0'+curMonth
+        }
+        if(curDay < 10){
+            curDay = '0' + curDay;
+        }
+        var startTime = curYear+'-'+curMonth+'-01';
+        var endTime = curYear+'-'+curMonth+'-'+curDay;
+        $(".startTime").val(startTime);
+        $(".endTime").val(endTime);
+		getRankingData(startTime,endTime);
 		//获取数据方法
 		function getRankingData(startTime,endTime){
 			 var sfunc = function(data){//成功 

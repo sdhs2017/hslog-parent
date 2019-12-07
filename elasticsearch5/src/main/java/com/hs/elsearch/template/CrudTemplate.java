@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeRequest;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.bulk.byscroll.BulkByScrollResponse;
@@ -28,17 +29,17 @@ import java.util.Map;
  **/
 
 //@Component
-public class ESTransportCrudTemplate {
+public class CrudTemplate {
 
-    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+    private static Logger logger = Logger.getLogger(CrudTemplate.class);
 
     /*@Autowired
     TransportClient transportClient;*/
 
     private  TransportClient transportClient;
 
-    public ESTransportCrudTemplate(TransportClient transportClient){
-        logger.info(" 初始化 ESTransportCrudTemplate ... ");
+    public CrudTemplate(TransportClient transportClient){
+        logger.info(" 初始化 CrudTemplate ... ");
         this.transportClient = transportClient;
     }
 
@@ -103,8 +104,10 @@ public class ESTransportCrudTemplate {
      */
     public void bulkInsert(List<IndexRequest> requests) {
         BulkRequestBuilder bulkRequest = transportClient.prepareBulk();
-        for (IndexRequest request : requests) {
-            bulkRequest.add(request);
+
+        // elasticsearch版本5的BulkRequestBuilder无法批量将入7的bulkRequest，通过List<IndexRequest>进行兼容
+        for (IndexRequest indexRequest : requests){
+            bulkRequest.add(indexRequest);
         }
         BulkResponse bulkResponse = bulkRequest.execute().actionGet();
         if (bulkResponse.hasFailures()) {

@@ -43,11 +43,11 @@ public class Log4j {
 	 */
 	Date logdate;
 	String logtime;
-	String logtime_minute;
+	/*String logtime_minute;
 	String logtime_hour;
 	String logtime_day;
 	String logtime_month;
-	String logtime_year;
+	String logtime_year;*/
 	/**
 	 * 操作类型
 	 */
@@ -60,6 +60,16 @@ public class Log4j {
 	 * 操作描述
 	 */
 	String operation_des;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
+
 	/**
 	 * @return the id
 	 */
@@ -144,14 +154,30 @@ public class Log4j {
 	public void setOperation_des(String operation_des) {
 		this.operation_des = operation_des;
 	}
-	
+
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
+
 	public Log4j(){
 		
 	}
 	
 	
 	/**
-	 * 初始化	String2bean
+	 * 初始化	String2bean  针对以syslog形式发送过来的log4j日志
 	 * @param log
 	 * @throws ParseException 
 	 */
@@ -187,14 +213,14 @@ public class Log4j {
 	        	// 获取 时间
 				this.logtime = datematcher.group(0).replaceAll(",", ".");
 				this.logdate = format.parse(this.logtime);
-				String [] tmp = this.logtime.split(" ");
+				/*String [] tmp = this.logtime.split(" ");
 	        	String [] date = tmp[0].split("-");
 	        	String [] time = tmp[1].split(":");
 	        	this.logtime_year = date[0];
 	        	this.logtime_month = date[1];
 	        	this.logtime_day = date[2];
 	        	this.logtime_hour = time[0];
-	        	this.logtime_minute = time[1];
+	        	this.logtime_minute = time[1];*/
 	        }
 	        if (logLevelmatcher.find()) {
 	        	// 获取 日志级别
@@ -216,12 +242,13 @@ public class Log4j {
 			}else {
 				this.operation_des = log;
 			}
+			this.index_suffix = "syslog";
 		}
         
 	}
 	
 	/**
-	 * 初始化	String2bean
+	 * 初始化	String2bean  针对发送过来的日志是json格式的
 	 * @param log
 	 * @throws ParseException 
 	 */
@@ -235,11 +262,11 @@ public class Log4j {
 		this.logdate = new Date(log4jjson.getTimestamp());
 		cal.setTimeInMillis(log4jjson.getTimestamp());
 		this.logtime = format.format(cal.getTime());
-		this.logtime_year = String.valueOf(cal.get(Calendar.YEAR));
+		/*this.logtime_year = String.valueOf(cal.get(Calendar.YEAR));
 		this.logtime_month = String.format("%02d",cal.get(Calendar.MONTH)+1);
 		this.logtime_day = String.format("%02d",cal.get(Calendar.DAY_OF_MONTH));
 		this.logtime_hour = String.format("%02d",cal.get(Calendar.HOUR_OF_DAY));
-		this.logtime_minute = String.format("%02d",cal.get(Calendar.MINUTE));
+		this.logtime_minute = String.format("%02d",cal.get(Calendar.MINUTE));*/
 		
 		this.operation_level = log4jjson.getPriority();
 		if (log4jjson.getStack_trace()!=null) {
@@ -247,7 +274,7 @@ public class Log4j {
 		}else {
 			this.operation_des = this.logtime+" ["+operation_level+"] "+log4jjson.getLogger_name()+" "+log4jjson.getMessage();
 		}
-		
+		this.index_suffix = "syslog";
 		
 	}
 	
@@ -275,7 +302,7 @@ public class Log4j {
             	 fieldstring.append("\t\t\t\t\t\t,\"index\": \""
                          + "false\"" + "\n");
 			}
-             if (!fields[i].getName().equals("operation_des")&&!fields[i].getName().equals("id")&&!fields[i].getName().equals("logdate")) {
+             if (!fields[i].getName().equals("operation_des")&&!fields[i].getName().equals("id")&&!fields[i].getName().equals("logdate")&&!fields[i].getName().equals("index_suffix")&&!fields[i].getName().equals("hslog_type")) {
 				fieldstring.append("\t\t\t\t\t\t,\"fielddata\": "
                         + "true" + "\n");
 			}

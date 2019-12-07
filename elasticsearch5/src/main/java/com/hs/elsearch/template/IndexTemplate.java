@@ -51,18 +51,17 @@ import java.util.Map;
  * @create: 2019-08-14 14:18
  **/
 
-//@Component
-public class ESTransportIndexTemplate {
+public class IndexTemplate {
 
-    private static Logger logger = Logger.getLogger(ESTransportSearchTemplate.class);
+    private static Logger logger = Logger.getLogger(IndexTemplate.class);
 
     /*@Autowired
     TransportClient transportClient;*/
 
     private  TransportClient transportClient;
 
-    public ESTransportIndexTemplate(TransportClient transportClient){
-        logger.info(" 初始化 ESTransportIndexTemplate ... ");
+    public IndexTemplate(TransportClient transportClient){
+        logger.info(" 初始化 IndexTemplate ... ");
         this.transportClient = transportClient;
     }
 
@@ -178,15 +177,15 @@ public class ESTransportIndexTemplate {
 
     /**
      * 判断指定索引是否存在
-     * @param index
+     * @param indices
      * @return
      * @throws Exception
      *
      * curl -I "IP:9200/index_name?pretty"
      */
-    public boolean indexExists(String index) throws Exception{
+    public boolean indexExists(String... indices) throws Exception{
         boolean result = false;
-        IndicesExistsRequest request = new IndicesExistsRequest(index);
+        IndicesExistsRequest request = new IndicesExistsRequest(indices);
         IndicesExistsResponse response = transportClient.admin().indices().exists(request).actionGet();
         result = response.isExists();
         return result;

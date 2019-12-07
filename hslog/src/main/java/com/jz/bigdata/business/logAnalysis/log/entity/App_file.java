@@ -36,11 +36,11 @@ public class App_file {
 	 */
 	private Date logdate;
 	private String logtime;
-	private String logtime_minute;
+	/*private String logtime_minute;
 	private String logtime_hour;
 	private String logtime_day;
 	private String logtime_month;
-	private String logtime_year;
+	private String logtime_year;*/
 	private String timestamp;
 	/**
 	 * 操作类型
@@ -54,6 +54,15 @@ public class App_file {
 	 * 操作描述
 	 */
 	private String operation_des;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
 
 	private String host;
 	private String source;
@@ -119,7 +128,7 @@ public class App_file {
 		this.logtime = logtime;
 	}
 
-	public String getLogtime_minute() {
+	/*public String getLogtime_minute() {
 		return logtime_minute;
 	}
 
@@ -157,7 +166,7 @@ public class App_file {
 
 	public void setLogtime_year(String logtime_year) {
 		this.logtime_year = logtime_year;
-	}
+	}*/
 
 	public String getTimestamp() {
 		return timestamp;
@@ -189,6 +198,22 @@ public class App_file {
 
 	public void setOperation_des(String operation_des) {
 		this.operation_des = operation_des;
+	}
+
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
 	}
 
 	public String getHost() {
@@ -335,7 +360,7 @@ public class App_file {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String[] tmp = this.logtime.split(" ");
+			/*String[] tmp = this.logtime.split(" ");
 			String[] date = tmp[0].split("/");
 			String[] time = tmp[1].split(":");
 			this.logtime_year = date[0];
@@ -345,7 +370,7 @@ public class App_file {
 			this.logtime_minute = time[1];
 			System.out.println(logdate + "   " + logtime);
 			System.out.println(date.length + "   " + logtime_year + "   " + logtime_month + "    " + logtime_day
-					+ "    " + logtime_hour + "   " + logtime_minute);
+					+ "    " + logtime_hour + "   " + logtime_minute);*/
 			System.out.println(app_file.getMessage().indexOf(logtime));
 			this.operation_des = app_file.getMessage();
 			System.out.println(operation_des);
@@ -363,7 +388,7 @@ public class App_file {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String[] tmp = this.logtime.split(" ");
+			/*String[] tmp = this.logtime.split(" ");
 			String[] date = tmp[0].split("-");
 			String[] time = tmp[1].split(":");
 			this.logtime_year = date[0];
@@ -371,10 +396,11 @@ public class App_file {
 			this.logtime_day = date[2];
 			this.logtime_hour = time[0];
 			this.logtime_minute = time[1];
-			System.out.println(logtime);
+			System.out.println(logtime);*/
 			this.operation_des = app_file.getMessage();
 		}
 
+		this.index_suffix = "filebeat";
 	}
 
 	public String toMapping() {

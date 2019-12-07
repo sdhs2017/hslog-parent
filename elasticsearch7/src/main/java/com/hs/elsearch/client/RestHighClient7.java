@@ -1,4 +1,4 @@
-package com.hs.elsearch.template;
+package com.hs.elsearch.client;
 
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
-@Configuration
 public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, InitializingBean, DisposableBean {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());

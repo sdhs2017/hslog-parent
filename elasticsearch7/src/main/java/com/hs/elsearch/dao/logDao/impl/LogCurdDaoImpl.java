@@ -25,34 +25,35 @@ public class LogCurdDaoImpl implements ILogCrudDao {
 
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
+
     @Override
-    public IndexRequest insertNotCommit(String index, String type, String json) {
-        return crudTemplate.insertNotCommit(index,type,json);
+    public IndexRequest insertNotCommit(String index, String type, String json) throws Exception {
+        return crudTemplate.insertNotCommit(index,json);
     }
 
     @Override
-    public void bulkInsert(List<IndexRequest> requests) {
+    public void bulkInsert(List<IndexRequest> requests) throws Exception {
         crudTemplate.bulkInsert(requests);
     }
 
     @Override
-    public void insert(String index, String type, String json) {
-        crudTemplate.insert(index,type,json);
+    public void insert(String index, String type, String json) throws Exception {
+        crudTemplate.insert(index,json);
     }
 
     @Override
-    public Map<String, Object> searchById(String index, String type, String id) {
-        return crudTemplate.searchById(index,type,id);
+    public Map<String, Object> searchById(String index, String type, String id) throws Exception {
+        return crudTemplate.searchById(index,id);
     }
 
     @Override
-    public long countDeleteByQuery(QueryBuilder queryBuilder, String... indices) {
-        return crudTemplate.countDeleteByQuery(queryBuilder,indices);
+    public long countDeleteByQuery(QueryBuilder queryBuilder, String... indices) throws Exception {
+        return crudTemplate.deleteByQuery(queryBuilder,indices);
     }
 
     @Override
-    public String deleteById(String index, String type, String id) {
-        return crudTemplate.deleteById(index,type,id);
+    public String deleteById(String index, String type, String id) throws Exception {
+        return crudTemplate.deleteById(index,id);
     }
 
     @Override

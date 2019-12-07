@@ -55,11 +55,11 @@ public class DefaultPacket {
 	 */
 	private Date logdate;
 	private String logtime;
-	private String logtime_minute;
+	/*private String logtime_minute;
 	private String logtime_hour;
 	private String logtime_day;
 	private String logtime_month;
-	private String logtime_year;
+	private String logtime_year;*/
 	/**
 	 * 操作类型
 	 */
@@ -72,6 +72,15 @@ public class DefaultPacket {
 	 * 操作描述
 	 */
 	private String operation_des;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
 	
 	// -------------数据包关键属性---------------
 	/**
@@ -183,7 +192,7 @@ public class DefaultPacket {
 		this.logtime = logtime;
 	}
 
-	public String getLogtime_minute() {
+	/*public String getLogtime_minute() {
 		return logtime_minute;
 	}
 
@@ -221,7 +230,7 @@ public class DefaultPacket {
 
 	public void setLogtime_year(String logtime_year) {
 		this.logtime_year = logtime_year;
-	}
+	}*/
 
 	public String getOperation_level() {
 		return operation_level;
@@ -245,6 +254,22 @@ public class DefaultPacket {
 
 	public void setOperation_des(String operation_des) {
 		this.operation_des = operation_des;
+	}
+
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
 	}
 
 	public String getL4_src_port() {
@@ -412,14 +437,14 @@ public class DefaultPacket {
 		Date nowtime = new Date();
 		this.logdate = nowtime;
 		this.logtime = format.format(nowtime);
-		String [] tmp = this.logtime.split(" ");
+		/*String [] tmp = this.logtime.split(" ");
     	String [] date = tmp[0].split("-");
     	String [] time = tmp[1].split(":");
     	this.logtime_year = date[0];
     	this.logtime_month = date[1];
     	this.logtime_day = date[2];
     	this.logtime_hour = time[0];
-    	this.logtime_minute = time[1];
+    	this.logtime_minute = time[1];*/
 		
 		
 		// 通过ipv4数据包中的协议值来选择解析数据包的协议方法
@@ -475,7 +500,8 @@ public class DefaultPacket {
 			System.out.println("协议值："+ip4packet.getHeader().getProtocol());
 		}
 		this.packet_source = "libpcap";
-		
+
+		this.index_suffix = "packet";
 	}
 	
 	public String toMapping() {

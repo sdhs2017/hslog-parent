@@ -58,83 +58,90 @@ public class Syslog {
 	/**
 	 * id
 	 */
-	String id;
+	private String id;
 	/**
 	 * userid
 	 */
-	String userid;
+	private String userid;
 	/**
 	 * deptid
 	 */
-	String deptid;
+	private String deptid;
 	/**
 	 * equipmentid
 	 */
-	String equipmentid;
+	private String equipmentid;
 	/**
 	 * equipmentname
 	 */
-	String equipmentname;
+	private String equipmentname;
 	/**
 	 * 日志时间
 	 */
-	Date logdate;
-	String logtime;
-	String logtime_minute;
-	String logtime_hour;
-	String logtime_day;
-	String logtime_month;
-	String logtime_year;
+	private Date logdate;
+	private String logtime;
+
 	/**
 	 * ip地址
 	 */
-	String ip;
+	private String ip;
 	/**
 	 * 主机名
 	 */
-	String hostname;
+	private String hostname;
 	/**
 	 * syslog日志PRI值或者英文字符
 	 */
-	String pri;
+	private String pri;
 	/**
 	 * 日志模块
 	 * (facility)
 	 */
-	String operation_facility;
+	private String operation_facility;
 	/**
 	 * 日志级别
 	 * (Severity level)
 	 */
-	String operation_level;
+	private String operation_level;
 	/**
 	 * 进程名
 	 */
-	String process;
+	private String process;
 	/**
 	 * PID
 	 */
-	String PID;
+	private String PID;
 	/**
 	 * 操作描述
 	 */
-	String operation_des;
+	private String operation_des;
 	/**
 	 * 事件级别
 	 */
-	Integer event_level;
+	private Integer event_level;
 	/**
 	 * 事件类型
 	 */
-	String event_type;
+	private String event_type;
 	/**
 	 * 事件描述
 	 */
-	String event_des;
+	private String event_des;
 	/**
 	 * 是否为业务日志
 	 */
-	Boolean is_business;
+	private Boolean is_business;
+
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
+
 	
 	
 	public String getId() {
@@ -272,6 +279,22 @@ public class Syslog {
 		this.event_des = event_des;
 	}
 
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
+
 	public Syslog() {
 		
 	}
@@ -371,14 +394,14 @@ public class Syslog {
 				e.printStackTrace();
 			}
         	this.logtime = datematcher1.group(0);
-        	String [] tmp = this.logtime.split(" ");
+        	/*String [] tmp = this.logtime.split(" ");
         	String [] date = tmp[0].split("-");
         	String [] time = tmp[1].split(":");
         	this.logtime_year = date[0];
         	this.logtime_month = date[1];
         	this.logtime_day = date[2];
         	this.logtime_hour = time[0];
-        	this.logtime_minute = time[1];
+        	this.logtime_minute = time[1];*/
         // 该判断由于syslog的格式设置不会走到
         }else if(datematcher2.find()){
         	logtimetmp = datematcher2.group(0);
@@ -445,6 +468,8 @@ public class Syslog {
 		}
 		
 		this.is_business = false;
+
+		this.index_suffix = "syslog";
 		
 		if (shutdownmatcher.find()) {
 			this.event_type="poweroff";

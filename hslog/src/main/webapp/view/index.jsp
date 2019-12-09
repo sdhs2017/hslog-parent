@@ -439,7 +439,7 @@
     //刷新页面时调用，验证用户信息session
     $(function(){
         $.ajax({
-            url:'../users/checkLogin.do',
+            url:'../user/checkLogin.do',
             type:"get",  //提交方式
             dataType:"json", //数据类型
             success:function(data){
@@ -458,7 +458,7 @@
     //系统登出
     function loginOut(){
         $.ajax({
-            url:'../users/logout.do',
+            url:'../user/logout.do',
             data:"",
             type:"get",  //提交方式
             dataType:"json", //数据类型
@@ -729,6 +729,7 @@
             content:layerHtml
         })
     })
+    //加载系统
     //加载菜单
     getMenuData();
     function getMenuData(){
@@ -737,9 +738,9 @@
         //发送请求
         $.ajax({
             type:"post",
-            url:"../menu/selectAll.do",
+            url:"../menu/selectMenu.do",
             /* url:'menuData.json', */
-            data:{},
+            data:{systemID:'1'},
             async:true,
             success:function(data){
                 //console.log(data)

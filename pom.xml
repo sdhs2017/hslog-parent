@@ -714,6 +714,7 @@
             </exclusions>
         </dependency>
 
+
         <!--
         <bean id="esTransportClient" class="org.elk.ESTransportClient">
             <property name="clusterNodes" value="124.133.246.61:9300" />
@@ -791,7 +792,11 @@
             <artifactId>jna</artifactId>
             <version>5.2.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.3</version>
+        </dependency>
     </dependencies>
 
 

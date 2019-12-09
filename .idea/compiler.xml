@@ -6,11 +6,12 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="elasticsearch5" />
         <module name="elasticsearch7" />
+        <module name="elasticsearch5" />
         <module name="hslog" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel target="8" />
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_STRING" value="-encoding utf-8" />
@@ -18,7 +19,6 @@
       <module name="elasticsearch5" options="" />
       <module name="elasticsearch7" options="" />
       <module name="hslog" options="" />
-      <module name="hslog-parent" options="" />
     </option>
   </component>
 </project>

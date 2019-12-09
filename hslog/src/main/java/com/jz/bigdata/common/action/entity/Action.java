@@ -1,7 +1,7 @@
 package com.jz.bigdata.common.action.entity;
 
 import com.jz.bigdata.common.equipment.entity.Equipment;
-import com.jz.bigdata.common.users.entity.User;
+import com.jz.bigdata.roleauthority.user.entity.User;
 
 public class Action {
 	private String id;

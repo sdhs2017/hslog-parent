@@ -41,6 +41,7 @@ public class MapInterceptor implements Interceptor {
 		//获取执行的SQL语句，强制转成大写，避免大小写产生的
 		String sql = rs.getStatement().toString().toUpperCase();
 		//仅查看select语句或存储过程（CALL+空格）
+
 		if(sql.indexOf("SELECT")>=0||sql.indexOf("CALL ")>=0){
 			//获取MetaData
 			ResultSetMetaData md = rs.getMetaData();
@@ -62,6 +63,9 @@ public class MapInterceptor implements Interceptor {
 			//如果没有进行拦截处理，则执行默认逻辑
 			return invocation.proceed();
 		}
+
+
+
 		//上面的if没有进行返回，说明需要进行拦截
 		//定义返回对象类型
 		List<List<Map<String,Object>>> resultList = new ArrayList<List<Map<String,Object>>>();
@@ -77,8 +81,10 @@ public class MapInterceptor implements Interceptor {
 			closeResultSet(_rs);
 			resultList.add(_result);
 		}
-		*/
+*/
 		return resultList;
+
+		//return invocation.proceed();
 	}
 
 	

@@ -35,16 +35,16 @@ public class Constant {
 	/**
 	 * 登陆包路径
 	 */
-	public static String LOGINPATH="com.jz.bigdata.common.users.controller.UsersController.login";
+	public static String LOGINPATH="com.jz.bigdata.roleauthority.user.controller.UserController.login";
 	/**
 	 * 注册包路径
 	 */
-	public static String REGISTERPATH="com.jz.bigdata.common.users.controller.UsersController.registerUser";
+	public static String REGISTERPATH="com.jz.bigdata.roleauthority.user.controller.UserController.registerUser";
 	
 	/**
 	 * 上传证书激活
 	 */
-	public static String UPLOADPATH="com.jz.bigdata.common.users.controller.FileUploadController.licenseUpload";
+	public static String UPLOADPATH="com.jz.bigdata.roleauthority.user.controller.FileUploadController.licenseUpload";
 	/**
 	 * api数据接口
 	 */

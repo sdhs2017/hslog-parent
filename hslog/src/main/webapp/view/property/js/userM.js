@@ -591,7 +591,7 @@
 		//发送请求获得用户数数据
 		$.ajax({
 			type:"post",
-			url:"../../users/selectById.do",
+			url:"../../user/selectById.do",
 			data:{id:id},
 			async:true,
 			success:function(data){

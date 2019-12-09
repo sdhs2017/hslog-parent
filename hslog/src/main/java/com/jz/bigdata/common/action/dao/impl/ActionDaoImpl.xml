@@ -11,7 +11,7 @@
 		<result column="type" jdbcType="VARCHAR" property="type" />
 		<result column="feature" jdbcType="VARCHAR" property="feature" />
 		<result column="deleteState" jdbcType="INTEGER" property="deleteState" />
-		<association property="user" javaType="com.jz.bigdata.common.users.entity.User">
+		<association property="user" javaType="com.jz.bigdata.roleauthority.user.entity.User">
              <id property="id" column="userId"/>
              <result property="userName" column="name"/>
         </association>

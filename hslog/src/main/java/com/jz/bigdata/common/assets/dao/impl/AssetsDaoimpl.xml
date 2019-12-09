@@ -32,7 +32,7 @@
 		<result column="protocol" jdbcType="VARCHAR" property="protocol" />
 		<result column="state" jdbcType="VARCHAR" property="state" />
 		<result column="responseDate" jdbcType="VARCHAR" property="responseDate" />
-		<association property="user" javaType="com.jz.bigdata.common.users.entity.User">
+		<association property="user" javaType="com.jz.bigdata.roleauthority.user.entity.User">
              <id property="userId" column="id"/>
              <result property="name" column="userName"/>
         </association>

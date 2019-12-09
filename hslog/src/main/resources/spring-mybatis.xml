@@ -170,6 +170,7 @@
 
 	<!-- 事务管理带aop -->
 	<!--class是引用的spring下的类 -->
+	<tx:annotation-driven />
 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<!-- 创建一个事务管理 ref引用的是dataSource的数据源（连接数据库配置） -->
 		<property name="dataSource" ref="logDataSource"/>
@@ -244,7 +245,7 @@
 	<bean id="userSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"/>
 		<!-- 自动扫描mapping.xml文件 -->
-		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/user/**/*.xml"></property>
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/roleauthority/user/**/*.xml"></property>
 
 		<property name="plugins">
 			<array>
@@ -279,7 +280,7 @@
 	<bean id="logSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="logDataSource"/>
 		<!-- 自动扫描mapping.xml文件 -->
-		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/users/**/*.xml"></property>
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/roleauthority/user/**/*.xml"></property>
 
 		<property name="plugins">
 			<array>
@@ -363,7 +364,7 @@
 	<bean id="menuSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="logDataSource"/>
 		<!-- 自动扫描mapping.xml文件 -->
-		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/menu/**/*.xml"></property>
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/roleauthority/menu/**/*.xml"></property>
 
 		<property name="plugins">
 			<array>
@@ -371,7 +372,30 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 系统名称 -->
+	<bean id="systemSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/roleauthority/system/**/*.xml"></property>
 
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
+	<!-- 系统名称 -->
+	<bean id="roleSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/roleauthority/role/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- 动作业务mapper -->
 	<bean id="actionSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="logDataSource"/>
@@ -493,10 +517,7 @@
 		<property name="basePackage" value="com.jz.bigdata.business.health"/>
 		<property name="sqlSessionFactoryBeanName" value="healthSqlSessionFactory"></property>
 	</bean>
-	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.jz.bigdata.common.user"/>
-		<property name="sqlSessionFactoryBeanName" value="userSqlSessionFactory"></property>
-	</bean>
+
 	<!-- 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.jz.bigdata.task" />
 		<property name="sqlSessionFactoryBeanName" value="taskSqlSessionFactory"></property>
@@ -507,7 +528,7 @@
 	</bean> -->
 	<!-- log配置 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.jz.bigdata.common.users"/>
+		<property name="basePackage" value="com.jz.bigdata.roleauthority.user"/>
 		<property name="sqlSessionFactoryBeanName" value="logSqlSessionFactory"></property>
 	</bean>
 	<!--部门配置 -->
@@ -542,8 +563,17 @@
 	</bean>
 	<!--菜单配置 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.jz.bigdata.common.menu"/>
+		<property name="basePackage" value="com.jz.bigdata.roleauthority.menu"/>
 		<property name="sqlSessionFactoryBeanName" value="menuSqlSessionFactory"></property>
+	</bean>
+	<!--系统配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.roleauthority.system"/>
+		<property name="sqlSessionFactoryBeanName" value="systemSqlSessionFactory"></property>
+	</bean>
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.roleauthority.role"/>
+		<property name="sqlSessionFactoryBeanName" value="roleSqlSessionFactory"></property>
 	</bean>
 	<!--动作表配置 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">

@@ -31,7 +31,7 @@
 		<result column="domain" jdbcType="VARCHAR" property="domain" />
 		<result column="port" jdbcType="VARCHAR" property="port" />
 		<association property="user"
-					 javaType="com.jz.bigdata.common.users.entity.User">
+					 javaType="com.jz.bigdata.roleauthority.user.entity.User">
 			<id property="userId" column="id" />
 			<result property="name" column="userName" />
 		</association>

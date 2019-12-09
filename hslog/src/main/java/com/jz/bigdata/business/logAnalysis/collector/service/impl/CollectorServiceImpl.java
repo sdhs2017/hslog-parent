@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.NotOpenException;
@@ -46,9 +47,6 @@ import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
 import com.jz.bigdata.common.serviceInfo.service.IServiceInfoService;
 import com.jz.bigdata.common.url.dao.IUrlDao;
-import com.jz.bigdata.common.users.service.IUsersService;
-//import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-//import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.Uuid;
 
@@ -115,7 +113,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 	
 	@SuppressWarnings("finally")
-	public boolean initKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUsersService usersService){
+	public boolean initKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService){
 
 		boolean result = false;
 		try{
@@ -141,7 +139,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	@Override
-	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService){
+	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
 		boolean result = false;
 		//如果为true，则表示已经开启，反之，则为未开启，需要初始化
 		

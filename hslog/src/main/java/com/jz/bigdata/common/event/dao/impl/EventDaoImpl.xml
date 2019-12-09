@@ -15,7 +15,7 @@
 		<result column="time_interval" jdbcType="VARCHAR" property="time_interval" />
 		<result column="event_classify" jdbcType="INTEGER" property="event_classify" />
 		<association property="user"
-			javaType="com.jz.bigdata.common.users.entity.User">
+			javaType="com.jz.bigdata.roleauthority.user.entity.User">
 			<id property="userId" column="id" />
 			<result property="name" column="userName" />
 		</association>

@@ -67,7 +67,7 @@
 	    <!-- 如果不定义 mvc:mapping path 将拦截所有的URL请求 -->
 	    <bean class="com.jz.bigdata.util.AuthInterceptor"></bean>
 	</mvc:interceptors>
-	
+	<mvc:resources mapping="/dist/**" location="/dist/"/>
 	<!--避免IE执行AJAX时，返回JSON出现下载文件 -->
 	<bean id="mappingJacksonHttpMessageConverter"
 		class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">

@@ -1,6 +1,6 @@
 package com.jz.bigdata.common.event.entity;
 
-import com.jz.bigdata.common.users.entity.User;
+import com.jz.bigdata.roleauthority.user.entity.User;
 
 public class Event {
 	private String id;

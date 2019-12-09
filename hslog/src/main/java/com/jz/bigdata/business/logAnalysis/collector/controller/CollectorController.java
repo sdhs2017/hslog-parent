@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
@@ -26,9 +27,7 @@ import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.assets.service.IAssetsService;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
-import com.jz.bigdata.common.users.service.IUsersService;
-//import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-//import com.hs.elsearch.template.bak.ClientTemplate;
+
 
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
@@ -51,8 +50,8 @@ public class CollectorController {
 	@Resource(name = "AlarmService")
 	private IAlarmService alarmService;
 
-	@Resource(name = "UsersService")
-	private IUsersService usersService;
+	@Resource(name = "UserService")
+	private IUserService usersService;
 	
 	@Resource(name="logService")
 	private IlogService logService;

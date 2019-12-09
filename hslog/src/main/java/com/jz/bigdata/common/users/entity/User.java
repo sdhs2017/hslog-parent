@@ -1,11 +1,10 @@
 package com.jz.bigdata.common.users.entity;
-
 import com.jz.bigdata.common.department.entity.Department;
 
 /**
  * @author shichengyu
  * @date 2017年8月1日 上午9:55:43
- * @description
+ * @description 用户基本信息表
  */
 public class User {
 	private String id;//员工id	
@@ -16,19 +15,10 @@ public class User {
 	private Integer age;//年龄
 	private String email;//电子邮箱
 	private int departmentId;//部门表id
-	private int state;
-	private int role;//角色
-	private String roleName;//角色名称
-//	private String ordPassword;//
-	
-//	private String departmentName;
-	
-	public String getRoleName() {
-		return roleName;
-	}
-	public void setRoleName(String roleName) {
-		this.roleName = roleName;
-	}
+	private int state;//状态，启用/停用
+	private int role;
+
+
 	public int getRole() {
 		return role;
 	}
@@ -36,8 +26,6 @@ public class User {
 		this.role = role;
 	}
 	private Department department;
-	
-	
 
 	public Department getDepartment() {
 		return department;
@@ -45,12 +33,7 @@ public class User {
 	public void setDepartment(Department department) {
 		this.department = department;
 	}
-//	public String getDepartmentName() {
-//		return departmentName;
-//	}
-//	public void setDepartmentName(String departmentName) {
-//		this.departmentName = departmentName;
-//	}
+
 	public String getId() { 
 		return id;
 	}

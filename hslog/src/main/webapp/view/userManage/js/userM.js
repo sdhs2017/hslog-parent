@@ -304,7 +304,7 @@
 	    	//发送请求 获取用户数据
 	    	$.ajax({
 				type:"post",
-				url:"../../users/selectUser.do",
+				url:"../../user/selectUser.do",
 				data:{"id":depObjId},
 				async:true,
 				success:function(data){
@@ -430,7 +430,7 @@
 			layer.msg('获取用户信息失败',{icon: 5});
 		}
 		//发送请求
-		ajaxPost("../../users/selectAlls.do",obj,sfunc,efunc);
+		ajaxPost("../../user/selectAlls.do",obj,sfunc,efunc);
 	}
 	
 	//拼接用户列表字符串函数
@@ -590,7 +590,7 @@
 			layer.msg('信息获取失败',{icon: 5});
 		}
 		//发送请求
-		ajaxPost("../../users/selectById.do",{id:id},sfunc,efunc);
+		ajaxPost("../../user/selectById.do",{id:id},sfunc,efunc);
 		
 		
 	}
@@ -620,7 +620,7 @@
 				console.log(err)
 			}
 			//发送请求
-			ajaxPost("../../users/deletes.do",{"ids":id},sfunc);
+			ajaxPost("../../user/deletes.do",{"ids":id},sfunc);
 			//关闭弹窗
 			layer.close();
 		}, function(){
@@ -847,7 +847,7 @@
 			layer.msg('添加失败',{icon: 5});
 		}
 		//发送请求
-		ajaxPost("../../users/inserts.do",userObj,sfunc);
+		ajaxPost("../../user/inserts.do",userObj,sfunc);
 	}
 	
 	//修改用户 函数
@@ -864,7 +864,7 @@
 			layer.msg('修改失败',{icon: 5});
 		}
 		//发送请求
-		ajaxPost("../../users/inserts.do",userObj,sfunc);
+		ajaxPost("../../user/inserts.do",userObj,sfunc);
 	}
 	//var searchStutus = false;
 	//搜索用户传参对象

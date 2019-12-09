@@ -128,7 +128,7 @@ $(function() {
 		});
 		$.ajax({
 			type:"post",
-			url:"users/login.do",
+			url:"user/login.do",
 			data:obj,
 			timeout:30000,
 			async:true,

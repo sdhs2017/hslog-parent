@@ -9,15 +9,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.roleauthority.user.dao.IUserDao;
+import com.jz.bigdata.roleauthority.user.entity.User;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.function.dao.IFunctionDao;
 import com.jz.bigdata.common.function.service.IFunctionService;
 import com.jz.bigdata.common.function.util.GetfunctionMap;
-import com.jz.bigdata.common.users.dao.IUsersDao;
-import com.jz.bigdata.common.users.entity.User;
-import com.jz.bigdata.common.users.service.IUsersService;
+
 
 
 /**
@@ -27,14 +28,14 @@ import com.jz.bigdata.common.users.service.IUsersService;
  */
 public class AuthInterceptor extends HandlerInterceptorAdapter {
 
-	@Resource(name = "UsersService")
-	private IUsersService userService;
+	@Resource(name = "UserService")
+	private IUserService userService;
 
 	@Resource(name = "FunctionService")
 	private IFunctionService functionService;
 
 	@Resource
-	private IUsersDao userDao;
+	private IUserDao userDao;
 
 	@Resource
 	private IFunctionDao functionDao;
@@ -60,7 +61,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 			 * equals改为indexof(*)>0
 			 * 或者 只判断项目路径后面的相对路径
 			 */
-			if(request.getRequestURI().contains("/users/logout.do")||request.getRequestURI().contains("/users/registerUser.do")){
+			if(request.getRequestURI().contains("/user/logout.do")||request.getRequestURI().contains("/user/registerUser.do")){
 				return true;
 			}else if(request.getRequestURI().contains("/upload/licenseUpload.do")){
 				//TODO
@@ -115,9 +116,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 					 * 后期修改：
 					 * function的map加载改为初始全部加载
 					 */
-					if(map.get(String.valueOf(_userList.get(0).getRole()) )==null||map.get(String.valueOf(_userList.get(0).getRole())).equals("")){
-						getfunctionMap.getfunctionMap(_userList.get(0).getRole(),functionService);
-					}
+					//if(map.get(String.valueOf(_userList.get(0).getRole()) )==null||map.get(String.valueOf(_userList.get(0).getRole())).equals("")){
+					//	getfunctionMap.getfunctionMap(_userList.get(0).getRole(),functionService);
+					//}
 				}
 //    		System.out.println(GetfunctionMap.map.size());
 //    		funService.map;
@@ -148,12 +149,14 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 //        		System.out.println(session.getAttribute(Constant.SESSION_USERROLE));
 //        		System.out.println(map.get(session.getAttribute(Constant.SESSION_USERROLE).toString()));
 //        		System.out.println(request.getRequestURI().toString());
+
 				//是否有权限
 				/**
 				 * TODO
 				 * request.getRequestURI().toString()为带项目名的路径，
 				 * 如果数据库function表中的resource字段后期删除项目名，则此处要截取掉项目名
 				 */
+				/*
 				if(map!=null&&map.get(session.getAttribute(Constant.SESSION_USERROLE).toString()).get(request.getRequestURI().toString())!=null){
 					return true;
 					//无权限
@@ -164,14 +167,12 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 //        			JSONArray array=JSONArray.fromObject("{msg:您没有权限}");
 //            		response.setCharacterEncoding("utf-8");
 
-					/**
-					 * TODO
-					 * 规范返回信息，与前端回调匹配
-					 */
+
 					out.print("您没有权限");
 
 					return false;
-				}
+				}*/
+				return true;
 //        		System.out.println(map.size());
 //        		System.out.println(map.get(session.getAttribute(Constant.SESSION_USERROLE)).get("/jzLog/users/selectUser.do"));
 //        		return true;

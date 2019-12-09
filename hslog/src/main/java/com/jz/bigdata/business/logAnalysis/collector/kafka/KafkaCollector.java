@@ -50,7 +50,7 @@ public class KafkaCollector implements Runnable {
     //private ClientTemplate template;
 	private ILogCrudDao logCurdDao;
     private ConfigProperty configProperty;
-    private IUsersService usersService;
+    private IUserService usersService;
 	public static Map<String,Object> map=new HashMap<String,Object>();
 	
 	Map<String, String> protocolmap = new HashMap<String, String>();
@@ -113,7 +113,7 @@ public class KafkaCollector implements Runnable {
 	 * @param alarmService
 	 * @param usersService
 	 */
-	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService) {
+	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService) {
 		Properties props = new Properties();
 		//zookeeper 配置
 //		props.put("zookeeper.connect", "124.133.246.61:2281");

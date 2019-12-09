@@ -114,7 +114,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 	
 	@SuppressWarnings("finally")
-	public boolean initKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUsersService usersService){
+	public boolean initKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService){
 
 		boolean result = false;
 		try{
@@ -140,7 +140,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	@Override
-	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService){
+	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
 		boolean result = false;
 		//如果为true，则表示已经开启，反之，则为未开启，需要初始化
 		

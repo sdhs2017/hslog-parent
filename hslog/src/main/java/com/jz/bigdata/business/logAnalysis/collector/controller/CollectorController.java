@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import com.hs.business.utils.check.ContextCheck;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.pcap4j.core.PcapAddress;

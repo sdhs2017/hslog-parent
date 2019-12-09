@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.roleauthority.system.dao.ISystemDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.roleauthority.system.entity.System">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="sys_name" jdbcType="VARCHAR" property="sys_name" />
+		<result column="note" jdbcType="VARCHAR" property="note" />
+	</resultMap>
+
+	
+	
+		
+	
+
+	<!-- 查询所有数据 -->
+	<select id="selectAllSystem"  resultMap="BaseResultMap"  >
+		select id,sys_name from HS_System
+	</select>
+	<!-- 查询单挑记录 -->
+	<select id="getEntity"  resultMap="BaseResultMap"  >
+		select id,sys_name,note from HS_System
+		where id =#{id,jdbcType=VARCHAR}
+	</select>
+	<!-- 插入数据-->
+	<insert id="insert" parameterType="com.jz.bigdata.roleauthority.system.entity.System">
+		insert into HS_System
+		(id,sys_name,note) values (#{id,jdbcType=VARCHAR},#{sys_name,jdbcType=VARCHAR},#{note,jdbcType=VARCHAR})
+	</insert>
+	<!-- 更新数据-->
+	<update id="update" parameterType="com.jz.bigdata.roleauthority.system.entity.System">
+		update HS_System set sys_name=#{sys_name,jdbcType=VARCHAR},note=#{note,jdbcType=VARCHAR}
+		where id=#{id,jdbcType=VARCHAR}
+	</update>
+	<!-- 删除数据-->
+	<delete id="delete" parameterType="java.lang.String">
+		delete from HS_System
+		where id=#{id}
+	</delete>
+
+</mapper>

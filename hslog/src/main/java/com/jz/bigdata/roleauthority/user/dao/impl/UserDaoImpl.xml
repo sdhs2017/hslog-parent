@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.roleauthority.user.dao.IUserDao">
+<!-- 返回结果设置 -->
+ 	<resultMap id="BaseResultMap" type="com.jz.bigdata.roleauthority.user.entity.User">
+	    <id column="id" jdbcType="VARCHAR" property="id" />
+	    <result column="name" jdbcType="VARCHAR" property="name" />
+	    <result column="phone" jdbcType="VARCHAR" property="phone" />
+	    <result column="password" jdbcType="VARCHAR" property="password" />
+	    <result column="sex" jdbcType="INTEGER" property="sex" />
+	    <result column="age" jdbcType="INTEGER" property="age" />
+	    <result column="email" jdbcType="VARCHAR" property="email" />
+	    <result column="departmentId" jdbcType="INTEGER" property="departmentId" />
+		<result column="role" jdbcType="VARCHAR" property="role" />
+	    <result column="state" jdbcType="INTEGER" property="state" />
+ 	</resultMap>
+ 	<!-- 返回结果带部门名称 -->
+ 	<resultMap id="BaseResultMapDepartment" type="com.jz.bigdata.roleauthority.user.entity.User">
+	    <id column="id" jdbcType="VARCHAR" property="id" />
+	    <result column="name" jdbcType="VARCHAR" property="name" />
+	    <result column="phone" jdbcType="VARCHAR" property="phone" />
+	    <result column="password" jdbcType="VARCHAR" property="password" />
+	    <result column="sex" jdbcType="INTEGER" property="sex" />
+	    <result column="age" jdbcType="INTEGER" property="age" />
+	    <result column="email" jdbcType="VARCHAR" property="email" />
+	    <result column="departmentId" jdbcType="INTEGER" property="departmentId" />
+		<result column="role" jdbcType="VARCHAR" property="role" />
+	    <result column="state" jdbcType="INTEGER" property="state" />
+	    <association property="department" javaType="com.jz.bigdata.common.department.entity.Department">
+             <id property="id" column="departmentId"/>
+             <result property="name" column="departmentName"/>
+        </association>
+      
+ 	</resultMap>
+  
+ <!--  查询字段设置可重复调用 -->
+	<sql id="Base_Column_List">
+	 	id, name, phone, password, sex,age,email,departmentId,state
+	</sql>
+  
+<!--   查询所有数据 -->
+	<select id="selectAll" parameterType="com.jz.bigdata.roleauthority.user.entity.User" resultMap="BaseResultMapDepartment">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+    	 select 
+		user.id, user.name, phone, password, sex,age,email,departmentId,state
+	    , d.`name` AS departmentName,GROUP_CONCAT(HR.role_name) as role
+	    from HS_User user
+	    LEFT JOIN department d on d.id=user.departmentId
+		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
+		LEFT JOIN HS_Role HR ON HR.id=HUR.FK_RoleID
+	    where 1=1
+	    <!--   判断是否是空数据 -->
+	    <if test="name != null and name !=''" >
+	        and user.name LIKE CONCAT('%', #{name}, '%')
+	    </if>
+	    <if test="phone != null and phone !=''" >
+	        and phone = #{phone,jdbcType=VARCHAR} 
+	    </if>
+	    <if test="departmentId != null and departmentId !=''" >
+	        and departmentId = #{departmentId,jdbcType=INTEGER} 
+	    </if>
+	    group by user.id, user.name, phone, password, sex,age,email,departmentId,state
+		, d.`name`
+	    <!--
+	    <if test='role==2'>
+			and user.id=#{id,jdbcType=VARCHAR}
+			and state=1
+	 	 </if>
+	 	 -->
+  	</select>
+  
+  <!--   查询用户数据 -->
+ 	<select id="selectUser" parameterType="java.lang.String" resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	   select 
+		user.id, user.name, phone, password, sex,age,email,departmentId,state
+	    , d.`name` AS departmentName,GROUP_CONCAT(HR.role_name) as role
+	    from HS_User user
+		LEFT JOIN department d on d.id=user.departmentId
+		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
+		LEFT JOIN HS_Role HR ON HR.id=HUR.FK_RoleID
+	    where 1=1
+	   
+	    <if test="_parameter != null and _parameter !=''" >
+	    	and user.id = #{_parameter,jdbcType=VARCHAR} 
+	    </if>
+		group by user.id, user.name, phone, password, sex,age,email,departmentId,state
+		, d.`name`
+	</select>
+	
+	<!--   查询用户是否重名 -->
+ 	<select id="selectByName" parameterType="com.jz.bigdata.roleauthority.user.entity.User" resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	   select 
+		user.id, user.name, phone, password, sex,age,email,departmentId,state
+	   
+	    from HS_User user
+	    where 1=1 
+	   
+	    <if test="phone != null and phone !=''" >
+	        and phone = #{phone,jdbcType=VARCHAR} 
+	    </if>
+  
+	</select>
+  
+  <!--   分页查询所有数据 -->
+	<select id="selectPage" resultMap="BaseResultMap" parameterType="com.jz.bigdata.roleauthority.user.util.Page" >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select 
+		user.id, user.name, phone, password, sex,age,email,departmentId,state
+	    , department.`name` AS departmentName,GROUP_CONCAT(HR.role_name) as role
+	    from HS_User user
+	    LEFT JOIN department on 1=1 and department.id=user.departmentId
+		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
+		LEFT JOIN HS_Role HR on HR.id=HUR.FK_RoleID
+	    where 1=1
+	    <if test="name != null and name !=''" >
+	        and user.name LIKE CONCAT('%', #{name}, '%')  
+	    </if>
+	    <if test="phone != null and phone !=''" >
+	        and phone = #{phone,jdbcType=VARCHAR} 
+	    </if>
+	    <if test="departmentId != null and departmentId !='' and departmentId !=0" >
+	        and departmentId = #{departmentId,jdbcType=INTEGER} 
+	    </if>
+	    group by user.id, user.name, phone, password, sex,age,email,departmentId,state
+		, department.`name`
+	    limit #{startRecord},#{pageSize}
+	</select>
+  
+  
+	<select id="count"  parameterType="com.jz.bigdata.roleauthority.user.util.Page" >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select count(1) as count
+	    from HS_User 
+	    where 1=1 
+	    <if test="name != null and name !=''" >
+	        and name LIKE CONCAT('%', #{name}, '%')  
+	    </if>
+	    <if test="phone != null and phone !=''" >
+	        and phone = #{phone,jdbcType=VARCHAR} 
+	    </if>
+	    
+	    <if test="departmentId != null and departmentId !=''" >
+	        and departmentId = #{departmentId,jdbcType=VARCHAR} 
+	    </if>
+
+	</select>
+  
+  
+<!--   添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.roleauthority.user.entity.User">
+   		 insert into user
+<!--     格式化 -->
+    	<trim prefix="(" suffix=")" suffixOverrides=",">
+<!--     判断参数是否为空 -->
+	      <if test="id != null">
+	        id,
+	      </if>
+	      <if test="name != null">
+	        name,
+	      </if>
+	      <if test="password != null">
+	        password,
+	      </if>
+	      <if test="phone != null">
+	        phone,
+	      </if>
+	      <if test="sex != null">
+	        sex,
+	      </if>
+	       <if test="age !='' and  age !='999'">
+	        age,
+	      </if>
+	       <if test="email != null and email != ''">
+	        email,
+	      </if>
+	       <if test="departmentId != null">
+	        departmentId,
+	      </if>
+	       <if test="state != null">
+	        state
+	      </if>
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+	      <if test="id != null">
+	        #{id,jdbcType=VARCHAR},
+	      </if>
+	      <if test="name != null">
+	        #{name,jdbcType=VARCHAR},
+	      </if>
+	      <if test="password != null">
+	        #{password,jdbcType=VARCHAR},
+	      </if>
+	       <if test="phone != null">
+	        #{phone,jdbcType=VARCHAR},
+	      </if>
+	      <if test="sex != null">
+	        #{sex,jdbcType=INTEGER},
+	      </if>
+	      <if test="age !='' and  age !=999">
+	        #{age,jdbcType=INTEGER},
+	      </if>
+	        <if test="email != null and email != ''">
+	        #{email,jdbcType=VARCHAR},
+	      </if>
+	      <if test="departmentId != null">
+	        #{departmentId,jdbcType=INTEGER},
+	      </if>
+	       <if test="state != null">
+	        #{state,jdbcType=INTEGER}
+	      </if>
+	    </trim>
+	</insert>
+
+<!--   删除数据 -->
+	<update id="delete" parameterType="java.lang.String">
+		<!-- delete from HS_User where id in  -->
+		update HS_User set state=0 where id in
+		<!-- 循环格式化 -->
+		<foreach item="ids" index="index" collection="array" open="(" separator="," close=")">  
+	 		#{ids}
+		</foreach>
+	</update>
+
+	
+	<!-- 通过id修改用户 -->
+<!--   id, name, phone, password, sex,age,email,departmentId -->
+	<update id="updateById" parameterType="com.jz.bigdata.roleauthority.user.entity.User">
+        update HS_User set name=#{name},phone=#{phone},sex=#{sex},age=#{age},state=#{state},departmentId = #{departmentId} ,
+        <!-- if else判断语句 -->
+        <choose>
+        	<when test="email != null and email !=''">
+            	email = #{email}
+            </when>
+            <otherwise>
+            	email = null
+            </otherwise>
+    	</choose>
+    	where id=#{id}  
+    </update>  
+  
+   <!-- 查询单个数据 -->
+	<select id="selectById" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from HS_User
+		where id=#{id}
+	
+	</select>
+	<!-- 登录查询是否有用户  -->
+	<select id="selectByPhonePwd" resultMap="BaseResultMap" parameterType="com.jz.bigdata.roleauthority.user.entity.User">
+      select 
+      <include refid="Base_Column_List" />
+      from HS_User
+      where phone=#{phone,jdbcType=VARCHAR} and password=#{password,jdbcType=VARCHAR} 
+   </select>
+	
+	
+<!--   id, name, phone, password, sex,age,email,departmentId -->
+	<update id="updateByPhone" parameterType="java.lang.String">  
+        update user set state=0
+        <!-- if else判断语句 -->
+    	where phone=#{phone}  
+    </update>  
+	
+	
+	  <!--   查询用户数据 -->
+ 	<select id="selectUserRole" parameterType="java.lang.String" resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	   select 
+		user.id, user.name, phone, password, sex,age,email,departmentId,role,state
+	    , roles.`name` AS roleName 
+	    from HS_User, roles
+	    where  user.role=roles.id
+	   
+	    <if test="_parameter != null and _parameter !=''" >
+	    	and user.id = #{_parameter,jdbcType=VARCHAR} 
+	    </if>
+  
+	</select>
+	
+	<!--   添加数据 -->
+	<insert id="registerUser" parameterType="com.jz.bigdata.roleauthority.user.entity.User">
+   		 insert into HS_User
+<!--     格式化 -->
+    	<trim prefix="(" suffix=")" suffixOverrides=",">
+<!--     判断参数是否为空 -->
+	      <if test="id != null">
+	        id,
+	      </if>
+	      <if test="name != null">
+	        name,
+	      </if>
+	      <if test="password != null">
+	        password,
+	      </if>
+	      <if test="phone != null">
+	        phone,
+	      </if>
+	      <if test="sex != null">
+	        sex,
+	      </if>
+	       <if test="age !='' and  age !='999'">
+	        age,
+	      </if>
+	       <if test="email != null and email != ''">
+	        email,
+	      </if>
+	      	state
+	    </trim>
+	    <trim prefix="values (" suffix=")" suffixOverrides=",">
+	      <if test="id != null">
+	        #{id,jdbcType=VARCHAR},
+	      </if>
+	      <if test="name != null">
+	        #{name,jdbcType=VARCHAR},
+	      </if>
+	      <if test="password != null">
+	        #{password,jdbcType=VARCHAR},
+	      </if>
+	       <if test="phone != null">
+	        #{phone,jdbcType=VARCHAR},
+	      </if>
+	      <if test="sex != null">
+	        #{sex,jdbcType=INTEGER},
+	      </if>
+	      <if test="age !='' and  age !=999">
+	        #{age,jdbcType=INTEGER},
+	      </if>
+	        <if test="email != null and email != ''">
+	        #{email,jdbcType=VARCHAR},
+	      </if>
+	      1
+	    </trim>
+	</insert>
+	<!--添加角色 -->
+	<insert id="insertVisitor" parameterType="java.lang.String">
+		insert into HS_UserRole (FK_UserID,FK_RoleID) values (#{userID},#{roleID})
+	</insert>
+	<update id="updatePasswordById" parameterType="java.lang.String">  
+        update HS_User set password=#{password}
+        <!-- if else判断语句 -->
+    	where id=#{id}  
+    </update>  
+	
+	  <!--   查询用户数据 -->
+ 	<select id="selectByPasswordId" parameterType="java.lang.String" resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	   select 
+		<include refid="Base_Column_List" /> from HS_User
+	    where  id=#{id} and password=#{password}
+	</select>
+	<!-- 添加用户角色-->
+	<insert id="insertUserRole" parameterType="java.lang.String">
+		insert into HS_UserRole (FK_UserID,FK_RoleID) values (#{userID},#{roleID})
+	</insert>
+	<delete id="deleteUserRole" parameterType="java.lang.String">
+		delete from HS_UserRole where FK_UserID=#{userID}
+	</delete>
+	<select id="selectRoleByUserID" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select GROUP_CONCAT(fk_roleID) as role from HS_UserRole WHERE fk_userid=#{userID}
+	</select>
+</mapper>

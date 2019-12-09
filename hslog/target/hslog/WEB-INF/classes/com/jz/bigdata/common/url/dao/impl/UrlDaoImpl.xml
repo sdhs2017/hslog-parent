@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.url.dao.IUrlDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.common.url.entity.Url">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="url" jdbcType="VARCHAR" property="url" />
+		<result column="date" jdbcType="VARCHAR" property="date" />
+		<result column="equipmentId" jdbcType="VARCHAR" property="equipmentId" />
+	</resultMap>
+
+	<!-- 查询字段设置可重复调用 -->
+	
+	<sql id="Base_Column_List">
+		id, url, date, equipmentId
+	</sql>
+	<!-- <sql id="Base_Column_List_name">
+		id, result, note.`describe`, time, userId,departmentId,account,error,userName,departmentName,ip
+	</sql> -->
+	
+	
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.url.entity.Url">
+		insert into url
+		<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- 判断参数是否为空 -->
+			<if test="id != null">
+				id,
+			</if>
+			<if test="url != null">
+				url,
+			</if>
+			<if test="date != null">
+				date,
+			</if>
+			<if test="equipmentId != null">
+				equipmentId
+			</if>
+			
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="url != null">
+				#{url,jdbcType=VARCHAR},
+			</if>
+			<if test="date != null">
+				#{date,jdbcType=VARCHAR},
+			</if>
+			<if test="equipmentId !=null ">
+				#{equipmentId,jdbcType=VARCHAR}
+			</if>
+		</trim>
+	</insert>
+	
+	
+	<!-- 查询所有数据 -->
+	<select id="selectAll" parameterType="java.lang.String"  resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" /> from url
+		
+	</select>
+
+
+	
+	
+</mapper>

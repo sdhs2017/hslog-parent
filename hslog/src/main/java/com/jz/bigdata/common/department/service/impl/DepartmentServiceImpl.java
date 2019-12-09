@@ -7,6 +7,8 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.roleauthority.user.dao.IUserDao;
+import com.jz.bigdata.roleauthority.user.entity.User;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +20,7 @@ import com.jz.bigdata.common.department.dao.IDepartmentDao;
 import com.jz.bigdata.common.department.entity.Department;
 import com.jz.bigdata.common.department.service.IDepartmentService;
 import com.jz.bigdata.common.department.util.TreeBuilder;
-import com.jz.bigdata.common.users.dao.IUsersDao;
-import com.jz.bigdata.common.users.entity.User;
+
 
 /**
  * @author shichengyu
@@ -36,7 +37,7 @@ public class DepartmentServiceImpl implements IDepartmentService {
 	private IDepartmentDao departmentDao;
 
 	@Resource
-	private IUsersDao userDao;
+	private IUserDao userDao;
 
 	/**
 	 * @param department
@@ -85,7 +86,8 @@ public class DepartmentServiceImpl implements IDepartmentService {
 		if(department.getId()!=0){
 			User user=new User();
 			user.setDepartmentId(department.getId());
-			user.setRole(Integer.valueOf((String) session.getAttribute(Constant.SESSION_USERROLE)));
+			//TODO
+			//user.setRole(Integer.valueOf((String) session.getAttribute(Constant.SESSION_USERROLE)));
 			user.setId((String) session.getAttribute(Constant.SESSION_USERID));
 			List<User> listUser= userDao.selectAll(user);
 			map.put("user", listUser);

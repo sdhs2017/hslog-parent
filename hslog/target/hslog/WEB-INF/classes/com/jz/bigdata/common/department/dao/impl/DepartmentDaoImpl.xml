@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.department.dao.IDepartmentDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.common.department.entity.Department">
+		<id column="id" jdbcType="INTEGER" property="id" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="level" jdbcType="INTEGER" property="level" />
+		<result column="superiorId" jdbcType="INTEGER" property="superiorId" />
+		<result column="subordinate" jdbcType="INTEGER" property="subordinate" />
+		<result column="orderId" jdbcType="INTEGER" property="orderId" />
+		<result column="comment" jdbcType="VARCHAR" property="comment" />
+		<result column="departmentNodeId" jdbcType="INTEGER" property="departmentNodeId" />
+		<result column="maxId" jdbcType="INTEGER" property="maxId" />
+	</resultMap>
+
+	<resultMap id="ResultOfInteger" type="java.lang.Integer">
+		<result column="count" property="count" jdbcType="INTEGER" />
+	</resultMap>
+
+	<!-- 查询字段设置可重复调用 -->
+	<!-- 部门id,name:部门名称,level:部门层级,superiorId:上级id,subordinate:是否有下级（1有0没有）,orderId:位置排序,comment:简介 -->
+	<sql id="Base_Column_List">
+		id, name, level, superiorId, subordinate,orderId,comment,departmentNodeId
+	</sql>
+
+	<!-- 查询所有数据 -->
+	<select id="selectAll" parameterType="com.jz.bigdata.common.department.entity.Department"
+		resultMap="BaseResultMap">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from department
+		where 1=1
+		<!-- <if test="name != null and name !=''" > and name LIKE CONCAT('%', 
+			#{name}, '%') </if> -->
+		<!-- <if test="id != null and id !=''">
+			and superiorId = #{id,jdbcType=INTEGER}
+		</if> -->
+		<choose>
+			<when test="id != null  and id !=''">
+				and superiorId = #{id,jdbcType=INTEGER}
+			</when>
+			<otherwise>
+				and level = #{level,jdbcType=VARCHAR}
+			</otherwise>
+		</choose>
+	</select>
+
+
+	<!-- 查询单个数据 -->
+	<select id="selectDepartment" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from department
+		where 1=1 and
+		<!-- <if test="name != null and name !=''" > and name LIKE CONCAT('%', 
+			#{name}, '%') </if> -->
+		<!-- <if test="id != null and id !=''">
+			and superiorId = #{id,jdbcType=INTEGER}
+		</if> -->
+		id=#{_parameter,jdbcType=INTEGER}
+	</select>
+
+	<!-- 查询下一级数据 -->
+	<select id="selectSubordinate" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from department
+		where 1=1
+		<!-- <if test="name != null and name !=''" > and name LIKE CONCAT('%', 
+			#{name}, '%') </if> -->
+		<if test="_parameter != null and _parameter !=''">
+			and superiorId = #{_parameter,jdbcType=INTEGER}
+		</if>
+	</select>
+	<!-- 查询所有数据 -->
+	<select id="selectAllDepartment" parameterType="java.lang.String"
+		resultMap="BaseResultMap">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from department
+
+	</select>
+
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.department.entity.Department">
+		insert into department
+		<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- 判断参数是否为空 -->
+			<if test="name != null">
+				name,
+			</if>
+			<if test="level != null">
+				level,
+			</if>
+			<if test="id != null and id !='0' and id !=0">
+				superiorId,
+			</if>
+			<if test="subordinate != null">
+				subordinate,
+			</if>
+			<if test="orderId !=null and  orderId !=''">
+				orderId,
+			</if>
+			<if test="comment !=null and  comment !=''">
+				comment,
+			</if>
+			<if test="departmentNodeId !=null and  departmentNodeId !='' and departmentNodeId !=0">
+				departmentNodeId
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="name != null">
+				#{name,jdbcType=VARCHAR},
+			</if>
+			<if test="level != null">
+				#{level,jdbcType=INTEGER},
+			</if>
+			<if test="id != null and id !='0' and id !=0">
+				#{id,jdbcType=INTEGER},
+			</if>
+			<if test="subordinate != null">
+				#{subordinate,jdbcType=INTEGER},
+			</if>
+			<if test="orderId !=null and  orderId !=''">
+				#{orderId,jdbcType=INTEGER},
+			</if>
+			<if test="comment !=null and  comment !=''">
+				#{comment,jdbcType=VARCHAR},
+			</if>
+			<if test="departmentNodeId !=null and  departmentNodeId !='' and departmentNodeId !=0">
+				#{departmentNodeId,jdbcType=INTEGER}
+			</if>
+		</trim>
+	</insert>
+	<!-- 删除数据 -->
+	<delete id="delete" parameterType="java.lang.Integer">
+		delete from department where
+		id = #{id,jdbcType=INTEGER}
+	</delete>
+
+	<!-- 根据id修改信息 -->
+	<update id="updateById" parameterType="com.jz.bigdata.common.department.entity.Department">
+		update department set
+		name=#{name},level=#{level},superiorId=#{superiorId},subordinate=#{subordinate},
+		<choose>
+			<when test="comment != null and comment !='' and comment !='null'">
+				comment = #{comment},
+			</when>
+			<otherwise>
+				comment = null,
+			</otherwise>
+		</choose>
+		<choose>
+			<when test="orderId != null and orderId !='' and orderId !='null'">
+				orderId = #{orderId}
+			</when>
+			<otherwise>
+				orderId = null
+			</otherwise>
+		</choose>
+		where id=#{id}
+	</update>
+	<!-- 修改上级目录是否由下一级 -->
+	<update id="updateSuperiorId" parameterType="com.jz.bigdata.common.department.entity.Department">
+		<if test="id != null and id !='0'">
+			update department set subordinate=1 where  id=#{id,jdbcType=INTEGER}
+		</if>
+	</update>
+	
+	<!-- 查询最大id -->
+	<select id="selectMaxId" resultMap="BaseResultMap">
+		select max(id) as maxId from department
+	</select>
+	
+	<!-- 修改公司最上级id -->
+	<update id="updateDepartmentNodeId" parameterType="com.jz.bigdata.common.department.entity.Department">
+		update department set departmentNodeId=#{departmentNodeId,jdbcType=INTEGER} where  id=#{id,jdbcType=INTEGER}
+	</update>
+</mapper>

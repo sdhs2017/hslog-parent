@@ -3,7 +3,6 @@ package com.jz.bigdata.common.function.dao;
 import java.util.List;
 
 import com.jz.bigdata.common.function.entity.Function;
-import com.jz.bigdata.common.users.entity.User;
 
 /**
  * @author shichengyu

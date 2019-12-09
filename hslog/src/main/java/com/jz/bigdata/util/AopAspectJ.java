@@ -10,6 +10,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.roleauthority.user.dao.IUserDao;
+import com.jz.bigdata.roleauthority.user.entity.User;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -24,8 +26,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.note.entity.Note;
 import com.jz.bigdata.common.note.service.INoteService;
-import com.jz.bigdata.common.users.dao.IUsersDao;
-import com.jz.bigdata.common.users.entity.User;
+
 
 /**
  * @author shichengyu 审计日志
@@ -54,7 +55,7 @@ public class AopAspectJ {
 	private INoteService noteService;
 
 	@Resource
-	private IUsersDao userDao;
+	private IUserDao userDao;
 
 	/**
 	 * 切面的前置方法 即方法执行前拦截到的方法 在目标方法执行之前的通知

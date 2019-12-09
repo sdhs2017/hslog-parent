@@ -19,6 +19,7 @@ import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -32,9 +33,7 @@ import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.safeStrategy.entity.SafeStrategy;
 import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
-import com.jz.bigdata.common.users.service.IUsersService;
-//import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-//import com.hs.elsearch.template.bak.ClientTemplate;
+
 
 import com.jz.bigdata.util.ConfigProperty;
 
@@ -64,8 +63,8 @@ public class LogServiceImpl implements IlogService {
 	@Resource(name = "AlarmService")
 	private IAlarmService alarmService;
 
-	@Resource(name = "UsersService")
-	private IUsersService usersService;
+	@Resource(name = "UserService")
+	private IUserService usersService;
 
 
 	// es 排序方式

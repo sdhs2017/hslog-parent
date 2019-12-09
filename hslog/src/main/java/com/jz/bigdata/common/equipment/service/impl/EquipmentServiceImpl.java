@@ -13,6 +13,8 @@ import java.util.Set;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.roleauthority.user.dao.IUserDao;
+import com.jz.bigdata.roleauthority.user.entity.User;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
@@ -20,8 +22,7 @@ import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
-import com.jz.bigdata.common.users.dao.IUsersDao;
-import com.jz.bigdata.common.users.entity.User;
+
 import com.jz.bigdata.util.BASE64Util;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.JavaBeanUtil;
@@ -41,7 +42,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	private IEquipmentDao equipmentDao;
 
 	@Resource
-	private IUsersDao userDao;
+	private IUserDao userDao;
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;

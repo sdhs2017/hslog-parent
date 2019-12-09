@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.safeStrategy.dao.ISafeStrategyDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+		type="com.jz.bigdata.common.safeStrategy.entity.SafeStrategy">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="equipmentId" jdbcType="VARCHAR" property="equipmentId" />
+		<result column="event_type" jdbcType="VARCHAR" property="event_type" />
+		<result column="number" jdbcType="INTEGER" property="number" />
+		<result column="safe_strategy_name" jdbcType="VARCHAR" property="safe_strategy_name" />
+		<result column="time" jdbcType="VARCHAR" property="time" />
+		<result column="state" jdbcType="INTEGER" property="state" />
+		<result column="time_interval" jdbcType="VARCHAR" property="time_interval" />
+		
+	</resultMap>
+
+	<!-- 查询字段设置可重复调用 -->
+	
+	<sql id="Base_Column_List">
+		id, equipmentId, event_type, number, time,state,safe_strategy_name,time_interval
+	</sql>
+	<!-- <sql id="Base_Column_List_name">
+		id, result, note.`describe`, time, userId,departmentId,account,error,userName,departmentName,ip
+	</sql> -->
+	
+	
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.safeStrategy.entity.SafeStrategy">
+		insert into safe_strategy
+		<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- 判断参数是否为空 -->
+			<if test="id != null">
+				id,
+			</if>
+			<if test="equipmentId != null">
+				equipmentId,
+			</if>
+			<if test="event_type != null">
+				event_type,
+			</if>
+			<if test="number != null">
+				number,
+			</if>
+			<if test="time !=null and  time !=''">
+				time,
+			</if>
+			<if test="state !=null ">
+				state,
+			</if>
+			<if test="safe_strategy_name !=null ">
+				safe_strategy_name,
+			</if>
+			<if test="time_interval !=null ">
+				time_interval
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="equipmentId != null">
+				#{equipmentId,jdbcType=VARCHAR},
+			</if>
+			<if test="event_type != null">
+				#{event_type,jdbcType=VARCHAR},
+			</if>
+			<if test="number != null">
+				#{number,jdbcType=INTEGER},
+			</if>
+			<if test="time !=null ">
+				#{time,jdbcType=VARCHAR},
+			</if>
+			<if test="state !=null ">
+				#{state,jdbcType=VARCHAR},
+			</if>
+			<if test="safe_strategy_name !=null and  safe_strategy_name !=''">
+				#{safe_strategy_name,jdbcType=VARCHAR},
+			</if>
+			<if test="time_interval !=null and  time_interval !=''">
+				#{time_interval,jdbcType=VARCHAR}
+			</if>
+		</trim>
+	</insert>
+	
+	<update id="updateById" parameterType="com.jz.bigdata.common.safeStrategy.entity.SafeStrategy">
+		update safe_strategy set
+		equipmentId=#{equipmentId},event_type=#{event_type},number=#{number},time=#{time},state=#{state},safe_strategy_name=#{safe_strategy_name},time_interval=#{time_interval}
+		where id=#{id} 
+	</update>
+	
+	
+	
+	<!-- 查询所有数据 -->
+	<select id="selectByEquipmentId" parameterType="java.lang.String"  resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" /> from safe_strategy
+		 where 1=1  and state=1
+		  <if test="_parameter != null and _parameter !=''" >
+		  	and equipmentId =  #{_parameter,jdbcType=VARCHAR} 
+		  </if>
+	</select>
+
+	<!-- 查询所有数据 -->
+	<select id="selectById" parameterType="java.lang.String"  resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" /> from safe_strategy
+		 where 1=1  
+		  <if test="_parameter != null and _parameter !=''" >
+		  	and id =  #{_parameter,jdbcType=VARCHAR} 
+		  </if>
+	</select>
+	<!-- 查询所有数据 -->
+	<select id="selectByequipmentIdEventType" parameterType="com.jz.bigdata.common.safeStrategy.entity.SafeStrategy"  resultMap="BaseResultMap" >
+		SELECT <include refid="Base_Column_List" /> from safe_strategy
+		 where 1=1  
+		  <if test="equipmentId != null and equipmentId !=''" >
+		  	and equipmentId =  #{equipmentId,jdbcType=VARCHAR} 
+		  </if>
+		  <if test="event_type != null and event_type !=''" >
+		  	and event_type =  #{event_type,jdbcType=VARCHAR} 
+		  </if>
+	</select>
+	<!--   删除数据 -->
+	<delete id="delete" parameterType="java.lang.String">
+		delete from safe_strategy where id in 
+		<!-- 循环格式化 -->
+		<foreach item="ids" index="index" collection="array" open="(" separator="," close=")">  
+	 		#{ids}
+		</foreach>
+	</delete>
+	
+	
+</mapper>

@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.equipment.entity;
 
-import com.jz.bigdata.common.users.entity.User;
+
+import com.jz.bigdata.roleauthority.user.entity.User;
 
 /**
  * @author shichengyu

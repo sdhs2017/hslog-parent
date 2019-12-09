@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 
@@ -28,7 +29,7 @@ import com.jz.bigdata.business.logAnalysis.log.entity.ZtsSyslog;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
-import com.jz.bigdata.common.users.service.IUsersService;
+
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
@@ -49,7 +50,7 @@ public class KafkaCollector implements Runnable {
     //private ClientTemplate template;
 	private ILogCrudDao logCurdDao;
     private ConfigProperty configProperty;
-    private IUsersService usersService;
+    private IUserService usersService;
 	public static Map<String,Object> map=new HashMap<String,Object>();
 	
 	Map<String, String> protocolmap = new HashMap<String, String>();
@@ -112,7 +113,7 @@ public class KafkaCollector implements Runnable {
 	 * @param alarmService
 	 * @param usersService
 	 */
-	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService) {
+	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService) {
 		Properties props = new Properties();
 		//zookeeper 配置
 //		props.put("zookeeper.connect", "124.133.246.61:2281");

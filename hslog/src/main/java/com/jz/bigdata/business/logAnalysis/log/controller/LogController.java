@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFilebeat;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFirewalls;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfNet;
@@ -69,9 +70,7 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.safeStrategy.entity.SafeStrategy;
 import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
-import com.jz.bigdata.common.users.service.IUsersService;
-//import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
-//import com.hs.elsearch.template.bak.ClientTemplate;
+
 
 import net.sf.json.JSONArray;
 
@@ -96,8 +95,8 @@ public class LogController extends BaseController{
 	@Resource(name="AlarmService")
 	private IAlarmService alarmService;
 
-	@Resource(name ="UsersService")
-	private IUsersService usersService;
+	@Resource(name ="UserService")
+	private IUserService usersService;
 
 	//@Autowired protected ClientTemplate clientTemplate;
 	@Autowired protected ILogCrudDao logCrudDao;

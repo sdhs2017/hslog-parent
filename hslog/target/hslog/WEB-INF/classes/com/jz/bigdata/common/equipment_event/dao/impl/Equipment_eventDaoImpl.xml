@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.equipment_event.dao.IEquipment_eventDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap" type="com.jz.bigdata.common.equipment_event.entity.Equipment_event">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="equipmentId" jdbcType="VARCHAR" property="equipmentId" />
+		<result column="eventId" jdbcType="VARCHAR" property="eventId" />
+	</resultMap>
+
+	<!-- 查询字段设置可重复调用 -->
+	<!-- 部门id,name:部门名称,level:部门层级,superiorId:上级id,subordinate:是否有下级（1有0没有）,orderId:位置排序,comment:简介 -->
+	<sql id="Base_Column_List">
+		id, equipmentId, eventId
+	</sql>
+
+	<!-- 批量插入关系 -->
+     <insert id ="insert" parameterType="java.util.List" >
+           
+           insert into equipment_event
+           (equipmentId,eventId)
+           values
+            <foreach collection ="list" item="equipment_event" index= "index" separator =",">
+                (
+                #{equipment_event.equipmentId}, #{equipment_event.eventId}
+                )
+            </foreach >
+     </insert >
+
+	<!-- 删除数据 -->
+	<delete id="deleteByEventId" parameterType="java.lang.String">
+		delete from equipment_event where
+		eventId =
+		#{eventId,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 删除数据 -->
+	<delete id="deleteByActionId" parameterType="java.lang.String">
+		delete from equipment_event where
+		equipmentId =
+		#{equipmentId,jdbcType=VARCHAR}
+	</delete>
+
+</mapper>

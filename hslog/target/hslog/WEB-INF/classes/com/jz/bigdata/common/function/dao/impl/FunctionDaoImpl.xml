@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.function.dao.IFunctionDao">
+<!-- 返回结果设置 -->
+ 	<resultMap id="BaseResultMap" type="com.jz.bigdata.common.function.entity.Function">
+	    <id column="id" jdbcType="VARCHAR" property="id" />
+	    <result column="resource" jdbcType="VARCHAR" property="resource" />
+	    <result column="describes" jdbcType="VARCHAR" property="describes" />
+	    <result column="role" jdbcType="INTEGER" property="role" />
+ 	</resultMap>
+ 	
+  
+ <!--  查询字段设置可重复调用 -->
+	<sql id="Base_Column_List">
+	 	id, resource, describes, role
+	</sql>
+  
+
+  <!--   查询所有数据 -->
+ 	<select id="selectAllByRole"  parameterType="java.lang.Integer" resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	   select <include refid="Base_Column_List" />
+	   from function
+	  <where>
+            <if test="_parameter != null and _parameter !='' ">
+                role=#{_parameter}
+            </if>
+        </where>
+	</select>
+
+	<!--   查询所有数据 -->
+ 	<select id="selectAll"  resultMap="BaseResultMap">
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	   select <include refid="Base_Column_List" />
+	   from function
+	  
+	</select>
+	
+	<!-- 添加权限-->
+	<insert id="insert" parameterType="com.jz.bigdata.common.function.entity.Function">
+	insert into function
+	<!-- 格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!-- 判断参数是否为空 -->
+			<if test="id != null">
+				id,
+			</if>
+			<if test="resource != null">
+				resource,
+			</if>
+			<if test="describes != null">
+				describes,
+			</if>
+			<if test="role != null ">
+				role
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="id != null">
+				#{id,jdbcType=VARCHAR},
+			</if>
+			<if test="resource != null">
+				#{resource,jdbcType=VARCHAR},
+			</if>
+			<if test="describes != null">
+				#{describes,jdbcType=VARCHAR},
+			</if>
+			<if test="role != null ">
+				#{role,jdbcType=INTEGER}
+			</if>
+		</trim>
+	</insert>
+	
+</mapper>

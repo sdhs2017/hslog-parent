@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao">
+
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap" type="com.jz.bigdata.common.serviceInfo.entity.ServiceInfo">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="name" jdbcType="VARCHAR" property="name" />
+		<result column="protocol" jdbcType="VARCHAR" property="protocol" />
+		<result column="ip" jdbcType="VARCHAR" property="ip" />
+		<result column="port" jdbcType="VARCHAR" property="port" />
+		<result column="url" jdbcType="VARCHAR" property="url" />
+		<result column="relativeUrl" jdbcType="VARCHAR" property="relativeUrl" />
+		<result column="equipmentId" jdbcType="VARCHAR" property="equipmentId" />
+		<result column="complementState" jdbcType="INTEGER" property="complementState" />
+		<result column="createTime" jdbcType="VARCHAR" property="createTime" />
+		<result column="updateTime" jdbcType="VARCHAR" property="updateTime" />
+		<result column="stopTime" jdbcType="VARCHAR" property="stopTime" />
+		<result column="state" jdbcType="INTEGER" property="state" />
+		<result column="describe" jdbcType="VARCHAR" property="describe" />
+	</resultMap>
+	<!-- 查询字段设置可重复调用 -->
+	<sql id="Base_Column_List">
+		id, name, protocol, ip, port,url,relativeUrl,equipmentId,
+		complementState,createTime,updateTime,stopTime,state,serviceInfo.describe
+	</sql> 
+
+	<!-- 查询所有数据 -->
+	<select id="selectAll" parameterType="com.jz.bigdata.common.serviceInfo.entity.ServiceInfo"
+		resultMap="BaseResultMap">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select 
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" /> 
+		from serviceInfo where state=1
+		order by complementState desc,ip ASC,url ASC,relativeUrl ASC
+	</select>
+
+
+	<!-- 添加数据 -->
+	<insert id="insert" parameterType="java.util.List">
+	insert ignore serviceInfo (id, name, protocol, ip, port,url,relativeUrl,equipmentId,
+		complementState,createTime,state,serviceInfo.describe)
+    values
+    <foreach collection="list" item="item" index="index" separator=",">
+      (#{item.id}, #{item.name}, #{item.protocol}, #{item.ip},#{item.port}, #{item.url}, 
+      #{item.relativeUrl}, #{item.equipmentId}, #{item.complementState}, #{item.createTime},
+       #{item.state},#{item.describe})
+    </foreach>
+
+	</insert>
+	<!-- 删除数据 -->
+	<update id="delete" parameterType="java.lang.String">
+		update serviceInfo set state=0  
+		where id in
+		<foreach item="ids" index="index" collection="array" open="("
+			separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+
+	<update id="updateById" parameterType="com.jz.bigdata.common.serviceInfo.entity.ServiceInfo">
+	    update serviceInfo
+	    <set>
+	      <if test="name != null">
+	        name = #{name,jdbcType=VARCHAR}
+	      </if>
+	      <if test="protocol != null">
+	       , protocol = #{protocol,jdbcType=VARCHAR}
+	      </if>
+	      <if test="ip != null">
+	       , ip = #{ip,jdbcType=VARCHAR}
+	      </if>
+	      <if test="port != null">
+	       , port = #{port,jdbcType=VARCHAR}
+	      </if>
+	      <if test="url != null">
+	       , url = #{url,jdbcType=VARCHAR}
+	      </if>
+	      
+	      <if test="relativeUrl != null">
+	       , relativeUrl = #{relativeUrl,jdbcType=VARCHAR}
+	      </if>
+	      
+	      <if test="equipmentId != null">
+	       , equipmentId = #{equipmentId,jdbcType=VARCHAR}
+	      </if>
+	      
+	      <if test="complementState != null">
+	       , complementState = #{complementState,jdbcType=INTEGER}
+	      </if>
+	      
+	      <if test="createTime != null">
+	        createTime = #{createTime,jdbcType=VARCHAR}
+	      </if>
+	      
+	      <if test="updateTime != null">
+	       , updateTime = #{updateTime,jdbcType=VARCHAR}
+	      </if>
+	      
+	      <if test="stopTime != null">
+	        ,stopTime = #{stopTime,jdbcType=VARCHAR}
+	      </if>
+	      
+	      <if test="state != null">
+	       , state = #{state,jdbcType=INTEGER}
+	      </if>
+	      
+	      <if test="describe != null">
+	       , serviceInfo.describe = #{describe,jdbcType=VARCHAR}
+	      </if>
+	      
+	    </set>
+	    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+   <!--   分页查询所有数据 -->
+	<select id="selectAllByPage" resultMap="BaseResultMap"  >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select 
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from serviceInfo where 1=1
+		<if test="name != null and name !=''"> and name LIKE CONCAT('%',
+			#{name}, '%') </if>
+		<if test="ip != null and ip !=''">
+			and ip = #{ip,jdbcType=VARCHAR}
+		</if>
+		<if test="port != null and port !=''">
+			and port = #{port,jdbcType=VARCHAR}
+		</if>
+		<if test="protocol != null and protocol !=''">
+			and protocol = #{protocol,jdbcType=VARCHAR}
+		</if>
+		<if test="url != null and url !=''">
+			and url = #{url,jdbcType=VARCHAR}
+		</if>
+		<if test="relativeUrl != null and relativeUrl !=''">
+			and relativeUrl = #{relativeUrl,jdbcType=VARCHAR}
+		</if>
+		<if test=" complementState !='2' and complementState !=2 ">
+			and complementState = #{complementState,jdbcType=INTEGER}
+		</if>
+		<if test="state !='2' and state !=2 ">
+			and state = #{state,jdbcType=INTEGER}
+		</if>
+		
+		<!-- <choose>
+			<when test="state != null and state !=''   ">
+				and state = #{state,jdbcType=INTEGER}
+			</when>
+			<otherwise>
+				and state = 1
+			</otherwise>
+		</choose> -->
+		order by complementState desc,ip ASC,url ASC,relativeUrl ASC
+	    limit #{startRecord},#{pageSize}
+	   
+	</select>
+ 
+<!--  查询总数量 -->
+ 	<select id="count"  >
+<!--   <bind name="name" value="'%' + name + '%'" /> -->
+	    select count(*) as count 
+	<!--     引用查询字段 -->
+	    from serviceInfo  where 1=1
+	    <if test="name != null and name !=''"> and name LIKE CONCAT('%',
+			#{name}, '%') </if>
+		<if test="ip != null and ip !=''">
+			and ip = #{ip,jdbcType=VARCHAR}
+		</if>
+		<if test="port != null and port !=''">
+			and port = #{port,jdbcType=VARCHAR}
+		</if>
+		<if test="protocol != null and protocol !=''">
+			and protocol = #{protocol,jdbcType=VARCHAR}
+		</if>
+		<if test="url != null and url !=''">
+			and url = #{url,jdbcType=VARCHAR}
+		</if>
+		<if test="relativeUrl != null and relativeUrl !=''">
+			and relativeUrl = #{relativeUrl,jdbcType=VARCHAR}
+		</if>
+		<if test=" complementState !='2' and complementState !=2">
+			and complementState = #{complementState,jdbcType=INTEGER}
+		</if>
+		<if test="state !='2' and state !=2">
+			and state = #{state,jdbcType=INTEGER}
+		</if>
+	</select>
+	
+	<!-- 查询数据url -->
+	<select id="selectServiceByUrl" parameterType="java.lang.String" resultMap="BaseResultMap" >
+		select 
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from serviceInfo where url = #{url,jdbcType=VARCHAR}
+	</select>
+	
+	<!-- 查询数据根据id -->
+	<select id="selectServiceById" parameterType="java.lang.String" resultMap="BaseResultMap" >
+		select 
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from serviceInfo where id = #{id,jdbcType=VARCHAR}
+	</select>
+
+</mapper>

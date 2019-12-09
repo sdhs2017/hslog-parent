@@ -3,7 +3,6 @@ package com.jz.bigdata.common.safeStrategy.dao;
 import java.util.List;
 
 import com.jz.bigdata.common.safeStrategy.entity.SafeStrategy;
-import com.jz.bigdata.common.users.entity.User;
 
 /**
  * @author shichengyu

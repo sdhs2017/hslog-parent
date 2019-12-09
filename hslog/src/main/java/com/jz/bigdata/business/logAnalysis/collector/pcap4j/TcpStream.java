@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
@@ -66,10 +67,10 @@ public class TcpStream {
 		// TODO Auto-generated constructor stub
 	}
 
+	//BulkRequest requests = new BulkRequest();
 	List<IndexRequest> requests = new ArrayList<IndexRequest>();
 	
-	public void gotPacket(Packet packet)
-	{
+	public void gotPacket(Packet packet) throws Exception {
 		//TcpPacket tcppacket =packet.getBuilder().getPayloadBuilder().build().get(TcpPacket.class);
 		IpV4Packet ip4packet =packet.get(IpV4Packet.class);
 		

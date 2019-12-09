@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 
 import com.google.gson.Gson;
@@ -49,7 +50,7 @@ public class KafkaCollector implements Runnable {
     //private ClientTemplate template;
 	private ILogCrudDao logCurdDao;
     private ConfigProperty configProperty;
-    private IUserService usersService;
+    private IUsersService usersService;
 	public static Map<String,Object> map=new HashMap<String,Object>();
 	
 	Map<String, String> protocolmap = new HashMap<String, String>();
@@ -112,7 +113,7 @@ public class KafkaCollector implements Runnable {
 	 * @param alarmService
 	 * @param usersService
 	 */
-	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService) {
+	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUsersService usersService) {
 		Properties props = new Properties();
 		//zookeeper 配置
 //		props.put("zookeeper.connect", "124.133.246.61:2281");
@@ -248,6 +249,7 @@ public class KafkaCollector implements Runnable {
 			
 			//List<IndexRequest> requests = new ArrayList<IndexRequest>();
 			List<IndexRequest> newrequests = new ArrayList<IndexRequest>();
+			//BulkRequest newrequests = new BulkRequest();
 			StringBuilder builder = new StringBuilder();
 			while (it.hasNext() && isStarted()) {
 				//System.out.println("---中泰数据接收-----"+it.next().message().toString());
@@ -319,7 +321,7 @@ public class KafkaCollector implements Runnable {
 								//进入范式化
 								try {
 									log4j = new Log4j(builder.toString());
-									
+									log4j.setHslog_type(logType);
 									ipadress = log4j.getIp();
 									//判断是否在资产ip地址池里
 									if(ipadressSet.contains(ipadress)){
@@ -333,7 +335,8 @@ public class KafkaCollector implements Runnable {
 												log4j.setEquipmentid(equipment.getId());
 												json = gson.toJson(log4j);
 												//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
-												newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_LOG4J, json));
+												//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_LOG4J, json));
+												newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),log4j.getIndex_suffix(),log4j.getLogdate()), LogType.LOGTYPE_LOG4J, json));
 											}
 										}else{
 											log4j.setUserid(LogType.LOGTYPE_UNKNOWN);
@@ -342,7 +345,8 @@ public class KafkaCollector implements Runnable {
 											log4j.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
 											json = gson.toJson(log4j);
 											//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
-											newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_LOG4J, json));
+											//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_LOG4J, json));
+											newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),log4j.getIndex_suffix(),log4j.getLogdate()), LogType.LOGTYPE_LOG4J, json));
 										}
 									}else{
 										//不在资产ip池里，暂不处理
@@ -365,7 +369,7 @@ public class KafkaCollector implements Runnable {
 					logType = LogType.LOGTYPE_LOG4J;
 					try {
 						log4j = new Log4j(log, cal);
-						
+						log4j.setHslog_type(logType);
 						ipadress = log4j.getIp();
 						if (ipadressSet.contains(ipadress)) {
 							equipment = equipmentMap.get(log4j.getIp()+logType);
@@ -377,7 +381,7 @@ public class KafkaCollector implements Runnable {
 									log4j.setEquipmentid(equipment.getId());
 									json = gson.toJson(log4j);
 									//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
-									newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_LOG4J, json));
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),log4j.getIndex_suffix(),log4j.getLogdate()), LogType.LOGTYPE_LOG4J, json));
 								}
 							}else {
 								log4j.setUserid(LogType.LOGTYPE_UNKNOWN);
@@ -386,7 +390,7 @@ public class KafkaCollector implements Runnable {
 								log4j.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
 								json = gson.toJson(log4j);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_LOG4J, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),log4j.getIndex_suffix(),log4j.getLogdate()), LogType.LOGTYPE_LOG4J, json));
 							}
 						}
 					}catch (Exception e) {
@@ -399,9 +403,10 @@ public class KafkaCollector implements Runnable {
 				//}else if (logtype_matcher.find()&&dmg_matcher.find()) {
 				}else if (firewallsDevid_matcher.find()&&firewallsMod_matcher.find()&&firewallsType_matcher.find()&&firewallsMsg_matcher.find()) {
 					logType = LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG;
+
 					try {
 						packetFilteringFirewal = new PacketFilteringFirewal(log);
-						
+						packetFilteringFirewal.setHslog_type(logType);
 						ipadress = packetFilteringFirewal.getIp();
 						if (ipadressSet.contains(ipadress)) {
 							equipment=equipmentMap.get(packetFilteringFirewal.getIp() +logType);
@@ -412,7 +417,8 @@ public class KafkaCollector implements Runnable {
 								packetFilteringFirewal.setEquipmentname(equipment.getName());
 								json = gson.toJson(packetFilteringFirewal);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+								//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),packetFilteringFirewal.getIndex_suffix(),packetFilteringFirewal.getLogdate()), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
 							}else {
 								packetFilteringFirewal.setUserid(LogType.LOGTYPE_UNKNOWN);
 								packetFilteringFirewal.setDeptid(LogType.LOGTYPE_UNKNOWN);
@@ -420,7 +426,8 @@ public class KafkaCollector implements Runnable {
 								packetFilteringFirewal.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 								json = gson.toJson(packetFilteringFirewal);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+								//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),packetFilteringFirewal.getIndex_suffix(),packetFilteringFirewal.getLogdate()), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
 							}
 						}else {
 							//不在资产ip池里，暂不处理
@@ -435,6 +442,7 @@ public class KafkaCollector implements Runnable {
 					logType = LogType.LOGTYPE_NETFLOW;
 					try {
 						netflow = new Netflow(log, cal, protocolmap);
+						netflow.setHslog_type(logType);
 //						netflow=netflow.SetNetflow(log, cal);
 						equipment = equipmentMap.get(netflow.getIp()+logType);
 						if (equipment!=null) {
@@ -445,7 +453,8 @@ public class KafkaCollector implements Runnable {
 							json = gson.toJson(netflow);
 							//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_NETFLOW, json));
 							//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
-							newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+							//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
+							newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),netflow.getIndex_suffix(),netflow.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 						}
 					}catch (Exception e) {
 						e.printStackTrace();
@@ -488,7 +497,7 @@ public class KafkaCollector implements Runnable {
 					logType = LogType.LOGTYPE_WINLOG;
 					try {
 						winlog = new Winlog(log);
-						
+						winlog.setHslog_type(logType);
 						ipadress = winlog.getIp();
 						//判断是否在资产ip地址池里
 						if(ipadressSet.contains(ipadress)){
@@ -502,7 +511,8 @@ public class KafkaCollector implements Runnable {
 									winlog.setEquipmentid(equipment.getId());
 									json = gson.toJson(winlog);
 									//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_WINLOG, json));
-									newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_WINLOG, json));
+									//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_WINLOG, json));
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),winlog.getIndex_suffix(),winlog.getLogdate()), LogType.LOGTYPE_WINLOG, json));
 								}
 							}else{
 								winlog.setUserid(LogType.LOGTYPE_UNKNOWN);
@@ -511,7 +521,8 @@ public class KafkaCollector implements Runnable {
 								winlog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 								json = gson.toJson(winlog);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_WINLOG, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_WINLOG, json));
+								//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_WINLOG, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),winlog.getIndex_suffix(),winlog.getLogdate()), LogType.LOGTYPE_WINLOG, json));
 							}
 						}else{
 							//不在资产ip池里，暂不处理
@@ -526,7 +537,7 @@ public class KafkaCollector implements Runnable {
 					logType = LogType.LOGTYPE_DNS;
 					try {
 						dns = new DNS(log);
-						
+						dns.setHslog_type(logType);
 						ipadress = dns.getIp();
 						//判断是否在资产ip地址池里
 						if(ipadressSet.contains(ipadress)){
@@ -540,7 +551,8 @@ public class KafkaCollector implements Runnable {
 									dns.setEquipmentid(equipment.getId());
 									json = gson.toJson(dns);
 									//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DNS, json));
-									newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DNS, json));
+									//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DNS, json));
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),dns.getIndex_suffix(),dns.getLogdate()), LogType.LOGTYPE_DNS, json));
 								}
 							}else{
 								dns.setUserid(LogType.LOGTYPE_UNKNOWN);
@@ -549,7 +561,8 @@ public class KafkaCollector implements Runnable {
 								dns.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 								json = gson.toJson(dns);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DNS, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DNS, json));
+								//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DNS, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),dns.getIndex_suffix(),dns.getLogdate()), LogType.LOGTYPE_DNS, json));
 							}
 						}else{
 							//不在资产ip池里，暂不处理
@@ -563,7 +576,7 @@ public class KafkaCollector implements Runnable {
 					logType = LogType.LOGTYPE_DHCP;
 					try {
 						dhcp = new DHCP(log);
-						
+						dhcp.setHslog_type(logType);
 						ipadress = dhcp.getIp();
 						//判断是否在资产ip地址池里
 						if(ipadressSet.contains(ipadress)){
@@ -577,7 +590,8 @@ public class KafkaCollector implements Runnable {
 									dhcp.setEquipmentid(equipment.getId());
 									json = gson.toJson(dhcp);
 									//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DHCP, json));
-									newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DHCP, json));
+									//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DHCP, json));
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),dhcp.getIndex_suffix(),dhcp.getLogdate()), LogType.LOGTYPE_DHCP, json));
 								}
 							}else{
 								dhcp.setUserid(LogType.LOGTYPE_UNKNOWN);
@@ -586,7 +600,8 @@ public class KafkaCollector implements Runnable {
 								dhcp.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 								json = gson.toJson(dhcp);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DHCP, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DHCP, json));
+								//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DHCP, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),dhcp.getIndex_suffix(),dhcp.getLogdate()), LogType.LOGTYPE_DHCP, json));
 							}
 						}else{
 							//不在资产ip池里，暂不处理
@@ -603,7 +618,7 @@ public class KafkaCollector implements Runnable {
 					}
 					try {
 						app_file = new App_file(log);
-						
+						app_file.setHslog_type(logType);
 						ipadress = app_file.getIp();
 						//判断是否在资产ip地址池里
 						if(ipadressSet.contains(ipadress)){
@@ -619,6 +634,7 @@ public class KafkaCollector implements Runnable {
 									json = gson.toJson(app_file);
 									//requests.add(template.insertNo(configProperty.getEs_index(), logType, json));
 									newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_APP_FILE, json));
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),app_file.getIndex_suffix(),app_file.getLogdate()), LogType.LOGTYPE_APP_FILE, json));
 								}
 								
 							}else{
@@ -629,7 +645,8 @@ public class KafkaCollector implements Runnable {
 								app_file.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 								json = gson.toJson(app_file);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_UNKNOWN, json));
-								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_UNKNOWN, json));
+								//newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_UNKNOWN, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),app_file.getIndex_suffix(),app_file.getLogdate()), LogType.LOGTYPE_APP_FILE, json));
 							}
 						}else{
 							//不在资产ip池里，暂不处理
@@ -644,7 +661,7 @@ public class KafkaCollector implements Runnable {
 					logType = LogType.LOGTYPE_SYSLOG;
 					try {
 						syslog = new Syslog(log);
-						
+						syslog.setHslog_type(logType);
 						ipadress = syslog.getIp();
 						//判断是否在资产ip地址池里
 						if(ipadressSet.contains(ipadress)){
@@ -662,7 +679,8 @@ public class KafkaCollector implements Runnable {
 									}*/
 									json = gson.toJson(syslog);
 									//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_SYSLOG, json));
-									newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_SYSLOG, json));
+									//newrequests.add(logCurdDao.insertNotCommit(configProperty.getEs_index().replace("*","_"+syslog.getHslog_type()+format.format(syslog.getLogdate())), LogType.LOGTYPE_SYSLOG, json));
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),syslog.getIndex_suffix(),syslog.getLogdate()), LogType.LOGTYPE_SYSLOG, json));
 								}
 								
 							}else{
@@ -674,6 +692,7 @@ public class KafkaCollector implements Runnable {
 								json = gson.toJson(syslog);
 								//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_UNKNOWN, json));
 								newrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_UNKNOWN, json));
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),syslog.getIndex_suffix(),syslog.getLogdate()), LogType.LOGTYPE_UNKNOWN, json));
 							}
 						}else{
 							//不在资产ip池里，暂不处理

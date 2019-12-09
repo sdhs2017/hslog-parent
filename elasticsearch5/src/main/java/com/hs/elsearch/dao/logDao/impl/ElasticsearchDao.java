@@ -2,8 +2,8 @@
 package com.hs.elsearch.dao.logDao.impl;
 
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
-import com.hs.elsearch.template.ESTransportIndexTemplate;
-import com.hs.elsearch.template.ESTransportSearchTemplate;
+import com.hs.elsearch.template.IndexTemplate;
+import com.hs.elsearch.template.SearchTemplate;
 import org.apache.directory.api.util.Strings;
 import org.apache.log4j.Logger;
 import org.elasticsearch.index.query.*;
@@ -52,9 +52,9 @@ public class ElasticsearchDao implements ILogSearchDao {
     SortOrder desc = SortOrder.DESC;
 
     @Autowired
-    ESTransportSearchTemplate searchTemplate;
+    SearchTemplate searchTemplate;
     @Autowired
-    ESTransportIndexTemplate indexTemplate;
+    IndexTemplate indexTemplate;
 
     @Override
     public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String, Object> settings, String type, String mapping) throws Exception {

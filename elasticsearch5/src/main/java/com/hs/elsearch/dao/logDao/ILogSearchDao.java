@@ -7,16 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public interface ILogSearchDao {
 
 
-    /**
-     * 用于初始化操作创建index的模板
-     * @param tempalateName 模板名称
-     * @param tempalatePattern index名称通配
-     * @param settings 针对index模板的具体属性设置，包括分片数、副本数、最大查询值等，其中分片数设置之后是不能再修改的
-     * @param type 在5.4版本中index的template需要指明mapping对应的type，在7版本后只需要指定mapping
-     * @param mapping 字段属性
-     * @return 创建成功返回true，失败false
-     */
-    public boolean createTemplateOfIndex(String tempalateName, String tempalatePattern, Map<String,Object> settings,String type, String mapping) throws Exception;
 
 
     /**

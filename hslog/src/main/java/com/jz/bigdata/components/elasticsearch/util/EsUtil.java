@@ -1,3 +1,4 @@
+/*
 package com.jz.bigdata.components.elasticsearch.util;
 
 import java.net.InetAddress;
@@ -45,27 +46,33 @@ public class EsUtil {
     }
     
     public static BulkProcessor getBulkProcessor(TransportClient client){
-    	/**
+    	*/
+/**
     	 * BulkProcessor，功能、参数较多
     	 * 
-    	 */
+    	 *//*
+
     	bulkProcessor = BulkProcessor.builder(
 	        client,  
 	        new BulkProcessor.Listener() {
 	        	
-	            /* (non-Javadoc)
+	            */
+/* (non-Javadoc)
 	             * This method is called just before bulk is executed. You can for example see the numberOfActions with request.numberOfActions()
 	             * @see org.elasticsearch.action.bulk.BulkProcessor.Listener#beforeBulk(long, org.elasticsearch.action.bulk.BulkRequest)
-	             */
+	             *//*
+
 	            public void beforeBulk(long executionId,BulkRequest request) {
 	            	System.out.println("before");
 	            	System.out.println(request.numberOfActions());
 	            } 
 
-	            /*  (non-Javadoc)
+	            */
+/*  (non-Javadoc)
 	             *  This method is called after bulk execution. You can for example check if there was some failing requests with response.hasFailures()
 	             * @see org.elasticsearch.action.bulk.BulkProcessor.Listener#afterBulk(long, org.elasticsearch.action.bulk.BulkRequest, org.elasticsearch.action.bulk.BulkResponse)
-	             */
+	             *//*
+
 	            public void afterBulk(long executionId,
 	                                  BulkRequest request,
 	                                  BulkResponse response) { 
@@ -73,10 +80,12 @@ public class EsUtil {
 	            	System.out.println(response.hasFailures());
 	            } 
 	            
-	            /* 	(non-Javadoc)
+	            */
+/* 	(non-Javadoc)
 				 *	This method is called when the bulk failed and raised a Throwable
 	             * @see org.elasticsearch.action.bulk.BulkProcessor.Listener#afterBulk(long, org.elasticsearch.action.bulk.BulkRequest, java.lang.Throwable)
-	             */
+	             *//*
+
 	            public void afterBulk(long executionId,
 	                                  BulkRequest request,
 	                                  Throwable failure) { 
@@ -90,20 +99,24 @@ public class EsUtil {
 //	        .setBulkSize(new ByteSizeValue(5, ByteSizeUnit.MB)) 
 	        //We want to flush the bulk every 10 seconds whatever the number of requests
 	        .setFlushInterval(TimeValue.timeValueSeconds(10)) 
-	        /*
+	        */
+/*
 	         * Set the number of concurrent requests. A value of 0 means that only a single request 
 	         * will be allowed to be executed. A value of 1 means 1 concurrent request is allowed to be executed 
 	         * while accumulating new bulk requests.
 	         * 
 	         * 允许同时执行数
-	         */
+	         *//*
+
 	        .setConcurrentRequests(1) 
-	        /*
+	        */
+/*
 	         * Set a custom backoff policy which will initially wait for 100ms, increase exponentially 
 	         * and retries up to three times. A retry is attempted whenever one or more bulk item requests 
 	         * have failed with an EsRejectedExecutionException which indicates that there were too little 
 	         * compute resources available for processing the request. To disable backoff, pass BackoffPolicy.noBackoff().
-	         */
+	         *//*
+
 	        .setBackoffPolicy(
 	            BackoffPolicy.exponentialBackoff(TimeValue.timeValueMillis(100), 3)) 
 //	        .setBackoffPolicy(
@@ -119,4 +132,4 @@ public class EsUtil {
     }  
     
     
-}  
+}  */

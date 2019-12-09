@@ -1,8 +1,10 @@
 package com.hs.elsearch.dao.logDao;
 
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.query.QueryBuilder;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -57,4 +59,13 @@ public interface ILogCrudDao {
      * @return
      */
     public String deleteById(String index, String type, String id);
+
+    /**
+     * 根据不同的版本制定index的方式不同
+     * @param index
+     * @param suffix
+     * @param date
+     * @return
+     */
+    public String checkOfIndex(String index, String suffix, Date date);
 }

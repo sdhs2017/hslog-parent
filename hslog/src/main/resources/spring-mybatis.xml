@@ -678,7 +678,7 @@
 		<property name="fileEncoding" value="UTF-8"></property>
 	</bean>-->
 
-	<bean id="elasticsearch5" class="com.hs.elsearch.client.EStransportclient">
+	<!--<bean id="elasticsearch" class="com.hs.elsearch.client.EStransportclient">
 		<property name="elasticsearchbean">
 			<map>
 				<entry key="es_ip" value="192.168.2.182"/>
@@ -686,17 +686,17 @@
 				<entry key="es_name" value="myElasticsearchCluster"/>
 			</map>
 		</property>
-		<!--<constructor-arg ref="elsearch"/>-->
-	</bean>
+		&lt;!&ndash;<constructor-arg ref="elsearch"/>&ndash;&gt;
+	</bean>-->
 
-	<!--<bean id="elasticsearch7" class="com.hs.elsearch.template.RestHighClient7">
+	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
 				<entry key="es_ip" value="192.168.2.181"/>
 				<entry key="es_port" value="9200"/>
 			</map>
 		</property>
-	</bean>-->
+	</bean>
 	<!--<bean id="esClient" class="com.jz.bigdata.framework.spring.es.elasticsearch.ElasticsearchTransportClientFactoryBean">
 		<property name="transportAddresses">
 			<map>
@@ -712,16 +712,16 @@
 		&lt;!&ndash;<constructor-arg value="article"/>&ndash;&gt;
 	</bean>-->
 
-	<bean id="searchTemplate" class="com.hs.elsearch.template.ESTransportSearchTemplate">
-		<constructor-arg ref="elasticsearch5"/>
+	<bean id="searchTemplate" class="com.hs.elsearch.template.SearchTemplate">
+		<constructor-arg ref="elasticsearch"/>
 	</bean>
 
-	<bean id="indexTemplate" class="com.hs.elsearch.template.ESTransportIndexTemplate">
-		<constructor-arg ref="elasticsearch5"/>
+	<bean id="indexTemplate" class="com.hs.elsearch.template.IndexTemplate">
+		<constructor-arg ref="elasticsearch"/>
 	</bean>
 
-	<bean id="crudTemplate" class="com.hs.elsearch.template.ESTransportCrudTemplate">
-		<constructor-arg ref="elasticsearch5"/>
+	<bean id="crudTemplate" class="com.hs.elsearch.template.CrudTemplate">
+		<constructor-arg ref="elasticsearch"/>
 	</bean>
 
 	<bean id="logIndexDao" class="com.hs.elsearch.dao.logDao.impl.LogIndexDaoImpl">

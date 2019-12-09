@@ -70,11 +70,11 @@ public final static Map<Integer, String> facility = new HashMap<>();
 	 */
 	Date logdate;
 	String logtime;
-	String logtime_minute;
+	/*String logtime_minute;
 	String logtime_hour;
 	String logtime_day;
 	String logtime_month;
-	String logtime_year;
+	String logtime_year;*/
 	
 	
 	/**
@@ -197,6 +197,16 @@ public final static Map<Integer, String> facility = new HashMap<>();
 	 * 事件描述
 	 */
 	String event_des;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
+
 	
 	public String getId() {
 		return id;
@@ -550,6 +560,22 @@ public final static Map<Integer, String> facility = new HashMap<>();
 		this.agent = agent;
 	}
 
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
+
 	public PacketFilteringFirewal() {
 		
 	}
@@ -645,14 +671,14 @@ public final static Map<Integer, String> facility = new HashMap<>();
 			this.devid = fire.getDevid();
 			this.date = fire.getDate().replace(",", " ");
 			this.logtime = this.date.replace("/", "-");
-			String [] tmp = this.logtime.split(" ");
+			/*String [] tmp = this.logtime.split(" ");
         	String [] date = tmp[0].split("-");
         	String [] time = tmp[1].split(":");
         	this.logtime_year = date[0];
         	this.logtime_month = date[1];
         	this.logtime_day = date[2];
         	this.logtime_hour = time[0];
-        	this.logtime_minute = time[1];
+        	this.logtime_minute = time[1];*/
         	try {
 				this.logdate = dateformat.parse(this.logtime);
 			} catch (ParseException e) {
@@ -694,6 +720,7 @@ public final static Map<Integer, String> facility = new HashMap<>();
 			this.fwlog = fire.getFwlog();
 			this.dsp_msg = fire.getDsp_msg();
 		}
+		this.index_suffix = "syslog";
 		
 	}
 	

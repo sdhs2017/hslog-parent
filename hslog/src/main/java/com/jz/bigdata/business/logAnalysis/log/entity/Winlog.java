@@ -38,11 +38,11 @@ public class Winlog {
 	 */
 	Date logdate;
 	String logtime;
-	String logtime_minute;
+	/*String logtime_minute;
 	String logtime_hour;
 	String logtime_day;
 	String logtime_month;
-	String logtime_year;
+	String logtime_year;*/
 	/**
 	 * 事件ID
 	 */
@@ -91,6 +91,14 @@ public class Winlog {
 	 * 事件描述
 	 */
 	String event_des;
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
 
 	public String getId() {
 		return id;
@@ -244,6 +252,22 @@ public class Winlog {
 		this.event_des = event_des;
 	}
 
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
+
 	public Winlog() {
 
 	}
@@ -274,14 +298,14 @@ public class Winlog {
 			String[] loglefts = logleft.split(" ");
 			this.logtime = loglefts[1] + " " + loglefts[2];
 			this.logdate = format.parse(this.logtime);
-			String[] tmptime = this.logtime.split(" ");
+			/*String[] tmptime = this.logtime.split(" ");
 			String[] date = tmptime[0].split("-");
 			String[] time = tmptime[1].split(":");
 			this.logtime_year = date[0];
 			this.logtime_month = date[1];
 			this.logtime_day = date[2];
 			this.logtime_hour = time[0];
-			this.logtime_minute = time[1];
+			this.logtime_minute = time[1];*/
 			this.hostname = loglefts[3];
 			this.ip = loglefts[4];
 			// this.operation_level = matcher.group(0);
@@ -431,6 +455,7 @@ public class Winlog {
 					|| Pattern_Matcher.getMatchedContent(this.operation_des, "Windows 筛选平台已阻止连接") != "") {
 				this.operation_level = "Info";
 			}
+			this.index_suffix = "syslog";
 
 		} else if (Securitymatcher.find()) {
 			if (PRImatcher.find()) {
@@ -462,14 +487,14 @@ public class Winlog {
 			if (datematcher.find()) {
 				this.logtime = datematcher.group(0);
 				this.logdate = format.parse(this.logtime);
-				String[] tmptime = this.logtime.split(" ");
+				/*String[] tmptime = this.logtime.split(" ");
 				String[] date = tmptime[0].split("-");
 				String[] time = tmptime[1].split(":");
 				this.logtime_year = date[0];
 				this.logtime_month = date[1];
 				this.logtime_day = date[2];
 				this.logtime_hour = time[0];
-				this.logtime_minute = time[1];
+				this.logtime_minute = time[1];*/
 			}
 			String logleft = log.substring(0,
 					log.indexOf(Securitymatcher.group(0)) + Securitymatcher.group(0).length());
@@ -613,6 +638,7 @@ public class Winlog {
 					|| Pattern_Matcher.getMatchedContent(this.operation_des, "Windows 筛选平台已阻止连接") != "") {
 				this.operation_level = "Info";
 			}
+			this.index_suffix = "syslog";
 		}
 
 	}

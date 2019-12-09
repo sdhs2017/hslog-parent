@@ -1,3 +1,4 @@
+/*
 package com.jz.bigdata.components.elasticsearch.spring.test.test1;
 
 import java.util.List;
@@ -24,4 +25,4 @@ public interface BookRepository extends ElasticsearchCrudRepository<Book, String
 
     @Query("{\"bool\" : {\"must\" : {\"term\" : {\"message\" : \"?0\"}}}}")
     Page<Book> findByMessage(String message, Pageable pageable);
-}
+}*/

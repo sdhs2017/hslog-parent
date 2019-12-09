@@ -43,11 +43,11 @@ public class Netflow {
 	 */
 	private Date logdate;
 	private String logtime;
-	private String logtime_minute;
+	/*private String logtime_minute;
 	private String logtime_hour;
 	private String logtime_day;
 	private String logtime_month;
-	private String logtime_year;
+	private String logtime_year;*/
 	/**
 	 * 操作类型
 	 */
@@ -95,8 +95,17 @@ public class Netflow {
 	private String last_switched;//最后转换
 	private int sampling_interval;//采样间隔*/
 	private String packet_source;//数据包来源
-	
-	
+
+	/**
+	 * 日志类型
+	 */
+	private String hslog_type;
+
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
+
 	/*public int getDst_as() {
 		return dst_as;
 	}
@@ -337,7 +346,7 @@ public class Netflow {
 		this.logtime = logtime;
 	}
 
-	public String getLogtime_minute() {
+	/*public String getLogtime_minute() {
 		return logtime_minute;
 	}
 
@@ -375,7 +384,7 @@ public class Netflow {
 
 	public void setLogtime_year(String logtime_year) {
 		this.logtime_year = logtime_year;
-	}
+	}*/
 
 	public String getOperation_level() {
 		return operation_level;
@@ -442,6 +451,21 @@ public class Netflow {
 		this.ipv4_src_addr = ipv4_src_addr;
 	}
 
+	public String getHslog_type() {
+		return hslog_type;
+	}
+
+	public void setHslog_type(String hslog_type) {
+		this.hslog_type = hslog_type;
+	}
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
 
 	class net_flow{
 		private int dst_as;
@@ -646,11 +670,11 @@ public class Netflow {
 		}
 		cal.setTime(this.logdate);
 		this.logtime = format.format(this.logdate.getTime());
-		this.logtime_year = String.valueOf(cal.get(Calendar.YEAR));
+		/*this.logtime_year = String.valueOf(cal.get(Calendar.YEAR));
 		this.logtime_month = String.format("%02d", cal.get(Calendar.MONTH) + 1);
 		this.logtime_day = String.format("%02d", cal.get(Calendar.DAY_OF_MONTH));
 		this.logtime_hour = String.format("%02d", cal.get(Calendar.HOUR_OF_DAY));
-		this.logtime_minute = String.format("%02d", cal.get(Calendar.MINUTE));
+		this.logtime_minute = String.format("%02d", cal.get(Calendar.MINUTE));*/
 		
 		this.l4_src_port=netflow.getNetflow().l4_src_port;
 		this.l4_dst_port=netflow.getNetflow().l4_dst_port;
@@ -691,6 +715,8 @@ public class Netflow {
 		this.operation_level="";
 //		netflow.setOperation_des(log);
 		this.operation_des=log;
+
+		this.index_suffix = "syslog";
 	}
 	
 	

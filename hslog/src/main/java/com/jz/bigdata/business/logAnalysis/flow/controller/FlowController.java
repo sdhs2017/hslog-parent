@@ -57,6 +57,7 @@ public class FlowController {
     @DescribeLog(describe="统计netflow源IP、目的IP、源端口、目的端口的数量")
     public String getTopGroupByIPOrPort(HttpServletRequest request) {
         String index = configProperty.getEs_index();
+        // 默认需要统计的4个属性，目的ip、源ip、目的端口、源端口
         String [] groupbys = {"ipv4_dst_addr.raw","ipv4_src_addr.raw","l4_dst_port","l4_src_port"};
         String [] types = {"defaultpacket"};
         // 单个group条件
@@ -82,27 +83,43 @@ public class FlowController {
         Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
 
         if (groupby!=null) {
-            List<Map<String, Object>> list = flowService.groupBy(index, types, groupby+".raw",10, starttime, endtime, searchmap);
+            List<Map<String, Object>> list = null;
+            try {
+                list = flowService.groupBy(index, types, groupby+".raw",10, starttime, endtime, searchmap);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-                Map<String,Object> tMap = new HashMap<>();
-                tMap.put("IpOrPort", key.getKey());
-                tMap.put("count", key.getValue());
-                tmplist.add(tMap);
-            }
-            map.put(groupby, tmplist);
-        }else {
-            for(String param:groupbys) {
-                List<Map<String, Object>> list = flowService.groupBy(index, types, param, 10, starttime, endtime, searchmap);
-
-                List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
+            if (list.size()>0){
                 for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
                     Map<String,Object> tMap = new HashMap<>();
                     tMap.put("IpOrPort", key.getKey());
                     tMap.put("count", key.getValue());
                     tmplist.add(tMap);
                 }
+            }
+
+            map.put(groupby, tmplist);
+        }else {
+            for(String param:groupbys) {
+                List<Map<String, Object>> list = new ArrayList<>();
+                try {
+                    list = flowService.groupBy(index, types, param, 10, starttime, endtime, searchmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
+                if (list.size()>0){
+                    for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                        Map<String,Object> tMap = new HashMap<>();
+                        tMap.put("IpOrPort", key.getKey());
+                        tMap.put("count", key.getValue());
+                        tmplist.add(tMap);
+                    }
+                }
+
                 map.put(param.replace(".raw", ""), tmplist);
             }
 
@@ -137,7 +154,11 @@ public class FlowController {
         int size = 10;
         //
         //list = logService.groupBy(index, types, groupby, map);
-        list = flowService.groupBy(index, types, groupby, size,null,null,map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,null,null,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         long ipv4_dst_addr_count = logService.getCount(index, types, map);
 
@@ -148,12 +169,15 @@ public class FlowController {
 
         // IP访问次数统计
         List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-            Map<String,Object> tMap = new HashMap<>();
-            tMap.put("source_ip", key.getKey());
-            tMap.put("count", key.getValue());
-            tmplist.add(tMap);
+        if (list.size()>0){
+            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                Map<String,Object> tMap = new HashMap<>();
+                tMap.put("source_ip", key.getKey());
+                tMap.put("count", key.getValue());
+                tmplist.add(tMap);
+            }
         }
+
 
         Map<String,Object> result = new HashMap<>();
         result.put("ipv4_dst_addr", ipv4_dst_addr_Map);
@@ -189,15 +213,23 @@ public class FlowController {
         Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
         for(String param:groupbys) {
             if (!param.equals(groupby)) {
-                List<Map<String, Object>> list = flowService.groupBy(index,types,param,size,null,null,searchmap);
+                List<Map<String, Object>> list = null;
+                try {
+                    list = flowService.groupBy(index,types,param,size,null,null,searchmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-                for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-                    Map<String,Object> tMap = new HashMap<>();
-                    tMap.put("IpOrPort", key.getKey());
-                    tMap.put("count", key.getValue());
-                    tmplist.add(tMap);
+                if (list.size()>0){
+                    for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                        Map<String,Object> tMap = new HashMap<>();
+                        tMap.put("IpOrPort", key.getKey());
+                        tMap.put("count", key.getValue());
+                        tmplist.add(tMap);
+                    }
                 }
+
                 map.put(param, tmplist);
             }
         }
@@ -238,7 +270,12 @@ public class FlowController {
         for(String param:groupbys) {
             if (!param.equals(groupby)) {
                 // 第一层数据结果
-                List<Map<String, Object>> list1 = flowService.groupBy(index,types,param,5,null,null,searchmap);
+                List<Map<String, Object>> list1 = null;
+                try {
+                    list1 = flowService.groupBy(index,types,param,5,null,null,searchmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 List<Map<String, Object>> datalist = new LinkedList<Map<String, Object>>();
                 List<Map<String, Object>> linkslist = new LinkedList<Map<String, Object>>();
@@ -274,7 +311,12 @@ public class FlowController {
 
                     // 第二层查询条件和数据结果
                     searchmap.put(groupby, key1.getKey());
-                    List<Map<String, Object>> list2 = flowService.groupBy(index,types,param,5,null,null,searchmap);
+                    List<Map<String, Object>> list2 = null;
+                    try {
+                        list2 = flowService.groupBy(index,types,param,5,null,null,searchmap);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     // 遍历第二层数据结果
                     for(Map.Entry<String, Object> key2: list2.get(0).entrySet()) {
                         // 组织data中的数据内容
@@ -333,7 +375,7 @@ public class FlowController {
         String index = configProperty.getEs_index();
 
         // 双向划线
-        String [] groupbys = {"ipv4_src_addr","ipv4_dst_addr"};
+        String [] groupbys = {"ipv4_src_addr.raw","ipv4_dst_addr.raw"};
         String[] types = {"defaultpacket"};
 
         String starttime = request.getParameter("starttime");
@@ -369,19 +411,27 @@ public class FlowController {
         for(String param:groupbys) {
 
             // 聚合源IP和目的IP
-            List<Map<String, Object>> list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
+            List<Map<String, Object>> list = null;
+            try {
+                list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             // 数据处理，将源IP和目的IP两者之间相同的IP的值相加
             if (tMap.isEmpty()) {
                 tMap = list.get(0);
             }else {
-                for(Map.Entry<String, Object> entrymap : list.get(0).entrySet()) {
-                    if (tMap.containsKey(entrymap.getKey())) {
-                        int newvalue  = Integer.parseInt(tMap.get(entrymap.getKey()).toString())+Integer.parseInt(entrymap.getValue().toString());
-                        tMap.put(entrymap.getKey(), newvalue);
-                    }else{
-                        tMap.put(entrymap.getKey(), entrymap.getValue());
+                if (list.size()>0){
+                    for(Map.Entry<String, Object> entrymap : list.get(0).entrySet()) {
+                        if (tMap.containsKey(entrymap.getKey())) {
+                            int newvalue  = Integer.parseInt(tMap.get(entrymap.getKey()).toString())+Integer.parseInt(entrymap.getValue().toString());
+                            tMap.put(entrymap.getKey(), newvalue);
+                        }else{
+                            tMap.put(entrymap.getKey(), entrymap.getValue());
+                        }
                     }
                 }
+
             }
         }
 
@@ -396,7 +446,11 @@ public class FlowController {
 
         // 源IP、目的IP的连线，连线次数
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
-        linkslist = logService.groupBy(index,types,groupbys,1000,starttime,endtime,searchmap);
+        try {
+            linkslist = logService.groupBy(index,types,groupbys,1000,starttime,endtime,searchmap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 
         //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
@@ -428,7 +482,7 @@ public class FlowController {
     @ResponseBody
     @RequestMapping(value="/getFlowListByBlend",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="查询流量数据")
-    public String getFlowListByBlend(HttpServletRequest request, HttpSession session) throws JsonParseException, JsonMappingException, IOException {
+    public String getFlowListByBlend(HttpServletRequest request, HttpSession session) {
         // receive parameter
         Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
@@ -438,7 +492,12 @@ public class FlowController {
         if (hsData!=null){
             ObjectMapper mapper = new ObjectMapper();
             // 处理map参数
-            Map<String, String> map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+            Map<String, String> map = null;
+            try {
+                map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             Object pageo = map.get("page");
             Object sizeo = map.get("size");
@@ -471,10 +530,18 @@ public class FlowController {
                 arrayList.add(map.get("type"));
                 map.remove("type");
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
-                list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
+                try {
+                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }else {
                 String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
-                list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
+                try {
+                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             Map<String, Object> allmap = new HashMap<>();
             allmap = list.get(0);
@@ -485,7 +552,11 @@ public class FlowController {
 
             return replace;
         }else{
-            list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
+            try {
+                list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             Map<String, Object> allmap = new HashMap<>();
             allmap = list.get(0);
             list.remove(0);
@@ -555,19 +626,35 @@ public class FlowController {
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
                 if (userrole.equals("1")) {
                     //list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
-                    list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    try {
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }else {
                     map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-                    list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    try {
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }else {
                 String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
                 if (userrole.equals("1")) {
                     //list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
-                    list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    try {
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }else {
                     map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-                    list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    try {
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             Map<String, Object> allmap = new HashMap<>();
@@ -579,7 +666,11 @@ public class FlowController {
 
             return replace;
         }else{
-            list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
+            try {
+                list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             Map<String, Object> allmap = new HashMap<>();
             allmap = list.get(0);
             list.remove(0);
@@ -616,7 +707,11 @@ public class FlowController {
 
         int size = 10;
         //list = logService.groupBy(index, types, groupby, map);
-        list = flowService.groupBy(index, types, groupby, size,null,null, map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,null,null, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         long domain_url_count = logService.getCount(index, types, map);
 
@@ -626,11 +721,13 @@ public class FlowController {
 
 
         List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-            Map<String,Object> tMap = new HashMap<>();
-            tMap.put("source_ip", key.getKey());
-            tMap.put("count", key.getValue());
-            tmplist.add(tMap);
+        if (list.size()>0){
+            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                Map<String,Object> tMap = new HashMap<>();
+                tMap.put("source_ip", key.getKey());
+                tMap.put("count", key.getValue());
+                tmplist.add(tMap);
+            }
         }
 
         Map<String,Object> result = new HashMap<>();
@@ -698,14 +795,20 @@ public class FlowController {
         int size = 10;
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         //list = logService.groupBy(index, types, groupby, map);
-        list = flowService.groupBy(index,types,groupby,size,starttime,endtime,map);
+        try {
+            list = flowService.groupBy(index,types,groupby,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-            Map<String,Object> tMap = new HashMap<>();
-            tMap.put("domain_url", key.getKey());
-            tMap.put("count", key.getValue());
-            tmplist.add(tMap);
+        if (list.size()>0){
+            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                Map<String,Object> tMap = new HashMap<>();
+                tMap.put("domain_url", key.getKey());
+                tMap.put("count", key.getValue());
+                tmplist.add(tMap);
+            }
         }
 
         return JSONArray.fromObject(tmplist).toString();
@@ -745,14 +848,20 @@ public class FlowController {
         int size = 10;
 
         //list = logService.groupBy(index, types, groupby, map);
-        list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-            Map<String,Object> tMap = new HashMap<>();
-            tMap.put("complete_url", key.getKey());
-            tMap.put("count", key.getValue());
-            tmplist.add(tMap);
+        if (list.size()>0){
+            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                Map<String,Object> tMap = new HashMap<>();
+                tMap.put("complete_url", key.getKey());
+                tMap.put("count", key.getValue());
+                tmplist.add(tMap);
+            }
         }
 
         return JSONArray.fromObject(tmplist).toString();
@@ -787,7 +896,11 @@ public class FlowController {
         int size =10;
 
         //list = logService.groupBy(index, types, groupby, map);
-        list = flowService.groupBy(index, types, groupby, size,null,null, map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,null,null, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         //map.put("domain_url", domain_url);
 
@@ -799,11 +912,13 @@ public class FlowController {
 
 
         List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-            Map<String,Object> tMap = new HashMap<>();
-            tMap.put("source_ip", key.getKey());
-            tMap.put("count", key.getValue());
-            tmplist.add(tMap);
+        if (list.size()>0){
+            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                Map<String,Object> tMap = new HashMap<>();
+                tMap.put("source_ip", key.getKey());
+                tMap.put("count", key.getValue());
+                tmplist.add(tMap);
+            }
         }
 
         Map<String,Object> result = new HashMap<>();

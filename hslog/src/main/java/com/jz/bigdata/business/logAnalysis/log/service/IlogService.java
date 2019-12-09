@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.log.service;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -15,13 +16,13 @@ public interface IlogService {
 	 * @param type
 	 * @return
 	 */
-	public List<Map<String, Object>> index(String index,String type) ;
+	public List<Map<String, Object>> index(String index,String type) throws Exception;
 
 	/**
 	 * 创建elasticsearch的index
 	 * @param index 索引名称
 	 */
-	public void createIndex(String index);
+	public void createIndex(String index) throws Exception;
 
 	/**
 	 * 判断index是否存在
@@ -36,7 +37,18 @@ public interface IlogService {
 	 * @param type 索引类型（7版本删除）
 	 * @param mappingproperties 字段属性
 	 */
+	@Deprecated
 	public void createIndexAndmapping(String index, String type, String mappingproperties) throws Exception;
+
+	/**
+	 * 用于elasticsearch的初始化操作，引用不同elasticsearch包在dao层区分操作
+	 * 使用5的包在dao层初始化index，引用7的包在dao层初始化template
+	 * @param indexOrTemplate
+	 * @param type 索引类型 通过该字段的判断确认操作
+	 * @param settings
+	 * @param mapping
+	 */
+	public void initOfElasticsearch(String indexOrTemplate,String templatePattern,String type,Map<String, Object> settings,String mapping) throws Exception;
 
 	/**
 	 *
@@ -56,7 +68,7 @@ public interface IlogService {
 	 * @param type
 	 * @param json
 	 */
-	public void insert(String index,String type,String json);
+	public void insert(String index,String type,String json) throws Exception;
 
 	/**
 	 * 获取索引数据量通过条件
@@ -80,7 +92,7 @@ public interface IlogService {
 	 * @param map 其他限制条件
 	 * @return
 	 */
-	public List<Map<String, Object>> groupBy(String index,String[] types,String groupByField, int size, String starttime, String endtime,Map<String, String> map);
+	public List<Map<String, Object>> groupBy(String index,String[] types,String groupByField, int size, String starttime, String endtime,Map<String, String> map) throws Exception;
 
 	/**
 	 * 新
@@ -94,7 +106,7 @@ public interface IlogService {
 	 * @param map 其他限制条件
 	 * @return
 	 */
-	public List<Map<String, Object>> groupBy(String index,String[] types,String[] groupByField, int size, String starttime, String endtime,Map<String, String> map);
+	public List<Map<String, Object>> groupBy(String index,String[] types,String[] groupByField, int size, String starttime, String endtime,Map<String, String> map) throws Exception;
 	/**
 	 * 实现类sql的group by功能
 	 * @param index
@@ -134,7 +146,7 @@ public interface IlogService {
 	 * @param id
 	 * @return
 	 */
-	public String searchById(String index,String type,String id);
+	public String searchById(String index,String type,String id) throws Exception;
 
 	/**
 	 * 全文检索
@@ -146,7 +158,7 @@ public interface IlogService {
 	 * @return
 	 */
 	//public List<Map<String, Object>> getListByContent(String index,String[] types,String content,String page,String size);
-	public List<Map<String, Object>> getListByContent(String content,String userid,String page,String size,String[] types,String... indices);
+	public List<Map<String, Object>> getListByContent(String content,String userid,String page,String size,String[] types,String... indices) throws Exception;
 	/**
 	 * 全文检索
 	 * @param index
@@ -168,7 +180,7 @@ public interface IlogService {
 	 * TO DO 获取资产各个时段的日志数据
 	 * @return
 	 */
-	public List<Map<String, Object>> getListGroupByTime(String index,String[] types,String param,String equipmentid);
+	public List<Map<String, Object>> getListGroupByTime(String index,String[] types,String param,String equipmentid) throws Exception;
 
 	/**
 	 * 新
@@ -181,7 +193,7 @@ public interface IlogService {
 	 * @param size 聚合结果数
 	 * @return
 	 */
-	public List<Map<String, Object>> getEventListGroupByTime(String index,String[] types,String dates,String equipmentid,String eventtype,int size);
+	public List<Map<String, Object>> getEventListGroupByTime(String index,String[] types,String dates,String equipmentid,String eventtype,int size) throws Exception;
 
 	/**
 	 * 新
@@ -193,7 +205,7 @@ public interface IlogService {
 	 * @param indices 索引名称
 	 * @return 返回符合查询条件的日志内容
 	 */
-	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices);
+	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String[] types,String... indices) throws Exception;
 
 	/**
 	 * 新
@@ -207,7 +219,7 @@ public interface IlogService {
 	 * @param indices 索引名称
 	 * @return 返回符合查询条件的日志内容
 	 */
-	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types,String... indices);
+	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types,String... indices) throws Exception;
 
 
 	/**
@@ -222,7 +234,7 @@ public interface IlogService {
 	 * @param indices 索引名
 	 * @return 返回详细日志内容
 	 */
-	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices);
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception;
 	/**
 	 * getListByBlend重载
 	 * 通过遍历map中的查询条件进行查询
@@ -293,7 +305,7 @@ public interface IlogService {
 	 * @param id
 	 * @return
 	 */
-	public String deleteById(String index, String type, String id);
+	public String deleteById(String index, String type, String id) throws Exception;
 
 	/**
 	 * 新
@@ -306,7 +318,7 @@ public interface IlogService {
 	 * @return
 	 */
 	public List<Map<String, Object>> getEventListGroupByEventType(String index, String[] types, String today, String equipmentid,
-																  String groupby);
+																  String groupby) throws Exception;
 
 	/**
 	 * 统计某个时间段内单个资产的事件类型
@@ -329,7 +341,7 @@ public interface IlogService {
 	 * @param enddate
 	 * @return
 	 */
-	List<Map<String, Object>> getEventstypeCountByEquipmentid(String index, String[] types, String equipmentid, Date enddate);
+	List<Map<String, Object>> getEventstypeCountByEquipmentid(String index, String[] types, String equipmentid, Date enddate) throws Exception;
 
 	/**
 	 * 构建multiField查询
@@ -370,12 +382,12 @@ public interface IlogService {
 	 *
 	 * 实现indices中对已删除segments的合并达到释放存储空间的作用
 	 */
-	public ForceMergeResponse indexForceMergeForDelete(String[] indices);
+	public ForceMergeResponse indexForceMergeForDelete(String[] indices) throws Exception;
 
 	/**
 	 * 实现删除数据后强制合并 删除段释放存储空间
 	 */
-	public void deleteAndForcemerge(String[] indices, String type, Map<String, String> map) ;
+	public void deleteAndForcemerge(String[] indices, String type, Map<String, String> map) throws Exception;
 
 	/**
 	 * 创建备份仓库
@@ -383,21 +395,21 @@ public interface IlogService {
 	 * @param repoPath 备份仓库路径
 	 * @return
 	 */
-	public boolean createRepositories(String repositoryName,String repoPath) ;
+	public boolean createRepositories(String repositoryName,String repoPath) throws Exception;
 
 	/**
 	 * 获取备份仓库信息
 	 * @param repositoryName
 	 * @return
 	 */
-	public List<Map<String, Object>> getRepositoriesInfo(String ... repositoryName);
+	public List<Map<String, Object>> getRepositoriesInfo(String ... repositoryName) throws Exception;
 
 	/**
 	 * 删除备份仓库
 	 * @param repositoryName
 	 * @return
 	 */
-	public boolean deleteRepositories(String repositoryName) ;
+	public boolean deleteRepositories(String repositoryName) throws Exception;
 
 	/**
 	 * 更新index的setting属性
@@ -405,12 +417,19 @@ public interface IlogService {
 	 * @param map
 	 * @return
 	 */
-	public boolean updateSettings(String index,Map<String, Object> map) ;
+	public boolean updateSettings(String index,Map<String, Object> map) throws Exception;
 
 	/**
 	 * 定时任务：创建
 	 * @return
 	 */
 	public boolean createIndexRegularly() throws Exception;
+
+	/**
+	 * 用于开启服务前的验证，保证elasticsearch5版本的index必须存在或者elasticsearch7版本的template必须存在
+	 * @param indexOrTemplate 索引名称或者模板命名称(elasticsearch5版本传入index，elasticsearch7版本传入template)
+	 * @return
+	 */
+	public boolean checkOfIndexOrTemplate(String... indexOrTemplate);
 
 }

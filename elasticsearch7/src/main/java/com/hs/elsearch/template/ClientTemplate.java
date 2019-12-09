@@ -72,7 +72,7 @@ public class ClientTemplate {
     }
     }'
      */
-    public boolean createIndex(String index, Settings.Builder setting, String mappingproperties) throws Exception {
+    /*public boolean createIndex(String index, Settings.Builder setting, String mappingproperties) throws Exception {
         CreateIndexRequest request = new CreateIndexRequest(index);
         // 设置index的属性，包括分片数、副本数，如果不设置，默认分片是1，副本数是1
         if (setting!=null){
@@ -85,7 +85,7 @@ public class ClientTemplate {
 
         CreateIndexResponse createIndexResponse = restHighLevelClient.indices().create(request, RequestOptions.DEFAULT);
         return  createIndexResponse.isAcknowledged();
-    }
+    }*/
     /**
      *
      * @param indices
@@ -94,7 +94,7 @@ public class ClientTemplate {
      *
      curl -X GET "IP:9200/index_name?pretty"
      */
-    public long getIndexCount(String... indices) throws Exception {
+    /*public long getIndexCount(String... indices) throws Exception {
 
         CountRequest countRequest = new CountRequest();
 
@@ -103,7 +103,7 @@ public class ClientTemplate {
         CountResponse countResponse = restHighLevelClient.count(countRequest, RequestOptions.DEFAULT);
 
         return countResponse.getCount();
-    }
+    }*/
 
     /**
      * 判断index是否存在
@@ -113,7 +113,7 @@ public class ClientTemplate {
     curl -I "IP:9200/index_name?pretty"
      *
      */
-    public boolean indexExists(String index) throws Exception {
+    /*public boolean indexExists(String index) throws Exception {
 
         GetIndexRequest request = new GetIndexRequest(index);
         // 返回本地信息还是从主节点检索状态，false是从主节点检索状态
@@ -127,7 +127,7 @@ public class ClientTemplate {
         boolean exists = restHighLevelClient.indices().exists(request, RequestOptions.DEFAULT);
 
         return exists;
-    }
+    }*/
 
     /**
      *
@@ -146,7 +146,7 @@ public class ClientTemplate {
     }
     '
      */
-    public boolean putMapping(String index,String mappingproperties) throws Exception {
+    /*public boolean putMapping(String index,String mappingproperties) throws Exception {
 
         PutMappingRequest request = new PutMappingRequest(index);
 
@@ -157,7 +157,7 @@ public class ClientTemplate {
         boolean acknowledged = putMappingResponse.isAcknowledged();
 
         return acknowledged;
-    }
+    }*/
 
     /**
      * 删除索引
@@ -167,14 +167,14 @@ public class ClientTemplate {
      *
     curl -X DELETE "IP:9200/index_name?pretty"
      */
-    public boolean deleteIndex(String... indices) throws Exception {
+    /*public boolean deleteIndex(String... indices) throws Exception {
 
         DeleteIndexRequest request = new DeleteIndexRequest(indices);
 
         AcknowledgedResponse deleteIndexResponse = restHighLevelClient.indices().delete(request, RequestOptions.DEFAULT);
 
         return deleteIndexResponse.isAcknowledged();
-    }
+    }*/
 
     /**
      * 开启索引
@@ -184,7 +184,7 @@ public class ClientTemplate {
      *
     curl -X POST "IP:9200/index_name/_open?pretty"
      */
-    public boolean openIndex(String... indices) throws Exception {
+    /*public boolean openIndex(String... indices) throws Exception {
         OpenIndexRequest request = new OpenIndexRequest(indices);
 
         OpenIndexResponse openIndexResponse = restHighLevelClient.indices().open(request, RequestOptions.DEFAULT);
@@ -192,7 +192,7 @@ public class ClientTemplate {
         boolean acknowledged = openIndexResponse.isAcknowledged();
 
         return acknowledged;
-    }
+    }*/
 
     /**
      * 关闭索引
@@ -202,7 +202,7 @@ public class ClientTemplate {
      *
     curl -X POST "IP:9200/index_name/_close?pretty"
      */
-    public boolean closeIndex(String...indices) throws Exception {
+    /*public boolean closeIndex(String...indices) throws Exception {
         CloseIndexRequest request = new CloseIndexRequest(indices);
 
         AcknowledgedResponse closeIndexResponse = restHighLevelClient.indices().close(request, RequestOptions.DEFAULT);
@@ -210,7 +210,7 @@ public class ClientTemplate {
         boolean acknowledged = closeIndexResponse.isAcknowledged();
 
         return acknowledged;
-    }
+    }*/
 
     /**
      * 强制合并索引
@@ -222,7 +222,7 @@ public class ClientTemplate {
      *
     curl -X POST "IP:9200/index_name/_forcemerge?only_expunge_deletes=true&max_num_segments=1&flush=true&pretty"
      */
-    public ForceMergeResponse mergeIndex(int maxNumSegments, boolean onlyExpungeDeletes,String...indices) throws Exception {
+    /*public ForceMergeResponse mergeIndex(int maxNumSegments, boolean onlyExpungeDeletes,String...indices) throws Exception {
 
         ForceMergeRequest request = null;
         // 如果索引不为空，则合并传入的索引
@@ -245,7 +245,7 @@ public class ClientTemplate {
 
         ForceMergeResponse forceMergeResponse = restHighLevelClient.indices().forcemerge(request, RequestOptions.DEFAULT);
         return forceMergeResponse;
-    }
+    }*/
 
     /*----------------------- elasticsearch java rest high level API 针对索引生命周期的操作 -------------------------*/
 
@@ -271,14 +271,14 @@ public class ClientTemplate {
     }
     '
      */
-    public boolean createLifeCycle(String policy_name,long delete_duration) throws Exception {
+    /*public boolean createLifeCycle(String policy_name,long delete_duration) throws Exception {
 
         Map<String, Phase> phases = new HashMap<>();
 
-        /*Map<String, LifecycleAction> hotActions = new HashMap<>();
+        *//*Map<String, LifecycleAction> hotActions = new HashMap<>();
         hotActions.put(RolloverAction.NAME, new RolloverAction(
                 new ByteSizeValue(50, ByteSizeUnit.GB), null, null));
-        phases.put("hot", new Phase("hot", TimeValue.ZERO, hotActions));*/
+        phases.put("hot", new Phase("hot", TimeValue.ZERO, hotActions));*//*
 
         // 设置索引删除周期
         Map<String, LifecycleAction> deleteActions = Collections.singletonMap(DeleteAction.NAME, new DeleteAction());
@@ -317,7 +317,7 @@ public class ClientTemplate {
 
         }
 
-    }
+    }*/
 
     /*----------------------- elasticsearch java rest high level API 针对模板的操作 -------------------------*/
 
@@ -350,7 +350,7 @@ public class ClientTemplate {
     }
     '
      */
-    public boolean createOrupdateTemplate(String tempalateName, List<String> tempalatePattern, Settings settings, String mapping) throws Exception {
+    /*public boolean createOrupdateTemplate(String tempalateName, List<String> tempalatePattern, Settings settings, String mapping) throws Exception {
         // elasticsearch 索引模板名称
         PutIndexTemplateRequest request = new PutIndexTemplateRequest(tempalateName);
         // 设置模板的匹配值，动态创建索引时索引名与模板进行匹配，例如：eslog-*可以匹配到eslog-analysis
@@ -370,7 +370,7 @@ public class ClientTemplate {
 
         boolean acknowledged = putTemplateResponse.isAcknowledged();
         return acknowledged;
-    }
+    }*/
 
     /**
      * 获取template信息
@@ -381,14 +381,14 @@ public class ClientTemplate {
     curl -X GET "IP:9200/_template/temp*?pretty"
     curl -X GET "IP:9200/_template/template_1,template_2?pretty"
      */
-    public List<IndexTemplateMetaData> getTemplate(String... templatename) throws Exception {
+    /*public List<IndexTemplateMetaData> getTemplate(String... templatename) throws Exception {
         GetIndexTemplatesRequest request = new GetIndexTemplatesRequest(templatename);
 
         GetIndexTemplatesResponse getTemplatesResponse = restHighLevelClient.indices().getIndexTemplate(request, RequestOptions.DEFAULT);
 
         List<IndexTemplateMetaData> templates = getTemplatesResponse.getIndexTemplates();
         return  templates;
-    }
+    }*/
 
     /**
      * 判断模板是否存在
@@ -398,14 +398,14 @@ public class ClientTemplate {
      *
     curl -I "IP:9200/_template/template_name?pretty"
      */
-    public boolean templateExist(String... templatename) throws Exception {
+    /*public boolean templateExist(String... templatename) throws Exception {
         IndexTemplatesExistRequest request = new IndexTemplatesExistRequest(templatename);
         // 设置是否从节点本地读取template状态，true是，false从master节点读取
         request.setLocal(false);
         boolean exists = restHighLevelClient.indices().existsTemplate(request, RequestOptions.DEFAULT);
 
         return exists;
-    }
+    }*/
 
     /**
      * 删除模板
@@ -415,13 +415,13 @@ public class ClientTemplate {
      *
     curl -X DELETE "IP:9200/_template/template_name?pretty"
      */
-    public boolean deleteTemplate(String templatename) throws Exception {
+    /*public boolean deleteTemplate(String templatename) throws Exception {
         DeleteIndexTemplateRequest request = new DeleteIndexTemplateRequest(templatename);
 
         AcknowledgedResponse deleteTemplateAcknowledge = restHighLevelClient.indices().deleteTemplate(request,RequestOptions.DEFAULT);
 
         return deleteTemplateAcknowledge.isAcknowledged();
-    }
+    }*/
 
     /*----------------------- elasticsearch java rest high level API 针对index中数据的操作 -------------------------*/
 
@@ -439,7 +439,7 @@ public class ClientTemplate {
     }
     '
      */
-    public String insert(String index,String json) throws Exception {
+    /*public String insert(String index,String json) throws Exception {
         IndexRequest request = new IndexRequest();
         request.index(index);
         request.source(json,XContentType.JSON);
@@ -451,7 +451,7 @@ public class ClientTemplate {
         } else {
             return "插入数据失败";
         }
-    }
+    }*/
 
     /**
      * 实现elasticsearch的index插入文档，id由数据段生成
@@ -467,7 +467,7 @@ public class ClientTemplate {
     }
     '
      */
-    public String insert(String index,String id,String json) throws Exception {
+    /*public String insert(String index,String id,String json) throws Exception {
         IndexRequest request = new IndexRequest();
         request.index(index);
         request.id(id);
@@ -482,7 +482,7 @@ public class ClientTemplate {
         }else{
             return "数据操作失败";
         }
-    }
+    }*/
 
     /**
      * 实现elasticsearch的index插入文档，id由数据段生成,但不提交
@@ -491,13 +491,13 @@ public class ClientTemplate {
      * @return 返回一个IndexRequest，在实现时存入BulkRequest
      * @throws Exception
      */
-    public IndexRequest insertNotCommit(String index,String json) throws Exception {
+    /*public IndexRequest insertNotCommit(String index,String json) throws Exception {
         IndexRequest request = new IndexRequest();
         request.index(index);
         request.source(json, XContentType.JSON);
 
         return request;
-    }
+    }*/
 
     /**
      * 批量提交
@@ -511,7 +511,7 @@ public class ClientTemplate {
     { "create" : { "_index" : "test", "_id" : "3" } }
     '
      */
-    public boolean bulkInsert(BulkRequest request) throws Exception {
+    /*public boolean bulkInsert(BulkRequest request) throws Exception {
 
         BulkResponse bulkResponse = restHighLevelClient.bulk(request, RequestOptions.DEFAULT);
 
@@ -523,7 +523,7 @@ public class ClientTemplate {
             // 正常提交返回true
             return true;
         }
-    }
+    }*/
 
 
 
@@ -536,7 +536,7 @@ public class ClientTemplate {
      *
     curl -X DELETE "IP:9200/index_name/_doc/ID?pretty"
      */
-    public String deleteById(String index, String id) throws Exception {
+    /*public String deleteById(String index, String id) throws Exception {
         DeleteRequest request = new DeleteRequest(index,id);
         DeleteResponse deleteResponse = restHighLevelClient.delete(request, RequestOptions.DEFAULT);
 
@@ -547,7 +547,7 @@ public class ClientTemplate {
         }else {
             return "删除失败";
         }
-    }
+    }*/
 
 
     /**
@@ -567,7 +567,7 @@ public class ClientTemplate {
     }
     '
      */
-    public long deleteByQuery(QueryBuilder queryBuilder,String... indices) throws Exception {
+    /*public long deleteByQuery(QueryBuilder queryBuilder,String... indices) throws Exception {
 
         DeleteByQueryRequest request = new DeleteByQueryRequest(indices);
         // 查询体
@@ -576,7 +576,7 @@ public class ClientTemplate {
         BulkByScrollResponse bulkResponse = restHighLevelClient.deleteByQuery(request, RequestOptions.DEFAULT);
 
         return bulkResponse.getDeleted();
-    }
+    }*/
 
 
     /**
@@ -587,7 +587,7 @@ public class ClientTemplate {
      * @return
      * @throws Exception
      */
-    public ForceMergeResponse DeleteAndForceMergeByQuery(QueryBuilder queryBuilder, boolean onlyExpungeDeletes, String... indices) throws Exception {
+    /*public ForceMergeResponse DeleteAndForceMergeByQuery(QueryBuilder queryBuilder, boolean onlyExpungeDeletes, String... indices) throws Exception {
 
         DeleteByQueryRequest request = new DeleteByQueryRequest(indices);
         // 查询体
@@ -612,7 +612,7 @@ public class ClientTemplate {
 
         ForceMergeResponse forceMergeResponse = restHighLevelClient.indices().forcemerge(forceMergeRequest, RequestOptions.DEFAULT);
         return forceMergeResponse;
-    }
+    }*/
 
 
     /*----------------------- elasticsearch java rest high level API 针对查询的操作 -------------------------*/

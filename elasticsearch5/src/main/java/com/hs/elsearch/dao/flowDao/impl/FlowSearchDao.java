@@ -1,8 +1,8 @@
 package com.hs.elsearch.dao.flowDao.impl;
 
 import com.hs.elsearch.dao.flowDao.IFlowSearchDao;
-import com.hs.elsearch.template.ESTransportIndexTemplate;
-import com.hs.elsearch.template.ESTransportSearchTemplate;
+import com.hs.elsearch.template.IndexTemplate;
+import com.hs.elsearch.template.SearchTemplate;
 import org.apache.log4j.Logger;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -34,9 +34,9 @@ public class FlowSearchDao implements IFlowSearchDao {
     SortOrder desc = SortOrder.DESC;
 
     @Autowired
-    ESTransportSearchTemplate searchTemplate;
+    SearchTemplate searchTemplate;
     @Autowired
-    ESTransportIndexTemplate indexTemplate;
+    IndexTemplate indexTemplate;
 
     @Override
     public long getFlowCount(Map<String, String> map, String starttime, String endtime, String[] types, String... indices) {

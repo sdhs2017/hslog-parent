@@ -39,7 +39,7 @@ public class SafeStrategyController {
 
 	/**
 	 * @param request
-	 * @param user
+	 * @param safeStrategy
 	 * @return 添加数据 修改数据
 	 */
 	@ResponseBody
@@ -96,8 +96,12 @@ public class SafeStrategyController {
 		String index = configProperty.getEs_index();
     	String types [] = null;
     	Date enddate = new Date();
-		logService.getEventstypeCountByEquipmentid(index, types, safeStrategy.getEquipmentId(), enddate);
-		
+		try {
+			logService.getEventstypeCountByEquipmentid(index, types, safeStrategy.getEquipmentId(), enddate);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 	}
 	
@@ -135,8 +139,12 @@ public class SafeStrategyController {
 		String index = configProperty.getEs_index();
     	String types [] = null;
     	Date enddate = new Date();
-		logService.getEventstypeCountByEquipmentid(index, types, equipment.getId(), enddate);
-		
+		try {
+			logService.getEventstypeCountByEquipmentid(index, types, equipment.getId(), enddate);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 	}
 	

@@ -72,7 +72,7 @@
                 if(this.certificate === true){
                     setTimeout(()=>{
                         $('#ssi-upload').ssi_uploader({
-                            url:'/upload/licenseUpload.do',//地址
+                            url:this.$baseUrl+'/upload/licenseUpload.do',//地址
                             maxNumberOfFiles:1,
                             allowed:['lic'],//允许上传文件的类型
                             ajaxOptions: {

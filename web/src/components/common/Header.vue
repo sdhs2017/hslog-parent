@@ -145,7 +145,7 @@
                     let userObj = JSON.parse(localStorage.getItem("LoginUser"));
                     this.passwordObj.id = userObj[0].id;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/users/updatePasswordById.do',this.$qs.stringify(this.passwordObj))
+                        this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(this.passwordObj))
                             .then(res =>{
                                 layer.closeAll();
                                 if(res.data.success === "true"){
@@ -155,7 +155,6 @@
                                 }else if(res.data.success === "false"){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
-
                             })
                             .catch(res =>{
 
@@ -224,7 +223,8 @@
                     this.$axios.post(this.$baseUrl+'/menu/selectSystem.do','')
                         .then(res=>{
                             layer.closeAll('loading');
-                           this.systemMenu = res.data;
+                            this.systemMenu = res.data;
+                            bus.$emit('systemId', res.data[0].id);
                         })
                         .catch(err=>{
                             layer.closeAll('loading');

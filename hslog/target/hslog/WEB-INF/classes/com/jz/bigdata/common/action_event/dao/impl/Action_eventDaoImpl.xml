@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.action_event.dao.IAction_eventDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap" type="com.jz.bigdata.common.action_event.entity.Action_event">
+		<id column="id" jdbcType="VARCHAR" property="id" />
+		<result column="actionId" jdbcType="VARCHAR" property="actionId" />
+		<result column="eventId" jdbcType="VARCHAR" property="eventId" />
+		<result column="order" jdbcType="INTEGER" property="order" />
+		<result column="number" jdbcType="INTEGER" property="number" />
+		<association property="action" javaType="com.jz.bigdata.common.action.entity.Action">
+             <id property="actionId" column="id"/>
+             <result property="name" column="actionName"/>
+        </association>
+	</resultMap>
+
+	<!-- 查询字段设置可重复调用 -->
+	<!-- 部门id,name:部门名称,level:部门层级,superiorId:上级id,subordinate:是否有下级（1有0没有）,orderId:位置排序,comment:简介 -->
+	<sql id="Base_Column_List">
+		id, actionId, eventId,order,number
+	</sql>
+
+	<!-- 批量插入关系 -->
+     <insert id ="insert" parameterType="java.util.List" >
+           
+           insert into action_event
+           (actionId,eventId,action_event.order,number)
+           values
+            <foreach collection ="list" item="action_event" index= "index" separator =",">
+                (
+                #{action_event.actionId}, #{action_event.eventId}, #{action_event.order},#{action_event.number}
+                )
+            </foreach >
+     </insert >
+
+	<!-- 删除数据 -->
+	<delete id="deleteByEventId" parameterType="java.lang.String">
+		delete from action_event where
+		eventId =
+		#{eventId,jdbcType=VARCHAR}
+	</delete>
+
+	<!-- 删除数据 -->
+	<delete id="deleteByActionId" parameterType="java.lang.String">
+		delete from action_event where
+		actionId =
+		#{actionId,jdbcType=VARCHAR}
+	</delete>
+
+	<select id="selectAll" resultMap="BaseResultMap">
+		SELECT  action_event.id, actionId, eventId,action_event.order,name,number FROM action_event
+		LEFT JOIN action  ON action_event.actionId=action.id
+	</select>
+
+</mapper>

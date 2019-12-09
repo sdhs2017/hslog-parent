@@ -34,8 +34,8 @@ public interface IUserDao {
 	 List<User> selectByPhonePwd(User user);
 	 
 	 int updateByPhone(String phone);
-	 
-	 List<User> selectUserRole(String id);
+
+	List<List<Map<String,Object>>> selectUserRole(String id);
 
 	int registerUser(User user);
 

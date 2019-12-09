@@ -38,7 +38,7 @@ public interface IUserService {
 	 
 	 public Boolean loginOut(HttpSession session);
 	 
-	 List<User> selectUserRole(HttpSession session);
+	 String selectUserRole(HttpSession session);
 	 
 	 int registerUser(User user);
 	 

@@ -297,8 +297,15 @@ public class UserServiceImpl implements IUserService {
 	 * 获取角色用户信息
 	 */
 	@Override
-	public List<User> selectUserRole(HttpSession session) {
-		return userDao.selectUserRole(session.getAttribute(Constant.SESSION_USERID).toString());
+	public String selectUserRole(HttpSession session) {
+
+		List<List<Map<String,Object>>> uList = userDao.selectUserRole(session.getAttribute(Constant.SESSION_USERID).toString());
+		if(uList.size()==1){
+			return uList.get(0).get(0).get("role").toString();
+		}else{
+			return "";
+		}
+
 	}
 
 

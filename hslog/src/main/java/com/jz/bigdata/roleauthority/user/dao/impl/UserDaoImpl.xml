@@ -269,15 +269,17 @@
 	  <!--   查询用户数据 -->
  	<select id="selectUserRole" parameterType="java.lang.String" resultMap="BaseResultMap">
 <!--   <bind name="name" value="'%' + name + '%'" /> -->
-	   select 
-		user.id, user.name, phone, password, sex,age,email,departmentId,role,state
-	    , roles.`name` AS roleName 
-	    from HS_User, roles
-	    where  user.role=roles.id
-	   
-	    <if test="_parameter != null and _parameter !=''" >
-	    	and user.id = #{_parameter,jdbcType=VARCHAR} 
-	    </if>
+		select
+		user.id, user.name, phone, password, sex,age,email,departmentId,state
+		, department.`name` AS departmentName,GROUP_CONCAT(HR.role_name) as role
+		from HS_User user
+		LEFT JOIN department on 1=1 and department.id=user.departmentId
+		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
+		LEFT JOIN HS_Role HR on HR.id=HUR.FK_RoleID
+		where 1=1
+		and user.id = #{id}
+		group by user.id, user.name, phone, password, sex,age,email,departmentId,state
+		, department.`name`
   
 	</select>
 	

@@ -126,12 +126,13 @@ public class UserController {
 	 * 通过id查询用户信息
 	 */
 	@ResponseBody
-	@RequestMapping("/selectUserRole")
+	@RequestMapping(value="/selectUserRole", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="查询用户角色信息")
-	public List<User> selectUserRole(HttpSession session) {
+	public String selectUserRole(HttpSession session) {
 //		获取id
 //		String id = request.getParameter("id");
-		return userService.selectUserRole(session);
+		String role = userService.selectUserRole(session);
+		return role;
 	}
 	/**
 	 * @param request

@@ -927,6 +927,78 @@ public class FlowController {
 
         return JSONArray.fromObject(result).toString();
     }
+    /**
+     * @param request
+     * 通过时间段统计操作系统的种类及数量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getUserAgentOSGroupByTime")
+    @DescribeLog(describe="通过时间段统计操作系统的种类及数量")
+    public String getUserAgentOSGroupByTime(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String  groupby = "user_agent_os.raw";
+        String [] types = {"defaultpacket"};
 
+        // 构建参数map
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("requestorresponse", "request");
+        map.put("application_layer_protocol", "http");
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            starttime = starttime+" 00:00:00";
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            endtime = endtime+" 23:59:59";
+        }
+        int size =10;
+
+        //list = logService.groupBy(index, types, groupby, map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 通过时间段统计浏览器的种类及数量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getUserAgentBrowserGroupByTime")
+    @DescribeLog(describe="通过时间段统计浏览器的种类及数量")
+    public String getUserAgentBrowserGroupByTime(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String  groupby = "user_agent_browser.raw";
+        String [] types = {"defaultpacket"};
+
+        // 构建参数map
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("requestorresponse", "request");
+        map.put("application_layer_protocol", "http");
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        //
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            starttime = starttime+" 00:00:00";
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            endtime = endtime+" 23:59:59";
+        }
+        int size =10;//默认top10
+
+        //list = logService.groupBy(index, types, groupby, map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,null,null, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
 }

@@ -57,11 +57,8 @@ public class LogCurdDaoImpl implements ILogCrudDao {
 
     @Override
     public String checkOfIndex(String index, String suffix, Date date) {
-        if(suffix!=null&&!suffix.equals("")){
-            index = index.replace("*","_"+suffix+format.format(date));
-        }else {
-            index = index.replace("*",format.format(date));
-        }
+
+        index = index.replace("*",format.format(date));
 
         return index;
     }

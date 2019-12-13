@@ -103,32 +103,20 @@
             this.getUserImformation();
             let user =  JSON.parse(localStorage.getItem('LoginUser'));
             this.phone = user.phone;
-            if(user.role === 1){
-                this.roleName = "管理员"
-            }else if(user.role === 2){
-                this.roleName = "操作员"
-            }else if(user.role === 3){
-                this.roleName = "审查员"
-            }else if(user.role === 4){
-                this.roleName = "游客"
-            }else if(user.role === 5){
-                this.roleName = "master"
-            }
         },
         methods:{
             /*获取登录角色信息*/
             getUserImformation(){
-                /*this.$nextTick(()=>{
-                    this.$axios.get(this.$baseUrl+'/users/selectUserRole.do','')
+                this.$nextTick(()=>{
+                    this.$axios.get(this.$baseUrl+'/user/selectUserRole.do','')
                         .then(res =>{
-                            this.roleName = res.data[0][0].roleName;
-                            //保存在本地
-                            localStorage.setItem("LoginUser", JSON.stringify(res.data[0]));
+                            this.roleName = res.data;
+
                         })
                         .catch(res =>{
 
                         })
-                })*/
+                })
             },
             /*改变密码*/
             changePassWord(){
@@ -260,6 +248,8 @@
         padding: 0 21px;
         cursor: pointer;
         line-height: 50px;
+        position: relative;
+        z-index: 5;
     }
     .header .logo{
         float: left;

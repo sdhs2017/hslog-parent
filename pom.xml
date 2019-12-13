@@ -776,7 +776,7 @@
         </dependency>
 
         <!-- pcap4j抓取网络数据包 -->
-        <dependency>
+        <!--<dependency>
             <groupId>org.pcap4j</groupId>
             <artifactId>pcap4j-core</artifactId>
             <version>1.7.5</version>
@@ -785,7 +785,25 @@
             <groupId>org.pcap4j</groupId>
             <artifactId>pcap4j-packetfactory-static</artifactId>
             <version>1.7.5</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.pcap4j</groupId>
+            <artifactId>pcap4j-core</artifactId>
+            <version>2.0.0-alpha.6</version>
         </dependency>
+        <dependency>
+            <groupId>org.pcap4j</groupId>
+            <artifactId>pcap4j-packetfactory-static</artifactId>
+            <version>2.0.0-alpha.6</version>
+        </dependency>
+
+        <!-- 解析http协议中user agent内容 -->
+        <dependency>
+            <groupId>eu.bitwalker</groupId>
+            <artifactId>UserAgentUtils</artifactId>
+            <version>1.21</version>
+        </dependency>
+
 
         <dependency>
             <groupId>net.java.dev.jna</groupId>

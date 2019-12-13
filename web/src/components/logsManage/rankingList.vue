@@ -199,14 +199,14 @@
                         endTime:timeArr[1]
                     }))
                         .then(res =>{
-                            layer.closeAll();
+                            layer.closeAll('loading');
                             this.startIpArr = res.data[0].ipv4_src_addr;
                             this.endIpArr = res.data[0].ipv4_dst_addr;
                             this.startPortArr = res.data[0].l4_src_port;
                             this.endPortArr = res.data[0].l4_dst_port;
                         })
                         .catch(err =>{
-                            layer.closeAll()
+                            layer.closeAll('loading')
                             layer.msg('获取信息失败',{icon:5})
                         })
                 })

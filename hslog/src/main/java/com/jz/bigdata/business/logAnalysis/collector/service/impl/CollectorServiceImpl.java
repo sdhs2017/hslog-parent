@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.collector.service.impl;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -23,6 +24,7 @@ import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.Packet;
+import org.pcap4j.util.NifSelector;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;

@@ -159,7 +159,11 @@
             //定义七天前时间
             var date2 = new Date(end);
             date2.setDate(end.getDate()-7);
-            this.searchParams.starttime = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+date2.getDate();
+            let sd = date2.getDate();
+            if(sd < 10){
+                sd = "0"+ sd;
+            }
+            this.searchParams.starttime = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+sd;
             this.getAllEchartsData(this.searchParams);
             //绑定导出事件
             bus.$on('allEchartbar',(params)=>{
@@ -182,6 +186,7 @@
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/log/getCountGroupByParam.do',this.$qs.stringify(params))
                         .then((res)=>{
+                            layer.closeAll('loading');
                             const obj = res.data[0];
                             const xVal = [];//x轴数据
                             const yVal = [];//y轴数据
@@ -193,7 +198,6 @@
                                 pieObj.value = obj[i];
                                 pieObj.name = i;
                                 pieVAl.push(pieObj);
-                                layer.closeAll();
                             }
                             //赋值
                             this.echartData.barData.xAxisArr = xVal;
@@ -201,7 +205,7 @@
                             this.echartData.pieData.yAxisArr = pieVAl;
                         })
                         .catch((err)=>{
-                            layer.closeAll();
+                            layer.closeAll('loading');
                         })
                 })
             },

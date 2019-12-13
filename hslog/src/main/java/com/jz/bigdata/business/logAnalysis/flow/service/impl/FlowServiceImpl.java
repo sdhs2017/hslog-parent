@@ -56,7 +56,6 @@ public class FlowServiceImpl implements IflowService {
         mapcount.put("count", count);
 
         list.add(mapcount);
-
         list.addAll(flowSearchDao.getFlowListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
         return list;
     }

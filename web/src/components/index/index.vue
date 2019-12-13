@@ -252,7 +252,11 @@
             //定义七天前时间
             var date2 = new Date(end);
             date2.setDate(end.getDate()-7);
-            this.starttime = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+date2.getDate();
+            let sd = date2.getDate();
+            if(sd < 10){
+                sd = "0"+ sd;
+            }
+            this.starttime = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+sd;
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
             //获取日志条数方法

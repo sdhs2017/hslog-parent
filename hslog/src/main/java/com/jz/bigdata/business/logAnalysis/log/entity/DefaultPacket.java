@@ -593,6 +593,15 @@ public class DefaultPacket {
 				// filebeat
 				"host","name"};
 
+		// 设置raw，保证聚合时不会聚合分词内容，主要针对ip地址和url
+		String [] rawkeywords = {
+				// ip
+				"client_ip","dns_clientip","ip","relay_ip","ipv4_src_addr","ipv4_dst_addr","from","sa","da","pa",
+				// url
+				"equipmentname","request_url","domain_url","url_param","complete_url",
+				// user-agent
+				"user_agent_os","user_agent_browser","session_status"};
+
 		Field[] fields = classes.getClass().getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
 			fieldstring.append("\t\t\t\t\"" + fields[i].getName().toLowerCase() + "\": {\n");
@@ -608,10 +617,7 @@ public class DefaultPacket {
 				fieldstring.append("\t\t\t\t\t\t,\"analyzer\": \"" + "index_ansj\"" + "\n");
 				fieldstring.append("\t\t\t\t\t\t,\"search_analyzer\": \"" + "query_ansj\"" + "\n");
 			}
-			if (fields[i].getName().equals("equipmentname") || fields[i].getName().equals("ipv4_src_addr")
-					|| fields[i].getName().equals("ipv4_dst_addr") || fields[i].getName().equals("request_url")
-					|| fields[i].getName().equals("domain_url") || fields[i].getName().equals("url_param")
-					|| fields[i].getName().equals("complete_url")) {
+			if (Arrays.asList(rawkeywords).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"fields\": " + "{\"raw\": {\"type\": \"keyword\"}}" + "\n");
 			}
 			if (i == fields.length - 1) {

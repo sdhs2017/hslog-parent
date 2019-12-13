@@ -955,14 +955,21 @@ public class FlowController {
             endtime = endtime+" 23:59:59";
         }
         int size =10;
-
+        //list = logService.groupBy(index, types, groupby, map);
+        try {
+            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
     /**
      * @param request
-     * 统计单个url被IP访问的次数
+     * 统计业务系统IP的数据访问包大小
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getRequestPacketOfSourceIP")
+    @RequestMapping("/getRequestPacketOfDstIP")
     @DescribeLog(describe="统计业务系统IP的数据访问包大小")
     public String getRequestPacketOfDstIP(HttpServletRequest request) {
         String index = configProperty.getEs_index();
@@ -1001,14 +1008,7 @@ public class FlowController {
     }
 
 
-        //list = logService.groupBy(index, types, groupby, map);
-        try {
-            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return JSONArray.fromObject(list).toString();
-    }
+
     /**
      * @param request
      * 通过时间段统计浏览器的种类及数量

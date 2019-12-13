@@ -29,6 +29,20 @@ public interface IFlowSearchDao {
                                                           Map<String, String> map,String... indices);
 
     /**
+     * 带条件的聚合查询
+     * @param types idnex types字段，7版本中移除
+     * @param starttime 时间范围-开始时间
+     * @param endtime  时间范围-结束时间
+     * @param groupByField 聚合字段
+     * @param sumField 求和字段
+     * @param map 其他条件
+     * @param indices 索引名称
+     * @return 返回聚合结果
+     */
+    public List<Map<String, Object>> getListBySumOfAggregation(String[] types, String starttime, String endtime, String groupByField,
+                                                               String  sumField, int size, Map<String, String> map,String... indices);
+
+    /**
      * 条件查询
      * @param map 条件
      * @param starttime 时间范围-开始时间

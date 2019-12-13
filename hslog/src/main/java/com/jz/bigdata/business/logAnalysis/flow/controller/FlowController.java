@@ -929,4 +929,49 @@ public class FlowController {
     }
 
 
+    /**
+     * @param request
+     * 统计单个url被IP访问的次数
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getRequestPacketOfSourceIP")
+    @DescribeLog(describe="统计业务系统IP的数据访问包大小")
+    public String getRequestPacketOfDstIP(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String  groupby = "ipv4_dst_addr.raw";
+        String sumfield = "packet_lenght";
+        String [] types = {"defaultpacket"};
+
+        // 构建参数map
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("requestorresponse", "request");
+        map.put("application_layer_protocol", "http");
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,null,null, map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /*List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
+        if (list.size()>0){
+            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
+                Map<String,Object> tMap = new HashMap<>();
+                tMap.put("dst_ip", key.getKey());
+                tMap.put("sum", key.getValue());
+                tmplist.add(tMap);
+            }
+        }
+
+        Map<String,Object> result = new HashMap<>();
+        result.put("source", tmplist);*/
+
+        return JSONArray.fromObject(list).toString();
+    }
+
+
 }

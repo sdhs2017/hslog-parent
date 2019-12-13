@@ -498,10 +498,16 @@ public class Http {
 				}
 
 				if (this.user_agent!=null){
-					UserAgent userAgent = UserAgent.parseUserAgentString(this.user_agent);
-					this.user_agent_browser = userAgent.getBrowser().getName();
-					this.user_agent_browser_version = userAgent.getBrowserVersion().getVersion();
-					this.user_agent_os = userAgent.getOperatingSystem().getName();
+					if(this.user_agent.contains(" ")){
+						UserAgent userAgent = UserAgent.parseUserAgentString(this.user_agent);
+						this.user_agent_browser = userAgent.getBrowser().getName();
+						this.user_agent_browser_version = userAgent.getBrowserVersion().getVersion();
+						this.user_agent_os = userAgent.getOperatingSystem().getName();
+					}else{
+						this.user_agent_os = this.user_agent;
+						this.user_agent_browser = this.user_agent;
+					}
+
 				}
 			
 			// http返回报文解析

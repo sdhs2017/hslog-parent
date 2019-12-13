@@ -2,13 +2,11 @@ package com.jz.bigdata.business.logAnalysis.log.entity;
 
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.pcap4j.core.PcapPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
@@ -135,6 +133,12 @@ public class DefaultPacket {
 	private String complete_url; // 完整的url http://192.168.2.182:8080/jzLog/getIndicesCount.do?_=1555924017369
 	private String url_param; // url参数
 	private String domain_url; // 域名
+	private Integer packet_lenght; // 数据包大小
+	private String user_agent; // 客户端信息
+	private String user_agent_os;  // 客户端操作系统
+	private String user_agent_browser;  // 客户端浏览器
+	private String user_agent_browser_version; // 客户端浏览器版本
+	private String session_status; // 会话状态
 
 	public String getId() {
 		return id;
@@ -191,46 +195,6 @@ public class DefaultPacket {
 	public void setLogtime(String logtime) {
 		this.logtime = logtime;
 	}
-
-	/*public String getLogtime_minute() {
-		return logtime_minute;
-	}
-
-	public void setLogtime_minute(String logtime_minute) {
-		this.logtime_minute = logtime_minute;
-	}
-
-	public String getLogtime_hour() {
-		return logtime_hour;
-	}
-
-	public void setLogtime_hour(String logtime_hour) {
-		this.logtime_hour = logtime_hour;
-	}
-
-	public String getLogtime_day() {
-		return logtime_day;
-	}
-
-	public void setLogtime_day(String logtime_day) {
-		this.logtime_day = logtime_day;
-	}
-
-	public String getLogtime_month() {
-		return logtime_month;
-	}
-
-	public void setLogtime_month(String logtime_month) {
-		this.logtime_month = logtime_month;
-	}
-
-	public String getLogtime_year() {
-		return logtime_year;
-	}
-
-	public void setLogtime_year(String logtime_year) {
-		this.logtime_year = logtime_year;
-	}*/
 
 	public String getOperation_level() {
 		return operation_level;
@@ -424,40 +388,120 @@ public class DefaultPacket {
 		this.domain_url = domain_url;
 	}
 
+	public Integer getPacket_lenght() {
+		return packet_lenght;
+	}
+
+	public void setPacket_lenght(Integer packet_lenght) {
+		this.packet_lenght = packet_lenght;
+	}
+
+	public String getUser_agent() {
+		return user_agent;
+	}
+
+	public void setUser_agent(String user_agent) {
+		this.user_agent = user_agent;
+	}
+
+	public String getUser_agent_os() {
+		return user_agent_os;
+	}
+
+	public void setUser_agent_os(String user_agent_os) {
+		this.user_agent_os = user_agent_os;
+	}
+
+	public String getUser_agent_browser() {
+		return user_agent_browser;
+	}
+
+	public void setUser_agent_browser(String user_agent_browser) {
+		this.user_agent_browser = user_agent_browser;
+	}
+
+	public String getUser_agent_browser_version() {
+		return user_agent_browser_version;
+	}
+
+	public void setUser_agent_browser_version(String user_agent_browser_version) {
+		this.user_agent_browser_version = user_agent_browser_version;
+	}
+
+	public String getSession_status() {
+		return session_status;
+	}
+
+	public void setSession_status(String session_status) {
+		this.session_status = session_status;
+	}
+
 	public DefaultPacket(){
 		
 	}
 	
-	public DefaultPacket(Packet packet) {
+	public DefaultPacket(PcapPacket packet) {
 		
 		IpV4Packet ip4packet =packet.get(IpV4Packet.class);
 		//System.out.println("协议值："+ip4packet.getHeader().getProtocol());
 		
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date nowtime = new Date();
-		this.logdate = nowtime;
-		this.logtime = format.format(nowtime);
-		/*String [] tmp = this.logtime.split(" ");
-    	String [] date = tmp[0].split("-");
-    	String [] time = tmp[1].split(":");
-    	this.logtime_year = date[0];
-    	this.logtime_month = date[1];
-    	this.logtime_day = date[2];
-    	this.logtime_hour = time[0];
-    	this.logtime_minute = time[1];*/
-		
-		
+		this.logdate = Date.from(packet.getTimestamp());
+		this.logtime = format.format(this.logdate);
+
 		// 通过ipv4数据包中的协议值来选择解析数据包的协议方法
 		if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
 			
 			TcpPacket tcppacket = packet.getBuilder().getPayloadBuilder().build().get(TcpPacket.class);
-			
+			// 根据head中状态的boolean值补全会话状态，多个状态以&分割
+			StringBuilder builder = new StringBuilder();
+			if(tcppacket.getHeader().getUrg()){
+				builder.append("URG");
+			}
+			if (tcppacket.getHeader().getSyn()){
+				if (builder.length()>1){
+					builder.append("&SYN");
+				}else{
+					builder.append("SYN");
+				}
+			}
+			if (tcppacket.getHeader().getRst()){
+				if (builder.length()>1){
+					builder.append("&RST");
+				}else{
+					builder.append("RST");
+				}
+			}
+			if (tcppacket.getHeader().getFin()){
+				if (builder.length()>1){
+					builder.append("&FIN");
+				}else{
+					builder.append("FIN");
+				}
+			}
+			if (tcppacket.getHeader().getPsh()){
+				if (builder.length()>1){
+					builder.append("&PSH");
+				}else{
+					builder.append("PSH");
+				}
+			}
+			if (tcppacket.getHeader().getAck()){
+				if (builder.length()>1){
+					builder.append("&ACK");
+				}else{
+					builder.append("ACK");
+				}
+			}
+			this.session_status = builder.toString();
+
+			this.packet_lenght = tcppacket.getPayload().getRawData().length;
 			this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
 			this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
 			this.l4_dst_port = tcppacket.getHeader().getDstPort().valueAsInt()+"";
 			this.l4_src_port = tcppacket.getHeader().getSrcPort().valueAsInt()+"";
 			
-			this.acknum = tcppacket.getHeader().getAcknowledgmentNumber()+"";
+			this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong()+"";
 			this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong()+"";
 			
 			this.protocol="6";
@@ -515,6 +559,40 @@ public class DefaultPacket {
 
 		StringBuilder fieldstring = new StringBuilder();
 
+		// 设置需要聚合的字段
+		String [] fielddata = {
+				// 基本字段
+				"equipmentid", "equipmentname","logtime", "hostname","userid","deptid","ip", "operation_facility","operation_level", "process",  "eventid", "event_type",
+				// dhcp字段
+				"dhcp_type","client_mac" ,"client_hostname", "error_log","network_error",
+				// dns字段
+				"dns_view","dns_domain_name","dns_ana_type","dns_server",
+				// 流量字段
+				"protocol","protocol_name","application_layer_protocol","encryption_based_protection_protocol","packet_source",
+				"l4_src_port","l4_dst_port","ipv4_src_addr","ipv4_dst_addr","request_type","domain_url","complete_url","url_param",
+				"request_url","response_state","user_agent_os","user_agent_browser","session_status",
+				// 防火墙字段
+				"from","devid","dname","logtype","mod","act","sa","da","pa",
+				// filebeat
+				"host"};
+
+		// 设置需要分词的字段
+		String [] analyzer = {
+				// 基本字段
+				"operation_des","equipmentname","hostname","process","event_des","ip",
+				// dhcp分词字段
+				"dhcp_type","client_mac", "client_hostname", "error_log","network_error",
+				// dns分词字段
+				"dns_view","dns_domain_name","dns_ana_type","dns_server",
+				// 流量包字段，包含http
+				"l4_src_port","l4_dst_port","protocol_name","application_layer_protocol","encryption_based_protection_protocol",
+				"packet_source","request_url","complete_url","url_param","domain_url","ipv4_dst_addr","ipv4_src_addr",
+				"user_agent_os","user_agent_browser","session_status",
+				// 防火墙
+				"act",
+				// filebeat
+				"host","name"};
+
 		Field[] fields = classes.getClass().getDeclaredFields();
 		for (int i = 0; i < fields.length; i++) {
 			fieldstring.append("\t\t\t\t\"" + fields[i].getName().toLowerCase() + "\": {\n");
@@ -523,31 +601,10 @@ public class DefaultPacket {
 			if (fields[i].getName().equals("id")) {
 				fieldstring.append("\t\t\t\t\t\t,\"index\": \"" + "false\"" + "\n");
 			}
-			if (fields[i].getName().equals("userid") || fields[i].getName().equals("deptid")
-					|| fields[i].getName().equals("equipmentid") || fields[i].getName().equals("equipmentname")
-					|| fields[i].getName().equals("logtime") || fields[i].getName().equals("logtime_minute")
-					|| fields[i].getName().equals("logtime_hour") || fields[i].getName().equals("logtime_day")
-					|| fields[i].getName().equals("logtime_month") || fields[i].getName().equals("logtime_year")
-					|| fields[i].getName().equals("operation_level") || fields[i].getName().equals("ip")
-					|| fields[i].getName().equals("ipv4_dst_addr") || fields[i].getName().equals("ipv4_src_addr")
-					|| fields[i].getName().equals("l4_src_port")|| fields[i].getName().equals("l4_dst_port")
-					|| fields[i].getName().equals("protocol")|| fields[i].getName().equals("protocol_name")
-					|| fields[i].getName().equals("application_layer_protocol")|| fields[i].getName().equals("encryption_based_protection_protocol")
-					|| fields[i].getName().equals("packet_source")
-					// http 需要聚合的字段值
-					|| fields[i].getName().equals("request_type")|| fields[i].getName().equals("domain_url")
-					|| fields[i].getName().equals("complete_url")|| fields[i].getName().equals("url_param")
-					|| fields[i].getName().equals("request_url")|| fields[i].getName().equals("response_state")) {
+			if (Arrays.asList(fielddata).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"fielddata\": " + "true" + "\n");
 			}
-			if (fields[i].getName().equals("operation_des") || fields[i].getName().equals("ip")
-					|| fields[i].getName().equals("equipmentname") || fields[i].getName().equals("ipv4_dst_addr")
-					|| fields[i].getName().equals("ipv4_src_addr") || fields[i].getName().equals("l4_src_port")
-					|| fields[i].getName().equals("l4_dst_port") || fields[i].getName().equals("protocol_name")
-					|| fields[i].getName().equals("application_layer_protocol")|| fields[i].getName().equals("encryption_based_protection_protocol")
-					|| fields[i].getName().equals("packet_source")|| fields[i].getName().equals("request_url")
-					|| fields[i].getName().equals("complete_url")|| fields[i].getName().equals("url_param")
-					|| fields[i].getName().equals("domain_url") ) {
+			if (Arrays.asList(analyzer).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"analyzer\": \"" + "index_ansj\"" + "\n");
 				fieldstring.append("\t\t\t\t\t\t,\"search_analyzer\": \"" + "query_ansj\"" + "\n");
 			}
@@ -577,6 +634,12 @@ public class DefaultPacket {
 			break;
 		case "Long":
 			es = "long\"";
+			break;
+		case "Integer":
+			es = "integer\"";
+			break;
+		case "Boolean":
+			es = "boolean\"";
 			break;
 		default:
 			if (name.equals("id")) {

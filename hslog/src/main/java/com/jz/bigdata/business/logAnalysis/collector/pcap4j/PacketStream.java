@@ -10,6 +10,7 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.pcap4j.core.PcapPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
@@ -58,13 +59,13 @@ public class PacketStream {
 	}
 	
 	
-	
-	public void gotPacket(Packet packet){
+
+	public void gotPacket(PcapPacket packet){
 		
 		try {
 			//TcpPacket tcppacket =packet.getBuilder().getPayloadBuilder().build().get(TcpPacket.class);
 			IpV4Packet ip4packet =packet.get(IpV4Packet.class);
-			
+			packet.getTimestamp();
 			// 识别http数据包的正则表达式
 			String httpRequest = "^(POST|GET) /[^\\s]* HTTP/1.[0,1]";
 			String httpResponse = "^HTTP/1.[0,1] [0-9]{0,3} *";

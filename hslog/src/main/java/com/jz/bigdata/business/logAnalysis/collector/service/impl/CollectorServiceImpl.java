@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.collector.service.impl;
 
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,16 +20,11 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
-import org.pcap4j.core.NotOpenException;
-import org.pcap4j.core.PacketListener;
-import org.pcap4j.core.PcapAddress;
-import org.pcap4j.core.PcapHandle;
-import org.pcap4j.core.PcapNativeException;
-import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
-import org.pcap4j.core.Pcaps;
 import org.pcap4j.packet.Packet;
+import org.pcap4j.util.NifSelector;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -273,13 +269,13 @@ public class CollectorServiceImpl implements ICollectorService{
 			return JSONArray.fromObject(map).toString();
         }
         // 抓取包长度
-        int snaplen = 64 * 1024;
+        int snaplen = 64 * 1024 * 20;
         // 超时50ms
         int timeout = 50;
         // 初始化抓包器
         PcapHandle.Builder phb = new PcapHandle.Builder(nif.getName()).snaplen(snaplen)
             .promiscuousMode(PromiscuousMode.PROMISCUOUS).timeoutMillis(timeout)
-            .bufferSize(1 * 1024 * 1024);
+            .bufferSize(10 * 1024 * 1024);
         PcapHandle handle = null;
 		try {
 			handle = phb.build();
@@ -320,7 +316,7 @@ public class CollectorServiceImpl implements ICollectorService{
 
         //初始化listener
         PacketListener listener = new PacketListener() {
-        	public void gotPacket(Packet packet) {
+        	public void gotPacket(PcapPacket packet) {
         		try {
         			//packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
         			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap);
@@ -408,7 +404,7 @@ public class CollectorServiceImpl implements ICollectorService{
 		try {
 			// 获取全部的网卡设备列表，Windows如果获取不到网卡信息，输入：net start npf  启动网卡服务
 			allDevs = Pcaps.findAllDevs();
-		
+
 			 for (PcapNetworkInterface networkInterface : allDevs) {
 				 System.out.println(networkInterface.getName());
 				 // 通过判断传入的参数是IP还是网卡名来获取正式的网卡信息
@@ -436,7 +432,7 @@ public class CollectorServiceImpl implements ICollectorService{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return null;
+        return null;
 	}
 	
 	/**

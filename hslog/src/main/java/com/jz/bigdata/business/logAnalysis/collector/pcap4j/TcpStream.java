@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.pcap4j.core.PcapPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
@@ -70,7 +71,7 @@ public class TcpStream {
 	//BulkRequest requests = new BulkRequest();
 	List<IndexRequest> requests = new ArrayList<IndexRequest>();
 	
-	public void gotPacket(Packet packet) throws Exception {
+	public void gotPacket(PcapPacket packet) throws Exception {
 		//TcpPacket tcppacket =packet.getBuilder().getPayloadBuilder().build().get(TcpPacket.class);
 		IpV4Packet ip4packet =packet.get(IpV4Packet.class);
 		

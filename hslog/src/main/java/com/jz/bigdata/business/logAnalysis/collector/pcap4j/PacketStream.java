@@ -60,7 +60,7 @@ public class PacketStream {
 	
 	
 	public void gotPacket(Packet packet){
-		
+
 		try {
 			//TcpPacket tcppacket =packet.getBuilder().getPayloadBuilder().build().get(TcpPacket.class);
 			IpV4Packet ip4packet =packet.get(IpV4Packet.class);

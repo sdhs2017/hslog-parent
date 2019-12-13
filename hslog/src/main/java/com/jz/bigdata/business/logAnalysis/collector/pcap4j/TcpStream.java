@@ -75,7 +75,7 @@ public class TcpStream {
 		IpV4Packet ip4packet =packet.get(IpV4Packet.class);
 		
 		TcpPacket tcpPacket = packet.get(TcpPacket.class);
-		
+
 		// 识别http数据包的正则表达式
 		String httpRequest = "[a-zA-Z]{3,7} .* HTTP/1.[0,1]";
 		String httpResponse = "HTTP/1.[0,1] [0-9]{0,3} *";

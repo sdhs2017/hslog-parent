@@ -49,6 +49,13 @@ export default new Router({
                     meta: { title: '系统首页' }
                 },
                 {
+                    path: '/flowIndex',
+                    name:'flowIndex',
+                    /* component: resolve => require(['../components/index/index.vue'], resolve),*/
+                    component: () => lazyLoadView(import('../components/flowManage/flowIndex.vue')),
+                    meta: { title: '系统首页' }
+                },
+                {
                     path: '/userManage',
                     name:'userManage',
                     component: resolve => require(['../components/userManage/userManage.vue'], resolve),
@@ -305,6 +312,12 @@ export default new Router({
                     component: resolve => require(['../components/page/Icon.vue'], resolve),
                     meta: { title: '自定义图标' }
                 },
+                {
+                    path: '/flowEcharts',
+                    name:'flowEcharts',
+                    component: resolve => require(['../components/flowManage/flowEcharts.vue'], resolve),
+                    meta: { title: '流量报表' }
+                },
                 /*
                 {
                     path: '/table',
@@ -372,6 +385,10 @@ export default new Router({
         {
             path: '/login',
             component: resolve => require(['../components/login/Login.vue'], resolve)
+        },
+        {
+            path: '/flowLogin',
+            component: resolve => require(['../components/flowManage/flowLogin.vue'], resolve)
         },
         {
             path: '/resigter',

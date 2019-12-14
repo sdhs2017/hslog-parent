@@ -93,11 +93,15 @@
         },
         watch:{
             //监听props参数值的变化
-            'echartData.yAxisArr'(val){
-                this.$nextTick( ()=> {
+            echartData:{
+                handler() {
+                    this.$nextTick( ()=> {
 
-                   this.judgeEchartType()
-                })
+                        this.judgeEchartType()
+                    })
+                },
+                immediate: true,
+                deep: true
             }
         },
         methods:{
@@ -122,6 +126,8 @@
                     case 'moreline':
                         this.moreLineEchart();
                         break;
+                    case 'timeline':
+                        this.timeLineEchart();
                     default:
                         break;
                 }
@@ -153,9 +159,15 @@
                             }
                         },
                         axisLabel:{
-                            borderColor:'#5bc0de'
+                            borderColor:'#5bc0de',
+                            interval:0,
+                            rotate:this.echartData.baseConfig.rotate ? this.echartData.baseConfig.rotate : '0'
                         },
                         data: this.echartData.xAxisArr
+                    },
+                    grid:{
+                        // show:true,
+                        bottom:this.echartData.baseConfig.rotate ? '20%' : '60'
                     },
                     yAxis: {
                         name:this.echartData.baseConfig.yAxisName,
@@ -180,10 +192,10 @@
                             normal: {
                                 color: new echarts.graphic.LinearGradient(0, 1, 0, 0, [{
                                     offset: 0,
-                                    color: 'rgba(116,235,213,0.1)'
+                                    color: this.echartData.baseConfig.itemColor ? this.echartData.baseConfig.itemColor[0] :'rgba(116,235,213,0.1)'
                                 },{
                                     offset: 1,
-                                    color: '#00EABD'
+                                    color: this.echartData.baseConfig.itemColor ? this.echartData.baseConfig.itemColor[1] : '#00EABD'
                                 }])
                             }
                         },
@@ -397,6 +409,92 @@
                     myChart.resize();
                 });
             },
+            //实时动态更新
+            timeLineEchart(){
+                let myChart = echarts.init(this.$refs.mybox);
+                let option = {
+                    title: {
+                        text:this.echartData.baseConfig.title,
+                        x:'center',
+                        textStyle:{
+                            color:'#5bc0de'
+                        }
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'cross',
+                            label: {
+                                backgroundColor: '#6a7985'
+                            }
+                        }
+                    },
+                    xAxis: {
+                        type: 'time',
+                        nameTextStyle:{
+                            color:'#5bc0de'
+                        },
+                        axisLine:{
+                            lineStyle:{
+                                color:'#5bc0de'
+                            }
+                        },
+                        splitLine: {
+                            show: false
+                        }
+                    },
+                    yAxis: {
+                        type: 'value',
+                        boundaryGap: [0, '100%'],
+                        nameTextStyle:{
+                            color:'#5bc0de'
+                        },
+                        axisLine:{
+                            lineStyle:{
+                                color:'#5bc0de'
+                            }
+                        },
+                        splitLine: {
+                            show: false
+                        }
+                    },
+                    series: []
+                };
+                for(let i in this.echartData.yAxisArr ){
+                    //option.legend.data.push(this.echartData.yAxisArr[i].name);
+                    option.series.push({
+                        name:this.echartData.yAxisArr[i].name,
+                        type: 'line',
+                        smooth: true, //平滑性.
+                        showSymbol: false,
+                        hoverAnimation: false,
+                        areaStyle: {
+                            normal: {
+                                //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                    offset: 0,
+                                    color: this.echartData.yAxisArr[i].color
+                                }, {
+                                    offset: 1,
+                                    color: 'rgba(116,235,213,0.1)'
+                                }])
+
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: this.echartData.yAxisArr[i].color
+                            }
+                        },
+                        data: this.echartData.yAxisArr[i].data
+                    })
+                }
+                //option.series = this.echartData.yAxisArr ;
+                myChart.setOption(option);
+                window.addEventListener("resize",function(){
+                    myChart.resize();
+                });
+            },
             //饼图
             pieEchart(){
                 //var myChart = echarts.init(document.getElementById('echart-wapper'));
@@ -419,7 +517,8 @@
                         data: []
                     },
                     // color:["#5bc0de","#1BB2D8","#99D2DD","#88B0BB","#1C7099","#038CC4","#75ABD0","#AFD6DD","#1790CFs"],
-                    color:['#48A2E3','#E95555','#E49831','#0FBF9C','#AE59E3','#5E6EE3','#8196BD','#88B0BB'],
+                    //color:['#48A2E3','#E95555','#E49831','#0FBF9C','#AE59E3','#5E6EE3','#8196BD','#88B0BB'],
+                    color:['#1E73F0','#00D1CE','#33C3F7','#3952D3','#185BFF','#2455AD','#74EE9A','#253479'],
                     series : [
                         {
                             name: this.echartData.baseConfig.hoverText,

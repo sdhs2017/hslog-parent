@@ -1,0 +1,646 @@
+<template>
+    <div class="flow-index-wapper" id="flow-index-wapper">
+        <i class="el-icon-rank fullScreen"  @click="handleFullScreen"></i>
+        <h2 class="index-tit">流量分析系统 </h2>
+        <div class="world-wapper" id="world-wapper" ref="mybox"></div>
+        <el-row :gutter="20" class="index-con">
+            <el-col :span="7" class="item-col">
+                <div class="item">
+                    <div class="item-con">
+                        <div class="con-tit">标题</div>
+                        <div class="con">
+                            <v-echarts echartType="bar" :echartData = "this.chartData1" ></v-echarts>
+                        </div>
+                    </div>
+                    <div class="item-con ranking">
+                        <div class="con-tit">标题</div>
+                        <div class="con">
+                            <div class="ranking-head">
+                                <span class="order">#</span>
+                                <span class="val">IP</span>
+                                <span class="num">数量</span>
+                            </div>
+                            <ul class="ranking-ul">
+                                <li v-for="(i , index) in rankingData" :key="index" :class="index === 0 ? 'first-li' : (index === 1) ? 'second-li' : (index === 2) ? 'third-li' :''">
+                                    <span class="order">{{index + 1}}</span>
+                                    <span class="val">{{i.val}}</span>
+                                    <span class="num">{{i.num}}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </el-col>
+            <el-col :span="10" class="item-col">
+                <div class="item center">
+                    <div class="current-date">
+                        <div id="date">{{ date }}</div>
+                        <ul>
+                            <li id="hours"> {{ hour }}</li>
+                            <li class="point">:</li>
+                            <li id="min">{{ min }} </li>
+                            <li class="point">:</li>
+                            <li id="sec"> {{ sec }}</li>
+                        </ul>
+                    </div>
+
+                    <div class="item-con flow-count-wapper">
+                        <p class="flow-count-tit">已收集流量数</p>
+                        <p class="flow-count-con">
+                            <span v-for="(i,index) in flowCount" :key="index" v-if="i !== ','">{{i}}</span>
+                            <b v-else>{{i}}</b>
+                        </p>
+                    </div>
+                </div>
+            </el-col>
+            <el-col :span="7" class="item-col">
+                <div class="item">
+                    <div class="item-con">
+                        <div class="con-tit">标题</div>
+                        <div class="con">
+                            <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>
+                        </div>
+                    </div>
+                    <div class="item-con">
+                        <div class="con-tit">标题</div>
+                        <div class="con">
+                            <v-echarts echartType="pie" :echartData = "this.chartData3" ></v-echarts>
+                        </div>
+                    </div>
+                </div>
+            </el-col>
+        </el-row>
+    </div>
+    
+</template>
+
+<script>
+    import echarts from "echarts";
+    import 'echarts-gl'
+    import '@/../node_modules/echarts/map/js/world.js'
+    import vEcharts from '../common/echarts'
+
+    const MONTHNAME = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ];
+    const DAYNAME = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+    const HOUR = ["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"];
+
+    export default {
+        name: "flowIndex",
+        data() {
+            return {
+                fullscreen:false,
+                date:'',//日期
+                hour:'',//时
+                min:'',//分
+                sec:'',//秒
+                flowCount:'',
+                chartData1:{
+                    baseConfig:{
+                        title:'',
+                        xAxisName:'',
+                        yAxisName:'',
+                        hoverText:'',
+                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
+                    },
+                    xAxisArr:['08','09','10','11','12'],
+                    yAxisArr:[123,333,234,90,200]
+                },
+                rankingData:[
+                    {val:'192.168.2.1',num:'3369'},
+                    {val:'10.2.2.20',num:'3300'},
+                    {val:'192.168.2.152',num:'2020'},
+                    {val:'135.36.120.2',num:'1988'},
+                    {val:'135.36.120.10',num:'555'},
+                    {val:'192.168.2.182',num:'242'},
+                    {val:'192.168.2.181',num:'120'}
+
+                ],
+                chartData2:{
+                    baseConfig:{
+                        title:'',
+                        xAxisName:'',
+                        yAxisName:'',
+                        hoverText:'',
+                    },
+                    yAxisArr:[{
+                        name:'',
+                        color:'rgb(15,219,243)',
+                        data:[]
+                    }]
+                },
+                chartData3:{
+                    baseConfig:{
+                        title:'',
+                        xAxisName:'',
+                        yAxisName:'',
+                        hoverText:'',
+                    },
+                    xAxisArr:[],
+                    yAxisArr:[
+                        {name:'s1',value:78},
+                        {name:'d2',value:48},
+                        {name:'tc',value:50},
+                        {name:'hz',value:10},
+                        {name:'op',value:100},
+                        {name:'m2',value:23}
+                    ]
+                }
+            }
+        },
+        created(){
+            //循环创建时间 模拟时间
+            setInterval(this.setDate,1000);
+           // setInterval(this.getDataByTime,1000);
+            setInterval(this.getDataByTime,1000);
+        },
+        mounted(){
+            this.setEarth();
+            this.getFlowCount();
+
+        },
+        methods:{
+            //创建时间
+            setDate(){
+                // 创建新的日期函数
+                const newDate = new Date();
+                // 设置日期
+                newDate.setDate(newDate.getDate());
+                this.date = newDate.getFullYear() + "/" + MONTHNAME[newDate.getMonth()] + '/' +  newDate.getDate() + ' ' +DAYNAME[newDate.getDay()];
+                //设置小时
+                const hours = new Date().getHours();
+                this.hour = ( hours < 10 ? "0" : "" ) + hours;
+                // 设置分钟
+                const minutes = new Date().getMinutes();
+                this.min = ( minutes < 10 ? "0" : "" ) + minutes;
+                // 设置秒
+                const seconds = new Date().getSeconds();
+                this.sec =( seconds < 10 ? "0" : "" ) + seconds;
+            },
+            // 全屏事件
+            handleFullScreen(){
+                let element = document.getElementById('flow-index-wapper');
+                if (this.fullscreen) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitCancelFullScreen) {
+                        document.webkitCancelFullScreen();
+                    } else if (document.mozCancelFullScreen) {
+                        document.mozCancelFullScreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                } else {
+                    if (element.requestFullscreen) {
+                        element.requestFullscreen();
+                    } else if (element.webkitRequestFullScreen) {
+                        element.webkitRequestFullScreen();
+                    } else if (element.mozRequestFullScreen) {
+                        element.mozRequestFullScreen();
+                    } else if (element.msRequestFullscreen) {
+                        // IE11
+                        element.msRequestFullscreen();
+                    }
+                }
+                this.fullscreen = !this.fullscreen;
+            },
+            /*设置地球*/
+            setEarth(){
+                /*
+                 图中相关城市经纬度,根据你的需求添加数据
+                 关于国家的经纬度，可以用首都的经纬度或者其他城市的经纬度
+                 */
+                var geoCoordMap = {
+                    '南宁': [108.479, 23.1152],
+                    '广州': [113.5107, 23.2196],
+                    '重庆': [107.7539, 30.1904],
+                    '芬兰': [24.909912, 60.169095],
+                    '美国': [-100.696295, 33.679979],
+                    '日本': [139.710164, 35.706962],
+                    '韩国': [126.979208, 37.53875],
+                    '瑞士': [7.445147, 46.956241],
+                    '东南亚': [117.53244, 5.300343],
+                    '澳大利亚': [135.193845, -25.304039],
+                    '德国': [13.402393, 52.518569],
+                    '英国': [-0.126608, 51.208425],
+                    '加拿大': [-102.646409, 59.994255]
+                };
+
+                /*
+                    记录下起点城市和终点城市的名称，以及权重
+                    数组第一位为终点城市，数组第二位为起点城市，以及该城市的权重，就是图上圆圈的大小
+                 */
+                var CQData = [
+                    [{name: '重庆'}, {name: "英国",value: 70}]
+                ];
+
+                var GZData = [
+                    [{name: '广州'}, {name: "日本",value: 30}],
+                ];
+
+                var NNData = [
+                    [{name: '南宁'}, {name: "加拿大",value: 80}],
+                    [{name: '南宁'}, {name: "美国",value: 100}],
+                    [{name: '南宁'}, {name: "澳大利亚",value: 95}],
+                    [{name: '南宁'}, {name: "瑞士",value: 50}]
+                ];
+
+                var convertData = function(data) {
+                    var res = [];
+                    for(var i = 0; i < data.length; i++) {
+                        var dataItem = data[i];
+                        var fromCoord = geoCoordMap[dataItem[1].name];
+                        var toCoord = geoCoordMap[dataItem[0].name];
+                        if(fromCoord && toCoord) {
+                            res.push([fromCoord, toCoord])
+                        }
+                    }
+                    //console.log(res)
+                    return res;
+                }
+
+                var series = [];// 3D飞线
+                var dser = [];  // 2D散点坐标
+                [['重庆', CQData],['广州', GZData],['南宁', NNData]].forEach(function(item, i) {
+                    dser.push({
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        zlevel: 3,
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        label: {
+                            fontSize:24,
+                            show: true,
+                            position: 'right',
+                            formatter: '{b}'
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#f5f802'
+                            }
+                        },
+                        data: item[1].map(function(dataItem) {
+                            return {
+                                name: dataItem[1].name,
+                                value: geoCoordMap[dataItem[1].name],
+                                symbolSize: dataItem[1].value / 4
+                            };
+                        })
+                    },{
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        zlevel: 3,
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'left',
+                                fontSize:18,
+                                formatter: '{b}'
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#ff0000'
+                            }
+                        },
+                        data: [{
+                            name: item[0],
+                            value: geoCoordMap[item[0]],
+                            symbolSize:parseInt(Math.random()*20+10),
+                            label: {
+                                normal: {
+                                    position: 'right'
+                                }
+                            }
+                        }]
+                    })
+                    series.push({
+                        type: 'lines3D',
+                        effect: {
+                            show: true,
+                            period: 3,//速度
+                            trailLength: 0.1//尾部阴影
+                        },
+                        lineStyle: {//航线的视图效果
+                            color: '#9ae5fc',
+                            width: 1,
+                            opacity: 0.6
+                        },
+                        data: convertData(item[1])// 特效的起始、终点位置，一个二维数组，相当于coords: convertData(item[1])
+                    })
+                })
+
+                var canvas = document.createElement('canvas');
+
+                var myChart = echarts.init(canvas, null, {
+                    width: 4096,
+                    height: 2048
+                });
+                myChart.setOption({
+                    backgroundColor: 'rgba(3,28,72,0.3)',
+                    title: {
+                        show:true
+                    },
+                    geo: {
+                        type: 'map',
+                        map: 'world',
+                        left:0,
+                        top:0,
+                        right: 0,
+                        bottom: 0,
+                        boundingCoords: [[-180, 90], [180, -90]],
+                        zoom:0,
+                        roam: false,
+                        itemStyle: {
+                            borderColor:'#000d2d',
+                            normal: {
+                                areaColor: '#2455ad',
+                                borderColor:'#000c2d'
+                            },
+                            emphasis: {
+
+                                areaColor: '#357cf8'
+                            }
+                        },
+                        emphasis:{
+                            label:{
+                                show:false
+                            }
+                        },
+                        label:{
+                            fontSize:24
+                        }
+                    },
+                    series:dser
+                })
+                var option = {
+                    backgroundColor: 'rgba(0,0,0,0)',//canvas的背景颜色
+                    globe: {
+                        baseTexture:myChart,
+                        top: 'middle',
+                        left: 'center',
+                        displacementScale: 0,
+                        environment:'none',
+                        shading: 'color',
+                        viewControl: {
+                            distance:240,
+                            autoRotate: true,
+                            autoRotateAfterStill:5
+                        }
+                    },
+                    series:series
+                };
+
+                var ee = echarts.init(this.$refs.mybox);
+                ee.setOption(option, true);
+                window.addEventListener("resize",()=>{
+                    // myChart.resize();
+                    ee.resize();
+                });
+
+            },
+            /*获取流量数*/
+            getFlowCount(){
+                this.$nextTick( ()=> {
+                    this.$axios.get(this.$baseUrl+'/log/getIndicesCountByType.do',{})
+                        .then((res) => {
+                            this.flowCount = parseInt(res.data[0].indices_defaultpacket).toLocaleString();
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        })
+                })
+            },
+            /*获取数据-动态实时*/
+            getDataByTime(){
+                //获得当前时间
+                let time = new Date();
+                //console.log(time)
+                let value = Math.random() * 21 + 100;
+                if(this.chartData2.yAxisArr[0].data.length < 60){
+                    this.chartData2.yAxisArr[0].data.push({
+                        name:time,
+                        value:[time, Math.round(value)]
+                    })
+                }else{
+                    this.chartData2.yAxisArr[0].data.shift();
+                    this.chartData2.yAxisArr[0].data.push({
+                        name:time,
+                        value:[time, Math.round(value)]
+                    })
+                }
+            }
+        },
+        components:{
+            vEcharts
+        }
+    }
+</script>
+
+<style scoped>
+    .flow-index-wapper{
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: calc(100% - 40px);
+        width: calc(100% - 40px);
+        padding:20px;
+        background: url("../../../static/img/flow-index-bg2.png");
+        background-size: 100% 100%;
+    }
+    .fullScreen{
+        position: absolute;
+        right: 25px;
+        top: 44px;
+        z-index: 3;
+        font-size: 26px;
+        cursor: pointer;
+        color: #1dd8fe;
+    }
+    .index-tit{
+        text-align: center;
+        position: absolute;
+        width: 100%;
+        z-index: 2;
+        background-image: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .index-con{
+        height: 100%;
+        background: url("../../../static/img/flow-index-bg.png");
+        background-size: 100% 100%;
+        position: relative;
+        top: 10px;
+        padding: 20px;
+    }
+    .item-col{
+        height: 100%;
+    }
+    .item{
+        height: 100%;
+        position: relative;
+        /*background: #0b4c86;*/
+    }
+    .world-wapper{
+        width: 100%;
+        height: calc(100% - 50px);
+        position: absolute;
+        z-index: 1;
+    }
+    .item-con{
+        height: calc(50% - 20px);
+        margin-top: 20px;
+        box-sizing: border-box;
+        width: 100%;
+        /*background: rgba(11, 76, 134, 0.3);*/
+        background: url("../../../static/img/bd2.png");
+        background-size: 100% 100%;
+        position: relative;
+        z-index: 2;
+    }
+    .item-con .con-tit{
+        height: 40px;
+        line-height: 40px;
+        text-indent: 30px;
+        font-weight: 600;
+    }
+    .item-con .con{
+        height: calc(100% - 40px);
+        padding: 0 20px;
+        position: relative;
+        z-index: 2;
+    }
+    .current-date{
+        position: absolute;
+        top:20px;
+        z-index: 2;
+    }
+    #date{
+        /*font-family:'BebasNeueRegular', Arial, Helvetica, sans-serif;*/
+        font-size:35px;
+        text-align:center;
+        text-shadow:0 0 5px #00c6ff;
+        margin-bottom: 10px;
+        font-family: 'electronicFont';
+        background-image: linear-gradient(to right, #5bc0de 40%, #75EF99 73%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .current-date ul{
+        width: 100%;
+        padding: 0px;
+        list-style: none;
+        text-align: center;
+        font-family: 'electronicFont';
+        background-image: linear-gradient(to right, #5bc0de 40%, #75EF99 73%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .current-date ul li{
+        display:inline;
+        /* font-size:5em;  */
+        text-align:center;
+        /* font-family:'BebasNeueRegular', Arial, Helvetica, sans-serif;
+         text-shadow:0 0 5px #00c6ff;*/
+    }
+    @media only screen and (min-width: 800px){
+        .current-date ul li {
+            font-size:2.5em;
+        }
+
+    }
+    @media only screen and (min-width: 1500px){
+        .current-date ul li {
+            font-size:3.5em;
+        }
+        .current-number p b{
+            font-size: 1rem;
+        }
+    }
+    .center .flow-count-wapper{
+        position: absolute;
+        height: 120px;
+        bottom:0;
+        width: 100%;
+        background: rgba(11, 76, 134, 0.35);
+        z-index: 2;
+
+    }
+    .flow-count-tit{
+        height:50px;
+        text-align: center;
+        line-height: 50px;
+        font-size: 22px;
+        color: #00F6FF;
+    }
+    .flow-count-con{
+        display: flex;
+        justify-content: center;
+    }
+    .flow-count-con span{
+        display: inline-block;
+        width: 30px;
+        height: 45px;
+        text-align: center;
+        line-height: 45px;
+        margin: 0 2px;
+        font-family: 'electronicFont';
+        /*color: #90EBFD;
+        background: rgba(1,36,100,0.5);
+        border: 2px solid #1272AE;*/
+        background-image: linear-gradient(to bottom, #4facfe 0%, #00f2fe 100%);
+        color:#072457;
+        font-size: 38px;
+    }
+    .flow-count-con b{
+        display: inline-block;
+        height: 45px;
+        line-height: 60px;
+        margin: 0 5px;
+        color:#4facfe;
+    }
+    .ranking .con{
+        padding: 0 30px;
+        font-size: 13px;
+        color: #40b9fe;
+    }
+    .ranking .ranking-head{
+        height: 36px;
+        line-height: 36px;
+    }
+    .ranking .ranking-ul{
+        height: calc(100% - 40px);
+        overflow-y: auto;
+    }
+    .ranking .ranking-ul li{
+        height: 36px;
+        line-height: 36px;
+        border-top: 1px solid #283261;
+    }
+    .ranking-ul li.first-li{
+        color:#F54545;
+    }
+    .ranking-ul li.second-li{
+        color:#FF8547;
+    }
+    .ranking-ul li.third-li{
+        color:#FFAC39;
+    }
+    .ranking span{
+        display: inline-block;
+        text-align: center;
+    }
+    .ranking .order{
+        width: 32px;
+    }
+    .ranking .val{
+        width: calc(100% - 125px);
+    }
+    .ranking .num{
+        width: 80px;
+    }
+</style>

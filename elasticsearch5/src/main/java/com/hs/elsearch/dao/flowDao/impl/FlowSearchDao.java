@@ -12,6 +12,8 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -250,6 +252,61 @@ public class FlowSearchDao implements IFlowSearchDao {
             Sum sum  = aggregations.get("agg");
             Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
             bucketmap.put(sum.getName(), sum.getValue());
+            list.add(bucketmap);
+        }
+
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getListByCountOfMetrics(String[] types, String starttime, String endtime, String countField, int size, Map<String, String> map, String... indices) {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey()+".raw", entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }else if (entry.getKey().equals("packet_length")){
+                    if (entry.getValue().contains(",")){
+                        String [] value = entry.getValue().split(",");
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).gte(value[0]).lt(value[1]));
+                    }else{
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).gte(entry.getValue()));
+                    }
+                }else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        // 聚合metric查询sum
+        ValueCountAggregationBuilder countAggregationBuilder = AggregationBuilders.count("agg").field(countField);
+
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, countAggregationBuilder, types, indices);
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+        if (aggregations!=null){
+            ValueCount count  = aggregations.get("agg");
+            Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+            bucketmap.put(count.getName(), count.getValue());
             list.add(bucketmap);
         }
 

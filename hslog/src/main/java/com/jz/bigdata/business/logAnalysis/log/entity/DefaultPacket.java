@@ -53,11 +53,6 @@ public class DefaultPacket {
 	 */
 	private Date logdate;
 	private String logtime;
-	/*private String logtime_minute;
-	private String logtime_hour;
-	private String logtime_day;
-	private String logtime_month;
-	private String logtime_year;*/
 	/**
 	 * 操作类型
 	 */
@@ -133,7 +128,7 @@ public class DefaultPacket {
 	private String complete_url; // 完整的url http://192.168.2.182:8080/jzLog/getIndicesCount.do?_=1555924017369
 	private String url_param; // url参数
 	private String domain_url; // 域名
-	private Integer packet_lenght; // 数据包大小
+	private Integer packet_length; // 数据包大小
 	private String user_agent; // 客户端信息
 	private String user_agent_os;  // 客户端操作系统
 	private String user_agent_browser;  // 客户端浏览器
@@ -388,12 +383,12 @@ public class DefaultPacket {
 		this.domain_url = domain_url;
 	}
 
-	public Integer getPacket_lenght() {
-		return packet_lenght;
+	public Integer getPacket_length() {
+		return packet_length;
 	}
 
-	public void setPacket_lenght(Integer packet_lenght) {
-		this.packet_lenght = packet_lenght;
+	public void setPacket_lenght(Integer packet_length) {
+		this.packet_length = packet_length;
 	}
 
 	public String getUser_agent() {
@@ -495,7 +490,7 @@ public class DefaultPacket {
 			}
 			this.session_status = builder.toString();
 
-			this.packet_lenght = tcppacket.getPayload().getRawData().length;
+			this.packet_length = tcppacket.getPayload().getRawData().length;
 			this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
 			this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
 			this.l4_dst_port = tcppacket.getHeader().getDstPort().valueAsInt()+"";

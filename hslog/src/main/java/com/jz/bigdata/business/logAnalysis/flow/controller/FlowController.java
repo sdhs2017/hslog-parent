@@ -974,7 +974,7 @@ public class FlowController {
     public String getRequestPacketOfDstIP(HttpServletRequest request) {
         String index = configProperty.getEs_index();
         String  groupby = "ipv4_dst_addr.raw";
-        String sumfield = "packet_lenght";
+        String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
 
         // 构建参数map
@@ -1044,6 +1044,48 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return JSONArray.fromObject(list).toString();
+    }
+
+    /**
+     * @param request
+     * 实时统计流量数据访问包大小
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getPacketLengthPerSecond")
+    @DescribeLog(describe="实时统计流量数据访问包大小")
+    public String getPacketLengthPerSecond(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            if (!starttime.contains(" ")){
+                starttime = starttime+" 00:00:00";
+            }
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")){
+                endtime = endtime+" 23:59:59";
+            }
+        }
+        // 构建参数map
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("requestorresponse", "request");
+        map.put("application_layer_protocol", "http");
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+        int size =10;
+
+        try {
+            list = flowService.getSumByMetrics(types,sumfield,size,starttime,endtime,map,index);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return JSONArray.fromObject(list).toString();
     }
 }

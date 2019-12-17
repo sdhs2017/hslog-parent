@@ -22,6 +22,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -1071,21 +1072,34 @@ public class FlowController {
             if (!endtime.contains(" ")){
                 endtime = endtime+" 23:59:59";
             }
+            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
+            if (starttime==null||starttime.equals("")){
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                ParsePosition pos = new ParsePosition(0);
+                Date enddate = format.parse(endtime, pos);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                cal.add(Calendar.SECOND,-2);
+                starttime = format.format(cal.getTime());
+            }
         }
-        // 构建参数map
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("requestorresponse", "request");
-        map.put("application_layer_protocol", "http");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         int size =10;
 
         try {
-            list = flowService.getSumByMetrics(types,sumfield,size,starttime,endtime,map,index);
+            list = flowService.getSumByMetrics(types,sumfield,size,starttime,endtime,null,index);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return JSONArray.fromObject(list).toString();
+        Map<String,Object> result = new HashMap<>();
+        if (list.size()>0){
+            result.put("name",endtime);
+            Object [] value = {endtime,list.get(0).get("agg")};
+            result.put("value",value);
+        }
+
+        return JSONArray.fromObject(result).toString();
     }
 }

@@ -48,7 +48,7 @@ public interface IflowService {
      * 新
      * 实现metrics sum,包含时间范围、条件等
      * @param types index 的 type字段，在7版本中移除
-     * @param sumField 聚合分组后进行sum计算的字段
+     * @param sumField 聚合进行sum计算的字段
      * @param starttime 时间范围-开始时间
      * @param endtime 时间范围-结束时间
      * @param map 其他限制条件
@@ -57,6 +57,18 @@ public interface IflowService {
      */
     public List<Map<String, Object>> getSumByMetrics(String[] types, String sumField, int size, String starttime, String endtime,Map<String, String> map, String... indices) throws Exception;
 
+    /**
+     * 新
+     * 实现metrics sum,包含时间范围、条件等
+     * @param types index 的 type字段，在7版本中移除
+     * @param countField 聚合进行count计算的字段
+     * @param starttime 时间范围-开始时间
+     * @param endtime 时间范围-结束时间
+     * @param map 其他限制条件
+     * @param indices 索引名称
+     * @return
+     */
+    public List<Map<String, Object>> getCountByMetrics(String[] types, String countField, int size, String starttime, String endtime,Map<String, String> map, String... indices) throws Exception;
 
     /**
      * 新

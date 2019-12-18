@@ -12,6 +12,7 @@ import com.jz.bigdata.util.ContextFront;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.MapUtil;
 import net.sf.json.JSONArray;
+import org.elasticsearch.common.recycler.Recycler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -24,6 +25,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @program: hsgit
@@ -948,12 +950,7 @@ public class FlowController {
 
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            starttime = starttime+" 00:00:00";
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            endtime = endtime+" 23:59:59";
-        }
+
         int size =10;
         //list = logService.groupBy(index, types, groupby, map);
         try {
@@ -982,27 +979,15 @@ public class FlowController {
         map.put("requestorresponse", "request");
         map.put("application_layer_protocol", "http");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
         int size =10;
 
         try {
-            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,null,null, map);
+            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,starttime,endtime, map);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        /*List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        if (list.size()>0){
-            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-                Map<String,Object> tMap = new HashMap<>();
-                tMap.put("dst_ip", key.getKey());
-                tMap.put("sum", key.getValue());
-                tmplist.add(tMap);
-            }
-        }
-
-        Map<String,Object> result = new HashMap<>();
-        result.put("source", tmplist);*/
 
         return JSONArray.fromObject(list).toString();
     }
@@ -1030,17 +1015,12 @@ public class FlowController {
         //
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            starttime = starttime+" 00:00:00";
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            endtime = endtime+" 23:59:59";
-        }
+
         int size =10;//默认top10
 
         //list = logService.groupBy(index, types, groupby, map);
         try {
-            list = flowService.groupBy(index, types, groupby, size,null,null, map);
+            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1062,16 +1042,7 @@ public class FlowController {
         // 获取前端传入的时间参数
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            if (!starttime.contains(" ")){
-                starttime = starttime+" 00:00:00";
-            }
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            if (!endtime.contains(" ")){
-                endtime = endtime+" 23:59:59";
-            }
-        }
+
         // 构建参数map
         Map<String, String> map = new HashMap<String, String>();
         map.put("requestorresponse", "request");
@@ -1086,6 +1057,198 @@ public class FlowController {
             e.printStackTrace();
         }
 
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 源ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getSrcIPFlow")
+    @DescribeLog(describe="源ip地址流量")
+    public String getSrcIPFlow(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "ipv4_src_addr";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+
+        // 构建参数map
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 目的ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getDstIPFlow")
+    @DescribeLog(describe="目的ip地址流量")
+    public String getDstIPFlow(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "ipv4_dst_addr";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 传输层协议长度排行
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getTransportLength")
+    @DescribeLog(describe="传输层协议长度排行")
+    public String getTransportLength(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "protocol_name";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 应用层协议长度排行
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getApplicationLength")
+    @DescribeLog(describe="应用层协议长度排行")
+    public String getApplicationLength(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "application_layer_protocol";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 综合协议长度排行
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getMultipleLength")
+    @DescribeLog(describe="综合协议长度排行")
+    public String getMultipleLength(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfieldApplication = "application_layer_protocol";
+        String groupfieldTransport = "protocol_name";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> listApplication = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listTransport = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            listApplication = flowService.groupByThenSum(index,types,groupfieldApplication,sumfield,size,starttime,endtime,map);
+            listTransport = flowService.groupByThenSum(index,types,groupfieldTransport,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //将应用层和传输层协议合并
+        Map<String, Object> maps = new HashMap<String, Object>();
+        maps.putAll(listTransport.get(0));
+        maps.putAll(listApplication.get(0));
+        ArrayList<Map.Entry<String, Object>> arrayList = new ArrayList<Map.Entry<String, Object>>(maps.entrySet());
+        //排序
+        Collections.sort(arrayList,new Comparator<Map.Entry<String,Object>>() {
+            @Override
+            public int compare(Map.Entry<String,Object> o1,Map.Entry<String,Object> o2) {
+                Double name1 = Double.valueOf(o1.getValue().toString());
+                Double name2 = Double.valueOf(o2.getValue().toString());
+                return  (int)(name2- name1);
+            }
+        });
+        List<Map<String,Object>> listResult = new LinkedList<Map<String,Object>>();
+
+        for(Map.Entry<String, Object> m:arrayList){
+            Map<String,Object> cmap=new ConcurrentHashMap<>();
+            cmap.put(m.getKey(),m.getValue());
+            listResult.add(cmap);
+        }
+
+        return JSONArray.fromObject(listResult).toString();
+    }
+    /**
+     * @param request
+     * 全局数据包类型及个数（<64,64-1519,大于1519 ，由于数据包大小仅取到1460，因此设置为64-1460）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getPacketTypeCount")
+    @DescribeLog(describe="全局数据包类型及个数")
+    public String getPacketTypeCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "application_layer_protocol";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return JSONArray.fromObject(list).toString();
     }
 }

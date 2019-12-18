@@ -47,6 +47,11 @@ public class FlowServiceImpl implements IflowService {
     }
 
     @Override
+    public List<Map<String, Object>> getCountByMetrics(String[] types, String countField, int size, String starttime, String endtime, Map<String, String> map, String... indices) throws Exception {
+        return flowSearchDao.getListByCountOfMetrics(types,starttime,endtime,countField,size,map,indices);
+    }
+
+    @Override
     public List<Map<String, Object>> getFlowListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception {
 
         SearchHit[] hits = null;

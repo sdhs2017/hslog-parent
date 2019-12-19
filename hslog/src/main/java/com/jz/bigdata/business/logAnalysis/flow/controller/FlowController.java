@@ -1478,12 +1478,25 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Map<String, Object> map = new HashMap<String, Object>();
-        map.put("multicast",multicastlist.get(0).get("agg"));
-        map.put("broadcast",broadcastlist.get(0).get("agg"));
 
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        list.add(map);
+        // 组播包数据
+        if (multicastlist.size()>0){
+            Map<String,Object> multicast = new HashMap<>();
+            multicast.put("name",endtime);
+            Object [] value = {endtime,multicastlist.get(0).get("agg")};
+            multicast.put("value",value);
+            list.add(multicast);
+        }
+        // 广播包数据
+        if (broadcastlist.size()>0){
+            Map<String,Object> broadcast = new HashMap<>();
+            broadcast.put("name",endtime);
+            Object [] value = {endtime,broadcastlist.get(0).get("agg")};
+            broadcast.put("value",value);
+            list.add(broadcast);
+        }
+
         return JSONArray.fromObject(list).toString();
     }
     /**

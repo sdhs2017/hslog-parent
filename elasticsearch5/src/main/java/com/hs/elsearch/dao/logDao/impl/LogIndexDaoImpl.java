@@ -5,6 +5,8 @@ import com.hs.elsearch.template.IndexTemplate;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -73,9 +75,9 @@ public class LogIndexDaoImpl implements ILogIndexDao {
     @Override
     public boolean checkOfIndexOrTemplate(String... indexOrTemplate) throws Exception {
         boolean result = false;
-
-        //indexOrTemplate = indexOrTemplate.replace("*","");
-        result = indexTemplate.indexExists(indexOrTemplate);
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        String index = indexOrTemplate[0].replace("*",format.format(new Date()));
+        result = indexTemplate.indexExists(index);
 
         return result;
     }

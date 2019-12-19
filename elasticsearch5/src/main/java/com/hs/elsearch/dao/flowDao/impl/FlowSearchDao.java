@@ -284,13 +284,29 @@ public class FlowSearchDao implements IFlowSearchDao {
                 }else if (entry.getKey().equals("event_type")){
                     // 针对syslog日志的事件，该字段不为null
                     boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                // 针对packet_length的范围进行数据查询
                 }else if (entry.getKey().equals("packet_length")){
+
                     if (entry.getValue().contains(",")){
                         String [] value = entry.getValue().split(",");
                         boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).gte(value[0]).lt(value[1]));
                     }else{
                         boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).gte(entry.getValue()));
                     }
+                // 针对组播地址的范围查询
+                }else if (entry.getKey().equals("multicast")){
+                    BoolQueryBuilder boolshuld = QueryBuilders.boolQuery();
+                    boolshuld.should(QueryBuilders.rangeQuery(entry.getValue()).gt("224.0.0.0").lte("224.0.0.255"));
+                    boolshuld.should(QueryBuilders.rangeQuery(entry.getValue()).gte("224.0.1.0").lte("224.0.1.255"));
+                    boolshuld.should(QueryBuilders.rangeQuery(entry.getValue()).gte("224.0.2.0").lte("239.255.255.255"));
+                    boolQueryBuilder.must(boolshuld);
+                // 针对广播地址的模糊查询
+                }else if (entry.getKey().equals("broadcast")){
+                    BoolQueryBuilder boolshuld = QueryBuilders.boolQuery();
+                    String [] addrs = entry.getValue().split(",");
+                    boolshuld.should(QueryBuilders.wildcardQuery(addrs[0],"*.255"));
+                    boolshuld.should(QueryBuilders.wildcardQuery(addrs[1],"*.255"));
+                    boolQueryBuilder.must(boolshuld);
                 }else {
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }

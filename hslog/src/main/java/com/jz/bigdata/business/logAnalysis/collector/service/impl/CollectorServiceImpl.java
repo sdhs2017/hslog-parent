@@ -478,17 +478,17 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	public void insertUrl() {
-		
+
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 资产表获取domain
 		List<Equipment> list = equipmentService.selectAllHostName();
-		
+
 		// 临时serviceinfo list
 		List<ServiceInfo> serviceslist = new ArrayList<ServiceInfo>();
 		Map<String, String> tmpurlmap = new HashMap<String, String>();
 		tmpurlmap.putAll(urlmap);
 		urlmap.clear();
-		
+
 		if (!list.isEmpty()) {
 			for(Entry<String, String> key : tmpurlmap.entrySet()) {
 				for(Equipment equipment : list) {
@@ -514,7 +514,7 @@ public class CollectorServiceImpl implements ICollectorService{
 		if (!serviceslist.isEmpty()) {
 			serviceInfoService.insert(serviceslist);
 		}
-		
+
 	}
 	/**
 	 * 定时任务将获取的http 根域名  插入到资产表中

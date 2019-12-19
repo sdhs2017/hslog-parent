@@ -49,6 +49,7 @@ li,ol{
     padding: 20px;
     overflow-y: auto;
     box-sizing: border-box;
+    position: relative;
 }
 .content>.content-bg{
     min-height: 100%;

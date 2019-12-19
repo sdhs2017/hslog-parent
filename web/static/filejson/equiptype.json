@@ -4,6 +4,10 @@
         "label": "网络",
         "children": [
             {
+                "value": "01",
+                "label": "全部"
+            },
+            {
                 "value": "0101",
                 "label": "交换机"
             },
@@ -17,6 +21,10 @@
         "value": "02",
         "label": "安全",
         "children": [
+            {
+                "value": "02",
+                "label": "全部"
+            },
             {
                 "value": "0201",
                 "label": "IPS"
@@ -40,6 +48,10 @@
         "label": "主机",
         "children": [
             {
+                "value": "03",
+                "label": "全部"
+            },
+            {
                 "value": "0301",
                 "label": "Windows"
             },
@@ -57,6 +69,10 @@
         "value": "04",
         "label": "应用",
         "children": [
+            {
+                "value": "04",
+                "label": "全部"
+            },
             {
                 "value": "0401",
                 "label": "Tomcat"

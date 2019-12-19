@@ -89,7 +89,7 @@ router.beforeEach((to, from, next) => {
         }
     }*/
    //判断是否是登录/注册页面的路由跳转  是-不进行拦截   不是-验证登录是否过期
-   if(to.path !== '/login' && to.path !== '/resigter'){
+   if(to.path !== '/login' && to.path !== '/resigter'  && to.path !== '/flowLogin'){
        let loading = layer.load(1)
        axios.get(Vue.prototype.$baseUrl+'/user/checkLogin.do',{})
            .then((res)=>{

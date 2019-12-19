@@ -56,7 +56,7 @@
             <el-col :span="7" class="item-col">
                 <div class="item">
                     <div class="item-con">
-                        <div class="con-tit">标题</div>
+                        <div class="con-tit">实时流量数据访问包大小</div>
                         <div class="con">
                             <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>
                         </div>
@@ -79,6 +79,7 @@
     import 'echarts-gl'
     import '@/../node_modules/echarts/map/js/world.js'
     import vEcharts from '../common/echarts'
+    import {dateFormat} from "../../../static/js/common";
 
     const MONTHNAME = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ];
     const DAYNAME = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
@@ -150,13 +151,18 @@
         created(){
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
-           // setInterval(this.getDataByTime,1000);
-            setInterval(this.getDataByTime,1000);
+           // setInterval(this.getDataByTime,2000);
+
         },
         mounted(){
             this.setEarth();
             this.getFlowCount();
-
+            let time = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            this.getDataByTime(time)
+            setInterval(()=>{
+                let time = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+                this.getDataByTime(time)
+            },2000);
         },
         methods:{
             //创建时间
@@ -415,8 +421,27 @@
                 })
             },
             /*获取数据-动态实时*/
-            getDataByTime(){
-                //获得当前时间
+            getDataByTime(time){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
+                        endtime:time
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            if(this.chartData2.yAxisArr[0].data.length < 60){
+                                this.chartData2.yAxisArr[0].data.push(res.data[0])
+                            }else{
+                                this.chartData2.yAxisArr[0].data.shift();
+                                this.chartData2.yAxisArr[0].data.push(res.data[0])
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
+               /* //获得当前时间
                 let time = new Date();
                 //console.log(time)
                 let value = Math.random() * 21 + 100;
@@ -431,7 +456,7 @@
                         name:time,
                         value:[time, Math.round(value)]
                     })
-                }
+                }*/
             }
         },
         components:{

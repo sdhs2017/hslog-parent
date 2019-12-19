@@ -96,7 +96,6 @@
             echartData:{
                 handler() {
                     this.$nextTick( ()=> {
-
                         this.judgeEchartType()
                     })
                 },
@@ -128,6 +127,10 @@
                         break;
                     case 'timeline':
                         this.timeLineEchart();
+                        break;
+                    case 'gauge':
+                        this.gaugeEchart();
+                        break;
                     default:
                         break;
                 }
@@ -429,7 +432,16 @@
                             }
                         }
                     },
+                    legend: {
+                        data:[],
+                        right:"5%",
+                        top:"25px",
+                        textStyle:{
+                            color:'#eee'
+                        }
+                    },
                     xAxis: {
+                        name:this.echartData.baseConfig.xAxisName,
                         type: 'time',
                         nameTextStyle:{
                             color:'#5bc0de'
@@ -444,6 +456,7 @@
                         }
                     },
                     yAxis: {
+                        name:this.echartData.baseConfig.yAxisName,
                         type: 'value',
                         boundaryGap: [0, '100%'],
                         nameTextStyle:{
@@ -461,7 +474,7 @@
                     series: []
                 };
                 for(let i in this.echartData.yAxisArr ){
-                    //option.legend.data.push(this.echartData.yAxisArr[i].name);
+                    option.legend.data.push(this.echartData.yAxisArr[i].name);
                     option.series.push({
                         name:this.echartData.yAxisArr[i].name,
                         type: 'line',
@@ -624,6 +637,37 @@
                     myChart.resize();
                 });
 
+            },
+            //仪表盘
+            gaugeEchart(){
+                let myChart = echarts.init(this.$refs.mybox);
+                myChart.setOption({
+                    title : {
+                        text: this.echartData.baseConfig.title,
+                        x:'center',
+                        textStyle:{
+                            color:'#5bc0de'
+                        }
+                    },
+                    tooltip : {
+                        formatter: "{a} <br/>{b} : {c}%"
+                    },
+                    series: [
+                        {
+                            name: this.echartData.baseConfig.hoverText,
+                            type: 'gauge',
+                            title:{
+                                color:'#5bc0de'
+                            },
+                            detail: {formatter:'{value}%'},
+                            //data: [{value: 10, name: '完成率'}]
+                            data:this.echartData.yAxisArr[0].data,
+                        }
+                    ]
+                })
+                window.addEventListener("resize",function(){
+                    myChart.resize();
+                });
             }
         }
     }

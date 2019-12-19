@@ -1337,12 +1337,13 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //与获取的ip信息与资产ip进行对应
+
 
         List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
         //遍历统计的数据
         for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
             Map<String,Object> lmap = new ConcurrentHashMap<>();
+            //与获取的ip信息与资产ip进行对应
             List<Equipment> l = equipmentDao.selectAllByPage("", "", tmap.getKey(),"" ,"" ,"" ,"", 0,10);
             if(l.size()>=1){
                 lmap.put(l.get(0).getName(),tmap.getValue());
@@ -1387,15 +1388,16 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        //与获取的ip信息与资产ip进行对应
+
 
         List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
         //遍历统计的数据
         for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
             Map<String,Object> lmap = new ConcurrentHashMap<>();
+            //与获取的ip信息与域名url进行对应
             ServiceInfo sInfo = serviceInfoDao.selectServiceByUrl(tmap.getKey());
             if(sInfo!=null){
-                lmap.put(sInfo.getName(),tmap.getValue());
+                lmap.put((sInfo.getName()==null||sInfo.getName()=="")?tmap.getKey():sInfo.getName(),tmap.getValue());
             }else{
                 lmap.put(tmap.getKey(),tmap.getValue());
             }

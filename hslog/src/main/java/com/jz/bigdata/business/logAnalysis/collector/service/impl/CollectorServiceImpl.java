@@ -568,7 +568,10 @@ public class CollectorServiceImpl implements ICollectorService{
 				serviceslist.add(funservice);
 			}
 		}
-		serviceInfoService.insert(serviceslist);
+		//数据为空时，插入数据会报错
+		if(serviceslist.size()>0){
+			serviceInfoService.insert(serviceslist);
+		}
 	}
 	/**
 	 * 定时任务将获取的http 根域名  插入到资产表中

@@ -1564,7 +1564,7 @@ public class LogServiceImpl implements IlogService {
 		c.setTime(new Date());
 		c.add(Calendar.DAY_OF_MONTH, 1);
 		String index = configProperty.getEs_index().replace("*",format.format(c.getTime()));
-		System.out.println(index);
+		//System.out.println(index);
 
 		// 更新index的settings
 		Map<String,Object> settings = new HashMap<>();

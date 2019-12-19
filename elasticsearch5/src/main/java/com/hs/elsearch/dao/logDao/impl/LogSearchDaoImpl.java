@@ -146,17 +146,18 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, types, indices);
 
-        Terms terms  = aggregations.get(count);
-
         List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
 
-        Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+        if (aggregations!=null){
+            Terms terms  = aggregations.get(count);
+            Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
-        for(Terms.Bucket bucket:terms.getBuckets()) {
-            bucketmap.put(bucket.getKeyAsString(), bucket.getDocCount());
+            for(Terms.Bucket bucket:terms.getBuckets()) {
+                bucketmap.put(bucket.getKeyAsString(), bucket.getDocCount());
+            }
+            list.add(bucketmap);
         }
 
-        list.add(bucketmap);
         return list;
     }
 
@@ -297,20 +298,23 @@ public class LogSearchDaoImpl implements ILogSearchDao {
 
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, types, indices);
-        Histogram agg = aggregations.get("agg");
 
         List<Map<String, Object>> list = new ArrayList<>();
-        // For each entry
-        for (Histogram.Bucket entry : agg.getBuckets()) {
-            Map<String, Object> aggmap = new HashMap<>();
-            DateTime key = (DateTime) entry.getKey();    // Key
-            String keyAsString = entry.getKeyAsString(); // Key as String
-            long docCount = entry.getDocCount();         // Doc count
-            aggmap.put("hour",key.hourOfDay().getAsString());
-            aggmap.put("count",docCount);
-            list.add(aggmap);
+        if (aggregations!=null){
+            Histogram agg = aggregations.get("agg");
 
+            // For each entry
+            for (Histogram.Bucket entry : agg.getBuckets()) {
+                Map<String, Object> aggmap = new HashMap<>();
+                DateTime key = (DateTime) entry.getKey();    // Key
+                String keyAsString = entry.getKeyAsString(); // Key as String
+                long docCount = entry.getDocCount();         // Doc count
+                aggmap.put("hour",key.hourOfDay().getAsString());
+                aggmap.put("count",docCount);
+                list.add(aggmap);
+            }
         }
+
         return list;
     }
 

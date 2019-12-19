@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -88,7 +89,9 @@ public class CollectorServiceImpl implements ICollectorService{
 	
 	@Resource
 	private IUrlDao urldao;
-	
+
+	@Resource
+	private IServiceInfoDao serviceInfoDao;
 	
 //	public Thread getT() {
 //		return t;
@@ -477,18 +480,19 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * 定时任务将获取的http url 插入到servicefunction表中
 	 * @return
 	 */
+	/*
 	public void insertUrl() {
-		
+
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 资产表获取domain
 		List<Equipment> list = equipmentService.selectAllHostName();
-		
+
 		// 临时serviceinfo list
 		List<ServiceInfo> serviceslist = new ArrayList<ServiceInfo>();
 		Map<String, String> tmpurlmap = new HashMap<String, String>();
 		tmpurlmap.putAll(urlmap);
 		urlmap.clear();
-		
+
 		if (!list.isEmpty()) {
 			for(Entry<String, String> key : tmpurlmap.entrySet()) {
 				for(Equipment equipment : list) {
@@ -514,7 +518,57 @@ public class CollectorServiceImpl implements ICollectorService{
 		if (!serviceslist.isEmpty()) {
 			serviceInfoService.insert(serviceslist);
 		}
-		
+
+	}
+	*/
+	/**
+	 * 定时任务将获取的http url 插入到servicefunction表中
+	 * @return
+	 */
+	public void insertUrl() {
+
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		// 资产表获取domain
+		//List<Equipment> list = equipmentService.selectAllHostName();
+
+		// 临时serviceinfo list
+		List<ServiceInfo> serviceslist = new ArrayList<ServiceInfo>();
+		Map<String, String> tmpurlmap = new HashMap<String, String>();
+		tmpurlmap.putAll(urlmap);
+		urlmap.clear();
+		//判断数据库中是否有重复数据的状态位
+		boolean temp = false;
+		//获取所有服务信息列表（数据库）
+		List<ServiceInfo> list = serviceInfoDao.selectAll(new ServiceInfo());
+		//遍历所有传过来的url信息
+		for(Entry<String, String> key : tmpurlmap.entrySet()) {
+			//遍历所有数据库中的信息，如果不存在，插入数据库中
+			for(ServiceInfo s:list){
+				if(s.getUrl().equals(key.getKey())){
+					temp = true;
+					break;
+				}else{
+					continue;
+				}
+			}
+			//如果没有重复，插入数据库中
+			if(!temp){
+				ServiceInfo funservice = new  ServiceInfo();
+				String protocol = getSubUtilSimple(key.getKey(), "^(.*?)[://]");
+				String relativeUrl = getSubUtilSimple(key.getKey(), "[:][0-9]{1,5}(.*?)$");
+				funservice.setId(Uuid.getUUID());
+				funservice.setCreateTime(format.format(new Date()));
+				//funservice.setEquipmentId(equipment.getId());
+				//funservice.setIp(equipment.getIp());
+				//funservice.setPort(equipment.getPort());
+				funservice.setProtocol(protocol);
+				funservice.setUrl(key.getKey());
+				funservice.setRelativeUrl(relativeUrl);
+				funservice.setState(1);
+				serviceslist.add(funservice);
+			}
+		}
+		serviceInfoService.insert(serviceslist);
 	}
 	/**
 	 * 定时任务将获取的http 根域名  插入到资产表中

@@ -7,6 +7,10 @@ import com.jz.bigdata.business.logAnalysis.flow.service.IflowService;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
+import com.jz.bigdata.common.equipment.entity.Equipment;
+import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
+import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.ContextFront;
 import com.jz.bigdata.util.DescribeLog;
@@ -22,8 +26,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @program: hsgit
@@ -46,7 +52,11 @@ public class FlowController {
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
 
+    @Resource
+    private IEquipmentDao equipmentDao;
 
+    @Resource
+    private IServiceInfoDao serviceInfoDao;
     /**
      * @param request
      * 统计netflow源IP、目的IP、源端口、目的端口的数量
@@ -949,10 +959,14 @@ public class FlowController {
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
         if (starttime!=null&&!starttime.equals("")) {
-            starttime = starttime+" 00:00:00";
+            if (!starttime.contains(" ")){
+                starttime = starttime+" 00:00:00";
+            }
         }
         if (endtime!=null&&!endtime.equals("")) {
-            endtime = endtime+" 23:59:59";
+            if (!endtime.contains(" ")){
+                endtime = endtime+" 23:59:59";
+            }
         }
         int size =10;
         //list = logService.groupBy(index, types, groupby, map);
@@ -974,7 +988,7 @@ public class FlowController {
     public String getRequestPacketOfDstIP(HttpServletRequest request) {
         String index = configProperty.getEs_index();
         String  groupby = "ipv4_dst_addr.raw";
-        String sumfield = "packet_lenght";
+        String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
 
         // 构建参数map
@@ -982,27 +996,15 @@ public class FlowController {
         map.put("requestorresponse", "request");
         map.put("application_layer_protocol", "http");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
         int size =10;
 
         try {
-            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,null,null, map);
+            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,starttime,endtime, map);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        /*List<Map<String, Object>> tmplist = new ArrayList<Map<String, Object>>();
-        if (list.size()>0){
-            for(Map.Entry<String, Object> key : list.get(0).entrySet()) {
-                Map<String,Object> tMap = new HashMap<>();
-                tMap.put("dst_ip", key.getKey());
-                tMap.put("sum", key.getValue());
-                tmplist.add(tMap);
-            }
-        }
-
-        Map<String,Object> result = new HashMap<>();
-        result.put("source", tmplist);*/
 
         return JSONArray.fromObject(list).toString();
     }
@@ -1030,20 +1032,563 @@ public class FlowController {
         //
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            starttime = starttime+" 00:00:00";
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            endtime = endtime+" 23:59:59";
-        }
+
         int size =10;//默认top10
 
         //list = logService.groupBy(index, types, groupby, map);
         try {
-            list = flowService.groupBy(index, types, groupby, size,null,null, map);
+            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
         } catch (Exception e) {
             e.printStackTrace();
         }
         return JSONArray.fromObject(list).toString();
+    }
+
+    /**
+     * @param request
+     * 实时统计流量数据访问包大小
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getPacketLengthPerSecond")
+    @DescribeLog(describe="实时统计流量数据访问包大小")
+    public String getPacketLengthPerSecond(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            if (!starttime.contains(" ")){
+                starttime = starttime+" 00:00:00";
+            }
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")){
+                endtime = endtime+" 23:59:59";
+            }
+            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
+            if (starttime==null||starttime.equals("")){
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                ParsePosition pos = new ParsePosition(0);
+                Date enddate = format.parse(endtime, pos);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                cal.add(Calendar.SECOND,-2);
+                starttime = format.format(cal.getTime());
+            }
+        }
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+        int size =10;
+
+        try {
+            list = flowService.getSumByMetrics(types,sumfield,size,starttime,endtime,null,index);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Map<String,Object> result = new HashMap<>();
+        if (list.size()>0){
+            result.put("name",endtime);
+            Object [] value = {endtime,list.get(0).get("agg")};
+            result.put("value",value);
+        }
+
+        return JSONArray.fromObject(result).toString();
+    }
+    /**
+     * @param request
+     * 源ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getSrcIPFlow")
+    @DescribeLog(describe="源ip地址流量")
+    public String getSrcIPFlow(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "ipv4_src_addr";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+
+        // 构建参数map
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 目的ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getDstIPFlow")
+    @DescribeLog(describe="目的ip地址流量")
+    public String getDstIPFlow(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "ipv4_dst_addr";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 传输层协议长度排行
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getTransportLength")
+    @DescribeLog(describe="传输层协议长度排行")
+    public String getTransportLength(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "protocol_name.raw";//.raw 不分词
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 应用层协议长度排行
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getApplicationLength")
+    @DescribeLog(describe="应用层协议长度排行")
+    public String getApplicationLength(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "application_layer_protocol.raw";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 综合协议长度排行
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getMultipleLength")
+    @DescribeLog(describe="综合协议长度排行")
+    public String getMultipleLength(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfieldApplication = "application_layer_protocol.raw";
+        String groupfieldTransport = "protocol_name.raw";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> listApplication = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> listTransport = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            listApplication = flowService.groupByThenSum(index,types,groupfieldApplication,sumfield,size,starttime,endtime,map);
+            listTransport = flowService.groupByThenSum(index,types,groupfieldTransport,sumfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //将应用层和传输层协议合并
+        Map<String, Object> maps = new HashMap<String, Object>();
+        maps.putAll(listTransport.get(0));
+        maps.putAll(listApplication.get(0));
+        ArrayList<Map.Entry<String, Object>> arrayList = new ArrayList<Map.Entry<String, Object>>(maps.entrySet());
+        //排序
+        Collections.sort(arrayList,new Comparator<Map.Entry<String,Object>>() {
+            @Override
+            public int compare(Map.Entry<String,Object> o1,Map.Entry<String,Object> o2) {
+                Double name1 = Double.valueOf(o1.getValue().toString());
+                Double name2 = Double.valueOf(o2.getValue().toString());
+                return  (int)(name2- name1);
+            }
+        });
+        List<Map<String,Object>> listResult = new LinkedList<Map<String,Object>>();
+
+        for(Map.Entry<String, Object> m:arrayList){
+            Map<String,Object> cmap=new ConcurrentHashMap<>();
+            cmap.put(m.getKey(),m.getValue());
+            listResult.add(cmap);
+        }
+
+        return JSONArray.fromObject(listResult).toString();
+    }
+    /**
+     * @param request
+     * 全局数据包类型及个数（<64,64-1519,大于1519 ，由于数据包大小仅取到1460，因此设置为64-1460）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getPacketTypeCount")
+    @DescribeLog(describe="全局数据包类型及个数")
+    public String getPacketTypeCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "application_layer_protocol";
+        //String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            //定义三种类型的数据包
+            Map<String,String> tMap = new ConcurrentHashMap<>();
+            tMap.put("small","0,64");
+            tMap.put("normal","64,1460");
+            tMap.put("big","1460");
+            //遍历几种情况，分别统计出结果，并放到map中，
+            Map<String, Object> map = new ConcurrentHashMap<>();
+            for(Map.Entry<String,String> t:tMap.entrySet()){
+                Map<String, String> m = new HashMap<String, String>();
+                m.put("packet_length",t.getValue());
+                List<Map<String, Object>> tempList = flowService.getCountByMetrics(types,groupfield,size,starttime,endtime,m);
+                map.put(t.getKey(),tempList.get(0).get("agg"));
+            }
+            list.add(map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 资产（ip） 数据包个数，取目的地址IP进行统计
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getDstIPPacketCount")
+    @DescribeLog(describe="资产（ip） 数据包个数")
+    public String getDstIPPacketCount(HttpServletRequest request,HttpSession session) {
+        String index = configProperty.getEs_index();
+        String groupfield = "ipv4_dst_addr";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            if (!starttime.contains(" ")){
+                starttime = starttime+" 00:00:00";
+            }
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")) {
+                endtime = endtime + " 23:59:59";
+            }
+        }
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //与获取的ip信息与资产ip进行对应
+
+        List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
+        //遍历统计的数据
+        for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
+            Map<String,Object> lmap = new ConcurrentHashMap<>();
+            List<Equipment> l = equipmentDao.selectAllByPage("", "", tmap.getKey(),"" ,"" ,"" ,"", 0,10);
+            if(l.size()>=1){
+                lmap.put(l.get(0).getName(),tmap.getValue());
+            }else{
+                lmap.put(tmap.getKey(),tmap.getValue());
+            }
+            llist.add(lmap);
+        }
+        return JSONArray.fromObject(llist).toString();
+    }
+    /**
+     * @param request
+     * 资产（域名） 数据包个数
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getDstUrlPacketCount")
+    @DescribeLog(describe="资产（域名） 数据包个数")
+    public String getDstUrlPacketCount(HttpServletRequest request,HttpSession session) {
+        String index = configProperty.getEs_index();
+        String groupfield = "domain_url.raw";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            if (!starttime.contains(" ")){
+                starttime = starttime+" 00:00:00";
+            }
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")) {
+                endtime = endtime + " 23:59:59";
+            }
+        }
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        //与获取的ip信息与资产ip进行对应
+
+        List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
+        //遍历统计的数据
+        for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
+            Map<String,Object> lmap = new ConcurrentHashMap<>();
+            ServiceInfo sInfo = serviceInfoDao.selectServiceByUrl(tmap.getKey());
+            if(sInfo!=null){
+                lmap.put(sInfo.getName(),tmap.getValue());
+            }else{
+                lmap.put(tmap.getKey(),tmap.getValue());
+            }
+            llist.add(lmap);
+        }
+        return JSONArray.fromObject(llist).toString();
+    }
+    /**
+     * @param request
+     * 目的端口总流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getDstPortCount")
+    @DescribeLog(describe="目的端口总流量")
+    public String getDstPortCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "l4_dst_port";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+
+    /**
+     * @param request
+     * 组播包数据+广播包数据个数
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getMulticastAndBroadcastPacketTypeCount")
+    @DescribeLog(describe="组播+广播包数据个数")
+    public String getMulticastAndBroadcastPacketTypeCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String countfield = "ipv4_dst_addr";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")){
+                endtime = endtime+" 23:59:59";
+            }
+            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
+            if (starttime==null||starttime.equals("")){
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                ParsePosition pos = new ParsePosition(0);
+                Date enddate = format.parse(endtime, pos);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                cal.add(Calendar.SECOND,-2);
+                starttime = format.format(cal.getTime());
+            }
+        }
+        // 组播条件
+        Map<String, String> multicastmap = new HashMap<String, String>();
+        multicastmap.put("multicast","ipv4_dst_addr");
+        // 广播条件
+        Map<String, String> broadcastmap = new HashMap<String, String>();
+        broadcastmap.put("broadcast","ipv4_src_addr,ipv4_src_addr");
+        List<Map<String, Object>> multicastlist = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> broadcastlist = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            multicastlist = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,multicastmap,index);
+            broadcastlist = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,broadcastmap,index);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("multicast",multicastlist.get(0).get("agg"));
+        map.put("broadcast",broadcastlist.get(0).get("agg"));
+
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        list.add(map);
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * TCP目的端口总流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getTCPDstPortCount")
+    @DescribeLog(describe="TCP目的端口总流量")
+    public String getTCPDstPortCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "l4_dst_port";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("protocol_name.raw","TCP");
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * UDP目的端口总流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getUDPDstPortCount")
+    @DescribeLog(describe="UDP目的端口总流量")
+    public String getUDPDstPortCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfield = "l4_dst_port";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> map = new HashMap<String, String>();
+        map.put("protocol_name.raw","UDP");
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 全局-数据包个数
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getPacketCount")
+    @DescribeLog(describe="全局-数据包个数")
+    public String getPacketCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String countfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        if (starttime!=null&&!starttime.equals("")) {
+            if (!starttime.contains(" ")){
+                starttime = starttime+" 00:00:00";
+            }
+        }
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")){
+                endtime = endtime+" 23:59:59";
+            }
+            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
+            if (starttime==null||starttime.equals("")){
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                ParsePosition pos = new ParsePosition(0);
+                Date enddate = format.parse(endtime, pos);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                cal.add(Calendar.SECOND,-2);
+                starttime = format.format(cal.getTime());
+            }
+        }
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+
+        int size =10;
+
+        try {
+            list = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Map<String,Object> result = new HashMap<>();
+        if (list.size()>0){
+            result.put("name",endtime);
+            Object [] value = {endtime,list.get(0).get("agg")};
+            result.put("value",value);
+        }
+        return JSONArray.fromObject(result).toString();
     }
 }

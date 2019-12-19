@@ -1429,6 +1429,46 @@ public class FlowController {
         }
         return JSONArray.fromObject(list).toString();
     }
+
+    /**
+     * @param request
+     * 组播包数据个数
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getMulticastPacketTypeCount")
+    @DescribeLog(describe="组播包数据个数")
+    public String getMulticastPacketTypeCount(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String countfield = "ipv4_dst_addr";
+        String [] types = {"defaultpacket"};
+        // 获取前端传入的时间参数
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        // 组播条件
+        Map<String, String> multicastmap = new HashMap<String, String>();
+        multicastmap.put("multicast","ipv4_dst_addr");
+        // 广播条件
+        Map<String, String> broadcastmap = new HashMap<String, String>();
+        broadcastmap.put("broadcast","ipv4_src_addr,ipv4_src_addr");
+        List<Map<String, Object>> multicastlist = new ArrayList<Map<String, Object>>();
+        List<Map<String, Object>> broadcastlist = new ArrayList<Map<String, Object>>();
+        int size =10;
+
+        try {
+            multicastlist = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,multicastmap,index);
+            broadcastlist = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,broadcastmap,index);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Map<String, Object> map = new HashMap<String, Object>();
+        map.put("multicast",multicastlist.get(0).get("agg"));
+        map.put("broadcast",broadcastlist.get(0).get("agg"));
+
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        list.add(map);
+        return JSONArray.fromObject(list).toString();
+    }
     /**
      * @param request
      * TCP目的端口总流量

@@ -508,11 +508,11 @@ public class DefaultPacket {
 			String hexstring = tcppacket.toHexString().replaceAll(" ", "");
 			if (hexstring.contains("170303")||hexstring.contains("160301")||hexstring.contains("150303")||hexstring.contains("160303")||hexstring.contains("140303")) {
 				if (tcppacket.getHeader().getAck()&&tcppacket.getHeader().getPsh()) {
-					this.application_layer_protocol = "HTTPS";
+					this.application_layer_protocol = "https";
 				}else if (tcppacket.getHeader().getAck()&&hexstring.indexOf("170303")>40) {
-					this.application_layer_protocol = "HTTPS";
+					this.application_layer_protocol = "https";
 				}else{
-					this.application_layer_protocol = "";
+					//this.application_layer_protocol = "";
 				}
 			}
 			
@@ -593,7 +593,7 @@ public class DefaultPacket {
 				// ip
 				"client_ip","dns_clientip","ip","relay_ip","ipv4_src_addr","ipv4_dst_addr","from","sa","da","pa",
 				// url
-				"equipmentname","request_url","domain_url","url_param","complete_url",
+				"equipmentname","request_url","domain_url","url_param","complete_url","protocol_name","application_layer_protocol","encryption_based_protection_protocol",
 				// user-agent
 				"user_agent_os","user_agent_browser","session_status"};
 

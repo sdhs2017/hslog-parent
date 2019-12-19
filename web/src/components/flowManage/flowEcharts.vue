@@ -224,7 +224,7 @@
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
     import vEcharts from '../common/echarts'
-    import vBasedate from '../common/baseDate'
+    //import vBasedate from '../common/baseDate'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
@@ -496,11 +496,11 @@
                         hoverText:'',
                     },
                     yAxisArr:[{
-                        name:'广播包',
+                        name:'组播包',
                         color:'rgb(15,219,243)',
                         data:[]
                     },{
-                        name:'组播包',
+                        name:'广播包',
                         color:'rgb(9,243,105)',
                         data:[]
                     }]
@@ -1173,9 +1173,11 @@
                             layer.closeAll('loading');
                             if (this.allMulAndBroData.yAxisArr[0].data.length < 60) {
                                 this.allMulAndBroData.yAxisArr[0].data.push(res.data[0]);
+                                this.allMulAndBroData.yAxisArr[1].data.push(res.data[1]);
                             } else {
                                 this.allMulAndBroData.yAxisArr[0].data.shift();
                                 this.allMulAndBroData.yAxisArr[0].data.push(res.data[0]);
+                                this.allMulAndBroData.yAxisArr[1].data.push(res.data[1]);
                             }
                         })
                         .catch(err => {
@@ -1187,7 +1189,7 @@
         },
         components:{
             vEcharts,
-            vBasedate,
+            // vBasedate,
             vFlowchartfrom
         }
     }

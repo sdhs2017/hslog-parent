@@ -1478,7 +1478,7 @@ public class FlowController {
         }
 
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
+        // 组播包数据
         if (multicastlist.size()>0){
             Map<String,Object> multicast = new HashMap<>();
             multicast.put("name",endtime);
@@ -1486,6 +1486,7 @@ public class FlowController {
             multicast.put("value",value);
             list.add(multicast);
         }
+        // 广播包数据
         if (broadcastlist.size()>0){
             Map<String,Object> broadcast = new HashMap<>();
             broadcast.put("name",endtime);

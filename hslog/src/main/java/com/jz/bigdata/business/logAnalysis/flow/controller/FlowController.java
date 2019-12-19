@@ -1432,19 +1432,34 @@ public class FlowController {
 
     /**
      * @param request
-     * 组播包数据个数
+     * 组播包数据+广播包数据个数
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getMulticastPacketTypeCount")
-    @DescribeLog(describe="组播包数据个数")
-    public String getMulticastPacketTypeCount(HttpServletRequest request) {
+    @RequestMapping("/getMulticastAndBroadcastPacketTypeCount")
+    @DescribeLog(describe="组播+广播包数据个数")
+    public String getMulticastAndBroadcastPacketTypeCount(HttpServletRequest request) {
         String index = configProperty.getEs_index();
         String countfield = "ipv4_dst_addr";
         String [] types = {"defaultpacket"};
         // 获取前端传入的时间参数
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
+        if (endtime!=null&&!endtime.equals("")) {
+            if (!endtime.contains(" ")){
+                endtime = endtime+" 23:59:59";
+            }
+            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
+            if (starttime==null||starttime.equals("")){
+                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                ParsePosition pos = new ParsePosition(0);
+                Date enddate = format.parse(endtime, pos);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(enddate);
+                cal.add(Calendar.SECOND,-2);
+                starttime = format.format(cal.getTime());
+            }
+        }
         // 组播条件
         Map<String, String> multicastmap = new HashMap<String, String>();
         multicastmap.put("multicast","ipv4_dst_addr");

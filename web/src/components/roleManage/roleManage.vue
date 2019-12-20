@@ -172,7 +172,8 @@
                     children: 'menus',
                     label: 'menuName'
                 },
-                secondTreeData:[]
+                secondTreeData:[],
+                menuIds:''
             }
         },
         created(){
@@ -280,11 +281,10 @@
             },
             /*下一步*/
             nextSetting(){
+                this.menuIds = '';
                 //获取选中的节点
                 let checkedArr = this.$refs.firstTree.getCheckedKeys();
                 let halfCheckedArr = this.$refs.firstTree.getHalfCheckedKeys();
-                console.log(checkedArr)
-                console.log(halfCheckedArr)
                 //判断合法性
                 if(checkedArr.length > 0 || halfCheckedArr.length > 0){
                     let ids = '';
@@ -294,6 +294,7 @@
                     for (let i in halfCheckedArr){
                         ids += halfCheckedArr[i] +','
                     }
+                    this.menuIds = ids;
 
                     //发送请求 获取下一级数据
                     this.$nextTick(()=>{
@@ -321,38 +322,35 @@
             pushSetting(){
                 let checkedArr = this.$refs.secondTree.getCheckedKeys();
                 let halfCheckedArr = this.$refs.secondTree.getHalfCheckedKeys();
-                console.log(checkedArr)
-                console.log(halfCheckedArr)
-                if(checkedArr.length > 0 || halfCheckedArr.length > 0){
-                    let ids = '';
-                    for (let i in checkedArr){
-                        ids += checkedArr[i] +','
-                    }
-                    for (let i in halfCheckedArr){
-                        ids += halfCheckedArr[i] +','
-                    }
-                    this.$nextTick(()=>{
-                        layer.load(1);
-                        this.$axios.post(this.$baseUrl+'/menu/upsertMenuButton.do',this.$qs.stringify({
-                            roleID : this.resiveRoleId,
-                            ids : ids
-                        }))
-                            .then(res=>{
-                                this.settingState = false;
-                                layer.closeAll('loading');
-                                if(res.data.success === 'true'){
-                                    layer.msg('配置成功',{icon:1});
-
-                                }else{
-                                    layer.msg(res.data.message,{icon:5})
-                                }
-                            })
-                            .catch(err=>{
-                                layer.closeAll('loading');
-
-                            })
-                    })
+                let ids = '';
+                for (let i in checkedArr){
+                    ids += checkedArr[i] +','
                 }
+                for (let i in halfCheckedArr){
+                    ids += halfCheckedArr[i] +','
+                }
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/menu/upsertMenuButton.do',this.$qs.stringify({
+                        roleID : this.resiveRoleId,
+                        buttonIds : ids,
+                        menuIds:this.menuIds
+                    }))
+                        .then(res=>{
+                            this.settingState = false;
+                            layer.closeAll('loading');
+                            if(res.data.success === 'true'){
+                                layer.msg('配置成功',{icon:1});
+
+                            }else{
+                                layer.msg(res.data.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
 
             }
 

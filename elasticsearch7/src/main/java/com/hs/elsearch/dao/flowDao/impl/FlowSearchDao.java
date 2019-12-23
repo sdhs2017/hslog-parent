@@ -11,6 +11,10 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.BucketOrder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.metrics.Sum;
+import org.elasticsearch.search.aggregations.metrics.SumAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.ValueCount;
+import org.elasticsearch.search.aggregations.metrics.ValueCountAggregationBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -156,6 +160,196 @@ public class FlowSearchDao implements IFlowSearchDao {
         }
 
         list.add(bucketmap);
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getListBySumOfAggregation(String[] types, String starttime, String endtime, String groupByField, String sumField, int size, Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey()+".raw", entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
+					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
+				}*/else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        // 聚合bucket查询group by
+        //AggregationBuilder aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(Terms.Order.compound(Terms.Order.aggregation("sum",false))).size(size);
+        AggregationBuilder aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("sum",false))).size(size);
+        // 在bucket上聚合metric查询sum
+        SumAggregationBuilder sumBuilder = AggregationBuilders.sum("sum").field(sumField);
+
+        aggregationBuilder.subAggregation(sumBuilder);
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+
+        Terms terms  = aggregations.get("aggs");
+
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+
+        Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+
+        for(Terms.Bucket bucket:terms.getBuckets()) {
+            Sum sum = bucket.getAggregations().get("sum");
+            bucketmap.put(bucket.getKeyAsString(), sum.getValue());
+        }
+
+        list.add(bucketmap);
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getListBySumOfMetrics(String[] types, String starttime, String endtime, String sumField, int size, Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey()+".raw", entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        // 聚合metric查询sum
+        SumAggregationBuilder sumBuilder = AggregationBuilders.sum("agg").field(sumField);
+
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, sumBuilder, indices);
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+        if (aggregations!=null){
+            Sum sum  = aggregations.get("agg");
+            Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+            bucketmap.put(sum.getName(), sum.getValue());
+            list.add(bucketmap);
+        }
+
+        return list;
+    }
+
+    @Override
+    public List<Map<String, Object>> getListByCountOfMetrics(String[] types, String starttime, String endtime, String countField, int size, Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey()+".raw", entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                    // 针对packet_length的范围进行数据查询
+                }else if (entry.getKey().equals("packet_length")){
+
+                    if (entry.getValue().contains(",")){
+                        String [] value = entry.getValue().split(",");
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).gte(value[0]).lt(value[1]));
+                    }else{
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).gte(entry.getValue()));
+                    }
+                    // 针对组播地址的范围查询
+                }else if (entry.getKey().equals("multicast")){
+                    BoolQueryBuilder boolshuld = QueryBuilders.boolQuery();
+                    boolshuld.should(QueryBuilders.rangeQuery(entry.getValue()).gt("224.0.0.0").lte("224.0.0.255"));
+                    boolshuld.should(QueryBuilders.rangeQuery(entry.getValue()).gte("224.0.1.0").lte("224.0.1.255"));
+                    boolshuld.should(QueryBuilders.rangeQuery(entry.getValue()).gte("224.0.2.0").lte("239.255.255.255"));
+                    boolQueryBuilder.must(boolshuld);
+                    // 针对广播地址的模糊查询
+                }else if (entry.getKey().equals("broadcast")){
+                    BoolQueryBuilder boolshuld = QueryBuilders.boolQuery();
+                    String [] addrs = entry.getValue().split(",");
+                    boolshuld.should(QueryBuilders.wildcardQuery(addrs[0],"*.255"));
+                    boolshuld.should(QueryBuilders.wildcardQuery(addrs[1],"*.255"));
+                    boolQueryBuilder.must(boolshuld);
+                }else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        // 聚合metric查询sum
+        ValueCountAggregationBuilder countAggregationBuilder = AggregationBuilders.count("agg").field(countField);
+
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, countAggregationBuilder, indices);
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+        if (aggregations!=null){
+            ValueCount count  = aggregations.get("agg");
+            Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+            bucketmap.put(count.getName(), count.getValue());
+            list.add(bucketmap);
+        }
+
         return list;
     }
 

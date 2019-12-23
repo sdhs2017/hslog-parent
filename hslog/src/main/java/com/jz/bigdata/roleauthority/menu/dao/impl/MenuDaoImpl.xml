@@ -214,4 +214,7 @@
 		group by hb.buttonID,hb.buttonName,hb.pk_menu_id
 	</select>
 
+	<select id="selectExistParentMenuById" parameterType="java.lang.String">
+		select count(1) as num from HS_Menu where id=#{id} and (superiorid is null or superiorid='')
+	</select>
 </mapper>

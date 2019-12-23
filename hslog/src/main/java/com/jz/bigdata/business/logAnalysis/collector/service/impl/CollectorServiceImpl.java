@@ -1,6 +1,8 @@
 package com.jz.bigdata.business.logAnalysis.collector.service.impl;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -525,7 +527,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * 定时任务将获取的http url 插入到servicefunction表中
 	 * @return
 	 */
-	public void insertUrl() {
+	public void insertUrl()  {
 
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 资产表获取domain
@@ -558,9 +560,14 @@ public class CollectorServiceImpl implements ICollectorService{
 				String relativeUrl = getSubUtilSimple(key.getKey(), "[:][0-9]{1,5}(.*?)$");
 				funservice.setId(Uuid.getUUID());
 				funservice.setCreateTime(format.format(new Date()));
-				//funservice.setEquipmentId(equipment.getId());
-				//funservice.setIp(equipment.getIp());
-				//funservice.setPort(equipment.getPort());
+				try{
+					URI url = new URI(key.getKey());
+					//funservice.setEquipmentId(equipment.getId());
+					funservice.setIp(url.getHost());
+					funservice.setPort(url.getPort()+"");
+				}catch(Exception e){
+
+				}
 				funservice.setProtocol(protocol);
 				funservice.setUrl(key.getKey());
 				funservice.setRelativeUrl(relativeUrl);

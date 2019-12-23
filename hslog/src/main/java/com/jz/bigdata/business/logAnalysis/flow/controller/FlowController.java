@@ -16,6 +16,7 @@ import com.jz.bigdata.util.ContextFront;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.MapUtil;
 import net.sf.json.JSONArray;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -42,6 +43,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FlowController {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    //数据统计默认时间间隔
+    private final int basicTimeInterval=-5;
 
     @Resource(name="logService")
     private IlogService logService;
@@ -57,6 +60,55 @@ public class FlowController {
 
     @Resource
     private IServiceInfoDao serviceInfoDao;
+
+    /**
+     *获取当前时间以及其减去间隔时间的时间数组
+     * 数组第一个为开始，第二个为截止
+     * @param timeInterval 时间间隔
+     * @return
+     */
+    private Map<String,String> getStartEndTime(String timeInterval){
+        Map<String,String> map = new HashMap<>();
+        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        try {
+            int t = Integer.parseInt(timeInterval);
+            String starttime = DateTime.now().plusSeconds(-t).toString("yyyy-MM-dd HH:mm:ss");
+            map.put("starttime",starttime);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            //系统异常，设定一个默认时间间隔
+            map.put("starttime",DateTime.now().plusSeconds(basicTimeInterval).toString("yyyy-MM-dd HH:mm:ss"));
+        }
+        map.put("endtime",endtime);
+        return map;
+    }
+    private String getFlowDateTime(){
+        String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
+        Map<String, String> searchmap = new HashMap<>();
+        List<Map<String, Object>> list = null;
+        try {
+            list = flowService.getFlowListByBlend(searchmap,null,null,"1","1",types,configProperty.getEs_index());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        String esTime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        //获取第一条记录的时间，作为系统最新时间
+        if(list.size()==2){
+            esTime = list.get(1).get("logtime").toString();
+        }
+        return esTime;
+    }
+    /**
+     * @param request
+     * 获取流量数据最新时间
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getFlowDateTime")
+    @DescribeLog(describe="获取流量数据最新时间")
+    public String getFlowDateTime(HttpServletRequest request) {
+        return getFlowDateTime();
+    }
     /**
      * @param request
      * 统计netflow源IP、目的IP、源端口、目的端口的数量
@@ -1056,29 +1108,10 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            if (!starttime.contains(" ")){
-                starttime = starttime+" 00:00:00";
-            }
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            if (!endtime.contains(" ")){
-                endtime = endtime+" 23:59:59";
-            }
-            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
-            if (starttime==null||starttime.equals("")){
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                ParsePosition pos = new ParsePosition(0);
-                Date enddate = format.parse(endtime, pos);
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(enddate);
-                cal.add(Calendar.SECOND,-2);
-                starttime = format.format(cal.getTime());
-            }
-        }
+        // 时间间隔参数
+        String timeInterval = request.getParameter("timeInterval");
+        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         int size =10;
@@ -1241,8 +1274,12 @@ public class FlowController {
         }
         //将应用层和传输层协议合并
         Map<String, Object> maps = new HashMap<String, Object>();
-        maps.putAll(listTransport.get(0));
-        maps.putAll(listApplication.get(0));
+        if(listTransport.size()>0){
+            maps.putAll(listTransport.get(0));
+        }
+        if(listApplication.size()>0){
+            maps.putAll(listApplication.get(0));
+        }
         ArrayList<Map.Entry<String, Object>> arrayList = new ArrayList<Map.Entry<String, Object>>(maps.entrySet());
         //排序
         Collections.sort(arrayList,new Comparator<Map.Entry<String,Object>>() {
@@ -1276,10 +1313,11 @@ public class FlowController {
         String groupfield = "application_layer_protocol";
         //String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        // 时间间隔参数
+        String timeInterval = request.getParameter("timeInterval");
 
+        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
@@ -1295,12 +1333,18 @@ public class FlowController {
                 Map<String, String> m = new HashMap<String, String>();
                 m.put("packet_length",t.getValue());
                 List<Map<String, Object>> tempList = flowService.getCountByMetrics(types,groupfield,size,starttime,endtime,m);
-                map.put(t.getKey(),tempList.get(0).get("agg"));
+
+                Map<String,Object> broadcast = new HashMap<>();
+                broadcast.put("name",endtime);
+                Object [] value = {endtime,tempList.get(0).get("agg")};
+                broadcast.put("value",value);
+                map.put(t.getKey(),broadcast);
             }
             list.add(map);
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return JSONArray.fromObject(list).toString();
     }
     /**
@@ -1309,7 +1353,7 @@ public class FlowController {
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getDstIPPacketCount")
+    @RequestMapping(value="/getDstIPPacketCount", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="资产（ip） 数据包个数")
     public String getDstIPPacketCount(HttpServletRequest request,HttpSession session) {
         String index = configProperty.getEs_index();
@@ -1360,7 +1404,7 @@ public class FlowController {
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getDstUrlPacketCount")
+    @RequestMapping(value="/getDstUrlPacketCount", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="资产（域名） 数据包个数")
     public String getDstUrlPacketCount(HttpServletRequest request,HttpSession session) {
         String index = configProperty.getEs_index();
@@ -1429,7 +1473,13 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return JSONArray.fromObject(list).toString();
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        for(Map.Entry<String,Object> m:list.get(0).entrySet()){
+            Map<String,Object> temp = new HashMap<>();
+            temp.put(m.getKey(),m.getValue());
+            resultList.add(temp);
+        }
+        return JSONArray.fromObject(resultList).toString();
     }
 
     /**
@@ -1444,24 +1494,11 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String countfield = "ipv4_dst_addr";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-        if (endtime!=null&&!endtime.equals("")) {
-            if (!endtime.contains(" ")){
-                endtime = endtime+" 23:59:59";
-            }
-            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
-            if (starttime==null||starttime.equals("")){
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                ParsePosition pos = new ParsePosition(0);
-                Date enddate = format.parse(endtime, pos);
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(enddate);
-                cal.add(Calendar.SECOND,-2);
-                starttime = format.format(cal.getTime());
-            }
-        }
+        // 时间间隔参数
+        String timeInterval = request.getParameter("timeInterval");
+
+        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
         // 组播条件
         Map<String, String> multicastmap = new HashMap<String, String>();
         multicastmap.put("multicast","ipv4_dst_addr");
@@ -1524,7 +1561,13 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return JSONArray.fromObject(list).toString();
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        for(Map.Entry<String,Object> m:list.get(0).entrySet()){
+            Map<String,Object> temp = new HashMap<>();
+            temp.put(m.getKey(),m.getValue());
+            resultList.add(temp);
+        }
+        return JSONArray.fromObject(resultList).toString();
     }
     /**
      * @param request
@@ -1551,7 +1594,13 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return JSONArray.fromObject(list).toString();
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        for(Map.Entry<String,Object> m:list.get(0).entrySet()){
+            Map<String,Object> temp = new HashMap<>();
+            temp.put(m.getKey(),m.getValue());
+            resultList.add(temp);
+        }
+        return JSONArray.fromObject(resultList).toString();
     }
     /**
      * @param request
@@ -1565,29 +1614,11 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String countfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            if (!starttime.contains(" ")){
-                starttime = starttime+" 00:00:00";
-            }
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            if (!endtime.contains(" ")){
-                endtime = endtime+" 23:59:59";
-            }
-            // 如果开始时间为空，计算开始时间，默认结束时间减去2秒
-            if (starttime==null||starttime.equals("")){
-                SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                ParsePosition pos = new ParsePosition(0);
-                Date enddate = format.parse(endtime, pos);
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(enddate);
-                cal.add(Calendar.SECOND,-2);
-                starttime = format.format(cal.getTime());
-            }
-        }
+        // 时间间隔参数
+        String timeInterval = request.getParameter("timeInterval");
+
+        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         int size =10;

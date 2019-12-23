@@ -42,6 +42,10 @@ public interface IMenuDao {
 	List<List<Menu>> selectSystemMenuByIDs(@Param("ids")List<String> ids);
 
 	int insertMenuButton(@Param("menuAndButtonID")String menuAndButtonID,@Param("fk_roleid")String fk_roleid);
+
 	int deleteMenuButtonByRoleID(@Param("fk_roleid")String fk_roleid);
+
 	List<Button> selectButtonListByUser(@Param("userID")String userID);
+
+	List<List<Map<String,Object>>> selectExistParentMenuById(@Param("id")String id);
 }

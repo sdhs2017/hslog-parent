@@ -68,6 +68,13 @@ public class MenuServiceImpl implements IMenuService {
 	 */
 	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
 	public Boolean insert(Menu menu,String btn){
+		//如果该节点信息中有父节点信息，检验该父节点信息是否存在
+		if(menu.getSuperiorId()!=null&&!"".equals(menu.getSuperiorId())){
+			List<List<Map<String,Object>>> i = menuDao.selectExistParentMenuById(menu.getSuperiorId());
+			if("0".equals(i.get(0).get(0).get("num"))){
+				return false;
+			}
+		}
 		menu.setId(UUID.randomUUID().toString());
 		//添加按钮
 		if(btn!=null&&!btn.isEmpty()){//按钮参数为空，不进行处理
@@ -79,7 +86,8 @@ public class MenuServiceImpl implements IMenuService {
 			}
 		}
 		//添加菜单
-		return menuDao.insert(menu)==1?true:false;
+		menuDao.insert(menu);
+		return true;
 	}
 	/**
 	 * 更新菜单
@@ -88,6 +96,13 @@ public class MenuServiceImpl implements IMenuService {
 	 */
 	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
 	public Boolean update(Menu menu,String btn){
+		//如果该节点信息中有父节点信息，检验该父节点信息是否存在
+		if(menu.getSuperiorId()!=null&&!"".equals(menu.getSuperiorId())){
+			List<List<Map<String,Object>>> i = menuDao.selectExistParentMenuById(menu.getSuperiorId());
+			if("0".equals(i.get(0).get(0).get("num"))){
+				return false;
+			}
+		}
 		//变更按钮
 		if(btn!=null&&!btn.isEmpty()){//按钮参数为空，不进行处理
 			//删除已有的按钮
@@ -99,7 +114,8 @@ public class MenuServiceImpl implements IMenuService {
 				menuDao.insertButton(name,id,menu.getId());
 			}
 		}
-		return menuDao.update(menu)==1?true:false;
+		menuDao.update(menu);
+		return true;
 	}
 	/**
 	 * 配置菜单及按钮信息
@@ -112,7 +128,7 @@ public class MenuServiceImpl implements IMenuService {
 		//删除已有的配置信息
 		menuDao.deleteMenuButtonByRoleID(roleID);
 		for(String id:ids.split(",")){
-			if(id!=""){
+			if(!"".equals(id)){
 				menuDao.insertMenuButton(id,roleID);
 			}
 		}

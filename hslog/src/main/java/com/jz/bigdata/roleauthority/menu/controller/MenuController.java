@@ -72,9 +72,9 @@ public class MenuController {
 	public String upsert(Menu menu,HttpServletRequest request){
 		String btn = request.getParameter("btn");
 		if(menu.getId()==null||menu.getId()==""){
-			return menuService.insert(menu,btn)?Constant.successMessage():Constant.failureMessage();
+			return menuService.insert(menu,btn)?Constant.successMessage():Constant.failureMessage("父级菜单Id不正确");
 		}else{
-			return menuService.update(menu,btn)?Constant.successMessage():Constant.failureMessage();
+			return menuService.update(menu,btn)?Constant.successMessage():Constant.failureMessage("父级菜单Id不正确");
 		}
 	}
 	@ResponseBody
@@ -112,8 +112,16 @@ public class MenuController {
 	@DescribeLog(describe="配置角色的菜单及按钮信息")
 	public String upsertMenuButton(HttpServletRequest request){
 		String roleID =  request.getParameter("roleID");
-		String ids =  request.getParameter("ids");
-		return menuService.upsertMenuButton(roleID,ids)?Constant.successMessage():Constant.failureMessage();
+		String buttonIds =  request.getParameter("buttonIds");//按钮
+		String menuIds = request.getParameter("menuIds");//菜单
+		//将两个id合并，取并集
+		for(String bid:buttonIds.split(",")){
+			//如果buttonid与菜单id中没有重复
+			if(!(menuIds.indexOf(bid)>=0)){
+				menuIds +=","+bid;
+			}
+		}
+		return menuService.upsertMenuButton(roleID,menuIds)?Constant.successMessage():Constant.failureMessage();
 	}
 	@ResponseBody
 	@RequestMapping(value="/selectButtonListByUser",produces = "application/json; charset=utf-8")
@@ -123,4 +131,5 @@ public class MenuController {
 		String userID=(String) session.getAttribute(Constant.SESSION_USERID);
 		return menuService.selectButtonListByUser(userID);
 	}
+
 }

@@ -24,7 +24,7 @@ module.exports = {
       },
       '/jz':{
           //target: 'http://localhost:8080/jzLog',
-          target: 'http://192.168.200.49:8080/hslog/',
+          target: 'http://localhost:8080/hslog/',
           changeOrigin:true,
           pathRewrite:{
               '/jz':''

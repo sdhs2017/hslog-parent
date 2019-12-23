@@ -238,22 +238,7 @@ function is_has(id){
 * 获得当前日期 并返回固定格式 yyyy-mm-dd hh:mm:ss
 * */
 function getCurrentDate(fmt) {
-    let currentDate = new Date();
-    var o = {
-        "M+": currentDate.getMonth() + 1, //月份
-        "d+": currentDate.getDate(), //日
-        "h+": currentDate.getHours(), //小时
-        "m+": currentDate.getMinutes(), //分
-        "s+": currentDate.getSeconds() //秒
-    };
-    if (/(y+)/.test(fmt)){ //根据y的长度来截取年
-        fmt = fmt.replace(RegExp.$1, (currentDate.getFullYear() + "").substr(4 - RegExp.$1.length));
-    }
-    for (var k in o){
-        if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-    }
-    return fmt;
-
+    axios.get()
 }
 /*
 * 时间格式化

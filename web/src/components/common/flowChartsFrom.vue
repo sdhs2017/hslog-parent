@@ -11,7 +11,7 @@
                 </el-option>
             </el-select>
         </div>
-        <div>
+        <div v-if="this.refreshObj.defaultVal == ''">
             <span class="select-lable">数据时间间隔：</span>
             <el-select v-model="dataTimeVal" @change = "change2" placeholder="请选择" size="mini" class="select-list">
                 <el-option
@@ -32,7 +32,16 @@
         name: "flowChartsFrom",
         props:{
             refreshBus:'',
-            dataBus:''
+            dataBus:'',
+            refreshObj:{
+                type:Object,
+                default(){
+                    return{
+                        defaultVal:'',
+                        opt:[]
+                    }
+                }
+            }
         },
         data() {
             return {
@@ -46,6 +55,10 @@
                     {
                         label:'30s',
                         value:'30000'
+                    },
+                    {
+                        label:'60s',
+                        value:'60000'
                     }
                 ],
                 //数据日期间隔
@@ -76,6 +89,12 @@
                         value:'24'
                     }
                 ]
+            }
+        },
+        created(){
+            if (this.refreshObj.defaultVal !== ''){
+                this.refreshTimeVal = this.refreshObj.defaultVal;
+                this.refreshOpt = this.refreshObj.opt;
             }
         },
         methods:{

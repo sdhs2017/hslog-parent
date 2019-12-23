@@ -318,6 +318,54 @@ export default new Router({
                     component: resolve => require(['../components/flowManage/flowEcharts.vue'], resolve),
                     meta: { title: '流量报表' }
                 },
+                {
+                    path: '/userAgentInfo',
+                    name:'userAgentInfo',
+                    component: resolve => require(['../components/flowManage/userAgentInfo.vue'], resolve),
+                    meta: { title: 'User-Agent信息' }
+                },
+                {
+                    path: '/realTimeFlow',
+                    name:'realTimeFlow',
+                    component: resolve => require(['../components/flowManage/realTimeFlow.vue'], resolve),
+                    meta: { title: '全局实时流量' }
+                },
+                {
+                    path: '/IPHostFlow',
+                    name:'IPHostFlow',
+                    component: resolve => require(['../components/flowManage/IPHostFlow.vue'], resolve),
+                    meta: { title: 'IP主机流量' }
+                },
+                {
+                    path: '/protocolFlow',
+                    name:'protocolFlow',
+                    component: resolve => require(['../components/flowManage/protocolFlow.vue'], resolve),
+                    meta: { title: '协议流量' }
+                },
+                {
+                    path: '/mulAndBro',
+                    name:'mulAndBro',
+                    component: resolve => require(['../components/flowManage/mulAndBro.vue'], resolve),
+                    meta: { title: '广播包/组播包' }
+                },
+                {
+                    path: '/packetType',
+                    name:'packetType',
+                    component: resolve => require(['../components/flowManage/packetType.vue'], resolve),
+                    meta: { title: '数据包类型' }
+                },
+                {
+                    path: '/equipmentFlow',
+                    name:'equipmentFlow',
+                    component: resolve => require(['../components/flowManage/equipmentFlow.vue'], resolve),
+                    meta: { title: '资产流量' }
+                },
+                {
+                    path: '/portFlow',
+                    name:'portFlow',
+                    component: resolve => require(['../components/flowManage/portFlow.vue'], resolve),
+                    meta: { title: '端口流量' }
+                },
                 /*
                 {
                     path: '/table',

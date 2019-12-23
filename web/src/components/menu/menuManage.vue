@@ -903,9 +903,6 @@
                 }else if(params.childId === '' ){
                     layer.msg('序号不能为空',{icon: 5});
                     return false;
-                }else if(params.url === ''){
-                    layer.msg('url不能为空',{icon: 5});
-                    return false;
                 }else if(params.fk_system_id === ''){
                     layer.msg('所属系统不能为空',{icon: 5});
                     return false;

@@ -1,0 +1,110 @@
+[
+    {
+        "value": "01",
+        "label": "网络",
+        "children": [
+            {
+                "value": "01",
+                "label": "全部"
+            },
+            {
+                "value": "0101",
+                "label": "交换机"
+            },
+            {
+                "value": "0102",
+                "label": "路由器"
+            }
+        ]
+    },
+    {
+        "value": "02",
+        "label": "安全",
+        "children": [
+            {
+                "value": "02",
+                "label": "全部"
+            },
+            {
+                "value": "0201",
+                "label": "IPS"
+            },
+            {
+                "value": "0202",
+                "label": "IDS"
+            },
+            {
+                "value": "0203",
+                "label": "抗DDOS"
+            },
+            {
+                "value": "0204",
+                "label": "防火墙"
+            }
+        ]
+    },
+    {
+        "value": "03",
+        "label": "主机",
+        "children": [
+            {
+                "value": "03",
+                "label": "全部"
+            },
+            {
+                "value": "0301",
+                "label": "Windows"
+            },
+            {
+                "value": "0302",
+                "label": "Linux"
+            },
+            {
+                "value": "0303",
+                "label": "虚拟机"
+            }
+        ]
+    },
+    {
+        "value": "04",
+        "label": "应用",
+        "children": [
+            {
+                "value": "04",
+                "label": "全部"
+            },
+            {
+                "value": "0401",
+                "label": "Tomcat"
+            },
+            {
+                "value": "0402",
+                "label": "Apache"
+            },
+            {
+                "value": "0403",
+                "label": "IIS"
+            },
+            {
+                "value": "0404",
+                "label": "Weblogic"
+            },
+            {
+                "value": "0405",
+                "label": "Mysql"
+            },
+            {
+                "value": "0406",
+                "label": "Oracle"
+            },
+            {
+                "value": "0407",
+                "label": "Sqlserver"
+            },
+            {
+                "value": "0408",
+                "label": "Db2"
+            }
+        ]
+    }
+]

@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">数据包类型
-<!--            <v-flowchartfrom class="from-wapper" refreshBus="realTimeFlowRefreshBus" dataBus="realTimeFlowDataBus"></v-flowchartfrom>-->
+            <v-flowchartfrom class="from-wapper" refreshBus="packetTypeRefreshBus" :refreshObj="refreshObj"></v-flowchartfrom>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -28,9 +28,25 @@
         name: "packetType",
         data() {
             return {
+                refreshObj:{
+                    defaultVal:'5',
+                    opt:[{
+                        label:'5s',
+                        value:'5'
+                    },
+                    {
+                        label:'10s',
+                        value:'10'
+                    },
+                    {
+                        label:'20s',
+                        value:'20'
+                    }
+                    ]
+                },
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :'5000',
                 //数据日期间隔
                 dataTime:1,
                 //全局数据包类型个数
@@ -59,80 +75,47 @@
         },
         created(){
             /*监听刷新时间改变*/
-           /* bus.$on('realTimeFlowRefreshBus',(val)=>{
-                    this.refreshIntTime = val;
+            bus.$on('packetTypeRefreshBus',(val)=>{
+                    this.refreshIntTime = val*1000;
                     clearInterval(this.interTime);
                     this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                        /!*获取业务系统统计- 浏览器*!/
-                        this.getBrowserData(starttime,endtime);
-                        /!*获取业务系统统计- 系统*!/
-                        this.getSystemData(starttime,endtime);
+                        /*获取全局数据包类型个数*/
+                        this.getAllPacketsTypeData(this.refreshIntTime/1000);
                     },this.refreshIntTime);
             })
-            /!*监听数据时间改变*!/
-            bus.$on('realTimeFlowDataBus',(val)=>{
-                this.dataTime = val;
-            })*/
 
         },
         mounted(){
             //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取全局数据包类型个数*/
-            this.getAllPacketsTypeData(endtime);
+            this.getAllPacketsTypeData(this.refreshIntTime/1000);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
                     /*获取全局数据包类型个数*/
-                    this.getAllPacketsTypeData(endtime);
-            },2000);
+                    this.getAllPacketsTypeData(this.refreshIntTime/1000);
+            },this.refreshIntTime);
         },
         methods:{
             /*获取全局数据包类型个数*/
-            getAllPacketsTypeData(time){
+            getAllPacketsTypeData(timeInterval){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getPacketTypeCount.do',this.$qs.stringify({
-                        endtime:time
+                        timeInterval:timeInterval
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
                             if(this.allPacketsTypeData.yAxisArr[0].data.length < 60){
-                                this.allPacketsTypeData.yAxisArr[0].data.push({
-                                    name:time,
-                                    value:[time,res.data[0].small]
-                                })
-                                this.allPacketsTypeData.yAxisArr[1].data.push({
-                                    name:time,
-                                    value:[time,res.data[0].normal]
-                                })
-                                this.allPacketsTypeData.yAxisArr[2].data.push({
-                                    name:time,
-                                    value:[time,res.data[0].big]
-                                })
+                                this.allPacketsTypeData.yAxisArr[0].data.push(res.data[0].small);
+                                this.allPacketsTypeData.yAxisArr[1].data.push(res.data[0].normal);
+                                this.allPacketsTypeData.yAxisArr[2].data.push(res.data[0].big);
                             }else{
                                 this.allPacketsTypeData.yAxisArr[0].data.shift();
                                 this.allPacketsTypeData.yAxisArr[1].data.shift();
                                 this.allPacketsTypeData.yAxisArr[2].data.shift();
-                                this.allPacketsTypeData.yAxisArr[0].data.push({
-                                    name:time,
-                                    value:[time,res.data[0].small]
-                                })
-                                this.allPacketsTypeData.yAxisArr[1].data.push({
-                                    name:time,
-                                    value:[time,res.data[0].normal]
-                                })
-                                this.allPacketsTypeData.yAxisArr[2].data.push({
-                                    name:time,
-                                    value:[time,res.data[0].big]
-                                })
+                                this.allPacketsTypeData.yAxisArr[0].data.push(res.data[0].small);
+                                this.allPacketsTypeData.yAxisArr[1].data.push(res.data[0].normal);
+                                this.allPacketsTypeData.yAxisArr[2].data.push(res.data[0].big);
                             }
                         })
                         .catch(err=>{
@@ -141,6 +124,9 @@
                         })
                 })
             },
+        },
+        beforeDestroy(){
+            clearInterval(this.interTime);
         },
         components:{
             vFlowchartfrom,

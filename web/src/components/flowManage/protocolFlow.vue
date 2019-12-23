@@ -243,11 +243,11 @@
             /*获取协议长度综合统计*/
             getAgreementData(starttime,endtime){
                 this.$nextTick(()=>{
-
                     this.$axios.post(this.$baseUrl+'/flow/getMultipleLength.do',this.$qs.stringify({
                         starttime:starttime,
                         endtime:endtime
                     }))
+
                         .then(res=>{
                             layer.closeAll('loading');
                             let xns1 = [];
@@ -277,6 +277,9 @@
                         })
                 })
             },
+        },
+        beforeDestroy(){
+            clearInterval(this.interTime);
         },
         components:{
             vFlowchartfrom,

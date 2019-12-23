@@ -206,6 +206,9 @@
                 })
             },
         },
+        beforeDestroy(){
+            clearInterval(this.interTime);
+        },
         components:{
             vFlowchartfrom,
             vEcharts

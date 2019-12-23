@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">全局实时流量
-<!--            <v-flowchartfrom class="from-wapper" refreshBus="realTimeFlowRefreshBus" dataBus="realTimeFlowDataBus"></v-flowchartfrom>-->
+            <v-flowchartfrom class="from-wapper" refreshBus="realTimeFlowRefreshBus" :refreshObj="refreshObj"></v-flowchartfrom>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -56,9 +56,25 @@
         name: "realTimeFlow",
         data() {
             return {
+                refreshObj:{
+                    defaultVal:'5',
+                    opt:[{
+                        label:'5s',
+                        value:'5'
+                    },
+                    {
+                        label:'10s',
+                        value:'10'
+                    },
+                    {
+                        label:'20s',
+                        value:'20'
+                    }
+                    ]
+                },
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :5000,
                 //数据日期间隔
                 dataTime:1,
                 //全局利用率百分比
@@ -135,50 +151,44 @@
         created(){
             /*监听刷新时间改变*/
             bus.$on('realTimeFlowRefreshBus',(val)=>{
-                    this.refreshIntTime = val;
+                    this.refreshIntTime = val*1000;
                     clearInterval(this.interTime);
                     this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
+                        /*获取全局利用率百分比*/
+                        this.getAllUsedData(this.refreshIntTime/1000);
+                        /*获取全局数据包个数*/
+                        this.getAllPacketsData(this.refreshIntTime/1000);
+                        /*获取数据-动态实时*/
+                        this.getDataByTime(this.refreshIntTime/1000);
+
                     },this.refreshIntTime);
-            })
-            /*监听数据时间改变*/
-            bus.$on('realTimeFlowDataBus',(val)=>{
-                this.dataTime = val;
             })
 
         },
         mounted(){
             //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取全局利用率百分比*/
-            this.getAllUsedData(endtime);
+            this.getAllUsedData(this.refreshIntTime/1000);
             /*获取全局数据包个数*/
-            this.getAllPacketsData(endtime);
+            this.getAllPacketsData(this.refreshIntTime/1000);
             /*获取数据-动态实时*/
-            this.getDataByTime(endtime)
+            this.getDataByTime(this.refreshIntTime/1000);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
                     /*获取全局利用率百分比*/
-                    this.getAllUsedData(endtime);
+                    this.getAllUsedData(this.refreshIntTime/1000);
                     /*获取全局数据包个数*/
-                    this.getAllPacketsData(endtime);
+                    this.getAllPacketsData(this.refreshIntTime/1000);
                     /*获取数据-动态实时*/
-                    this.getDataByTime(endtime)
-            },2000);
+                    this.getDataByTime(this.refreshIntTime/1000)
+            },this.refreshIntTime);
         },
         methods:{
             /*获取全局利用率百分比*/
-            getAllUsedData(time){
+            getAllUsedData(timeInterval){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
-                        endtime:time
+                        timeInterval:timeInterval
                     }))
                         .then(res=>{
                             res.data[0].value[1] = res.data[0].value[1] / this.refreshIntTime / this.bandwidth;
@@ -200,10 +210,10 @@
                 })
             },
             /*获取全局数据包个数*/
-            getAllPacketsData(time){
+            getAllPacketsData(timeInterval){
                 this.$nextTick(()=> {
                     this.$axios.post(this.$baseUrl + '/flow/getPacketCount.do', this.$qs.stringify({
-                        endtime:time
+                        timeInterval:timeInterval
                     }))
                         .then(res => {
                             layer.closeAll('loading');
@@ -221,10 +231,10 @@
                 })
             },
             /*获取数据-动态实时*/
-            getDataByTime(time){
+            getDataByTime(timeInterval){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
-                        endtime:time
+                        timeInterval:timeInterval
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -257,6 +267,9 @@
                      })
                  }*/
             }
+        },
+        beforeDestroy(){
+            clearInterval(this.interTime);
         },
         components:{
             vFlowchartfrom,

@@ -191,13 +191,24 @@
                             let xns1 = [];
                             let yvs1 = [];
                             let yvs2 = [];
-                            for(let i in res.data[0]){
+                            /*for(let i in res.data[0]){
                                 xns1.push(i);
                                 yvs1.push(res.data[0][i]);
                                 yvs2.push({
                                     name:i,
                                     value:res.data[0][i]
                                 })
+                            }*/
+                            for(let i in res.data){
+                                let obj = res.data[i];
+                                for (let j in obj){
+                                    xns1.push(j);
+                                    yvs1.push(obj[j]);
+                                    yvs2.push({
+                                        name:j,
+                                        value:obj[j]
+                                    })
+                                }
                             }
                             this.targetPortFlowData.xAxisArr = xns1;
                             this.targetPortFlowData.yAxisArr = yvs1;
@@ -222,13 +233,24 @@
                             let xns1 = [];
                             let yvs1 = [];
                             let yvs2 = [];
-                            for(let i in res.data[0]){
+                            /*for(let i in res.data[0]){
                                 xns1.push(i);
                                 yvs1.push(res.data[0][i]);
                                 yvs2.push({
                                     name:i,
                                     value:res.data[0][i]
                                 })
+                            }*/
+                            for(let i in res.data){
+                                let obj = res.data[i];
+                                for (let j in obj){
+                                    xns1.push(j);
+                                    yvs1.push(obj[j]);
+                                    yvs2.push({
+                                        name:j,
+                                        value:obj[j]
+                                    })
+                                }
                             }
                             this.TCPPortFlowData.xAxisArr = xns1;
                             this.TCPPortFlowData.yAxisArr = yvs1;
@@ -253,13 +275,24 @@
                             let xns1 = [];
                             let yvs1 = [];
                             let yvs2 = [];
-                            for(let i in res.data[0]){
+                            /*for(let i in res.data[0]){
                                 xns1.push(i);
                                 yvs1.push(res.data[0][i]);
                                 yvs2.push({
                                     name:i,
                                     value:res.data[0][i]
                                 })
+                            }*/
+                            for(let i in res.data){
+                                let obj = res.data[i];
+                                for (let j in obj){
+                                    xns1.push(j);
+                                    yvs1.push(obj[j]);
+                                    yvs2.push({
+                                        name:j,
+                                        value:obj[j]
+                                    })
+                                }
                             }
                             this.UDPPortFlowData.xAxisArr = xns1;
                             this.UDPPortFlowData.yAxisArr = yvs1;
@@ -271,6 +304,9 @@
                         })
                 })
             },
+        },
+        beforeDestroy(){
+            clearInterval(this.interTime);
         },
         components:{
             vFlowchartfrom,

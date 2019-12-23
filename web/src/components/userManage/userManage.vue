@@ -633,6 +633,7 @@
             },
             /*添加用户按钮*/
             addUserBtn(){
+                this.roleVal = [];
                 this.userBtnType = 'add'
                 //清空参数
                 this.userParams={
@@ -653,7 +654,6 @@
                 for(let i in this.roleVal){
                     this.userParams.role += this.roleVal[i]+',';
                 }
-                console.log( this.userParams.role)
                 if(this.checkUserParams(this.userParams)){
                     layer.load(1)
                     this.$nextTick(()=>{
@@ -764,6 +764,7 @@
             },
             /*修改用户*/
             reviseUser(id){
+                this.userParams.role = '';
                 //拼接角色
                 for(let i in this.roleVal){
                     this.userParams.role += this.roleVal[i]+',';

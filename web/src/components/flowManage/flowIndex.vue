@@ -89,6 +89,8 @@
         name: "flowIndex",
         data() {
             return {
+                interTime:'',
+                timeInterval:5000,
                 fullscreen:false,
                 date:'',//日期
                 hour:'',//时
@@ -152,17 +154,27 @@
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
            // setInterval(this.getDataByTime,2000);
+            //判断是否为手机端
+            var ua = navigator.userAgent;
+            var ipad = ua.match(/(iPad).*OS\s([\d_]+)/),
+                isIphone = !ipad && ua.match(/(iPhone\sOS)\s([\d_]+)/),
+                isAndroid = ua.match(/(Android)\s+([\d.]+)/),
+                isMobile = isIphone || isAndroid;
+            if(isMobile) {
+                //显示左边栏开关
+                window.location="mobile/index.html"
+            }
 
         },
         mounted(){
             this.setEarth();
             this.getFlowCount();
             let time = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            this.getDataByTime(time)
-            setInterval(()=>{
-                let time = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                this.getDataByTime(time)
-            },2000);
+            this.getDataByTime(this.timeInterval/1000)
+            this.interTime = setInterval(()=>{
+                this.getFlowCount();
+                this.getDataByTime(this.timeInterval/1000)
+            },this.timeInterval);
         },
         methods:{
             //创建时间
@@ -421,11 +433,11 @@
                 })
             },
             /*获取数据-动态实时*/
-            getDataByTime(time){
+            getDataByTime(timeInterval){
                 this.$nextTick(()=>{
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
-                        endtime:time
+                        timeInterval:timeInterval
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -458,6 +470,9 @@
                     })
                 }*/
             }
+        },
+        beforeDestroy(){
+          clearInterval(this.interTime)
         },
         components:{
             vEcharts

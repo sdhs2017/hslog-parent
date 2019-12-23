@@ -91,6 +91,17 @@
             }
         },
         mounted(){
+            //判断是否为手机端
+            var ua = navigator.userAgent;
+            var ipad = ua.match(/(iPad).*OS\s([\d_]+)/),
+                isIphone = !ipad && ua.match(/(iPhone\sOS)\s([\d_]+)/),
+                isAndroid = ua.match(/(Android)\s+([\d.]+)/),
+                isMobile = isIphone || isAndroid;
+            if(isMobile) {
+                //显示左边栏开关
+                window.location="mobile/index.html"
+            }
+
 
             var DEFAULT_VERSION = 8.0;
             var ua = navigator.userAgent.toLowerCase();
@@ -138,7 +149,7 @@
                            if (res.data.success === 'true'){
                                localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                this.getLogConfig();
-                               this.$router.push('/index');
+                               this.$router.push('/flowIndex');
                            }else if(res.data.success==="false"){
                                layer.msg(res.data.message,{
                                    icon: 5,

@@ -121,8 +121,8 @@
                 chartData2:{
                     baseConfig:{
                         title:'',
-                        xAxisName:'',
-                        yAxisName:'',
+                        xAxisName:'时间',
+                        yAxisName:'大小/b',
                         hoverText:'',
                     },
                     yAxisArr:[{
@@ -167,7 +167,7 @@
 
         },
         mounted(){
-            this.setEarth();
+            this.setEarth2();
             this.getFlowCount();
             let time = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
             this.getDataByTime(this.timeInterval/1000)
@@ -223,6 +223,10 @@
             },
             /*设置地球*/
             setEarth(){
+                let earthData = [
+                    {name:'南宁',value:[108.479, 23.1152]},{name:'广州',value:[113.5107, 23.2196]},
+                    {name:'重庆',value:[107.7539, 30.1904]},{name:'广州',value:[113.5107, 23.2196]}
+                ]
                 /*
                  图中相关城市经纬度,根据你的需求添加数据
                  关于国家的经纬度，可以用首都的经纬度或者其他城市的经纬度
@@ -350,7 +354,8 @@
                         data: convertData(item[1])// 特效的起始、终点位置，一个二维数组，相当于coords: convertData(item[1])
                     })
                 })
-
+                console.log(series)
+                console.log(dser)
                 var canvas = document.createElement('canvas');
 
                 var myChart = echarts.init(canvas, null, {
@@ -420,6 +425,180 @@
                 });
 
             },
+            setEarth2(){
+                let earthData = [
+                    [{name:'南宁',value:[108.479, 23.1152]},{name:'广州',value:[113.5107, 23.2196]}],
+                    [{name:'重庆',value:[107.7539, 30.1904]},{name:'广州',value:[113.5107, 23.2196]}],
+                    [{name:'美国',value:[-100.696295, 33.679979]},{name:'广州',value:[113.5107, 23.2196]}]
+                ]
+                /*
+                 图中相关城市经纬度,根据你的需求添加数据
+                 关于国家的经纬度，可以用首都的经纬度或者其他城市的经纬度
+                 */
+                var geoCoordMap = {
+                    '南宁': [108.479, 23.1152],
+                    '广州': [113.5107, 23.2196],
+                    '重庆': [107.7539, 30.1904],
+                    '芬兰': [24.909912, 60.169095],
+                    '美国': [-100.696295, 33.679979],
+                    '日本': [139.710164, 35.706962],
+                    '韩国': [126.979208, 37.53875],
+                    '瑞士': [7.445147, 46.956241],
+                    '东南亚': [117.53244, 5.300343],
+                    '澳大利亚': [135.193845, -25.304039],
+                    '德国': [13.402393, 52.518569],
+                    '英国': [-0.126608, 51.208425],
+                    '加拿大': [-102.646409, 59.994255]
+                };
+                var series = [];// 3D飞线
+                var dser = [];  // 2D散点坐标
+                earthData.forEach(function(item, i) {
+                    dser.push({
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        zlevel: 3,
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        label: {
+                            fontSize:24,
+                            show: true,
+                            position: 'right',
+                            formatter: '{b}'
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#f5f802'
+                            }
+                        },
+                        data:[{
+                            name:item[0].name,
+                            value:item[0].value,
+                            symbolSize:10,
+                            label: {
+                                normal: {
+                                    position: 'right'
+                                }
+                            }
+                        }]
+                    },{
+                        type: 'effectScatter',
+                        coordinateSystem: 'geo',
+                        zlevel: 3,
+                        rippleEffect: {
+                            brushType: 'stroke'
+                        },
+                        label: {
+                            normal: {
+                                show: true,
+                                position: 'left',
+                                fontSize:18,
+                                formatter: '{b}'
+                            }
+                        },
+                        itemStyle: {
+                            normal: {
+                                color: '#ff0000'
+                            }
+                        },
+                        data: [{
+                            name:item[1].name,
+                            value:item[1].value,
+                            symbolSize:10,
+                            label: {
+                                normal: {
+                                    position: 'right'
+                                }
+                            }
+                        }]
+                    })
+                    series.push({
+                        type: 'lines3D',
+                        effect: {
+                            show: true,
+                            period: 3,//速度
+                            trailLength: 0.1//尾部阴影
+                        },
+                        lineStyle: {//航线的视图效果
+                            color: '#9ae5fc',
+                            width: 1,
+                            opacity: 0.6
+                        },
+                       // data: convertData(item[1])// 特效的起始、终点位置，一个二维数组，相当于coords: convertData(item[1])
+                        data:[[item[0].value,item[1].value]]
+                    })
+                })
+                var canvas = document.createElement('canvas');
+
+                var myChart = echarts.init(canvas, null, {
+                    width: 4096,
+                    height: 2048
+                });
+                myChart.setOption({
+                    backgroundColor: 'rgba(3,28,72,0.3)',
+                    title: {
+                        show:true
+                    },
+                    geo: {
+                        type: 'map',
+                        map: 'world',
+                        left:0,
+                        top:0,
+                        right: 0,
+                        bottom: 0,
+                        boundingCoords: [[-180, 90], [180, -90]],
+                        zoom:0,
+                        roam: false,
+                        itemStyle: {
+                            borderColor:'#000d2d',
+                            normal: {
+                                areaColor: '#2455ad',
+                                borderColor:'#000c2d'
+                            },
+                            emphasis: {
+
+                                areaColor: '#357cf8'
+                            }
+                        },
+                        emphasis:{
+                            label:{
+                                show:false
+                            }
+                        },
+                        label:{
+                            fontSize:24
+                        }
+                    },
+                    series:dser
+                })
+                var option = {
+                    backgroundColor: 'rgba(0,0,0,0)',//canvas的背景颜色
+                    globe: {
+                        baseTexture:myChart,
+                        top: 'middle',
+                        left: 'center',
+                        displacementScale: 0,
+                        environment:'none',
+                        shading: 'color',
+                        viewControl: {
+                            distance:240,
+                            autoRotate: false,
+                            autoRotateAfterStill:5,
+                            // 定位到北京
+                            targetCoord: [116.46, 39.92]
+                        }
+                    },
+                    series:series
+                };
+
+                var ee = echarts.init(this.$refs.mybox);
+                ee.setOption(option, true);
+                window.addEventListener("resize",()=>{
+                    // myChart.resize();
+                    ee.resize();
+                });
+
+            },
             /*获取流量数*/
             getFlowCount(){
                 this.$nextTick( ()=> {
@@ -435,12 +614,10 @@
             /*获取数据-动态实时*/
             getDataByTime(timeInterval){
                 this.$nextTick(()=>{
-                    layer.load(1);
                     this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
                         timeInterval:timeInterval
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
                             if(this.chartData2.yAxisArr[0].data.length < 60){
                                 this.chartData2.yAxisArr[0].data.push(res.data[0])
                             }else{
@@ -449,7 +626,6 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
 
                         })
                 })

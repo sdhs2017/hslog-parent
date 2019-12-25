@@ -1,10 +1,13 @@
 package com.jz.bigdata.util;
 
 import java.io.UnsupportedEncodingException;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 
+import javax.enterprise.inject.Default;
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.annotation.XmlType;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -77,5 +80,35 @@ public class StringUtils {
 	public static String getParamByRequest(HttpServletRequest request,String paramName) throws UnsupportedEncodingException{
 		String result = new String(request.getParameter(paramName).getBytes("iso-8859-1"),"utf-8");
 		return result;
+	}
+
+	/**
+	 * 获取Byte换算后的数据，保留小数位根据decimal处理
+	 * @param decimal  "0.00"保留2位小数
+	 * @param unit  要转换成的单位  KB MB GB
+	 * @param value 要转换的数据
+	 * @return
+	 */
+	public static String getByteUnitNum(String decimal,String unit,Object value){
+		String agg = "0.00";
+		try{
+			double byteSum = Double.parseDouble(value.toString());
+			DecimalFormat a = new DecimalFormat(decimal);
+			switch(unit){
+				case "KB":
+					agg = a.format(byteSum/1024);
+					break;
+				case "MB":
+					agg = a.format(byteSum/1024/1024);
+					break;
+				case "GB":
+					agg = a.format(byteSum/1024/1024/1024);
+					break;
+				default:break;
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		return agg;
 	}
 }

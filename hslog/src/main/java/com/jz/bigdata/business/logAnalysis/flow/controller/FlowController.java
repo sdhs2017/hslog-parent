@@ -11,10 +11,7 @@ import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
-import com.jz.bigdata.util.ConfigProperty;
-import com.jz.bigdata.util.ContextFront;
-import com.jz.bigdata.util.DescribeLog;
-import com.jz.bigdata.util.MapUtil;
+import com.jz.bigdata.util.*;
 import net.sf.json.JSONArray;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -27,6 +24,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,33 +80,7 @@ public class FlowController {
         map.put("endtime",endtime);
         return map;
     }
-    private String getFlowDateTime(){
-        String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
-        Map<String, String> searchmap = new HashMap<>();
-        List<Map<String, Object>> list = null;
-        try {
-            list = flowService.getFlowListByBlend(searchmap,null,null,"1","1",types,configProperty.getEs_index());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        String esTime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-        //获取第一条记录的时间，作为系统最新时间
-        if(list.size()==2){
-            esTime = list.get(1).get("logtime").toString();
-        }
-        return esTime;
-    }
-    /**
-     * @param request
-     * 获取流量数据最新时间
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping("/getFlowDateTime")
-    @DescribeLog(describe="获取流量数据最新时间")
-    public String getFlowDateTime(HttpServletRequest request) {
-        return getFlowDateTime();
-    }
+
     /**
      * @param request
      * 统计netflow源IP、目的IP、源端口、目的端口的数量
@@ -1129,7 +1101,7 @@ public class FlowController {
         Map<String,Object> result = new HashMap<>();
         if (list.size()>0){
             result.put("name",tMap.get("endtime"));
-            Object [] value = {tMap.get("endtime"),list.get(0).get("agg")};
+            Object [] value = {tMap.get("endtime"), list.get(0).get("agg")};
             result.put("value",value);
         }
 
@@ -1213,6 +1185,7 @@ public class FlowController {
 
         try {
             list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

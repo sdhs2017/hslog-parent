@@ -963,7 +963,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 通过时间段统计操作系统的种类及数量
+     * 流量统计/User-Agent信息/业务访问用户统计-操作系统
      * @return
      */
     @ResponseBody
@@ -1039,7 +1039,7 @@ public class FlowController {
 
     /**
      * @param request
-     * 通过时间段统计浏览器的种类及数量
+     * 流量统计/User-Agent信息/业务访问用户统计-浏览器
      * @return
      */
     @ResponseBody
@@ -1075,7 +1075,7 @@ public class FlowController {
 
     /**
      * @param request
-     * 实时统计流量数据访问包大小
+     * 流量统计/全局实时流量/实时统计流量数据访问包大小
      * @return
      */
     @ResponseBody
@@ -1109,7 +1109,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 源ip地址流量
+     * 流量统计/IP主机流量/源ip地址流量
      * @return
      */
     @ResponseBody
@@ -1139,7 +1139,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 目的ip地址流量
+     * 流量统计/IP主机流量/目的ip地址流量
      * @return
      */
     @ResponseBody
@@ -1166,7 +1166,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 传输层协议长度排行
+     * 流量统计/协议流量/传输层协议长度排行
      * @return
      */
     @ResponseBody
@@ -1193,7 +1193,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 应用层协议长度排行
+     * 流量统计/协议流量/应用层协议长度排行
      * @return
      */
     @ResponseBody
@@ -1219,7 +1219,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 综合协议长度排行
+     * 流量统计/协议流量/综合协议长度排行
      * @return
      */
     @ResponseBody
@@ -1274,7 +1274,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 全局数据包类型及个数（<64,64-1519,大于1519 ，由于数据包大小仅取到1460，因此设置为64-1460）
+     * 流量统计/数据包类型/全局数据包类型及个数（<64,64-1519,大于1519 ，由于数据包大小仅取到1460，因此设置为64-1460）
      * @return
      */
     @ResponseBody
@@ -1320,7 +1320,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 资产（ip） 数据包个数，取目的地址IP进行统计
+     * 流量统计/资产流量/资产（ip） 数据包个数，取目的地址IP进行统计
      * @return
      */
     @ResponseBody
@@ -1361,7 +1361,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 资产（域名） 数据包个数
+     * 流量统计/资产流量/资产（域名） 数据包个数
      * @return
      */
     @ResponseBody
@@ -1402,7 +1402,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 目的端口总流量
+     * 流量统计/端口流量/目的端口总流量
      * @return
      */
     @ResponseBody
@@ -1434,7 +1434,7 @@ public class FlowController {
 
     /**
      * @param request
-     * 组播包数据+广播包数据个数
+     * 流量统计/广播包/组播报/组播包数据+广播包数据个数
      * @return
      */
     @ResponseBody
@@ -1486,7 +1486,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * TCP目的端口总流量
+     * 流量统计/端口流量/TCP目的端口总流量
      * @return
      */
     @ResponseBody
@@ -1518,7 +1518,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * UDP目的端口总流量
+     * 流量统计/端口流量/UDP目的端口总流量
      * @return
      */
     @ResponseBody
@@ -1550,7 +1550,7 @@ public class FlowController {
     }
     /**
      * @param request
-     * 全局-数据包个数
+     * 流量统计/全局实时流量/全局数据包个数
      * @return
      */
     @ResponseBody

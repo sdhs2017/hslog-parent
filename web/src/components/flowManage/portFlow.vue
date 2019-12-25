@@ -65,9 +65,9 @@
             return {
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :'5000',
                 //数据日期间隔
-                dataTime:1,
+                dataTime:3600,
                 //目的端口总流量
                 targetPortFlowData:{
                     baseConfig:{
@@ -136,15 +136,12 @@
                     this.refreshIntTime = val;
                     clearInterval(this.interTime);
                     this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
                         /*获取目的端口总流量*/
-                        this.getTargetPortFlowData(starttime,endtime);
+                        this.getTargetPortFlowData(this.dataTime);
                         /*获取TCP端口总流量*/
-                        this.getTCPPortFlowData(starttime,endtime);
+                        this.getTCPPortFlowData(this.dataTime);
                         /*获取UDP端口总流量*/
-                        this.getUDPPortFlowData(starttime,endtime);
+                        this.getUDPPortFlowData(this.dataTime);
                     },this.refreshIntTime);
             })
             /*监听数据时间改变*/
@@ -155,36 +152,29 @@
         },
         mounted(){
             //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取目的端口总流量*/
-            this.getTargetPortFlowData(starttime,endtime);
+            this.getTargetPortFlowData(this.dataTime);
             /*获取TCP端口总流量*/
-            this.getTCPPortFlowData(starttime,endtime);
+            this.getTCPPortFlowData(this.dataTime);
             /*获取UDP端口总流量*/
-            this.getUDPPortFlowData(starttime,endtime);
+            this.getUDPPortFlowData(this.dataTime);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
                     /*获取目的端口总流量*/
-                    this.getTargetPortFlowData(starttime,endtime);
+                    this.getTargetPortFlowData(this.dataTime);
                     /*获取TCP端口总流量*/
-                    this.getTCPPortFlowData(starttime,endtime);
+                    this.getTCPPortFlowData(this.dataTime);
                     /*获取UDP端口总流量*/
-                    this.getUDPPortFlowData(starttime,endtime);
+                    this.getUDPPortFlowData(this.dataTime);
             },this.refreshIntTime);
         },
         methods:{
             /*获取目的端口总流量*/
-            getTargetPortFlowData(starttime,endtime){
+            getTargetPortFlowData(dataTime){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getDstPortCount.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -221,12 +211,11 @@
                 })
             },
             /*获取TCP目的端口总流量*/
-            getTCPPortFlowData(starttime,endtime){
+            getTCPPortFlowData(dataTime){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getTCPDstPortCount.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -263,12 +252,11 @@
                 })
             },
             /*获取UDP端口总流量*/
-            getUDPPortFlowData(starttime,endtime){
+            getUDPPortFlowData(dataTime){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getUDPDstPortCount.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');

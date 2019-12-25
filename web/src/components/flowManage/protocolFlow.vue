@@ -65,9 +65,9 @@
             return {
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :'5000',
                 //数据日期间隔
-                dataTime:1,
+                dataTime:3600,
                 //传输层协议长度统计
                 TUData:{
                     baseConfig:{
@@ -136,15 +136,12 @@
                     this.refreshIntTime = val;
                     clearInterval(this.interTime);
                     this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
                         /*获取传输层协议长度统计*/
-                        this.getTUData(starttime,endtime);
+                        this.getTUData(this.dataTime);
                         /*获取应用层协议长度统计*/
-                        this.getAppData(starttime,endtime);
+                        this.getAppData(this.dataTime);
                         /*获取协议长度综合统计*/
-                        this.getAgreementData(starttime,endtime);
+                        this.getAgreementData(this.dataTime);
                     },this.refreshIntTime);
             })
             /*监听数据时间改变*/
@@ -155,36 +152,29 @@
         },
         mounted(){
             //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取传输层协议长度统计*/
-            this.getTUData(starttime,endtime);
+            this.getTUData(this.dataTime);
             /*获取应用层协议长度统计*/
-            this.getAppData(starttime,endtime);
+            this.getAppData(this.dataTime);
             /*获取协议长度综合统计*/
-            this.getAgreementData(starttime,endtime);
+            this.getAgreementData(this.dataTime);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                    /*获取传输层协议长度统计*/
-                    this.getTUData(starttime,endtime);
-                    /*获取应用层协议长度统计*/
-                    this.getAppData(starttime,endtime);
-                    /*获取协议长度综合统计*/
-                    this.getAgreementData(starttime,endtime);
+                /*获取传输层协议长度统计*/
+                this.getTUData(this.dataTime);
+                /*获取应用层协议长度统计*/
+                this.getAppData(this.dataTime);
+                /*获取协议长度综合统计*/
+                this.getAgreementData(this.dataTime);
             },this.refreshIntTime);
         },
         methods:{
             /*获取传输层协议长度统计*/
-            getTUData(starttime,endtime){
+            getTUData(dataTime){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getTransportLength.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -210,12 +200,11 @@
                 })
             },
             /*获取应用层协议长度统计*/
-            getAppData(starttime,endtime){
+            getAppData(dataTime){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getApplicationLength.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -241,11 +230,10 @@
                 })
             },
             /*获取协议长度综合统计*/
-            getAgreementData(starttime,endtime){
+            getAgreementData(dataTime){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getMultipleLength.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
 
                         .then(res=>{

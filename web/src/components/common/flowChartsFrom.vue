@@ -46,8 +46,12 @@
         data() {
             return {
                 //刷新时间间隔
-                refreshTimeVal:'10000',
+                refreshTimeVal:'5000',
                 refreshOpt:[
+                    {
+                        label:'5s',
+                        value:'5000'
+                    },
                     {
                         label:'10s',
                         value:'10000'
@@ -61,32 +65,32 @@
                         value:'60000'
                     }
                 ],
-                //数据日期间隔
-                dataTimeVal:'1',
+                //数据日期间隔 value-秒
+                dataTimeVal:'3600',
                 dataOpt:[
                     {
                         label:'1小时',
-                        value:'1'
+                        value:'3600'
                     },
                     {
                         label:'2小时',
-                        value:'2'
+                        value:'7200'
                     },
                     {
                         label:'4小时',
-                        value:'4'
+                        value:'14400'
                     },
                     {
                         label:'8小时',
-                        value:'8'
+                        value:'28800'
                     },
                     {
                         label:'12小时',
-                        value:'12'
+                        value:'43200'
                     },
                     {
                         label:'24小时',
-                        value:'24'
+                        value:'86400'
                     }
                 ]
             }

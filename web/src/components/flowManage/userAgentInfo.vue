@@ -51,9 +51,9 @@
             return {
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :'5000',
                 //数据日期间隔
-                dataTime:1,
+                dataTime:3600,
                 //操作系统 柱状图数据
                 systemChartData:{
                     baseConfig:{
@@ -107,15 +107,10 @@
                     this.refreshIntTime = val;
                     clearInterval(this.interTime);
                     this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                        console.log(endtime)
-                        console.log(starttime)
                         /*获取业务系统统计- 浏览器*/
-                        this.getBrowserData(starttime,endtime);
+                        this.getBrowserData(this.dataTime);
                         /*获取业务系统统计- 系统*/
-                        this.getSystemData(starttime,endtime);
+                        this.getSystemData(this.dataTime);
                     },this.refreshIntTime);
             })
             /*监听数据时间改变*/
@@ -125,32 +120,27 @@
 
         },
         mounted(){
-            //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取业务系统统计- 浏览器*/
-            this.getBrowserData(starttime,endtime);
+            this.getBrowserData(this.dataTime);
             /*获取业务系统统计- 系统*/
-            this.getSystemData(starttime,endtime);
+            this.getSystemData(this.dataTime);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                    /*获取业务系统统计- 浏览器*/
-                    this.getBrowserData(starttime,endtime);
-                    /*获取业务系统统计- 系统*/
-                    this.getSystemData(starttime,endtime);
+                /*let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+                let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
+                let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);*/
+                /*获取业务系统统计- 浏览器*/
+                this.getBrowserData(this.dataTime);
+                /*获取业务系统统计- 系统*/
+                this.getSystemData(this.dataTime);
             },this.refreshIntTime);
         },
         methods:{
             /*获取业务系统统计- 浏览器*/
-            getBrowserData(starttime,endtime){
+            getBrowserData(dataTime){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getUserAgentBrowserGroupByTime.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             let xns1 = [];
@@ -174,11 +164,10 @@
                 })
             },
             /*获取业务系统统计- 系统*/
-            getSystemData(starttime,endtime){
+            getSystemData(dataTime){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getUserAgentOSGroupByTime.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             let xns1 = [];

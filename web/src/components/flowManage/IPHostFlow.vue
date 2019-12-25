@@ -50,9 +50,9 @@
             return {
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :'5000',
                 //数据日期间隔
-                dataTime:1,
+                dataTime:3600,
                 //源ip地址流量排行
                 sourceIpData:{
                     baseConfig:{
@@ -101,13 +101,10 @@
                     this.refreshIntTime = val;
                     clearInterval(this.interTime);
                     this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
                         /*获取全局利用率百分比*/
-                        this.getSourceIpData(starttime,endtime);
+                        this.getSourceIpData(this.dataTime);
                         /*获取全局数据包个数*/
-                        this.getTargetIpData(starttime,endtime);
+                        this.getTargetIpData(this.dataTime);
                     },this.refreshIntTime);
             })
             /*监听数据时间改变*/
@@ -118,31 +115,24 @@
         },
         mounted(){
             //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取全局利用率百分比*/
-            this.getSourceIpData(starttime,endtime);
+            this.getSourceIpData(this.dataTime);
             /*获取全局数据包个数*/
-            this.getTargetIpData(starttime,endtime);
+            this.getTargetIpData(this.dataTime);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                    /*获取全局利用率百分比*/
-                    this.getSourceIpData(starttime,endtime);
-                    /*获取全局数据包个数*/
-                    this.getTargetIpData(starttime,endtime);
+                /*获取全局利用率百分比*/
+                this.getSourceIpData(this.dataTime);
+                /*获取全局数据包个数*/
+                this.getTargetIpData(this.dataTime);
             },this.refreshIntTime);
         },
         methods:{
             /*获取源IP地址流量排行*/
-            getSourceIpData(starttime,endtime){
+            getSourceIpData(dataTime){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getSrcIPFlow.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             let xns1 = [];
@@ -166,12 +156,11 @@
                 })
             },
             /*获取目的IP地址流量排行*/
-            getTargetIpData(starttime,endtime){
+            getTargetIpData(dataTime){
                 this.$nextTick(()=>{
 
                     this.$axios.post(this.$baseUrl+'/flow/getDstIPFlow.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');

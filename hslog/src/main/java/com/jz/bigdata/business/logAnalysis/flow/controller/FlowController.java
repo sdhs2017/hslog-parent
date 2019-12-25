@@ -27,7 +27,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -72,6 +71,7 @@ public class FlowController {
         String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
         try {
             int t = Integer.parseInt(timeInterval);
+            //数据时间间隔，以秒为单位
             String starttime = DateTime.now().plusSeconds(-t).toString("yyyy-MM-dd HH:mm:ss");
             map.put("starttime",starttime);
         } catch (NumberFormatException e) {
@@ -1007,7 +1007,9 @@ public class FlowController {
         map.put("requestorresponse", "request");
         map.put("application_layer_protocol", "http");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
+        /*
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
         if (starttime!=null&&!starttime.equals("")) {
@@ -1019,11 +1021,11 @@ public class FlowController {
             if (!endtime.contains(" ")){
                 endtime = endtime+" 23:59:59";
             }
-        }
+        }*/
         int size =10;
         //list = logService.groupBy(index, types, groupby, map);
         try {
-            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
+            list = flowService.groupBy(index, types, groupby, size,tMap.get("starttime"),tMap.get("endtime"), map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1047,13 +1049,13 @@ public class FlowController {
         Map<String, String> map = new HashMap<String, String>();
         map.put("requestorresponse", "request");
         map.put("application_layer_protocol", "http");
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
         int size =10;
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
 
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         try {
-            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,starttime,endtime, map);
+            list = flowService.groupByThenSum(index, types, groupby, sumfield, size,tMap.get("starttime"),tMap.get("endtime"), map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1081,15 +1083,18 @@ public class FlowController {
         map.put("requestorresponse", "request");
         map.put("application_layer_protocol", "http");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-        //
+        /*
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
+*/
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
 
         int size =10;//默认top10
 
         //list = logService.groupBy(index, types, groupby, map);
         try {
-            list = flowService.groupBy(index, types, groupby, size,starttime,endtime, map);
+            list = flowService.groupBy(index, types, groupby, size,tMap.get("starttime"),tMap.get("endtime"), map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1110,22 +1115,21 @@ public class FlowController {
         String [] types = {"defaultpacket"};
         // 时间间隔参数
         String timeInterval = request.getParameter("timeInterval");
-        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         int size =10;
 
         try {
-            list = flowService.getSumByMetrics(types,sumfield,size,starttime,endtime,null,index);
+            list = flowService.getSumByMetrics(types,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),null,index);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         Map<String,Object> result = new HashMap<>();
         if (list.size()>0){
-            result.put("name",endtime);
-            Object [] value = {endtime,list.get(0).get("agg")};
+            result.put("name",tMap.get("endtime"));
+            Object [] value = {tMap.get("endtime"),list.get(0).get("agg")};
             result.put("value",value);
         }
 
@@ -1144,9 +1148,8 @@ public class FlowController {
         String groupfield = "ipv4_src_addr";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
 
         // 构建参数map
         Map<String, String> map = new HashMap<String, String>();
@@ -1155,7 +1158,7 @@ public class FlowController {
         int size =10;
 
         try {
-            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1175,15 +1178,14 @@ public class FlowController {
         String groupfield = "ipv4_dst_addr";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1203,15 +1205,14 @@ public class FlowController {
         String groupfield = "protocol_name.raw";//.raw 不分词
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1230,15 +1231,14 @@ public class FlowController {
         String groupfield = "application_layer_protocol.raw";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,starttime,endtime,map);
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1258,17 +1258,16 @@ public class FlowController {
         String groupfieldTransport = "protocol_name.raw";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> listApplication = new ArrayList<Map<String, Object>>();
         List<Map<String, Object>> listTransport = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            listApplication = flowService.groupByThenSum(index,types,groupfieldApplication,sumfield,size,starttime,endtime,map);
-            listTransport = flowService.groupByThenSum(index,types,groupfieldTransport,sumfield,size,starttime,endtime,map);
+            listApplication = flowService.groupByThenSum(index,types,groupfieldApplication,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
+            listTransport = flowService.groupByThenSum(index,types,groupfieldTransport,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1316,8 +1315,7 @@ public class FlowController {
         // 时间间隔参数
         String timeInterval = request.getParameter("timeInterval");
 
-        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
+        Map<String,String> ttMap = getStartEndTime(timeInterval);
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
@@ -1332,11 +1330,11 @@ public class FlowController {
             for(Map.Entry<String,String> t:tMap.entrySet()){
                 Map<String, String> m = new HashMap<String, String>();
                 m.put("packet_length",t.getValue());
-                List<Map<String, Object>> tempList = flowService.getCountByMetrics(types,groupfield,size,starttime,endtime,m);
+                List<Map<String, Object>> tempList = flowService.getCountByMetrics(types,groupfield,size,ttMap.get("starttime"),ttMap.get("endtime"),m);
 
                 Map<String,Object> broadcast = new HashMap<>();
-                broadcast.put("name",endtime);
-                Object [] value = {endtime,tempList.get(0).get("agg")};
+                broadcast.put("name",ttMap.get("endtime"));
+                Object [] value = {ttMap.get("endtime"),tempList.get(0).get("agg")};
                 broadcast.put("value",value);
                 map.put(t.getKey(),broadcast);
             }
@@ -1359,25 +1357,15 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String groupfield = "ipv4_dst_addr";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            if (!starttime.contains(" ")){
-                starttime = starttime+" 00:00:00";
-            }
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            if (!endtime.contains(" ")) {
-                endtime = endtime + " 23:59:59";
-            }
-        }
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
+
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+            list = flowService.groupBy(index,types,groupfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1410,25 +1398,15 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String groupfield = "domain_url.raw";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-        if (starttime!=null&&!starttime.equals("")) {
-            if (!starttime.contains(" ")){
-                starttime = starttime+" 00:00:00";
-            }
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            if (!endtime.contains(" ")) {
-                endtime = endtime + " 23:59:59";
-            }
-        }
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
+
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+            list = flowService.groupBy(index,types,groupfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1461,15 +1439,14 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String groupfield = "l4_dst_port";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+            list = flowService.groupBy(index,types,groupfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1496,9 +1473,7 @@ public class FlowController {
         String [] types = {"defaultpacket"};
         // 时间间隔参数
         String timeInterval = request.getParameter("timeInterval");
-
-        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         // 组播条件
         Map<String, String> multicastmap = new HashMap<String, String>();
         multicastmap.put("multicast","ipv4_dst_addr");
@@ -1510,8 +1485,8 @@ public class FlowController {
         int size =10;
 
         try {
-            multicastlist = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,multicastmap,index);
-            broadcastlist = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,broadcastmap,index);
+            multicastlist = flowService.getCountByMetrics(types,countfield,size,tMap.get("starttime"),tMap.get("endtime"),multicastmap,index);
+            broadcastlist = flowService.getCountByMetrics(types,countfield,size,tMap.get("starttime"),tMap.get("endtime"),broadcastmap,index);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1520,16 +1495,16 @@ public class FlowController {
         // 组播包数据
         if (multicastlist.size()>0){
             Map<String,Object> multicast = new HashMap<>();
-            multicast.put("name",endtime);
-            Object [] value = {endtime,multicastlist.get(0).get("agg")};
+            multicast.put("name",tMap.get("endtime"));
+            Object [] value = {tMap.get("endtime"),multicastlist.get(0).get("agg")};
             multicast.put("value",value);
             list.add(multicast);
         }
         // 广播包数据
         if (broadcastlist.size()>0){
             Map<String,Object> broadcast = new HashMap<>();
-            broadcast.put("name",endtime);
-            Object [] value = {endtime,broadcastlist.get(0).get("agg")};
+            broadcast.put("name",tMap.get("endtime"));
+            Object [] value = {tMap.get("endtime"),broadcastlist.get(0).get("agg")};
             broadcast.put("value",value);
             list.add(broadcast);
         }
@@ -1548,16 +1523,15 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String groupfield = "l4_dst_port";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         map.put("protocol_name.raw","TCP");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+            list = flowService.groupBy(index,types,groupfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1581,16 +1555,15 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String groupfield = "l4_dst_port";
         String [] types = {"defaultpacket"};
-        // 获取前端传入的时间参数
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        String timeInterval = request.getParameter("timeInterval");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         Map<String, String> map = new HashMap<String, String>();
         map.put("protocol_name.raw","UDP");
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         int size =10;
 
         try {
-            list = flowService.groupBy(index,types,groupfield,size,starttime,endtime,map);
+            list = flowService.groupBy(index,types,groupfield,size,tMap.get("starttime"),tMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1616,23 +1589,21 @@ public class FlowController {
         String [] types = {"defaultpacket"};
         // 时间间隔参数
         String timeInterval = request.getParameter("timeInterval");
-
-        String endtime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
-        String starttime = DateTime.now().plusSeconds(-Integer.parseInt(timeInterval)).toString("yyyy-MM-dd HH:mm:ss");
+        Map<String,String> tMap = getStartEndTime(timeInterval);
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
         int size =10;
 
         try {
-            list = flowService.getCountByMetrics(types,countfield,size,starttime,endtime,null);
+            list = flowService.getCountByMetrics(types,countfield,size,tMap.get("starttime"),tMap.get("endtime"),null);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         Map<String,Object> result = new HashMap<>();
         if (list.size()>0){
-            result.put("name",endtime);
-            Object [] value = {endtime,list.get(0).get("agg")};
+            result.put("name",tMap.get("endtime"));
+            Object [] value = {tMap.get("endtime"),list.get(0).get("agg")};
             result.put("value",value);
         }
         return JSONArray.fromObject(result).toString();

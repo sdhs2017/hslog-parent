@@ -73,7 +73,7 @@ public class PacketStream {
 			// index名称定义
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-			
+
 			if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
 				String dst_port = tcpPacket.getHeader().getDstPort().valueAsString();

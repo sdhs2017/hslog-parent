@@ -524,7 +524,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 	*/
 	/**
-	 * 定时任务将获取的http url 插入到servicefunction表中
+	 * 定时任务将获取的http url 插入到serviceInfo表中
 	 * @return
 	 */
 	public void insertUrl()  {
@@ -540,6 +540,12 @@ public class CollectorServiceImpl implements ICollectorService{
 		urlmap.clear();
 		//判断数据库中是否有重复数据的状态位
 		boolean temp = false;
+		/*
+		 *这里如果使用遍历url，每次查询数据库的方式。
+		 * 1.首先排除使用exists方式，url是唯一的，不能建立索引，查询的时间复杂度是 O(n)
+		 * 2.如果使用正常的select * from serviceInfo where url='' 在正式环境中，遍历的url数量会非常大，多次链接数据库查询会消耗更多的服务器资源，
+		 * 并且查询效率会受累于查询时的信息反馈，相比如放到内存中，效率会降低
+		 */
 		//获取所有服务信息列表（数据库）
 		List<ServiceInfo> list = serviceInfoDao.selectAll(new ServiceInfo());
 		//遍历所有传过来的url信息
@@ -550,6 +556,7 @@ public class CollectorServiceImpl implements ICollectorService{
 					temp = true;
 					break;
 				}else{
+					temp = false;
 					continue;
 				}
 			}
@@ -566,7 +573,7 @@ public class CollectorServiceImpl implements ICollectorService{
 					funservice.setIp(url.getHost());
 					funservice.setPort(url.getPort()+"");
 				}catch(Exception e){
-
+					e.printStackTrace();
 				}
 				funservice.setProtocol(protocol);
 				funservice.setUrl(key.getKey());

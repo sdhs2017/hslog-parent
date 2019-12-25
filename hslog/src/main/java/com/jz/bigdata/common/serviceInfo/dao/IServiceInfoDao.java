@@ -32,4 +32,6 @@ public interface IServiceInfoDao {
 	
 	ServiceInfo selectServiceById(@Param("id")String id);
 
+	int insertExists(ServiceInfo serviceInfo);
+
 }

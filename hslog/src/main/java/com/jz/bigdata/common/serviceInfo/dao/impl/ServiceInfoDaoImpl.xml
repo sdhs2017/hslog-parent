@@ -204,5 +204,14 @@
 		<include refid="Base_Column_List" />
 		from serviceInfo where id = #{id,jdbcType=VARCHAR}
 	</select>
+	<!-- 查询数据根据id -->
+	<insert id="insertExists" parameterType="com.jz.bigdata.common.serviceInfo.entity.ServiceInfo" >
+		insert serviceInfo (id, name, protocol, ip, port,url,relativeUrl,equipmentId,
+		complementState,createTime,state,serviceInfo.describe)
+		select #{id,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{protocol,jdbcType=VARCHAR}, #{ip,jdbcType=VARCHAR},#{port,jdbcType=VARCHAR}, #{url,jdbcType=VARCHAR},
+			#{relativeUrl,jdbcType=VARCHAR}, #{equipmentId,jdbcType=VARCHAR}, #{complementState,jdbcType=INTEGER}, #{createTime,jdbcType=VARCHAR},
+			#{state,jdbcType=INTEGER},#{describe,jdbcType=VARCHAR}
+			 where not exists (select url from serviceInfo where url= #{url,jdbcType=VARCHAR})
 
+	</insert>
 </mapper>

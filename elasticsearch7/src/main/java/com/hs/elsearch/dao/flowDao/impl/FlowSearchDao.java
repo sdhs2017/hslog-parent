@@ -6,15 +6,13 @@ import com.hs.elsearch.template.SearchTemplate;
 import org.apache.log4j.Logger;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.BucketOrder;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.metrics.Sum;
-import org.elasticsearch.search.aggregations.metrics.SumAggregationBuilder;
-import org.elasticsearch.search.aggregations.metrics.ValueCount;
-import org.elasticsearch.search.aggregations.metrics.ValueCountAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.*;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -164,6 +162,106 @@ public class FlowSearchDao implements IFlowSearchDao {
     }
 
     @Override
+    public List<List<Map<String, Object>>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size, Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
+
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey()+".raw", entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
+					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
+				}*/else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        AggregationBuilder aggregationBuilder = null;
+        for (String groupByField : groupByFields){
+            // 聚合条件处理
+            String count = groupByField+"_count";
+            // 聚合查询group by
+            if (aggregationBuilder==null){
+                aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size);
+            }else {
+                aggregationBuilder.subAggregation(AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size).subAggregation(AggregationBuilders.topHits("top").size(1)));
+            }
+
+        }
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+
+        Terms terms  = aggregations.get(groupByFields[0]+"_count");
+
+        List<List<Map<String, Object>>> list = new ArrayList<>();
+
+
+        for(Terms.Bucket bucket:terms.getBuckets()) {
+
+            Terms terms1 = (Terms) bucket.getAggregations().asMap().get(groupByFields[1]+"_count");
+            for(Terms.Bucket bucket2 : terms1.getBuckets()) {
+                List<Map<String,Object>> tmplist = new ArrayList<>();
+                TopHits topHits = bucket2.getAggregations().get("top");
+                for (SearchHit hit : topHits.getHits().getHits()) {
+                    Map<String,Object> source = new HashMap<>();
+                    source.put("name",hit.getSourceAsMap().get("src_addr_city").toString().replace("\"","\'"));
+                    String [] src_addr_locations =  hit.getSourceAsMap().get("src_addr_locations").toString().split(",");
+                    double [] value = new double[2];
+                    int j = 0;
+                    for (int i=src_addr_locations.length-1;i>=0;i--){
+                        value[j] = Double.parseDouble(src_addr_locations[i].toString());
+                        j++;
+                    }
+                    source.put("value",value);
+                    //source.put("count",bucket2.getDocCount());
+                    tmplist.add(source);
+                    Map<String,Object> dst = new HashMap<>();
+                    dst.put("name",hit.getSourceAsMap().get("dst_addr_city"));
+                    double [] value2 = new double[2];
+                    String [] dst_addr_locations = hit.getSourceAsMap().get("dst_addr_locations").toString().split(",");
+                    j = 0;
+                    for (int i=dst_addr_locations.length-1;i>=0;i--){
+                        value2[j] = Double.parseDouble(dst_addr_locations[i].toString());
+                        j++;
+                    }
+                    dst.put("value",value2);
+                    //dst.put("count",bucket2.getDocCount());
+                    tmplist.add(dst);
+                    //System.out.println("源地址："+hit.getSourceAsMap().get("src_addr_city")+" 源经纬度："+hit.getSourceAsMap().get("src_addr_locations")+"  目的地址："+hit.getSourceAsMap().get("dst_addr_city")+"  "+hit.getSourceAsMap().get("dst_addr_locations")+"");
+                }
+                list.add(tmplist);
+            }
+
+        }
+        return list;
+    }
+
+    @Override
     public List<Map<String, Object>> getListBySumOfAggregation(String[] types, String starttime, String endtime, String groupByField, String sumField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
@@ -219,7 +317,7 @@ public class FlowSearchDao implements IFlowSearchDao {
 
         for(Terms.Bucket bucket:terms.getBuckets()) {
             Sum sum = bucket.getAggregations().get("sum");
-            bucketmap.put(bucket.getKeyAsString(), sum.getValue());
+            bucketmap.put(bucket.getKeyAsString(), Math.round(sum.getValue()/1024));
         }
 
         list.add(bucketmap);
@@ -271,7 +369,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         if (aggregations!=null){
             Sum sum  = aggregations.get("agg");
             Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
-            bucketmap.put(sum.getName(), sum.getValue());
+            bucketmap.put(sum.getName(), Math.round(sum.getValue()/1024));
             list.add(bucketmap);
         }
 

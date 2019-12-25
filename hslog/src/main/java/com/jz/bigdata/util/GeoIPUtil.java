@@ -1,0 +1,133 @@
+package com.jz.bigdata.util;
+
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
+import com.maxmind.geoip2.record.City;
+import com.maxmind.geoip2.record.Country;
+import com.maxmind.geoip2.record.Location;
+import com.maxmind.geoip2.record.Subdivision;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+/**
+ * @program: hsgit
+ * @description: 服务于将IP地址转化为具体地址信息，包括国家、城市、经纬度等
+ * @author: jiyourui
+ * @create: 2019-12-23 14:07
+ **/
+public class GeoIPUtil {
+
+    private String country;
+    private String province;
+    private String city_name;
+    private String locations;
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getProvince() {
+        return province;
+    }
+
+    public void setProvince(String province) {
+        this.province = province;
+    }
+
+    public String getCity_name() {
+        return city_name;
+    }
+
+    public void setCity_name(String city_name) {
+        this.city_name = city_name;
+    }
+
+    public String getLocations() {
+        return locations;
+    }
+
+    public void setLocations(String locations) {
+        this.locations = locations;
+    }
+
+    public GeoIPUtil(String ip) throws IOException, GeoIp2Exception {
+        //GeoIP2-City 数据库文件D
+        //File database = new File("D:\\Computer_Science\\maxmind-geo\\GeoLite2-City_20191217\\GeoLite2-City.mmdb");
+        File database = new File("/home/elsearch/tmp/GeoLite2-City.mmdb");
+        // 创建 DatabaseReader对象
+        DatabaseReader reader = null;
+        try {
+            reader = new DatabaseReader.Builder(database).build();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        InetAddress ipAddress = null;
+        try {
+            ipAddress = InetAddress.getByName(ip);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        // 获取查询结果
+        CityResponse response = response = reader.city(ipAddress);
+
+        // 获取国家信息
+        Country country = response.getCountry();
+        /*System.out.println("国家code:"+country.getIsoCode());
+        System.out.println("国家:"+country.getNames().get("zh-CN"));*/
+
+        this.country = country.getNames().get("zh-CN");
+
+
+        // 获取省份
+        Subdivision subdivision = response.getMostSpecificSubdivision();
+        /*System.out.println("省份code:"+subdivision.getIsoCode());
+        System.out.println("省份:"+subdivision.getNames().get("zh-CN"));*/
+
+        this.province = subdivision.getNames().get("zh-CN");
+
+        //城市
+        City city = response.getCity();
+        /*System.out.println("城市code:"+city.getGeoNameId());
+        System.out.println("城市:"+city.getName());*/
+
+        // 当省份为直辖市时，city.getName()会触发空指针，将city设为省份名称
+        try {
+            this.city_name = city.getName();
+        }catch (Exception e){
+            this.city_name = subdivision.getNames().get("zh-CN");
+        }
+
+        // 获取城市
+        Location location = response.getLocation();
+        /*System.out.println("经度:"+location.getLatitude());
+        System.out.println("维度:"+location.getLongitude());*/
+
+        this.locations = location.getLatitude()+","+location.getLongitude();
+    }
+
+
+
+
+
+    public static void main(String[] args) {
+
+        GeoIPUtil util = null;
+        try {
+            util = new GeoIPUtil("172.21.0.205");
+        } catch (Exception e) {
+            //e.printStackTrace();
+        }
+
+        System.out.println("国家:"+util.getCountry()+"  省份:"+util.getProvince()+"  城市："+util.getCity_name()+"  经纬度："+util.getLocations());
+    }
+}

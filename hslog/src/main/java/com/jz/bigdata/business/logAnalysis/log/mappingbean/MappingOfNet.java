@@ -68,7 +68,7 @@ public class MappingOfNet {
 	 */
 	private String ipv4_dst_addr;
 	/**
-	 * 原地址
+	 * 源地址
 	 */
 	private String ipv4_src_addr;
 	/**
@@ -130,7 +130,46 @@ public class MappingOfNet {
 	 * 域名
 	 */
 	private String domain_url;
-	
+	/**
+	 * 数据包大小
+	 */
+	private Integer packet_length;
+	/**
+	 * 客户端信息
+	 */
+	private String user_agent;
+	/**
+	 * 客户端操作系统
+	 */
+	private String user_agent_os;
+	/**
+	 *  客户端浏览器
+	 */
+	private String user_agent_browser;
+	/**
+	 * 客户端浏览器版本
+	 */
+	private String user_agent_browser_version;
+	/**
+	 * 会话状态
+	 */
+	private String session_status;
+
+	/**
+	 * 目的地址详细信息
+	 */
+	private String dst_addr_country;
+	private String dst_addr_province;
+	private String dst_addr_city;
+	private String dst_addr_locations;
+	/**
+	 * 源地址
+	 */
+	private String src_addr_country;
+	private String src_addr_province;
+	private String src_addr_city;
+	private String src_addr_locations;
+
 	
 	public String getId() {
 		return id;
@@ -431,6 +470,117 @@ public class MappingOfNet {
 		this.domain_url = domain_url;
 	}
 
+	public Integer getPacket_length() {
+		return packet_length;
+	}
+
+	public void setPacket_length(Integer packet_length) {
+		this.packet_length = packet_length;
+	}
+
+	public String getUser_agent() {
+		return user_agent;
+	}
+
+	public void setUser_agent(String user_agent) {
+		this.user_agent = user_agent;
+	}
+
+	public String getUser_agent_os() {
+		return user_agent_os;
+	}
+
+	public void setUser_agent_os(String user_agent_os) {
+		this.user_agent_os = user_agent_os;
+	}
+
+	public String getUser_agent_browser() {
+		return user_agent_browser;
+	}
+
+	public void setUser_agent_browser(String user_agent_browser) {
+		this.user_agent_browser = user_agent_browser;
+	}
+
+	public String getUser_agent_browser_version() {
+		return user_agent_browser_version;
+	}
+
+	public void setUser_agent_browser_version(String user_agent_browser_version) {
+		this.user_agent_browser_version = user_agent_browser_version;
+	}
+
+	public String getSession_status() {
+		return session_status;
+	}
+
+	public void setSession_status(String session_status) {
+		this.session_status = session_status;
+	}
+
+	public String getDst_addr_country() {
+		return dst_addr_country;
+	}
+
+	public void setDst_addr_country(String dst_addr_country) {
+		this.dst_addr_country = dst_addr_country;
+	}
+
+	public String getDst_addr_province() {
+		return dst_addr_province;
+	}
+
+	public void setDst_addr_province(String dst_addr_province) {
+		this.dst_addr_province = dst_addr_province;
+	}
+
+	public String getDst_addr_city() {
+		return dst_addr_city;
+	}
+
+	public void setDst_addr_city(String dst_addr_city) {
+		this.dst_addr_city = dst_addr_city;
+	}
+
+	public String getDst_addr_locations() {
+		return dst_addr_locations;
+	}
+
+	public void setDst_addr_locations(String dst_addr_locations) {
+		this.dst_addr_locations = dst_addr_locations;
+	}
+
+	public String getSrc_addr_country() {
+		return src_addr_country;
+	}
+
+	public void setSrc_addr_country(String src_addr_country) {
+		this.src_addr_country = src_addr_country;
+	}
+
+	public String getSrc_addr_province() {
+		return src_addr_province;
+	}
+
+	public void setSrc_addr_province(String src_addr_province) {
+		this.src_addr_province = src_addr_province;
+	}
+
+	public String getSrc_addr_city() {
+		return src_addr_city;
+	}
+
+	public void setSrc_addr_city(String src_addr_city) {
+		this.src_addr_city = src_addr_city;
+	}
+
+	public String getSrc_addr_locations() {
+		return src_addr_locations;
+	}
+
+	public void setSrc_addr_locations(String src_addr_locations) {
+		this.src_addr_locations = src_addr_locations;
+	}
 
 	public String toMapping() {
 		String template = "{\n" + "\t\t\"properties\":{\n" + "\t\t{#}\n" + "\t\t\t\t}" + "}";

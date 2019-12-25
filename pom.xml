@@ -804,6 +804,18 @@
             <version>1.21</version>
         </dependency>
 
+        <!-- maxmind提供的免费GeoLite数据库可以使我们简单方便的对 全球ip 进行过定位 -->
+        <dependency>
+            <groupId>com.maxmind.geoip2</groupId>
+            <artifactId>geoip2</artifactId>
+            <version>2.13.0</version>
+        </dependency>
+
+        <!--<dependency>
+            <groupId>com.maxmind.db</groupId>
+            <artifactId>maxmind-db</artifactId>
+            <version>1.2.2</version>
+        </dependency>-->
 
         <dependency>
             <groupId>net.java.dev.jna</groupId>

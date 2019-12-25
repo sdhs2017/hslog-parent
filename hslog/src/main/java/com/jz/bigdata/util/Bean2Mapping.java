@@ -29,6 +29,8 @@ public class Bean2Mapping {
 				// 流量字段
 				"protocol","protocol_name","application_layer_protocol","encryption_based_protection_protocol","packet_source",
 				"l4_src_port","l4_dst_port","request_type","domain_url","complete_url","url_param","request_url","response_state",
+				"user_agent_os","user_agent_browser","session_status","dst_addr_country","dst_addr_province","dst_addr_city",
+				"src_addr_country","src_addr_province","src_addr_city",
 				// 防火墙字段
 				"from","devid","dname","logtype","mod","act","sa","da","pa",
 				// filebeat
@@ -43,7 +45,7 @@ public class Bean2Mapping {
 				"dns_view","dns_domain_name","dns_ana_type","dns_server",
 				// 流量包字段，包含http
 				"l4_src_port","l4_dst_port","protocol_name","application_layer_protocol","encryption_based_protection_protocol",
-				"packet_source","request_url","complete_url","url_param","domain_url",
+				"packet_source","request_url","complete_url","url_param","domain_url","user_agent_os","user_agent_browser","session_status",
 				// 防火墙
 				"act",
 				// filebeat
@@ -54,7 +56,12 @@ public class Bean2Mapping {
 				// ip
 				"client_ip","dns_clientip","ip","relay_ip","ipv4_src_addr","ipv4_dst_addr","from","sa","da","pa",
 				// url
-				"equipmentname","request_url","domain_url","url_param","complete_url"};
+				"equipmentname","request_url","domain_url","url_param","complete_url","protocol_name","application_layer_protocol","encryption_based_protection_protocol",
+				// user-agent
+				"user_agent_os","user_agent_browser","session_status",
+				"dst_addr_country","dst_addr_province","dst_addr_city",
+				"src_addr_country","src_addr_province","src_addr_city"
+		};
 		
 		// 获取class的所有属性进行遍历
 		Field[] fields = classes.getClass().getDeclaredFields();
@@ -111,7 +118,10 @@ public class Bean2Mapping {
 			// 针对id类型的字段设置为keyword
 			if (Arrays.asList(keywords).contains(name)) {
 				es = "keyword\"";
-			// 针对ip类型的字段设置为ip类型，新版本的elasticsearch数据类型增加了IP类型
+			// 针对坐标字段设置为geo_point
+			} else if (name.contains("_locations")){
+				es = "geo_point\"";
+				// 针对ip类型的字段设置为ip类型，新版本的elasticsearch数据类型增加了IP类型
 			} else if (name.contains("ip")&&!name.equals("equipmentname")&&!name.equals("equipmentid")) {
 				es = "ip\"";
 			}else {

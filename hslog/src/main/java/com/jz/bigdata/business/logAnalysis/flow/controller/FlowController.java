@@ -1452,7 +1452,7 @@ public class FlowController {
         multicastmap.put("multicast","ipv4_dst_addr");
         // 广播条件
         Map<String, String> broadcastmap = new HashMap<String, String>();
-        broadcastmap.put("broadcast","ipv4_src_addr,ipv4_src_addr");
+        broadcastmap.put("broadcast","ipv4_src_addr,ipv4_dst_addr");
         List<Map<String, Object>> multicastlist = new ArrayList<Map<String, Object>>();
         List<Map<String, Object>> broadcastlist = new ArrayList<Map<String, Object>>();
         int size =10;
@@ -1580,5 +1580,34 @@ public class FlowController {
             result.put("value",value);
         }
         return JSONArray.fromObject(result).toString();
+    }
+
+    /**
+     * @param request
+     * 地图
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getMap")
+    @DescribeLog(describe="地图")
+    public String getMap(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
+        String [] types = {"defaultpacket"};
+
+        List<List<Map<String, Object>>> list = new ArrayList<>();
+
+        int size =10;
+
+
+        try {
+            list = flowService.groupBy(index,types,groupfields,size,null,null,null);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
     }
 }

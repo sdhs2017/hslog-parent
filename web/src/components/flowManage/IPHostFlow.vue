@@ -58,7 +58,7 @@
                     baseConfig:{
                         title:'',
                         xAxisName:'源IP',
-                        yAxisName:'访问次数/次',
+                        yAxisName:'数据包长度/KB',
                         rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
                     },
@@ -78,7 +78,7 @@
                     baseConfig:{
                         title:'',
                         xAxisName:'目的IP',
-                        yAxisName:'访问次数/次',
+                        yAxisName:'数据包长度/KB',
                         rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
                     },

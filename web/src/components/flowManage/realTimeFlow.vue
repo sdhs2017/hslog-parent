@@ -123,7 +123,7 @@
                     baseConfig:{
                         title:'全局数据包个数',
                         xAxisName:'时间',
-                        yAxisName:'个数',
+                        yAxisName:'个数/个',
                         hoverText:'',
                     },
                     yAxisArr:[{
@@ -137,7 +137,7 @@
                     baseConfig:{
                         title:'全局实时流量',
                         xAxisName:'时间',
-                        yAxisName:'大小/b',
+                        yAxisName:'数据包长度/KB',
                         hoverText:'',
                     },
                     yAxisArr:[{
@@ -191,7 +191,7 @@
                         timeInterval:timeInterval
                     }))
                         .then(res=>{
-                            res.data[0].value[1] = res.data[0].value[1] / this.refreshIntTime / this.bandwidth;
+                            res.data[0].value[1] = res.data[0].value[1] * 8 * 1000 * 100 / this.refreshIntTime / this.bandwidth / 1024;
                             res.data[0].value[1] = res.data[0].value[1].toFixed(2);
                             if(this.allUsedData.yAxisArr[0].data.length < 60){
                                 this.allUsedData.yAxisArr[0].data.push(res.data[0])

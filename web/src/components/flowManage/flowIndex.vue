@@ -7,13 +7,13 @@
             <el-col :span="7" class="item-col">
                 <div class="item">
                     <div class="item-con">
-                        <div class="con-tit">标题</div>
+                        <div class="con-tit">资产（IP）数据包个数</div>
                         <div class="con">
                             <v-echarts echartType="bar" :echartData = "this.chartData1" ></v-echarts>
                         </div>
                     </div>
                     <div class="item-con ranking">
-                        <div class="con-tit">标题</div>
+                        <div class="con-tit">{{this.currentMouth }}月 URL 排行榜</div>
                         <div class="con">
                             <div class="ranking-head">
                                 <span class="order">#</span>
@@ -62,7 +62,7 @@
                         </div>
                     </div>
                     <div class="item-con">
-                        <div class="con-tit">标题</div>
+                        <div class="con-tit">目的端口总流量</div>
                         <div class="con">
                             <v-echarts echartType="pie" :echartData = "this.chartData3" ></v-echarts>
                         </div>
@@ -92,38 +92,33 @@
                 eData:[[{"name":"jinan","value":[120.3719,36.0986]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Hangzhou","value":[120.1619,30.294]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Singapore","value":[103.8547,1.2929]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Beijing","value":[116.3889,39.9288]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Tokyo","value":[139.7532,35.6882]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Mountain View","value":[-122.0748,37.4043]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Central","value":[114.15,22.2909]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Seattle","value":[-122.3451,47.6348]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Qingdao","value":[120.3694,36.066]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Ashburn","value":[-77.4728,39.0481]}],[{"name":"Hangzhou","value":[120.1619,30.294]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Mountain View","value":[-122.0748,37.4043]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Beijing","value":[116.3889,39.9288]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Singapore","value":[103.8547,1.2929]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Central","value":[114.15,22.2909]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Tokyo","value":[139.7532,35.6882]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Seattle","value":[-122.3451,47.6348]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Ashburn","value":[-77.4728,39.0481]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"San Francisco","value":[-122.4121,37.7506]},{"name":"jinan","value":[120.3719,36.0986]}]],
                 interTime:'',
                 timeInterval:5000,
+                //数据日期间隔
+                dataTime:3600,
                 fullscreen:false,
                 date:'',//日期
                 hour:'',//时
                 min:'',//分
                 sec:'',//秒
+                currentMouth:'',
                 flowCount:'',
                 chartData1:{
                     baseConfig:{
                         title:'',
-                        xAxisName:'',
-                        yAxisName:'',
+                        xAxisName:'资产\nIP',
+                        yAxisName:'数据包个数/个',
                         hoverText:'',
+                        rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
                     },
-                    xAxisArr:['08','09','10','11','12'],
-                    yAxisArr:[123,333,234,90,200]
+                    xAxisArr:[],
+                    yAxisArr:[]
                 },
-                rankingData:[
-                    {val:'192.168.2.1',num:'3369'},
-                    {val:'10.2.2.20',num:'3300'},
-                    {val:'192.168.2.152',num:'2020'},
-                    {val:'135.36.120.2',num:'1988'},
-                    {val:'135.36.120.10',num:'555'},
-                    {val:'192.168.2.182',num:'242'},
-                    {val:'192.168.2.181',num:'120'}
-
-                ],
+                rankingData:[],
                 chartData2:{
                     baseConfig:{
                         title:'',
                         xAxisName:'时间',
-                        yAxisName:'大小/b',
+                        yAxisName:'数据包长度/KB',
                         hoverText:'',
                     },
                     yAxisArr:[{
@@ -140,14 +135,7 @@
                         hoverText:'',
                     },
                     xAxisArr:[],
-                    yAxisArr:[
-                        {name:'s1',value:78},
-                        {name:'d2',value:48},
-                        {name:'tc',value:50},
-                        {name:'hz',value:10},
-                        {name:'op',value:100},
-                        {name:'m2',value:23}
-                    ]
+                    yAxisArr:[]
                 }
             }
         },
@@ -168,13 +156,28 @@
 
         },
         mounted(){
+            //设置地球
             this.setEarth();
+            //获取流量数
             this.getFlowCount();
-            let time = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            this.getDataByTime(this.timeInterval/1000)
+            //获取实时流量大小
+            this.getDataByTime(this.timeInterval/1000);
+            //获取资产ip数据
+            this.getIpPacketsData(this.dataTime);
+            //获取目的端口数据
+            this.getTargetPortFlowData(this.dataTime);
+            //获取应用画像排行榜
+            let endTime = dateFormat('yyyy-mm-dd',new Date());
+            let ta = endTime.split('-');
+            let startTime = ta[0]+'-'+ta[1]+'-01';
+            this.currentMouth = ta[1];
+            this.getRanklingData(startTime,endTime)
+            //定时器
             this.interTime = setInterval(()=>{
                 this.getFlowCount();
-                this.getDataByTime(this.timeInterval/1000)
+                this.getDataByTime(this.timeInterval/1000);
+                this.getIpPacketsData(this.dataTime);
+                this.getTargetPortFlowData(this.dataTime);
             },this.timeInterval);
         },
         methods:{
@@ -382,7 +385,7 @@
             setEarth2(){
                 this.$nextTick(()=>{
                     layer.load(1);
-                    this.$axios.get('/static/filejson/data.json','')
+                    this.$axios.get(this.$baseUrl+'/flow/getMap.do','')
                         .then(res=>{
                             layer.closeAll('loading');
                             /*let earthData = [
@@ -398,7 +401,6 @@
                             var series = [];// 3D飞线
                             var dser = [];  // 2D散点坐标
                             earthData.forEach(function(item, i) {
-                                console.log(item)
                                 dser.push({
                                     type: 'effectScatter',
                                     coordinateSystem: 'geo',
@@ -565,7 +567,7 @@
                         })
                 })
             },
-            /*获取数据-动态实时*/
+            /*获取流量数据-动态实时*/
             getDataByTime(timeInterval){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
@@ -599,6 +601,98 @@
                         value:[time, Math.round(value)]
                     })
                 }*/
+            },
+            /*获取资产ip数据*/
+            getIpPacketsData(dataTime){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/flow/getDstIPPacketCount.do',this.$qs.stringify({
+                        timeInterval:dataTime
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            let xns1 = [];
+                            let yvs1 = [];
+                            let yvs2 = [];
+                            for(let i in res.data){
+                                let obj = res.data[i];
+                                for (let j in obj){
+                                    xns1.push(j);
+                                    yvs1.push(obj[j])
+                                    yvs2.push({
+                                        name:j,
+                                        value:obj[j]
+                                    })
+                                }
+                            }
+                            this.chartData1.xAxisArr = xns1;
+                            this.chartData1.yAxisArr = yvs1;
+                            //this.ipPacketsData2.yAxisArr = yvs2;
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
+            },
+            /*获取目的端口总流量*/
+            getTargetPortFlowData(dataTime){
+                this.$nextTick(()=>{
+
+                    this.$axios.post(this.$baseUrl+'/flow/getDstPortCount.do',this.$qs.stringify({
+                        timeInterval:dataTime
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            let xns1 = [];
+                            let yvs1 = [];
+                            let yvs2 = [];
+                            for(let i in res.data){
+                                let obj = res.data[i];
+                                for (let j in obj){
+                                    xns1.push(j);
+                                    yvs1.push(obj[j]);
+                                    yvs2.push({
+                                        name:j,
+                                        value:obj[j]
+                                    })
+                                }
+                            }
+                            /*this.targetPortFlowData.xAxisArr = xns1;
+                            this.targetPortFlowData.yAxisArr = yvs1;*/
+                            this.chartData3.yAxisArr = yvs2;
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
+            },
+            /*获取应用画像数据*/
+            getRanklingData(startTime,endTime){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/flow/getCountGroupByUrl.do',this.$qs.stringify({
+                        application_layer_protocol:'',
+                        ipv4_dst_addr:'',
+                        startTime:startTime,
+                        endTime:endTime
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            let arr = [];
+                            res.data.forEach((item)=>{
+                                let obj = {};
+                                obj.val=item.domain_url;
+                                obj.num = item.count;
+                                arr.push(obj);
+                            })
+                            this.rankingData = arr;
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
             }
         },
         beforeDestroy(){

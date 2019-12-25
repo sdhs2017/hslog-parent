@@ -73,7 +73,7 @@
                     baseConfig:{
                         title:'',
                         xAxisName:'传输层\n协议',
-                        yAxisName:'字节/b',
+                        yAxisName:'数据包长度/KB',
                         rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
                     },
@@ -93,7 +93,7 @@
                     baseConfig:{
                         title:'',
                         xAxisName:'应用层\n协议',
-                        yAxisName:'字节/b',
+                        yAxisName:'数据包长度/KB',
                         rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
                     },
@@ -113,7 +113,7 @@
                     baseConfig:{
                         title:'',
                         xAxisName:'协议',
-                        yAxisName:'字节/b',
+                        yAxisName:'数据包长度/KB',
                         rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
                     },

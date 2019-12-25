@@ -135,7 +135,7 @@
                         endTime:timeArr[1]
                     }))
                         .then(res=>{
-                            layer.closeAll();
+                            layer.closeAll('loading');
                             let arr = [];
                             res.data.forEach((item)=>{
                                 let obj = {};
@@ -146,7 +146,7 @@
                             this.rankingData = arr;
                         })
                         .catch(err=>{
-                            layer.closeAll()
+                            layer.closeAll('loading')
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })

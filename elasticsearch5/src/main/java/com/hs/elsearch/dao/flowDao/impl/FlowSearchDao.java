@@ -203,7 +203,10 @@ public class FlowSearchDao implements IFlowSearchDao {
 
         for(Terms.Bucket bucket:terms.getBuckets()) {
             Sum sum = bucket.getAggregations().get("sum");
-            bucketmap.put(bucket.getKeyAsString(), sum.getValue());
+            //bucketmap.put(bucket.getKeyAsString(), sum.getValue());原版本
+            //流量单位由Byte转为KB，并取整。
+            //TODO 冀有瑞
+            bucketmap.put(bucket.getKeyAsString(), Math.round(sum.getValue()/1024));
         }
 
         list.add(bucketmap);
@@ -251,7 +254,10 @@ public class FlowSearchDao implements IFlowSearchDao {
         if (aggregations!=null){
             Sum sum  = aggregations.get("agg");
             Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
-            bucketmap.put(sum.getName(), sum.getValue());
+            //bucketmap.put(sum.getName(), sum.getValue()); //原版本
+            //流量单位由Byte转为KB，并取整。
+            //TODO 冀有瑞
+            bucketmap.put(sum.getName(), Math.round(sum.getValue()/1024));
             list.add(bucketmap);
         }
 

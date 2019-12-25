@@ -20,7 +20,7 @@
                 </el-row>
             </div>
             <div class="echarts-item">
-                <p class="echarts-tit">资产（域名）数据包个数</p>
+                <p class="echarts-tit">资产（服务）数据包个数</p>
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
@@ -50,9 +50,9 @@
             return {
                 interTime:'',
                 //刷新时间间隔
-                refreshIntTime :'10000',
+                refreshIntTime :'5000',
                 //数据日期间隔
-                dataTime:1,
+                dataTime:3600,
                 //资产（ip）数据包个数
                 ipPacketsData:{
                     baseConfig:{
@@ -77,7 +77,7 @@
                 domainPacketsData:{
                     baseConfig:{
                         title:'',
-                        xAxisName:'资产(域名)',
+                        xAxisName:'资产(服务)',
                         yAxisName:'数据包/个',
                         rotate:'10',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
@@ -98,17 +98,14 @@
         created(){
             /*监听刷新时间改变*/
             bus.$on('equipmentFlowRefreshBus',(val)=>{
-                    this.refreshIntTime = val;
-                    clearInterval(this.interTime);
-                    this.interTime = setInterval(()=>{
-                        let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                        let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                        let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                        /*获取资产（ip）数据包个数*/
-                        this.getIpPacketsData(starttime,endtime);
-                        /*获取资产（域名）数据包个数*/
-                        this.getDomainPacketsData(starttime,endtime);
-                    },this.refreshIntTime);
+                this.refreshIntTime = val;
+                clearInterval(this.interTime);
+                this.interTime = setInterval(()=>{
+                    /*获取资产（ip）数据包个数*/
+                    this.getIpPacketsData(this.dataTime);
+                    /*获取资产（域名）数据包个数*/
+                    this.getDomainPacketsData(this.dataTime);
+                },this.refreshIntTime);
             })
             /*监听数据时间改变*/
             bus.$on('equipmentFlowDataBus',(val)=>{
@@ -118,32 +115,24 @@
         },
         mounted(){
             //第一次获取数据
-            let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-            let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
             /*获取资产（ip）数据包个数*/
-            this.getIpPacketsData(starttime,endtime);
+            this.getIpPacketsData(this.dataTime);
             /*获取资产（域名）数据包个数*/
-            this.getDomainPacketsData(starttime,endtime);
+            this.getDomainPacketsData(this.dataTime);
             /*循环获取数据*/
             this.interTime = setInterval(()=>{
-                    let endtime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-                    let st = new Date(new Date(endtime).valueOf() - this.dataTime * 60 * 60 * 1000);
-                    let starttime = dateFormat('yyyy-mm-dd HH:MM:SS',st);
-                    /*获取资产（ip）数据包个数*/
-                    this.getIpPacketsData(starttime,endtime);
-                    /*获取资产（域名）数据包个数*/
-                    this.getDomainPacketsData(starttime,endtime);
+                /*获取资产（ip）数据包个数*/
+                this.getIpPacketsData(this.dataTime);
+                /*获取资产（域名）数据包个数*/
+                this.getDomainPacketsData(this.dataTime);
             },this.refreshIntTime);
         },
         methods:{
             /*获取资产（ip）数据包个数*/
-            getIpPacketsData(starttime,endtime){
+            getIpPacketsData(dataTime){
                 this.$nextTick(()=>{
-
                     this.$axios.post(this.$baseUrl+'/flow/getDstIPPacketCount.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -172,12 +161,10 @@
                 })
             },
             /*获取资产（域名）数据包个数*/
-            getDomainPacketsData(starttime,endtime){
+            getDomainPacketsData(dataTime){
                 this.$nextTick(()=>{
-
                     this.$axios.post(this.$baseUrl+'/flow/getDstUrlPacketCount.do',this.$qs.stringify({
-                        starttime:starttime,
-                        endtime:endtime
+                        timeInterval:dataTime
                     }))
                         .then(res=>{
                             layer.closeAll('loading');

@@ -2,7 +2,7 @@
     <div class="login-wrap">
         <div class="ms-login">
             <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>
-            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
+            <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
                     <el-input v-model="ruleForm.phone" placeholder="账号">
                         <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
@@ -14,7 +14,7 @@
                     </el-input>
                 </el-form-item>
                 <div class="login-btn">
-                    <el-button type="primary" @click="login">登录</el-button>
+                    <el-button type="primary" native-type="submit" @click="login">登录</el-button>
                 </div>
                 <p><router-link class="go-register" to="/resigter">没有账号？点击注册</router-link></p>
                 <p class="gengxin" @click="uploadCertificate">证书更新</p>
@@ -30,7 +30,7 @@
                 <el-button @click="certificate = false">取 消</el-button>
             </div>
         </el-dialog>
-        <div style="position:relative;z-index: 0;width: 100vw;height: 100vh;">
+        <div style="position:relative;z-index: 0;width: 100vw;height: 100vh;" v-if="!warningState">
             <vue-canvas-nest :config = "{color:'255,255,255',pointColor:'255,255,255',count:50,zIndex:0,opacity:1}" ></vue-canvas-nest>
         </div>
         <div class="warning-wapper" v-if="warningState">
@@ -137,12 +137,10 @@
                     offset: '50px'
                 });
                 this.$nextTick(()=>{
-                    this.$axios.get(this.$baseUrl+'/user/login.do',{
-                        params:{
-                            phone: this.ruleForm.phone,
-                            password:  this.ruleForm.password
-                        }
-                    })
+                    this.$axios.post(this.$baseUrl+'/user/login.do',this.$qs.stringify({
+                        phone: this.ruleForm.phone,
+                        password:  this.ruleForm.password
+                    }))
                         .then((res) => {
                             //关闭进度条
                             layer.close(index1);

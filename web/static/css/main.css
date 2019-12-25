@@ -16,7 +16,7 @@ html{
     min-width: 1366px;
     /*overflow: auto;*/
     overflow-y: hidden;
-    background: url("/static/img/bg2.png");
+    /*background: url("/static/img/bg2.png");*/
     background-size: 100% 100%;
 }
 body {

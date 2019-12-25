@@ -1581,4 +1581,33 @@ public class FlowController {
         }
         return JSONArray.fromObject(result).toString();
     }
+
+    /**
+     * @param request
+     * 地图
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getMap")
+    @DescribeLog(describe="地图")
+    public String getMap(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
+        String [] types = {"defaultpacket"};
+
+        List<List<Map<String, Object>>> list = new ArrayList<>();
+
+        int size =10;
+
+
+        try {
+            list = flowService.groupBy(index,types,groupfields,size,null,null,null);
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
 }

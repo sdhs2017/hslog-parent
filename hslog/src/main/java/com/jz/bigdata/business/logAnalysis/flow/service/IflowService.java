@@ -28,6 +28,19 @@ public interface IflowService {
      */
     public List<Map<String, Object>> groupBy(String index,String[] types,String groupByField, int size, String starttime, String endtime,Map<String, String> map) throws Exception;
 
+    /**
+     * 新
+     * 实现类sql的group by功能,包含时间范围、条件等
+     * @param index 索引名称
+     * @param types index 的 type字段，在7版本中移除
+     * @param groupByFields 需要进行聚合的字段,数组
+     * @param size 聚合结果最大返回数
+     * @param starttime 时间范围-开始时间
+     * @param endtime 时间范围-结束时间
+     * @param map 其他限制条件
+     * @return
+     */
+    public List<List<Map<String, Object>>> groupBy(String index,String[] types,String[] groupByFields, int size, String starttime, String endtime,Map<String, String> map) throws Exception;
 
     /**
      * 新

@@ -6,6 +6,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.jz.bigdata.util.GeoIPUtil;
 import org.pcap4j.core.PcapPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
@@ -134,6 +135,21 @@ public class DefaultPacket {
 	private String user_agent_browser;  // 客户端浏览器
 	private String user_agent_browser_version; // 客户端浏览器版本
 	private String session_status; // 会话状态
+
+	/**
+	 * 目的地址详细信息
+	 */
+	private String dst_addr_country; // 国家
+	private String dst_addr_province; // 省份
+	private String dst_addr_city; // 城市
+	private String dst_addr_locations; // 经纬度
+	/**
+	 * 源地址
+	 */
+	private String src_addr_country;// 国家
+	private String src_addr_province;// 省份
+	private String src_addr_city;// 城市
+	private String src_addr_locations;// 经纬度
 
 	public String getId() {
 		return id;
@@ -443,6 +459,40 @@ public class DefaultPacket {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		this.logdate = Date.from(packet.getTimestamp());
 		this.logtime = format.format(this.logdate);
+		this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
+		this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
+
+		if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
+			try {
+				GeoIPUtil util = new GeoIPUtil(this.ipv4_dst_addr);
+				this.dst_addr_country = util.getCountry();
+				this.dst_addr_province = util.getProvince();
+				this.dst_addr_city = util.getCity_name();
+				this.dst_addr_locations = util.getLocations();
+			}catch (Exception e){
+				this.dst_addr_country = "中国";
+				this.dst_addr_province = "山东";
+				this.dst_addr_city = "jinan";
+				this.dst_addr_locations = "36.0986,120.3719";
+			}
+
+		}
+
+		if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
+			try {
+				GeoIPUtil util = new GeoIPUtil(this.ipv4_src_addr);
+				this.src_addr_country = util.getCountry();
+				this.src_addr_province = util.getProvince();
+				this.src_addr_city = util.getCity_name();
+				this.src_addr_locations = util.getLocations();
+			}catch (Exception e){
+				this.src_addr_country = "中国";
+				this.src_addr_province = "山东";
+				this.src_addr_city = "jinan";
+				this.src_addr_locations = "36.0986,120.3719";
+			}
+
+		}
 
 		// 通过ipv4数据包中的协议值来选择解析数据包的协议方法
 		if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
@@ -491,8 +541,6 @@ public class DefaultPacket {
 			this.session_status = builder.toString();
 
 			this.packet_length = tcppacket.getPayload().getRawData().length;
-			this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
-			this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
 			this.l4_dst_port = tcppacket.getHeader().getDstPort().valueAsInt()+"";
 			this.l4_src_port = tcppacket.getHeader().getSrcPort().valueAsInt()+"";
 			
@@ -519,8 +567,6 @@ public class DefaultPacket {
 			
 		}else if (ip4packet.getHeader().getProtocol().toString().contains("UDP")) {
 			UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
-			this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
-			this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
 			this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
 			this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
 			
@@ -529,9 +575,7 @@ public class DefaultPacket {
 			this.payload = udpPacket.getPayload().toString();
 			
 		}else if (ip4packet.getHeader().getProtocol().toString().contains("ICMPv4")) {
-			this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
-			this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
-			
+
 			this.protocol="1";
 			this.protocol_name="ICMPv4";
 			//this.payload = udpPacket.getPayload().toString();

@@ -248,6 +248,7 @@ public class SearchTemplate {
             map.put("index", hit.getIndex());
             map.put("type", hit.getType());
             map.put("id", hit.getId());
+            map.remove("payload");//payload数据量太大，影响请求响应速度。
             // 处理高亮字段
             Map<String, HighlightField> highlightFields = hit.getHighlightFields();
             for(Map.Entry<String, HighlightField> entry : highlightFields.entrySet()){
@@ -260,6 +261,7 @@ public class SearchTemplate {
                     map.put(entry.getKey(),name);
                 }
             }
+
             list.add(map);
         }
         return list;

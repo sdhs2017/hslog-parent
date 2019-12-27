@@ -210,7 +210,20 @@ public class GeoIPUtil {
         msg.setCountryCode(country.getIsoCode());
         msg.setProvinceName(subdivision.getNames().get("zh-CN"));
         msg.setProvinceCode(subdivision.getIsoCode());
-        msg.setCityName(city.getNames().get("zh-CN"));
+        if (msg.getProvinceName()!=null){
+            if (msg.getProvinceName().contains("北京")){
+                msg.setCityName("beijing");
+            }else if (msg.getProvinceName().contains("天津")){
+                msg.setCityName("tianjin");
+            }else if(msg.getProvinceName().contains("重庆")){
+                msg.setCityName("chongqing");
+            }else if(msg.getProvinceName().contains("上海")){
+                msg.setCityName("shanghai");
+            }else{
+                msg.setCityName(city.getName());
+            }
+        }
+
         msg.setPostalCode(postal.getCode());
         //经度
         msg.setLongitude(location.getLongitude());
@@ -235,14 +248,14 @@ public class GeoIPUtil {
             e.printStackTrace();
         }*/
 
-        /*GeoIPUtil util = null;
+        GeoIPUtil util = null;
         try {
-            util = new GeoIPUtil("58.56.34.74");
+            util = new GeoIPUtil("219.146.1.66");
         } catch (Exception e) {
             //e.printStackTrace();
         }
 
-        System.out.println("国家:"+util.getCountry()+"  省份:"+util.getProvince()+"  城市："+util.getCity_name()+"  经纬度："+util.getLocations());*/
+        System.out.println("国家:"+util.getCountry()+"  省份:"+util.getProvince()+"  城市："+util.getCity_name()+"  经纬度："+util.getLocations());
 
     }
 }

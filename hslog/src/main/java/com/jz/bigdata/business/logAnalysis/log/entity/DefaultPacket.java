@@ -491,7 +491,7 @@ public class DefaultPacket {
 				this.dst_addr_country = "中国";
 				this.dst_addr_province = "山东";
 				this.dst_addr_city = "jinan";
-				this.dst_addr_locations = "36.0986,120.3719";
+				this.dst_addr_locations = "36.4006,117.0113";
 			}
 
 		}
@@ -527,7 +527,7 @@ public class DefaultPacket {
 				this.src_addr_country = "中国";
 				this.src_addr_province = "山东";
 				this.src_addr_city = "jinan";
-				this.src_addr_locations = "36.0986,120.3719";
+				this.src_addr_locations = "36.4006,117.0113";
 			}
 
 		}

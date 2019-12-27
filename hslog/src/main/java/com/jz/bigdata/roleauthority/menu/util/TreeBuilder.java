@@ -100,7 +100,7 @@ public class TreeBuilder {
 				return 0; // 相等为0
 			}
 		});
-		System.out.println(rootNo.toString());
+		//System.out.println(rootNo.toString());
 		return rootNo;
 	}
 

@@ -462,13 +462,31 @@ public class DefaultPacket {
 		this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
 		this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
 
-		if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
+		/*if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
 			try {
 				GeoIPUtil util = new GeoIPUtil(this.ipv4_dst_addr);
 				this.dst_addr_country = util.getCountry();
 				this.dst_addr_province = util.getProvince();
 				this.dst_addr_city = util.getCity_name();
 				this.dst_addr_locations = util.getLocations();
+
+			}catch (Exception e){
+				this.dst_addr_country = "中国";
+				this.dst_addr_province = "山东";
+				this.dst_addr_city = "jinan";
+				this.dst_addr_locations = "36.0986,120.3719";
+			}
+
+		}*/
+
+		if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
+			try {
+				this.dst_addr_country = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getCountryName();
+				this.dst_addr_province = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getProvinceName();
+				this.dst_addr_city = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getCityName();
+				if (GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getLocations()!=null){
+					this.dst_addr_locations = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getLocations();
+				}
 			}catch (Exception e){
 				this.dst_addr_country = "中国";
 				this.dst_addr_province = "山东";
@@ -478,7 +496,7 @@ public class DefaultPacket {
 
 		}
 
-		if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
+		/*if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
 			try {
 				GeoIPUtil util = new GeoIPUtil(this.ipv4_src_addr);
 				this.src_addr_country = util.getCountry();
@@ -486,6 +504,26 @@ public class DefaultPacket {
 				this.src_addr_city = util.getCity_name();
 				this.src_addr_locations = util.getLocations();
 			}catch (Exception e){
+				//e.printStackTrace();
+				this.src_addr_country = "中国";
+				this.src_addr_province = "山东";
+				this.src_addr_city = "jinan";
+				this.src_addr_locations = "36.0986,120.3719";
+			}
+
+		}*/
+
+		if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
+			try {
+				this.src_addr_country = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getCountryName();
+				this.src_addr_province = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getProvinceName();
+				this.src_addr_city = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getCityName();
+				if (GeoIPUtil.getIPMsg(this.ipv4_src_addr).getLocations()!=null){
+					this.src_addr_locations = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getLocations();
+				}
+
+			}catch (Exception e){
+				//e.printStackTrace();
 				this.src_addr_country = "中国";
 				this.src_addr_province = "山东";
 				this.src_addr_city = "jinan";

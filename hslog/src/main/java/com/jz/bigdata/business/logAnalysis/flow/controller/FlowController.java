@@ -1452,7 +1452,7 @@ public class FlowController {
         multicastmap.put("multicast","ipv4_dst_addr");
         // 广播条件
         Map<String, String> broadcastmap = new HashMap<String, String>();
-        broadcastmap.put("broadcast","ipv4_src_addr,ipv4_dst_addr");
+        broadcastmap.put("broadcast","ipv4_src_addr.raw,ipv4_dst_addr.raw");
         List<Map<String, Object>> multicastlist = new ArrayList<Map<String, Object>>();
         List<Map<String, Object>> broadcastlist = new ArrayList<Map<String, Object>>();
         int size =10;

@@ -79,6 +79,7 @@ public class PacketStream {
 				String dst_port = tcpPacket.getHeader().getDstPort().valueAsString();
 				if (tcpPacket.getPayload()!=null) {
 					String payloadString = tcpPacket.getPayload().toString().substring(tcpPacket.getPayload().toString().indexOf(":")+1).trim();
+					System.out.println("--------------------"+payloadString+"------------------");
 					if ((getSubUtil(hexStringToString(payloadString), httpRequest)!=""||getSubUtil(hexStringToString(payloadString), httpResponse)!="")&&!dst_port.equals("9300")) {
 						try {
 							http =new Http(packet);
@@ -105,16 +106,6 @@ public class PacketStream {
 						if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
 							defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
 						}
-						// 172.16.0.233 过滤与192.168.2.182 9300端口的交互数据
-						/*if (defaultpacket.getProtocol_name().equals("TCP")) {
-							if ((defaultpacket.getIpv4_dst_addr().equals("192.168.2.182")&&defaultpacket.getL4_dst_port().equals("9300"))||(defaultpacket.getIpv4_src_addr().equals("192.168.2.182")&&defaultpacket.getL4_src_port().equals("9300"))) {
-								System.out.println("该数据不入库");
-								logger.info("-----------tcp协议 中过滤本机与192.168.2.182:9300的交互数据----------");
-							}
-						}else {
-							json = gson.toJson(defaultpacket);
-							requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-						}*/
 						json = gson.toJson(defaultpacket);
 						//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 						//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
@@ -128,15 +119,6 @@ public class PacketStream {
 				if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
 					defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
 				}
-				/*if (defaultpacket.getProtocol_name().equals("TCP")) {
-					if ((defaultpacket.getIpv4_dst_addr().equals("192.168.2.182")&&defaultpacket.getL4_dst_port().equals("9300"))||(defaultpacket.getIpv4_src_addr().equals("192.168.2.182")&&defaultpacket.getL4_src_port().equals("9300"))) {
-						System.out.println("该数据不入库");
-						logger.info("-----------tcp协议 中过滤本机与192.168.2.182:9300的交互数据----------");
-					}
-				}else {
-					json = gson.toJson(defaultpacket);
-					requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-				}*/
 				json = gson.toJson(defaultpacket);
 				//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 				requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
@@ -153,7 +135,21 @@ public class PacketStream {
 				}
 				
 			}
-		} catch (Exception e) {
+		} catch (NumberFormatException ee){
+            defaultpacket = new DefaultPacket(packet);
+            defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
+            defaultpacket.setOperation_des("异常playload");
+            if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
+                defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
+            }
+            json = gson.toJson(defaultpacket);
+            try {
+                requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        } catch (Exception e) {
 			//logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());
 			e.printStackTrace();
 		}

@@ -14,6 +14,7 @@ import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
  */
 public interface IServiceInfoDao {
 	int insert(List<ServiceInfo> list);
+	int insertIgnore(List<ServiceInfo> list);
 
 	List<ServiceInfo> selectAll(ServiceInfo serviceInfo);
 

@@ -38,6 +38,15 @@ public class ServiceInfoServiceImpl implements IServiceInfoService {
 	public int insert(List<ServiceInfo> list) {
 		return serviceInfoDao.insert(list);
 	}
+	/**
+	 * @param 要添加的数据list
+	 * @return 插入的行数
+	 * @description 通过ignore方式插入数据
+	 */
+	@Override
+	public int insertIgnore(List<ServiceInfo> list) {
+		return serviceInfoDao.insertIgnore(list);
+	}
 
 	/**
 	 * @param service

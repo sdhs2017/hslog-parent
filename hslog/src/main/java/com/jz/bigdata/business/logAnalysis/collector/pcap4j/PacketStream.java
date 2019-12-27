@@ -202,6 +202,7 @@ public class PacketStream {
  	 * @return
  	 */
  	public static String hexStringToString(String s) {
+
  	    if (s == null || s.equals("")) {
  	        return null;
  	    }

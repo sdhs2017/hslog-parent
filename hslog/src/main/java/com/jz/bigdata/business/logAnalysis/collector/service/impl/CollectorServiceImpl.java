@@ -538,53 +538,32 @@ public class CollectorServiceImpl implements ICollectorService{
 		Map<String, String> tmpurlmap = new HashMap<String, String>();
 		tmpurlmap.putAll(urlmap);
 		urlmap.clear();
-		//判断数据库中是否有重复数据的状态位
-		boolean temp = false;
-		/*
-		 *这里如果使用遍历url，每次查询数据库的方式。
-		 * 1.首先排除使用exists方式，url是唯一的，不能建立索引，查询的时间复杂度是 O(n)
-		 * 2.如果使用正常的select * from serviceInfo where url='' 在正式环境中，遍历的url数量会非常大，多次链接数据库查询会消耗更多的服务器资源，
-		 * 并且查询效率会受累于查询时的信息反馈，相比如放到内存中，效率会降低
-		 */
-		//获取所有服务信息列表（数据库）
-		List<ServiceInfo> list = serviceInfoDao.selectAll(new ServiceInfo());
+
 		//遍历所有传过来的url信息
 		for(Entry<String, String> key : tmpurlmap.entrySet()) {
-			//遍历所有数据库中的信息，如果不存在，插入数据库中
-			for(ServiceInfo s:list){
-				if(s.getUrl().equals(key.getKey())){
-					temp = true;
-					break;
-				}else{
-					temp = false;
-					continue;
-				}
+			ServiceInfo funservice = new  ServiceInfo();
+			String protocol = getSubUtilSimple(key.getKey(), "^(.*?)[://]");
+			String relativeUrl = getSubUtilSimple(key.getKey(), "[:][0-9]{1,5}(.*?)$");
+			funservice.setId(Uuid.getUUID());
+			funservice.setCreateTime(format.format(new Date()));
+			try{
+				URI url = new URI(key.getKey());
+				//funservice.setEquipmentId(equipment.getId());
+				funservice.setIp(url.getHost());
+				funservice.setPort(url.getPort()+"");
+			}catch(Exception e){
+				e.printStackTrace();
 			}
-			//如果没有重复，插入数据库中
-			if(!temp){
-				ServiceInfo funservice = new  ServiceInfo();
-				String protocol = getSubUtilSimple(key.getKey(), "^(.*?)[://]");
-				String relativeUrl = getSubUtilSimple(key.getKey(), "[:][0-9]{1,5}(.*?)$");
-				funservice.setId(Uuid.getUUID());
-				funservice.setCreateTime(format.format(new Date()));
-				try{
-					URI url = new URI(key.getKey());
-					//funservice.setEquipmentId(equipment.getId());
-					funservice.setIp(url.getHost());
-					funservice.setPort(url.getPort()+"");
-				}catch(Exception e){
-					e.printStackTrace();
-				}
-				funservice.setProtocol(protocol);
-				funservice.setUrl(key.getKey());
-				funservice.setRelativeUrl(relativeUrl);
-				funservice.setState(1);
-				serviceslist.add(funservice);
-			}
+			funservice.setProtocol(protocol);
+			funservice.setUrl(key.getKey());
+			funservice.setRelativeUrl(relativeUrl);
+			funservice.setState(1);
+			serviceslist.add(funservice);
 		}
 		//数据为空时，插入数据会报错
 		if(serviceslist.size()>0){
-			serviceInfoService.insert(serviceslist);
+			//返回插入的条数
+			int count = serviceInfoService.insertIgnore(serviceslist);
 		}
 	}
 	/**

@@ -214,4 +214,14 @@
 			 where not exists (select url from serviceInfo where url= #{url,jdbcType=VARCHAR})
 
 	</insert>
+	<insert id="insertIgnore" parameterType="java.util.List" >
+		insert ignore into serviceInfo (id, name, protocol, ip, port,url,relativeUrl,equipmentId,
+		complementState,createTime,state,serviceInfo.describe)
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id}, #{item.name}, #{item.protocol}, #{item.ip},#{item.port}, #{item.url},
+			#{item.relativeUrl}, #{item.equipmentId}, #{item.complementState}, #{item.createTime},
+			#{item.state},#{item.describe})
+		</foreach>
+	</insert>
 </mapper>

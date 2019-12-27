@@ -79,7 +79,6 @@ public class PacketStream {
 				String dst_port = tcpPacket.getHeader().getDstPort().valueAsString();
 				if (tcpPacket.getPayload()!=null) {
 					String payloadString = tcpPacket.getPayload().toString().substring(tcpPacket.getPayload().toString().indexOf(":")+1).trim();
-					System.out.println("--------------------"+payloadString+"------------------");
 					if ((getSubUtil(hexStringToString(payloadString), httpRequest)!=""||getSubUtil(hexStringToString(payloadString), httpResponse)!="")&&!dst_port.equals("9300")) {
 						try {
 							http =new Http(packet);

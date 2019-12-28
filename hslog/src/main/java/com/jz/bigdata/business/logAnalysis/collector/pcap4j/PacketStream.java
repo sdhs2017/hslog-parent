@@ -1,6 +1,7 @@
 package com.jz.bigdata.business.logAnalysis.collector.pcap4j;
 
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -196,7 +197,7 @@ public class PacketStream {
  	 * @param s
  	 * @return
  	 */
- 	public static String hexStringToString(String s) {
+ 	public static String hexStringToString(String s) throws Exception {
 
  	    if (s == null || s.equals("")) {
  	        return null;
@@ -204,18 +205,9 @@ public class PacketStream {
  	    s = s.replace(" ", "");
  	    byte[] baKeyword = new byte[s.length() / 2];
  	    for (int i = 0; i < baKeyword.length; i++) {
- 	        try {
- 	            baKeyword[i] = (byte) (0xff & Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16));
- 	        } catch (Exception e) {
- 	            e.printStackTrace();
- 	        }
+ 	    	baKeyword[i] = (byte) (0xff & Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16));
  	    }
- 	    try {
- 	        s = new String(baKeyword, "UTF-8");
- 	        new String();
- 	    } catch (Exception e1) {
- 	        e1.printStackTrace();
- 	    }
+ 	    s = new String(baKeyword, "UTF-8");
  	    return s;
  	}
  	

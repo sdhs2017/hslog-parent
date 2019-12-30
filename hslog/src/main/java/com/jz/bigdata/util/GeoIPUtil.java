@@ -37,11 +37,13 @@ public class GeoIPUtil {
 
         try {
             //绝对路径读取文件方式
-            database = new File("D:\\Computer_Science\\maxmind-geo\\GeoLite2-City_20191217\\GeoLite2-City.mmdb");
+            //database = new File("/home/elsearch/tmp/GeoLite2-City.mmdb");
 
             // 通过 InputStream 流式读取文件，目的解决无法通过File方式读取jar包内的文件的问题·1
-            //database = getFile("/GeoLite2-City.mmdb","geolite2.mmdb");
-            logger.info("-------加载文件");
+            database = getFile("GeoLite2-City.mmdb","geolite2.mmdb");
+            /*System.out.println(GeoIPUtil.class.getClassLoader().getResource("").getPath());
+            System.out.println(GeoIPUtil.class.getResource("").getPath());*/
+            logger.info("-------加载文件--------GeoLite2-City.mmdb");
             reader = new DatabaseReader.Builder(database).build();
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,7 +62,7 @@ public class GeoIPUtil {
         //读取 ClassPath 路径下指定资源的输入流
         /*ClassPathResource resource = new ClassPathResource(fileName);
         InputStream inputStream = resource.getInputStream();*/
-        InputStream inputStream = GeoIPUtil.class.getResourceAsStream(fileName);
+        InputStream inputStream = GeoIPUtil.class.getClassLoader().getResourceAsStream(fileName);
 
         File file = new File(newFileName);
 
@@ -241,14 +243,14 @@ public class GeoIPUtil {
 
     public static void main(String[] args) {
 
-        /*try {
+        try {
             IPEntity ipEntity = GeoIPUtil.getIPMsg("58.56.34.74");
             System.out.println(ipEntity.getCountryName()+","+ipEntity.getProvinceName()+","+ipEntity.getCityName());
         } catch (Exception e) {
             e.printStackTrace();
-        }*/
+        }
 
-        GeoIPUtil util = null;
+       /* GeoIPUtil util = null;
         try {
             util = new GeoIPUtil("219.146.1.66");
         } catch (Exception e) {
@@ -256,6 +258,6 @@ public class GeoIPUtil {
         }
 
         System.out.println("国家:"+util.getCountry()+"  省份:"+util.getProvince()+"  城市："+util.getCity_name()+"  经纬度："+util.getLocations());
-
+*/
     }
 }

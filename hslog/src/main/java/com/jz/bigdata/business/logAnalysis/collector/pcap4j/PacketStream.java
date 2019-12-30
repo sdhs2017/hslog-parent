@@ -148,7 +148,7 @@ public class PacketStream {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            ee.printStackTrace();
         } catch (Exception e) {
 			//logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());
 			e.printStackTrace();

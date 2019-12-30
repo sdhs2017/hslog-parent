@@ -677,26 +677,26 @@
 		&lt;!&ndash; 设置编码格式 &ndash;&gt;
 		<property name="fileEncoding" value="UTF-8"></property>
 	</bean>-->
+	<!--
+        <bean id="elasticsearch" class="com.hs.elsearch.client.EStransportclient">
+            <property name="elasticsearchbean">
+                <map>
+                    <entry key="es_ip" value="192.168.2.181"/>
+                    <entry key="es_port" value="9300"/>
+                    <entry key="es_name" value="myElasticsearchCluster"/>
+                </map>
+            </property>
 
-	<bean id="elasticsearch" class="com.hs.elsearch.client.EStransportclient">
-		<property name="elasticsearchbean">
-			<map>
-				<entry key="es_ip" value="192.168.2.182"/>
-				<entry key="es_port" value="9300"/>
-				<entry key="es_name" value="myElasticsearchCluster"/>
-			</map>
-		</property>
-		<!--<constructor-arg ref="elsearch"/>-->
 	</bean>
-
-	<!--<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
+		-->
+	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
 				<entry key="es_ip" value="192.168.2.181"/>
 				<entry key="es_port" value="9200"/>
 			</map>
 		</property>
-	</bean>-->
+	</bean>
 	<!--<bean id="esClient" class="com.jz.bigdata.framework.spring.es.elasticsearch.ElasticsearchTransportClientFactoryBean">
 		<property name="transportAddresses">
 			<map>
@@ -829,7 +829,7 @@
 		</property>
 		<!-- 设置触发时间 -->
 		<property name="cronExpression">
-			<value>0 */6 * * * ?</value>
+			<value>0 */1 * * * ?</value>
 		</property>
 	</bean>
 	<!-- domain定时入库任务 -->
@@ -884,8 +884,9 @@
 				<ref bean="createSnapshotJobTrigger"/>
 				<ref bean="updateRiskJobTrigger"/>
 				<ref bean="CreateIndexJobTrigger"/>
-				<!--  <ref bean="urlJobTrigger" />
-                <ref bean="domainJobTrigger" />
+				<ref bean="urlJobTrigger" />
+				<!--
+				 <ref bean="domainJobTrigger" />
                 <ref bean="assetsHeartBeatJobTrigger" /> -->
 			</list>
 		</property>

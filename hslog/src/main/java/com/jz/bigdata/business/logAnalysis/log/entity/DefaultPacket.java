@@ -447,6 +447,74 @@ public class DefaultPacket {
 		this.session_status = session_status;
 	}
 
+	public void setPacket_length(Integer packet_length) {
+		this.packet_length = packet_length;
+	}
+
+	public String getDst_addr_country() {
+		return dst_addr_country;
+	}
+
+	public void setDst_addr_country(String dst_addr_country) {
+		this.dst_addr_country = dst_addr_country;
+	}
+
+	public String getDst_addr_province() {
+		return dst_addr_province;
+	}
+
+	public void setDst_addr_province(String dst_addr_province) {
+		this.dst_addr_province = dst_addr_province;
+	}
+
+	public String getDst_addr_city() {
+		return dst_addr_city;
+	}
+
+	public void setDst_addr_city(String dst_addr_city) {
+		this.dst_addr_city = dst_addr_city;
+	}
+
+	public String getDst_addr_locations() {
+		return dst_addr_locations;
+	}
+
+	public void setDst_addr_locations(String dst_addr_locations) {
+		this.dst_addr_locations = dst_addr_locations;
+	}
+
+	public String getSrc_addr_country() {
+		return src_addr_country;
+	}
+
+	public void setSrc_addr_country(String src_addr_country) {
+		this.src_addr_country = src_addr_country;
+	}
+
+	public String getSrc_addr_province() {
+		return src_addr_province;
+	}
+
+	public void setSrc_addr_province(String src_addr_province) {
+		this.src_addr_province = src_addr_province;
+	}
+
+	public String getSrc_addr_city() {
+		return src_addr_city;
+	}
+
+	public void setSrc_addr_city(String src_addr_city) {
+		this.src_addr_city = src_addr_city;
+	}
+
+	public String getSrc_addr_locations() {
+		return src_addr_locations;
+	}
+
+	public void setSrc_addr_locations(String src_addr_locations) {
+		this.src_addr_locations = src_addr_locations;
+	}
+
 	public DefaultPacket(){
 		
 	}
@@ -604,13 +672,20 @@ public class DefaultPacket {
 			
 			
 		}else if (ip4packet.getHeader().getProtocol().toString().contains("UDP")) {
-			UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
-			this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
-			this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
-			
+			try {
+				UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
+				this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
+				this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
+				this.payload = udpPacket.getPayload().toString();
+			}catch (Exception e){
+				this.payload = packet.toString();
+				this.operation_des = "异常udp";
+				e.printStackTrace();
+			}
+
 			this.protocol="17";
 			this.protocol_name="UDP";
-			this.payload = udpPacket.getPayload().toString();
+
 			
 		}else if (ip4packet.getHeader().getProtocol().toString().contains("ICMPv4")) {
 

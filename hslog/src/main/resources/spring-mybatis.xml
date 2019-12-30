@@ -881,7 +881,7 @@
 		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
 		<property name="triggers">
 			<list>
-				<ref bean="createSnapshotJobTrigger"/>
+				<!--<ref bean="createSnapshotJobTrigger"/>-->
 				<ref bean="updateRiskJobTrigger"/>
 				<ref bean="CreateIndexJobTrigger"/>
 				<!--  <ref bean="urlJobTrigger" />

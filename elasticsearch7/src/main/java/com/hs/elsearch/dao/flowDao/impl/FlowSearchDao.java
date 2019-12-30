@@ -147,17 +147,16 @@ public class FlowSearchDao implements IFlowSearchDao {
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
 
-        Terms terms  = aggregations.get(count);
-
         List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
-
-        Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
-
-        for(Terms.Bucket bucket:terms.getBuckets()) {
-            bucketmap.put(bucket.getKeyAsString(), bucket.getDocCount());
+        if (aggregations!=null){
+            Terms terms  = aggregations.get(count);
+            Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+            for(Terms.Bucket bucket:terms.getBuckets()) {
+                bucketmap.put(bucket.getKeyAsString(), bucket.getDocCount());
+            }
+            list.add(bucketmap);
         }
 
-        list.add(bucketmap);
         return list;
     }
 

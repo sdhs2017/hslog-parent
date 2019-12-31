@@ -553,6 +553,8 @@ public class CollectorServiceImpl implements ICollectorService{
 				funservice.setPort(url.getPort()+"");
 			}catch(Exception e){
 				e.printStackTrace();
+				//出现异常信息，进行标记
+				funservice.setDescribe("AbnormalUrl");
 			}
 			funservice.setProtocol(protocol);
 			funservice.setUrl(key.getKey());

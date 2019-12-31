@@ -599,7 +599,6 @@ public class FlowController {
             String replace=result.replace("\\\\005", "<br/>");
             return replace;
         }
-
     }
 
     /**

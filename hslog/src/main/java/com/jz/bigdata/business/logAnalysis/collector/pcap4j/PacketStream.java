@@ -138,13 +138,16 @@ public class PacketStream {
 		} catch (NumberFormatException ee){
             defaultpacket = new DefaultPacket(packet);
             defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
-            defaultpacket.setOperation_des("异常playload");
+            defaultpacket.setOperation_des("playload");
             if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
                 defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
             }
             json = gson.toJson(defaultpacket);
+            logger.error(json);
             try {
+            	System.out.println("requests size:" + requests.size());
                 requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+				System.out.println("requests size:" + requests.size());
             } catch (Exception e) {
                 e.printStackTrace();
             }

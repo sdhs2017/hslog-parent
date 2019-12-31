@@ -126,11 +126,9 @@ public class PacketStream {
 			
 		
 			if (requests.size()==configProperty.getEs_bulk()) {
-			    System.out.println("进入提交标准：  "+requests.size());
 				try {
 					logCurdDao.bulkInsert(requests);
 					requests.clear();
-                    System.out.println("提交后数据清空：  "+requests.size());
 				} catch (Exception e) {
 					//logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());
 					e.printStackTrace();
@@ -150,6 +148,7 @@ public class PacketStream {
             	System.out.println("异常数据，提示requests size:" + requests.size());
                 requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
                 logCurdDao.bulkInsert(requests);
+                requests.clear();
                 System.out.println("异常数据采集后提交，提示requests size:" + requests.size());
             } catch (Exception e) {
                 e.printStackTrace();

@@ -4,13 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
 import java.util.regex.Matcher;
@@ -316,7 +310,8 @@ public class CollectorServiceImpl implements ICollectorService{
 				 .setDateFormat("yyyy-MM-dd HH:mm:ss")  
 				 .create(); 
         
-        List<IndexRequest> requests = new ArrayList<IndexRequest>();
+        //List<IndexRequest> requests = new ArrayList<IndexRequest>();
+        List<IndexRequest> requests = Collections.synchronizedList(new ArrayList<IndexRequest>());
 		//BulkRequest requests = new BulkRequest();
 
         //初始化listener

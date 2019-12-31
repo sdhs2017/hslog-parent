@@ -883,10 +883,10 @@
 			<list>
 				<!--<ref bean="createSnapshotJobTrigger"/>-->
 				<ref bean="updateRiskJobTrigger"/>
-				<ref bean="CreateIndexJobTrigger"/>
-				<!--  <ref bean="urlJobTrigger" />
+				<!--<ref bean="CreateIndexJobTrigger"/>-->
+				<ref bean="urlJobTrigger" />
                 <ref bean="domainJobTrigger" />
-                <ref bean="assetsHeartBeatJobTrigger" /> -->
+				<!-- <ref bean="assetsHeartBeatJobTrigger" /> -->
 			</list>
 		</property>
 		<property name="autoStartup" value="true"/>

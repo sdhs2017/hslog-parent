@@ -321,65 +321,66 @@ public class FlowController {
                 dataMap.put("name", iporport);
                 dataMap.put("count", count);
                 datalist.add(dataMap);
-                // 遍历第一层数据结果
-                for(Map.Entry<String, Object> key1 : list1.get(0).entrySet()) {
-                    // 组织data中的数据内容
-                    Map<String,Object> dataMap1 = new HashMap<>();
-                    dataMap1.put("node", 2);
-                    dataMap1.put("name", "level2\n"+key1.getKey());
-                    dataMap1.put("count", key1.getValue());
-                    datalist.add(dataMap1);
-                    // 组织links中的数据内容
-                    Map<String,Object> linksMap1 = new HashMap<>();
-                    linksMap1.put("node", 1);
-                    if (groupby.equals("ipv4_src_addr")) {
-                        linksMap1.put("source", iporport);
-                        linksMap1.put("target", "level2\n"+key1.getKey());
-                    }else {
-                        linksMap1.put("source", "level2\n"+key1.getKey());
-                        linksMap1.put("target", iporport);
-                    }
-                    linksMap1.put("count", key1.getValue());
-                    linkslist.add(linksMap1);
-
-
-                    // 第二层查询条件和数据结果
-                    searchmap.put(groupby, key1.getKey());
-                    List<Map<String, Object>> list2 = null;
-                    try {
-                        list2 = flowService.groupBy(index,types,param,5,null,null,searchmap);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    // 遍历第二层数据结果
-                    for(Map.Entry<String, Object> key2: list2.get(0).entrySet()) {
+                if (list1.size()>0) {
+                    // 遍历第一层数据结果
+                    for (Map.Entry<String, Object> key1 : list1.get(0).entrySet()) {
                         // 组织data中的数据内容
-                        Map<String,Object> dataMap2 = new HashMap<>();
-                        dataMap2.put("node", 3);
-                        dataMap2.put("name", "level3\n"+key2.getKey());
-                        dataMap2.put("count", key2.getValue());
-                        datalist.add(dataMap2);
+                        Map<String, Object> dataMap1 = new HashMap<>();
+                        dataMap1.put("node", 2);
+                        dataMap1.put("name", "level2\n" + key1.getKey());
+                        dataMap1.put("count", key1.getValue());
+                        datalist.add(dataMap1);
                         // 组织links中的数据内容
-                        Map<String,Object> linksMap2 = new HashMap<>();
-                        linksMap2.put("node", 2);
+                        Map<String, Object> linksMap1 = new HashMap<>();
+                        linksMap1.put("node", 1);
                         if (groupby.equals("ipv4_src_addr")) {
-                            linksMap2.put("source", "level2\n"+key1.getKey());
-                            linksMap2.put("target", "level3\n"+key2.getKey());
-                        }else {
-                            linksMap2.put("source", "level3\n"+key2.getKey());
-                            linksMap2.put("target", "level2\n"+key1.getKey());
+                            linksMap1.put("source", iporport);
+                            linksMap1.put("target", "level2\n" + key1.getKey());
+                        } else {
+                            linksMap1.put("source", "level2\n" + key1.getKey());
+                            linksMap1.put("target", iporport);
+                        }
+                        linksMap1.put("count", key1.getValue());
+                        linkslist.add(linksMap1);
+
+
+                        // 第二层查询条件和数据结果
+                        searchmap.put(groupby, key1.getKey());
+                        List<Map<String, Object>> list2 = null;
+                        try {
+                            list2 = flowService.groupBy(index, types, param, 5, null, null, searchmap);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        // 遍历第二层数据结果
+                        for (Map.Entry<String, Object> key2 : list2.get(0).entrySet()) {
+                            // 组织data中的数据内容
+                            Map<String, Object> dataMap2 = new HashMap<>();
+                            dataMap2.put("node", 3);
+                            dataMap2.put("name", "level3\n" + key2.getKey());
+                            dataMap2.put("count", key2.getValue());
+                            datalist.add(dataMap2);
+                            // 组织links中的数据内容
+                            Map<String, Object> linksMap2 = new HashMap<>();
+                            linksMap2.put("node", 2);
+                            if (groupby.equals("ipv4_src_addr")) {
+                                linksMap2.put("source", "level2\n" + key1.getKey());
+                                linksMap2.put("target", "level3\n" + key2.getKey());
+                            } else {
+                                linksMap2.put("source", "level3\n" + key2.getKey());
+                                linksMap2.put("target", "level2\n" + key1.getKey());
+                            }
+
+                            linksMap2.put("count", key2.getValue());
+                            linkslist.add(linksMap2);
+
+                            /*searchmap.put(groupby, key1.getKey());
+                            List<Map<String, Object>> itelists = logService.groupBy(index, types, param, searchmap,5);
+                            Map<String,Object> itemap = itelists.get(0);*/
                         }
 
-                        linksMap2.put("count", key2.getValue());
-                        linkslist.add(linksMap2);
 
-						/*searchmap.put(groupby, key1.getKey());
-						List<Map<String, Object>> itelists = logService.groupBy(index, types, param, searchmap,5);
-						Map<String,Object> itemap = itelists.get(0);*/
                     }
-
-
-
                 }
                 map.put("data", datalist);
                 map.put("links", linkslist);
@@ -452,7 +453,7 @@ public class FlowController {
                 e.printStackTrace();
             }
             // 数据处理，将源IP和目的IP两者之间相同的IP的值相加
-            if (tMap.isEmpty()) {
+            if (tMap.isEmpty()&&list.size()>0) {
                 tMap = list.get(0);
             }else {
                 if (list.size()>0){
@@ -578,13 +579,16 @@ public class FlowController {
                 }
             }
             Map<String, Object> allmap = new HashMap<>();
-            allmap = list.get(0);
-            list.remove(0);
-            allmap.put("list", list);
-            String result = JSONArray.fromObject(allmap).toString();
-            String replace=result.replace("\\\\005", "<br/>");
-
-            return replace;
+            if(list.size()>0){
+                allmap = list.get(0);
+                list.remove(0);
+                allmap.put("list", list);
+                String result = JSONArray.fromObject(allmap).toString();
+                String replace=result.replace("\\\\005", "<br/>");
+                return replace;
+            }else{
+                return Constant.failureMessage();
+            }
         }else{
             try {
                 list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
@@ -592,12 +596,16 @@ public class FlowController {
                 e.printStackTrace();
             }
             Map<String, Object> allmap = new HashMap<>();
-            allmap = list.get(0);
-            list.remove(0);
-            allmap.put("list", list);
-            String result = JSONArray.fromObject(allmap).toString();
-            String replace=result.replace("\\\\005", "<br/>");
-            return replace;
+            if(list.size()>0){
+                allmap = list.get(0);
+                list.remove(0);
+                allmap.put("list", list);
+                String result = JSONArray.fromObject(allmap).toString();
+                String replace=result.replace("\\\\005", "<br/>");
+                return replace;
+            }else{
+                return Constant.failureMessage();
+            }
         }
     }
 
@@ -691,13 +699,14 @@ public class FlowController {
                 }
             }
             Map<String, Object> allmap = new HashMap<>();
-            allmap = list.get(0);
-            list.remove(0);
-            allmap.put("list", list);
-            String result = JSONArray.fromObject(allmap).toString();
-            String replace=result.replace("\\\\005", "<br/>");
-
-            return replace;
+            if(list.size()>0){
+                allmap = list.get(0);
+                list.remove(0);
+                allmap.put("list", list);
+                String result = JSONArray.fromObject(allmap).toString();
+                String replace=result.replace("\\\\005", "<br/>");
+                return replace;
+            }
         }else{
             try {
                 list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
@@ -705,14 +714,16 @@ public class FlowController {
                 e.printStackTrace();
             }
             Map<String, Object> allmap = new HashMap<>();
-            allmap = list.get(0);
-            list.remove(0);
-            allmap.put("list", list);
-            String result = JSONArray.fromObject(allmap).toString();
-            String replace=result.replace("\\\\005", "<br/>");
-            return replace;
+            if(list.size()>0){
+                allmap = list.get(0);
+                list.remove(0);
+                allmap.put("list", list);
+                String result = JSONArray.fromObject(allmap).toString();
+                String replace=result.replace("\\\\005", "<br/>");
+                return replace;
+            }
         }
-
+        return Constant.failureMessage();//如果没有正常返回，则返回失败信息
     }
 
     /**
@@ -1306,7 +1317,11 @@ public class FlowController {
 
                 Map<String,Object> broadcast = new HashMap<>();
                 broadcast.put("name",ttMap.get("endtime"));
-                Object [] value = {ttMap.get("endtime"),tempList.get(0).get("agg")};
+                Object count = 0;
+                if(tempList.size()>0){
+                    count = tempList.get(0).get("agg");
+                }
+                Object [] value = {ttMap.get("endtime"),count};
                 broadcast.put("value",value);
                 map.put(t.getKey(),broadcast);
             }
@@ -1344,17 +1359,19 @@ public class FlowController {
 
 
         List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
-        //遍历统计的数据
-        for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
-            Map<String,Object> lmap = new ConcurrentHashMap<>();
-            //与获取的ip信息与资产ip进行对应
-            List<Equipment> l = equipmentDao.selectAllByPage("", "", tmap.getKey(),"" ,"" ,"" ,"", 0,10);
-            if(l.size()>=1){
-                lmap.put(l.get(0).getName(),tmap.getValue());
-            }else{
-                lmap.put(tmap.getKey(),tmap.getValue());
+        if(list.size()>0){
+            //遍历统计的数据
+            for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
+                Map<String,Object> lmap = new ConcurrentHashMap<>();
+                //与获取的ip信息与资产ip进行对应
+                List<Equipment> l = equipmentDao.selectAllByPage("", "", tmap.getKey(),"" ,"" ,"" ,"", 0,10);
+                if(l.size()>=1){
+                    lmap.put(l.get(0).getName(),tmap.getValue());
+                }else{
+                    lmap.put(tmap.getKey(),tmap.getValue());
+                }
+                llist.add(lmap);
             }
-            llist.add(lmap);
         }
         return JSONArray.fromObject(llist).toString();
     }
@@ -1385,17 +1402,19 @@ public class FlowController {
 
 
         List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
-        //遍历统计的数据
-        for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
-            Map<String,Object> lmap = new ConcurrentHashMap<>();
-            //与获取的ip信息与域名url进行对应
-            ServiceInfo sInfo = serviceInfoDao.selectServiceByUrl(tmap.getKey());
-            if(sInfo!=null){
-                lmap.put((sInfo.getName()==null||sInfo.getName()=="")?tmap.getKey():sInfo.getName(),tmap.getValue());
-            }else{
-                lmap.put(tmap.getKey(),tmap.getValue());
+        if(list.size()>0){
+            //遍历统计的数据
+            for(Map.Entry<String,Object> tmap : list.get(0).entrySet()){
+                Map<String,Object> lmap = new ConcurrentHashMap<>();
+                //与获取的ip信息与域名url进行对应
+                ServiceInfo sInfo = serviceInfoDao.selectServiceByUrl(tmap.getKey());
+                if(sInfo!=null){
+                    lmap.put((sInfo.getName()==null||sInfo.getName()=="")?tmap.getKey():sInfo.getName(),tmap.getValue());
+                }else{
+                    lmap.put(tmap.getKey(),tmap.getValue());
+                }
+                llist.add(lmap);
             }
-            llist.add(lmap);
         }
         return JSONArray.fromObject(llist).toString();
     }
@@ -1423,10 +1442,12 @@ public class FlowController {
             e.printStackTrace();
         }
         List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String,Object> m:list.get(0).entrySet()){
-            Map<String,Object> temp = new HashMap<>();
-            temp.put(m.getKey(),m.getValue());
-            resultList.add(temp);
+        if(list.size()>0){
+            for(Map.Entry<String,Object> m:list.get(0).entrySet()){
+                Map<String,Object> temp = new HashMap<>();
+                temp.put(m.getKey(),m.getValue());
+                resultList.add(temp);
+            }
         }
         return JSONArray.fromObject(resultList).toString();
     }
@@ -1508,10 +1529,12 @@ public class FlowController {
             e.printStackTrace();
         }
         List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String,Object> m:list.get(0).entrySet()){
-            Map<String,Object> temp = new HashMap<>();
-            temp.put(m.getKey(),m.getValue());
-            resultList.add(temp);
+        if(list.size()>0){
+            for(Map.Entry<String,Object> m:list.get(0).entrySet()){
+                Map<String,Object> temp = new HashMap<>();
+                temp.put(m.getKey(),m.getValue());
+                resultList.add(temp);
+            }
         }
         return JSONArray.fromObject(resultList).toString();
     }
@@ -1540,10 +1563,12 @@ public class FlowController {
             e.printStackTrace();
         }
         List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
-        for(Map.Entry<String,Object> m:list.get(0).entrySet()){
-            Map<String,Object> temp = new HashMap<>();
-            temp.put(m.getKey(),m.getValue());
-            resultList.add(temp);
+        if(list.size()>0){
+            for(Map.Entry<String,Object> m:list.get(0).entrySet()){
+                Map<String,Object> temp = new HashMap<>();
+                temp.put(m.getKey(),m.getValue());
+                resultList.add(temp);
+            }
         }
         return JSONArray.fromObject(resultList).toString();
     }
@@ -1593,20 +1618,13 @@ public class FlowController {
         String index = configProperty.getEs_index();
         String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
         String [] types = {"defaultpacket"};
-
         List<List<Map<String, Object>>> list = new ArrayList<>();
-
         int size =10;
-
-
         try {
             list = flowService.groupBy(index,types,groupfields,size,null,null,null);
-
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return JSONArray.fromObject(list).toString();
     }
 }

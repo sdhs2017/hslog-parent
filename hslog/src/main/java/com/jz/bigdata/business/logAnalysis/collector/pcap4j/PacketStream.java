@@ -138,7 +138,7 @@ public class PacketStream {
 		} catch (NumberFormatException ee){
             defaultpacket = new DefaultPacket(packet);
             defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
-            defaultpacket.setOperation_des("playload");
+            defaultpacket.setOperation_des("jiyourui");
             if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
                 defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
             }
@@ -314,7 +314,7 @@ public class PacketStream {
 	}
  	
  	public static void main(String [] args) {
-		String payload = "HTTP/1.1 200 Content-Disposition: inline;filename=f.txt Content-Type: application/json;charset=utf-8 Content-Length";
+		/*String payload = "HTTP/1.1 200 Content-Disposition: inline;filename=f.txt Content-Type: application/json;charset=utf-8 Content-Length";
  		String pString = "POST /jzLog/collector/statePcap4jCollector.do HTTP/1.1 Host: 192.168.2.182:8080 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0 Accept";
 		// 识别http数据包的正则表达式
 		String httpRequest = "^(POST|GET) /[^\\s]* HTTP/1.[0,1]";
@@ -324,6 +324,20 @@ public class PacketStream {
 		}
 		if ((getSubUtil(pString, httpRequest)!=""||getSubUtil(pString, httpResponse)!="")) {
 			System.out.println(pString);
+		}*/
+		String payload = "[Illegal Packet (45 bytes)]\n" +
+				"  Hex stream: 00 2b fa 73 01 00 00 01 00 00 00 00 00 00 02 32 39 02 36 38 03 31 38 30 02 38 31 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00 00 0c 00 01\n" +
+				"  Cause: org.pcap4j.packet.IllegalRawDataException: The data is too short to build a question in DnsHeader. data: fe ee 0b ca e5 69 52 54 00 b4 e4 09 08 00 45 00 00 55 49 80 40 00 40 06 3a b5 ac 15 00 09 b7 3c 53 13 d4 c6 00 35 27 17 3a de 2a bc 19 72 50 18 00 e5 55 74 00 00 00 2b fa 73 01 00 00 01 00 00 00 00 00 00 02 32 39 02 36 38 03 31 38 30 02 38 31 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00 00 0c 00 01, offset: 54, length: 45, cursor: 45";
+		String sss = payload.substring(payload.indexOf(":")+1).trim();
+		System.out.println(sss);
+
+		String hexstrem = "525400b4e409feee0bcae5690800456801a4915a4000fb0644aa3ae3c0e5ac1500090035dc0cf2c337ea6c80dc2c801800f3435400000101080a7017ad8b2daefdc8";
+
+		try {
+			String s = hexStringToString(hexstrem);
+			System.out.println(s);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

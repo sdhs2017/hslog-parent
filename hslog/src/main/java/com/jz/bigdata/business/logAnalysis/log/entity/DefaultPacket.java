@@ -656,7 +656,7 @@ public class DefaultPacket {
 			this.protocol="6";
 			this.protocol_name="TCP";
 			if (tcppacket.getPayload()!=null) {
-				this.payload = tcppacket.getPayload().toString();
+				this.payload = packet.toString();
 			}
 			
 			String hexstring = tcppacket.toHexString().replaceAll(" ", "");

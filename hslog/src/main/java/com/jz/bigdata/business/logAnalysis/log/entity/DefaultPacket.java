@@ -676,7 +676,9 @@ public class DefaultPacket {
 				UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
 				this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
 				this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
-				this.payload = udpPacket.getPayload().toString();
+				if (udpPacket.getPayload()!=null){
+					this.payload = udpPacket.getPayload().toString();
+				}
 			}catch (Exception e){
 				this.payload = packet.toString();
 				this.operation_des = "异常udp";

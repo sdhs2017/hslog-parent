@@ -48,8 +48,9 @@ public class Http {
 	private String request_url;//请求地址
 	private String response_state;//返回状态
 	private String request_type;//请求类型
-	private String acknum; // tcp 确认号
-	private String seqnum; // tcp 顺序号
+	private Long acknum; // tcp 确认号
+	private Long seqnum; // tcp 顺序号
+	private Long nextacknum; // 下一个流量数据包的acknum
 	private String complete_url; // 完整的url http://192.168.2.182:8080/jzLog/getIndicesCount.do?_=1555924017369
 	private String url_param; // url参数
 	private String domain_url; // 域名
@@ -100,11 +101,6 @@ public class Http {
 	 */
 	private Date logdate;
 	private String logtime;
-	/*private String logtime_minute;
-	private String logtime_hour;
-	private String logtime_day;
-	private String logtime_month;
-	private String logtime_year;*/
 
 	/**
 	 * 操作描述
@@ -284,20 +280,28 @@ public class Http {
 		this.request_type = request_type;
 	}
 
-	public String getAcknum() {
+	public Long getAcknum() {
 		return acknum;
 	}
 
-	public void setAcknum(String acknum) {
+	public void setAcknum(Long acknum) {
 		this.acknum = acknum;
 	}
 
-	public String getSeqnum() {
+	public Long getSeqnum() {
 		return seqnum;
 	}
 
-	public void setSeqnum(String seqnum) {
+	public void setSeqnum(Long seqnum) {
 		this.seqnum = seqnum;
+	}
+
+	public Long getNextacknum() {
+		return nextacknum;
+	}
+
+	public void setNextacknum(Long nextacknum) {
+		this.nextacknum = nextacknum;
 	}
 
 	public String getComplete_url() {
@@ -567,8 +571,11 @@ public class Http {
 		//httpResponse
 		String httpResponse = "^HTTP/1.[0,1] [0-9]{0,3} *";
 		
-		this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong()+"";
-		this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong()+"";
+		this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong();
+		this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong();
+		if (this.seqnum!=null&&this.packet_length!=null){
+			this.nextacknum = this.seqnum + this.packet_length;
+		}
 		
 		//获取数据是否为空
 		if (httphex!=null&&!httphex.equals("")) {

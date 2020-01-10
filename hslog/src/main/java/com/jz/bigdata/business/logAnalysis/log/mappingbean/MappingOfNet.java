@@ -96,8 +96,9 @@ public class MappingOfNet {
 	 */
 	private String packet_source;
 	
-	private String acknum; // tcp 确认号
-	private String seqnum; // tcp 顺序号
+	private Long acknum; // tcp 确认号
+	private Long seqnum; // tcp 顺序号
+	private Long nextacknum; // 下一个流量数据包的acknum
 
 
 	/* -------------- 针对http数据包属性 ------------  */
@@ -170,6 +171,10 @@ public class MappingOfNet {
 	private String src_addr_city;
 	private String src_addr_locations;
 
+	/**
+	 * 关联字段
+	 */
+	/*private String joinfield;*/
 	
 	public String getId() {
 		return id;
@@ -380,26 +385,29 @@ public class MappingOfNet {
 		this.packet_source = packet_source;
 	}
 
-
-	public String getAcknum() {
+	public Long getAcknum() {
 		return acknum;
 	}
 
-
-	public void setAcknum(String acknum) {
+	public void setAcknum(Long acknum) {
 		this.acknum = acknum;
 	}
 
-
-	public String getSeqnum() {
+	public Long getSeqnum() {
 		return seqnum;
 	}
 
-
-	public void setSeqnum(String seqnum) {
+	public void setSeqnum(Long seqnum) {
 		this.seqnum = seqnum;
 	}
 
+	public Long getNextacknum() {
+		return nextacknum;
+	}
+
+	public void setNextacknum(Long nextacknum) {
+		this.nextacknum = nextacknum;
+	}
 
 	public String getRequestorresponse() {
 		return requestorresponse;

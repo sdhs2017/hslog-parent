@@ -62,6 +62,8 @@ public class Bean2Mapping {
 				"dst_addr_country","dst_addr_province","dst_addr_city",
 				"src_addr_country","src_addr_province","src_addr_city"
 		};
+		// 设置join field,通过父子关系使字段关联，一个索引只能建立一个关联字段,nextacknum是parent，acknum是child
+		String [] joinfields = {"nextacknum","acknum"};
 		
 		// 获取class的所有属性进行遍历
 		Field[] fields = classes.getClass().getDeclaredFields();
@@ -81,6 +83,9 @@ public class Bean2Mapping {
 			}
 			if (Arrays.asList(rawkeywords).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"fields\": " + "{\"raw\": {\"type\": \"keyword\"}}" + "\n");
+			}
+			if (fields[i].getName().equals("joinfield")) {
+				fieldstring.append("\t\t\t\t\t\t,\"relations\": {\""+joinfields[0]+"\": \""+joinfields[1]+"\"}" + "\n");
 			}
 			if (i == fields.length - 1) {
 				fieldstring.append("\t\t\t\t\t}\n");
@@ -124,7 +129,9 @@ public class Bean2Mapping {
 				// 针对ip类型的字段设置为ip类型，新版本的elasticsearch数据类型增加了IP类型
 			} else if (name.contains("ip")&&!name.equals("equipmentname")&&!name.equals("equipmentid")) {
 				es = "ip\"";
-			}else {
+			} else if (name.equals("joinfield")){
+				es = "join\"";
+			} else {
 				es = "text\"";
 			}
 

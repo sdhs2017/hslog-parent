@@ -118,8 +118,9 @@ public class DefaultPacket {
 	 */
 	private String packet_source;
 	
-	private String acknum; // tcp 确认号
-	private String seqnum; // tcp 顺序号
+	private Long acknum; // tcp 确认号
+	private Long seqnum; // tcp 顺序号
+	private Long nextacknum; // 下一个流量数据包的acknum
 
 	// -------------http数据包属性---------------
 	private String requestorresponse;//请求或返回
@@ -327,20 +328,28 @@ public class DefaultPacket {
 		this.packet_source = packet_source;
 	}
 
-	public String getAcknum() {
+	public Long getAcknum() {
 		return acknum;
 	}
 
-	public void setAcknum(String acknum) {
+	public void setAcknum(Long acknum) {
 		this.acknum = acknum;
 	}
 
-	public String getSeqnum() {
+	public Long getSeqnum() {
 		return seqnum;
 	}
 
-	public void setSeqnum(String seqnum) {
+	public void setSeqnum(Long seqnum) {
 		this.seqnum = seqnum;
+	}
+
+	public Long getNextacknum() {
+		return nextacknum;
+	}
+
+	public void setNextacknum(Long nextacknum) {
+		this.nextacknum = nextacknum;
 	}
 
 	public String getRequestorresponse() {
@@ -616,8 +625,11 @@ public class DefaultPacket {
 			this.l4_dst_port = tcppacket.getHeader().getDstPort().valueAsInt()+"";
 			this.l4_src_port = tcppacket.getHeader().getSrcPort().valueAsInt()+"";
 			
-			this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong()+"";
-			this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong()+"";
+			this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong();
+			this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong();
+			if (this.seqnum!=null&&this.packet_length!=null){
+				this.nextacknum = this.seqnum + this.packet_length;
+			}
 			
 			this.protocol="6";
 			this.protocol_name="TCP";

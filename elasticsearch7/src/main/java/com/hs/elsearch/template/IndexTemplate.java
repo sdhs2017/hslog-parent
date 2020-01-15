@@ -213,7 +213,7 @@ public class IndexTemplate {
 
     /**
      * 更新index setting
-     * @param index 索引名
+     * @param indices 索引名
      * @param map setting的map方式
      * @return
      */
@@ -325,18 +325,42 @@ public class IndexTemplate {
             LifecyclePolicy myPolicy = myPolicyMetadata.getPolicy();
             for (String key : myPolicy.getPhases().keySet()){
                 System.out.println(myPolicy.getPhases().get(key));
-
             }
-
         }
-
     }
 
+    /**
+     * 开启index的生命周期管理
+     * @return
+     * @throws Exception
+     */
+    public boolean startIndexLifeCycle() throws Exception {
+        StartILMRequest request = new StartILMRequest();
+
+        org.elasticsearch.client.core.AcknowledgedResponse response = restHighLevelClient.indexLifecycle().startILM(request,RequestOptions.DEFAULT);
+
+        return response.isAcknowledged();
+    }
+
+    /**
+     * 查看生命周期管理状态
+     * @return
+     * @throws Exception
+     */
+    public String getLifecycleManagementStatus() throws Exception {
+        LifecycleManagementStatusRequest request = new LifecycleManagementStatusRequest();
+
+        LifecycleManagementStatusResponse response = restHighLevelClient.indexLifecycle().lifecycleManagementStatus(request,RequestOptions.DEFAULT);
+
+        OperationMode mode = response.getOperationMode();
+
+        return mode.name();
+    }
 
     /**
      * 创建或者更新template
      * @param tempalateName 模板名
-     * @param tempalatePattern 通配符：匹配index名称
+     * @param templatePattern 通配符：匹配index名称
      * @param settings 模板设置
      * @param mapping mapping属性
      * @return
@@ -451,7 +475,8 @@ public class IndexTemplate {
             map.put("name", metadata.name());
             //map.putAll(metadata.settings().getAsMap());
             //TODO 确认返回的内容和5版本有何不同
-            map.putAll(metadata.settings().getAsGroups());
+            map.put("type",metadata.type());
+            map.put("settings",metadata.settings());
             repositorieslist.add(map);
         }
         return repositorieslist;

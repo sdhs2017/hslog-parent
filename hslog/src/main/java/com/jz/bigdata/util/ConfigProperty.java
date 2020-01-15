@@ -47,6 +47,9 @@ public class ConfigProperty {
     @Value("#{prop.es_index}")
     private String es_index;
 
+	@Value("#{prop.es_days_of_log_storage}")
+	private String es_days_of_log_storage;
+
 	@Value("#{prop.es_repository_name}")
 	private String es_repository_name;
 
@@ -282,6 +285,12 @@ public class ConfigProperty {
 	public void setPcap4j_network(String pcap4j_network) {
 		this.pcap4j_network = pcap4j_network;
 	}
-	
 
+	public String getEs_days_of_log_storage() {
+		return es_days_of_log_storage;
+	}
+
+	public void setEs_days_of_log_storage(String es_days_of_log_storage) {
+		this.es_days_of_log_storage = es_days_of_log_storage;
+	}
 }

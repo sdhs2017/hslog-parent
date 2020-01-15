@@ -775,6 +775,14 @@
             <version>1.2.0</version>
         </dependency>
 
+        <!-- 高性能的缓存库，是基于Java 8的最佳（最优）缓存框架  -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>2.8.0</version>
+        </dependency>
+
+
         <!-- pcap4j抓取网络数据包 -->
         <!--<dependency>
             <groupId>org.pcap4j</groupId>

@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -48,8 +49,9 @@ public class PacketStream {
 
 	//BulkRequest requests ;
 	List<IndexRequest> requests;
+	Cache<Long, Http> httpCache;
 	
-	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap)
+	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap, Cache<Long, Http> httpCache)
 	{
 		this.configProperty = configProperty;
 		this.logCurdDao = logCurdDao;
@@ -57,6 +59,7 @@ public class PacketStream {
 		this.requests = requests;
 		this.domainSet = domainSet;
 		this.urlmap = urlmap;
+		this.httpCache = httpCache;
 	}
 	
 	
@@ -75,11 +78,14 @@ public class PacketStream {
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 
+			// 通过ip4packet包的header信息确认流量包是什么协议，该判断条件为是TCP协议
 			if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
 				String dst_port = tcpPacket.getHeader().getDstPort().valueAsString();
+				// 判断TCP流量包的payload是否为null，如果不为空则继续解析payload中的内容
 				if (tcpPacket.getPayload()!=null) {
 					String payloadString = tcpPacket.getPayload().toString().substring(tcpPacket.getPayload().toString().indexOf(":")+1).trim();
+					// 通过正则判断应用层协议是否为http
 					if ((getSubUtil(hexStringToString(payloadString), httpRequest)!=""||getSubUtil(hexStringToString(payloadString), httpResponse)!="")&&!dst_port.equals("9300")) {
 						try {
 							http =new Http(packet);
@@ -89,12 +95,30 @@ public class PacketStream {
 							}
 							if (http.getRequest_url()!=null&&!http.getRequest_url().equals("")) {
 								urlmap.put("http://"+http.getIpv4_dst_addr()+":"+http.getL4_dst_port()+""+http.getRequest_url(), http.getDomain_url());
-								//System.out.println("--urlmap---"+urlmap);
 							}
-							json = gson.toJson(http);
-							//requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
-							//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+							// 如果http协议是request的请求，则将数据存入到caffeine的cache中
+							if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("request")){
+								httpCache.put(http.getNextacknum(),http);
+							}else if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("response")){
+								// 通过response的acknum查找缓存区对应request数据，且触发caffeine的过期机制（将时间过期数据从缓存中移除）
+								Http httprequest = httpCache.getIfPresent(http.getAcknum());
+								// 当request的数据存在时进行：1、request/response配对；2、计算响应时间
+								// 当request不存在时，直接将response数据入库
+								if (httprequest!=null){
+									http.setFlag(httprequest.getFlag());
+									// 将计算的响应时间存入request和response
+									httprequest.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
+									http.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
+									httpCache.put(httprequest.getNextacknum(),httprequest);
+									//json = gson.toJson(httprequest);
+									//httpCache.invalidate(httprequest.getNextacknum());
+									//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+								}
+								json = gson.toJson(http);
+								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+							}
+
+
 						} catch (Exception e) {
 							System.out.println("---------------范式化失败·······---------"+e.getMessage());
 							e.printStackTrace();
@@ -125,7 +149,7 @@ public class PacketStream {
 			}
 			
 		
-			if (requests.size()==configProperty.getEs_bulk()) {
+			if (requests.size()>=configProperty.getEs_bulk()) {
 				try {
 					logCurdDao.bulkInsert(requests);
 					requests.clear();

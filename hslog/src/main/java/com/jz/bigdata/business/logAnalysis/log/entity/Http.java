@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -116,7 +117,15 @@ public class Http {
 	 */
 	private String index_suffix;
 
-	
+	/**
+	 * 标签UUID，用于对应request/response
+	 */
+	private String flag;
+
+	/**
+	 * 响应时间
+	 */
+	private long responsetime;
 
 	public String getL4_src_port() {
 		return l4_src_port;
@@ -464,6 +473,22 @@ public class Http {
 		this.src_addr_locations = src_addr_locations;
 	}
 
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
+
+	public long getResponsetime() {
+		return responsetime;
+	}
+
+	public void setResponsetime(long responsetime) {
+		this.responsetime = responsetime;
+	}
+
 	/**
 	 * @param packet
 	 * 构造方法，填充数据
@@ -657,6 +682,7 @@ public class Http {
 		}
 
 		this.index_suffix = "packet";
+		this.flag = UUID.randomUUID().toString();
         
 	}
 		

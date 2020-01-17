@@ -7,12 +7,18 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.log.LogType;
+import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -22,6 +28,7 @@ import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.util.NifSelector;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -88,6 +95,9 @@ public class CollectorServiceImpl implements ICollectorService{
 
 	@Resource
 	private IServiceInfoDao serviceInfoDao;
+
+	/*@Autowired
+	private ehcache cacheManager;*/
 	
 //	public Thread getT() {
 //		return t;
@@ -257,7 +267,13 @@ public class CollectorServiceImpl implements ICollectorService{
 	public String startPcap4jCollector(ILogCrudDao logCurdDao,ConfigProperty configProperty) {
 		
 		Map<String, Object> map = new HashMap<>();
-		
+		// elasticsearch批量提交缓存区
+		List<IndexRequest> requests = Collections.synchronizedList(new ArrayList<IndexRequest>());
+		// 针对javabean中date类型的格式转化
+		Gson gson = new GsonBuilder()
+				.setDateFormat("yyyy-MM-dd HH:mm:ss")
+				.create();
+
 		HashMap<String, TcpStream> tcpStreamList=new HashMap<String, TcpStream>();
 		PcapNetworkInterface nif = getCaptureNetworkInterface(configProperty.getPcap4j_network());
 		
@@ -267,6 +283,24 @@ public class CollectorServiceImpl implements ICollectorService{
 			map.put("msg", "网卡获取失败！数据包采集器开启失败！");
 			return JSONArray.fromObject(map).toString();
         }
+
+		// 手动加载-初始化缓存
+		Cache<Long, Http> httpCache = Caffeine.newBuilder()
+				.maximumSize(1)
+				.expireAfterWrite(10, TimeUnit.MINUTES)
+				.recordStats()
+				//.expireAfterAccess(1,TimeUnit.SECONDS)
+				.removalListener((Long Long, Http http, RemovalCause cause) ->
+				{
+					System.out.println("驱逐原因：" + cause);
+					String json = gson.toJson(http);
+					try {
+						requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				})
+				.build();
         // 抓取包长度
         int snaplen = 64 * 1024 * 20;
         // 超时50ms
@@ -306,12 +340,9 @@ public class CollectorServiceImpl implements ICollectorService{
 			map.put("msg", "网卡设置过滤器失败！数据包采集器开启失败！"+e.getMessage());
 			return JSONArray.fromObject(map).toString();
 		}
-        Gson gson = new GsonBuilder()
-				 .setDateFormat("yyyy-MM-dd HH:mm:ss")  
-				 .create(); 
+
         
-        //List<IndexRequest> requests = new ArrayList<IndexRequest>();
-        List<IndexRequest> requests = Collections.synchronizedList(new ArrayList<IndexRequest>());
+
 		//BulkRequest requests = new BulkRequest();
 
         //初始化listener
@@ -319,7 +350,7 @@ public class CollectorServiceImpl implements ICollectorService{
         	public void gotPacket(PcapPacket packet) {
         		try {
         			//packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
-        			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap);
+        			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap,httpCache);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
        				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());

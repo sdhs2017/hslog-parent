@@ -172,6 +172,16 @@ public class MappingOfNet {
 	private String src_addr_locations;
 
 	/**
+	 * 标签UUID，用于对应request/response
+	 */
+	private String flag;
+
+	/**
+	 * 响应时间
+	 */
+	private long responsetime;
+
+	/**
 	 * 关联字段
 	 */
 	/*private String joinfield;*/
@@ -588,6 +598,22 @@ public class MappingOfNet {
 
 	public void setSrc_addr_locations(String src_addr_locations) {
 		this.src_addr_locations = src_addr_locations;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
+
+	public long getResponsetime() {
+		return responsetime;
+	}
+
+	public void setResponsetime(long responsetime) {
+		this.responsetime = responsetime;
 	}
 
 	public String toMapping() {

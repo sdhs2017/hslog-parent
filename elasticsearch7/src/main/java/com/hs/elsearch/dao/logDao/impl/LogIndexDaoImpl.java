@@ -97,4 +97,19 @@ public class LogIndexDaoImpl implements ILogIndexDao {
             createTemplateOfIndex(tempalateName,templatePattern,settings,type,mapping);
         }
     }
+
+    @Override
+    public boolean createLifeCycle(String policy_name, long delete_duration) throws Exception {
+        return indexTemplate.createLifeCycle(policy_name,delete_duration);
+    }
+
+    @Override
+    public boolean startIndexLifeCycle() throws Exception {
+        return indexTemplate.startIndexLifeCycle();
+    }
+
+    @Override
+    public String getLifecycleManagementStatus() throws Exception {
+        return indexTemplate.getLifecycleManagementStatus();
+    }
 }

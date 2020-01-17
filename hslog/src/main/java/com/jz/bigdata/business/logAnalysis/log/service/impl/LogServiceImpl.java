@@ -1616,5 +1616,20 @@ public class LogServiceImpl implements IlogService {
 		return result;
 	}
 
+	@Override
+	public boolean createLifeCycle(String policy_name, long delete_duration) throws Exception {
+		return logIndexDao.createLifeCycle(policy_name, delete_duration);
+	}
+
+	@Override
+	public boolean startIndexLifeCycle() throws Exception {
+		return logIndexDao.startIndexLifeCycle();
+	}
+
+	@Override
+	public String getLifecycleManagementStatus() throws Exception {
+		return logIndexDao.getLifecycleManagementStatus();
+	}
+
 
 }

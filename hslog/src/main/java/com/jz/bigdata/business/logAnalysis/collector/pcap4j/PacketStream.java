@@ -110,17 +110,22 @@ public class PacketStream {
 								// 当request的数据存在时进行：1、request/response配对；2、计算响应时间
 								// 当request不存在时，直接将response数据入库
 								if (httprequest!=null){
+								    // 生成uuid进行request/response打标签
+								    httprequest.setFlag(UUID.randomUUID().toString());
 									http.setFlag(httprequest.getFlag());
 									// 将计算的响应时间存入request和response
 									httprequest.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
 									http.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
 									//httpCache.put(httprequest.getNextacknum(),httprequest);
 									httpCache.invalidate(httprequest.getNextacknum());
-									//json = gson.toJson(httprequest);
-									//httpCache.invalidate(httprequest.getNextacknum());
-									//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
-								}
 
+									// request数据入库
+									json = gson.toJson(httprequest);
+									requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+								}else{
+								    http.setFlag("未匹配");
+                                }
+                                // response数据入库
 								json = gson.toJson(http);
 								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 							}

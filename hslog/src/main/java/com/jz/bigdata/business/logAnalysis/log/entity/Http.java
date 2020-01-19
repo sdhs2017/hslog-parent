@@ -682,7 +682,7 @@ public class Http {
 		}
 
 		this.index_suffix = "packet";
-		this.flag = UUID.randomUUID().toString();
+		//this.flag = UUID.randomUUID().toString();
         
 	}
 		

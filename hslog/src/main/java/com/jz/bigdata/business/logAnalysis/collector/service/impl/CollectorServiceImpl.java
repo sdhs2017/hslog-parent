@@ -303,7 +303,9 @@ public class CollectorServiceImpl implements ICollectorService{
 					System.out.println("驱逐原因：" + cause);
 					if("EXPLICIT".equals(cause)){
 
-					}else{
+					}else if ("EXPIRED".equals(cause)||"SIZE".equals(cause)){
+					    http.setFlag("未匹配");
+					    // 过期的request数据入库
 						String json = gson.toJson(http);
 						try {
 							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
@@ -418,7 +420,9 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	public String stopPcap4jCollector() {
-		
+
+		// TODO  关闭流量采集的时候httpcache需要处理
+
 		Map<String, Object> map = new HashMap<>();
 		if (pcap4jCollector!=null) {
 			if (pcap4jCollector.getPcap4jStatus()) {

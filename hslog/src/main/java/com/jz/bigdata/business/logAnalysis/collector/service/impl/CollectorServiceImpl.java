@@ -286,19 +286,32 @@ public class CollectorServiceImpl implements ICollectorService{
 
 		// 手动加载-初始化缓存
 		Cache<Long, Http> httpCache = Caffeine.newBuilder()
-				.maximumSize(1)
-				.expireAfterWrite(10, TimeUnit.MINUTES)
+				.maximumSize(3000000)//300万流量，占用大概3G内存
+				.expireAfterWrite(10, TimeUnit.DAYS)//过期时间10天
 				.recordStats()
 				//.expireAfterAccess(1,TimeUnit.SECONDS)
+				/*
+               EXPLICIT: 这个原因是，用户造成的，通过调用remove方法从而进行删除。
+               REPLACED: 更新的时候，其实相当于把老的value给删了。
+               COLLECTED: 用于我们的垃圾收集器，java的软引用，弱引用机制
+               EXPIRED： 过期淘汰。
+               SIZE: 大小淘汰，当超过最大的时候就会进行淘汰。
+                */
 				.removalListener((Long Long, Http http, RemovalCause cause) ->
 				{
+					//目前request所有的处理机制都是通过触发此方法入es
 					System.out.println("驱逐原因：" + cause);
-					String json = gson.toJson(http);
-					try {
-						requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
-					} catch (Exception e) {
-						e.printStackTrace();
+					if("EXPLICIT".equals(cause)){
+
+					}else{
+						String json = gson.toJson(http);
+						try {
+							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
+
 				})
 				.build();
         // 抓取包长度

@@ -98,7 +98,12 @@ public class PacketStream {
 							}
 							// 如果http协议是request的请求，则将数据存入到caffeine的cache中
 							if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("request")){
-								httpCache.put(http.getNextacknum(),http);
+								if(http.getPacket_length()>=1460||(http.getDomain_url().indexOf("_bulk")>=0)){
+									//httpCache.put(http.getNextacknum(),http);
+								}else{
+									httpCache.put(http.getNextacknum(),http);
+								}
+
 							}else if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("response")){
 								// 通过response的acknum查找缓存区对应request数据，且触发caffeine的过期机制（将时间过期数据从缓存中移除）
 								Http httprequest = httpCache.getIfPresent(http.getAcknum());
@@ -109,11 +114,13 @@ public class PacketStream {
 									// 将计算的响应时间存入request和response
 									httprequest.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
 									http.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
-									httpCache.put(httprequest.getNextacknum(),httprequest);
+									//httpCache.put(httprequest.getNextacknum(),httprequest);
+									httpCache.invalidate(httprequest.getNextacknum());
 									//json = gson.toJson(httprequest);
 									//httpCache.invalidate(httprequest.getNextacknum());
 									//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 								}
+
 								json = gson.toJson(http);
 								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 							}
@@ -152,6 +159,7 @@ public class PacketStream {
 			if (requests.size()>=configProperty.getEs_bulk()) {
 				try {
 					logCurdDao.bulkInsert(requests);
+					System.out.println("caffine length-----------"+httpCache.asMap().size());
 					requests.clear();
 				} catch (Exception e) {
 					//logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());

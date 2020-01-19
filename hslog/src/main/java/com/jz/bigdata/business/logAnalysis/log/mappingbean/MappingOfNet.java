@@ -179,7 +179,7 @@ public class MappingOfNet {
 	/**
 	 * 响应时间
 	 */
-	private long responsetime;
+	private Long responsetime;
 
 	/**
 	 * 关联字段

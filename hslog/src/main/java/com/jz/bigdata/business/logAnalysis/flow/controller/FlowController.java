@@ -1612,7 +1612,7 @@ public class FlowController {
      */
     @ResponseBody
     @RequestMapping("/getMap")
-    @DescribeLog(describe="地图")
+    @DescribeLog(describe="首页地图地球-展示流量的流向")
     public String getMap(HttpServletRequest request) {
         String index = configProperty.getEs_index();
         String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
@@ -1624,6 +1624,126 @@ public class FlowController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return JSONArray.fromObject(list).toString();
+    }
+
+    /**
+     * @param request
+     * 统计应用的平均响应时间
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getDomaiUrlAvgResponsetime")
+    @DescribeLog(describe="统计应用的平均响应时间")
+    public String getDomaiUrlAvgResponsetime(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfields = "domain_url.raw";
+        String avgfield = "responsetime";
+        String [] types = {"defaultpacket"};
+        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        int size =10;
+        // 判断封装参数的hsdata是否为null，不是解析里面的参数内容
+        if (hsData!=null) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> map = new HashMap<String, String>();
+            // 处理返回的json参数，转为map
+            try {
+                map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String starttime = "";
+            String endtime = "";
+            // 判断时间范围查询条件是否存在，如果存在提取参数
+            if (map.get("starttime") != null) {
+                Object start = map.get("starttime");
+                starttime = start.toString();
+                map.remove("starttime");
+            }
+            if (map.get("endtime") != null) {
+                Object end = map.get("endtime");
+                endtime = end.toString();
+                map.remove("endtime");
+            }
+
+            try {
+                list = flowService.groupByThenAvg(types,groupfields,avgfield,size,starttime,endtime,map,index);
+            } catch (Exception e) {
+                logger.error("统计应用的平均响应时间报错");
+                e.printStackTrace();
+            }
+        }else {
+            try {
+                list = flowService.groupByThenAvg(types,groupfields,avgfield,size,null,null,null,index);
+            } catch (Exception e) {
+                logger.error("统计应用的平均响应时间报错");
+                e.printStackTrace();
+            }
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+
+    /**
+     * @param request
+     * 统计单个应用的功能url平均响应时间
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getRequestUrlAvgResponsetime")
+    @DescribeLog(describe="统计单个应用的功能url平均响应时间")
+    public String getRequestUrlAvgResponsetime(HttpServletRequest request) {
+        String index = configProperty.getEs_index();
+        String groupfields = "request_url.raw";
+        String avgfield = "responsetime";
+        String [] types = {"defaultpacket"};
+        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        int size =10;
+        // 判断封装参数的hsdata是否为null，不是解析里面的参数内容
+        if (hsData!=null) {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, String> map = new HashMap<String, String>();
+            // 处理返回的json参数，转为map
+            try {
+                map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String starttime = "";
+            String endtime = "";
+            // 判断时间范围查询条件是否存在，如果存在提取参数
+            if (map.get("starttime") != null) {
+                Object start = map.get("starttime");
+                starttime = start.toString();
+                map.remove("starttime");
+            }
+            if (map.get("endtime") != null) {
+                Object end = map.get("endtime");
+                endtime = end.toString();
+                map.remove("endtime");
+            }
+
+            try {
+                list = flowService.groupByThenAvg(types,groupfields,avgfield,size,starttime,endtime,map,index);
+            } catch (Exception e) {
+                logger.error("统计单个应用的功能url平均响应时间报错");
+                e.printStackTrace();
+            }
+        }else {
+            try {
+                list = flowService.groupByThenAvg(types,groupfields,avgfield,size,null,null,null,index);
+            } catch (Exception e) {
+                logger.error("统计单个应用的功能url平均响应时间报错");
+                e.printStackTrace();
+            }
+        }
+
         return JSONArray.fromObject(list).toString();
     }
 }

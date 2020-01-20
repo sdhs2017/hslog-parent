@@ -44,7 +44,7 @@ public interface IflowService {
 
     /**
      * 新
-     * 实现类sql的group by功能,包含时间范围、条件等
+     * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
      * @param index 索引名称
      * @param types index 的 type字段，在7版本中移除
      * @param groupByField 需要进行聚合的字段
@@ -56,6 +56,21 @@ public interface IflowService {
      * @return
      */
     public List<Map<String, Object>> groupByThenSum(String index,String[] types,String groupByField,String sumField, int size, String starttime, String endtime,Map<String, String> map) throws Exception;
+
+    /**
+     * 新
+     * 实现类sql的group by并进行avg平均值计算的功能,包含时间范围、条件等
+     * @param indices 索引名称
+     * @param types index 的 type字段，在7版本中移除
+     * @param groupByField 需要进行聚合的字段
+     * @param avgField 聚合分组后进行sum计算的字段
+     * @param size 聚合结果最大返回数
+     * @param starttime 时间范围-开始时间
+     * @param endtime 时间范围-结束时间
+     * @param map 其他限制条件
+     * @return
+     */
+    public List<Map<String, Object>> groupByThenAvg(String[] types, String groupByField, String avgField, int size, String starttime, String endtime, Map<String, String> map, String... indices) throws Exception;
 
     /**
      * 新

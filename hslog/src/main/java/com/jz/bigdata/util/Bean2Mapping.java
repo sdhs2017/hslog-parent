@@ -30,7 +30,7 @@ public class Bean2Mapping {
 				"protocol","protocol_name","application_layer_protocol","encryption_based_protection_protocol","packet_source",
 				"l4_src_port","l4_dst_port","request_type","domain_url","complete_url","url_param","request_url","response_state",
 				"user_agent_os","user_agent_browser","session_status","dst_addr_country","dst_addr_province","dst_addr_city",
-				"src_addr_country","src_addr_province","src_addr_city",
+				"src_addr_country","src_addr_province","src_addr_city","flag",
 				// 防火墙字段
 				"from","devid","dname","logtype","mod","act","sa","da","pa",
 				// filebeat
@@ -56,7 +56,8 @@ public class Bean2Mapping {
 				// ip
 				"client_ip","dns_clientip","ip","relay_ip","ipv4_src_addr","ipv4_dst_addr","from","sa","da","pa",
 				// url
-				"equipmentname","request_url","domain_url","url_param","complete_url","protocol_name","application_layer_protocol","encryption_based_protection_protocol",
+				"equipmentname","request_url","domain_url","url_param","complete_url","protocol_name","application_layer_protocol",
+				"encryption_based_protection_protocol","flag",
 				// user-agent
 				"user_agent_os","user_agent_browser","session_status",
 				"dst_addr_country","dst_addr_province","dst_addr_city",

@@ -47,6 +47,11 @@ public class FlowServiceImpl implements IflowService {
     }
 
     @Override
+    public List<Map<String, Object>> groupByThenAvg(String[] types, String groupByField, String avgField, int size, String starttime, String endtime, Map<String, String> map, String... indices) throws Exception {
+        return flowSearchDao.getListByAvgOfAggregation(types,starttime,endtime,groupByField,avgField,size,map,indices);
+    }
+
+    @Override
     public List<Map<String, Object>> getSumByMetrics(String[] types, String sumField, int size, String starttime, String endtime, Map<String, String> map,String... indices) throws Exception {
         return flowSearchDao.getListBySumOfMetrics(types,starttime,endtime,sumField,size,map,indices);
     }

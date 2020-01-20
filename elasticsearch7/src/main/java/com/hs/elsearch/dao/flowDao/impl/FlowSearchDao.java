@@ -324,6 +324,70 @@ public class FlowSearchDao implements IFlowSearchDao {
     }
 
     @Override
+    public List<Map<String, Object>> getListByAvgOfAggregation(String[] types, String starttime, String endtime, String groupByField, String avgField, int size, Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 针对elasticsearch7版本将types转为hslog_type字段查询
+        if (types!=null&&!types.equals("")){
+            boolQueryBuilder.must(QueryBuilders.termsQuery("hslog_type",types));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey()+".raw", entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
+					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
+				}*/else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        // 聚合bucket查询group by
+        AggregationBuilder aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("avg",false))).size(size);
+        // 在bucket上聚合metric查询avg
+        AvgAggregationBuilder avgBuilder = AggregationBuilders.avg("avg").field(avgField);
+
+        aggregationBuilder.subAggregation(avgBuilder);
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+
+        Terms terms  = aggregations.get("aggs");
+
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+
+
+
+        for(Terms.Bucket bucket:terms.getBuckets()) {
+            Map<String, Object> bucketmap = new HashMap<>();
+            Avg avg = bucket.getAggregations().get("avg");
+            bucketmap.put("key", bucket.getKeyAsString());
+            bucketmap.put("value", avg.getValue());
+            list.add(bucketmap);
+        }
+
+        return list;
+    }
+
+    @Override
     public List<Map<String, Object>> getListBySumOfMetrics(String[] types, String starttime, String endtime, String sumField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 

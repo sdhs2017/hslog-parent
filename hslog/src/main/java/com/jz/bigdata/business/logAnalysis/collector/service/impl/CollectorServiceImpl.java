@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import com.carrotsearch.sizeof.RamUsageEstimator;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
@@ -23,6 +24,7 @@ import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.joda.time.DateTime;
 import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
@@ -77,6 +79,8 @@ public class CollectorServiceImpl implements ICollectorService{
 	private Map<String, String> urlmap = new HashMap<String, String>();
 	//private Set<String> urlSet = new HashSet<>();
 	PacketStream packetStream ;
+	//咖啡因缓存对象定义
+	Cache<Long, Http> httpCache = null;
 	
 	@Resource(name="assetsService")
 	private IAssetsService assetsService;
@@ -131,8 +135,6 @@ public class CollectorServiceImpl implements ICollectorService{
 		}finally{
 			return result;
 		}
-
-		
 	}
 
 	/**
@@ -260,7 +262,16 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
-	
+	public static String getRandomString(int length) {
+		String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		Random random = new Random();
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < length; i++) {
+			int number = random.nextInt(str.length());
+			sb.append(str.charAt(number));
+		}
+		return sb.toString();
+	}
 	/**
 	 * 开启pcap4j
 	 */
@@ -285,7 +296,7 @@ public class CollectorServiceImpl implements ICollectorService{
         }
 
 		// 手动加载-初始化缓存
-		Cache<Long, Http> httpCache = Caffeine.newBuilder()
+		httpCache = Caffeine.newBuilder()
 				.maximumSize(3000000)//300万流量，占用大概3G内存
 				.expireAfterWrite(10, TimeUnit.DAYS)//过期时间10天
 				.recordStats()
@@ -354,8 +365,8 @@ public class CollectorServiceImpl implements ICollectorService{
 			return JSONArray.fromObject(map).toString();
 		}
 
-        
 
+		final int[] j = {0};
 		//BulkRequest requests = new BulkRequest();
 
         //初始化listener
@@ -436,7 +447,44 @@ public class CollectorServiceImpl implements ICollectorService{
 		
 		return JSONArray.fromObject(map).toString();
 	}
-	
+
+	//缓存测试
+	public String startCaffeineTest() {
+		StringBuilder sb = new StringBuilder();
+		String len50 = "asdhljkdhfjkadhfkjhdfhjkdlfhadjkfhkasjdfhkjhf123hs";
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		Http h = null;
+		String begin,end;
+		for(int i = 1; i<999999999; i++){
+			begin = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
+			for(int k=1;k<10000;k++){
+				h = new Http();
+				h.setNextacknum((long)i);
+				h.setOperation_des((i+"a"+k+"")+sb.toString());
+				httpCache.put((long)(i*10000+k),h);
+			}
+			end = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
+
+			try {
+				Thread.sleep(1L);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.println(i+"------------"+RamUsageEstimator.sizeOf(httpCache)+"---"+begin+"|||||"+end);
+			System.out.println(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS"));
+		}
+		return null;
+	}
+
 	/**
      * 根据IP获取指定网卡设备
 	* @param NameOrIP 网卡IP或者网卡名
@@ -640,4 +688,5 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
+
 }

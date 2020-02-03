@@ -432,4 +432,27 @@ public interface IlogService {
 	 */
 	public boolean checkOfIndexOrTemplate(String... indexOrTemplate);
 
+	/**
+	 * 创建 index 的生命周期设置
+	 * @param policy_name 生命周期名称
+	 * @param delete_duration index删除周期
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean createLifeCycle(String policy_name,long delete_duration) throws Exception;
+
+	/**
+	 * 开启生命周期管理
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean startIndexLifeCycle() throws Exception;
+
+	/**
+	 * 查看生命周期管理状态
+	 * @return
+	 * @throws Exception
+	 */
+	public String getLifecycleManagementStatus() throws Exception;
+
 }

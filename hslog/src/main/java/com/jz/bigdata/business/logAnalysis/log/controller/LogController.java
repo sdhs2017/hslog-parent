@@ -191,10 +191,14 @@ public class LogController extends BaseController{
 
 		try {
 
+			/**
+			 * 初始化工作一：elasticsearch7版本创建template，elasticsearch5版本创建当天index
+			 */
 			Map<String, Object> settingmap = new HashMap<>();
 			settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
 			settingmap.put("index.number_of_shards", configProperty.getEs_number_of_shards());
 			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+			settingmap.put("index.lifecycle.name", "hs_policy");
 			// elasticsearch7 版本初始化template
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
@@ -216,26 +220,15 @@ public class LogController extends BaseController{
 			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_UNKNOWN,settingmap,new Unknown().toMapping());
 			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DEFAULTPACKET,settingmap,new DefaultPacket().toMapping());
 
-			/*logService.createIndexAndmapping(index,LogType.LOGTYPE_SYSLOG, new Syslog().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_WINLOG, new Winlog().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_LOG4J, new Log4j().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_MYSQLLOG, new Mysql().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, new PacketFilteringFirewal().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_NETFLOW, new Netflow().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_DNS, new DNS().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_DHCP, new DHCP().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_FILE, new App_file().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_APP_APACHE, new App_file().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_UNKNOWN, new Unknown().toMapping());
-			logService.createIndexAndmapping(index,LogType.LOGTYPE_DEFAULTPACKET, new DefaultPacket().toMapping());*/
-
 
 			// 更新index的settings属性
 			Map<String, Object> setting = new HashMap<>();
 			setting.put("index.max_result_window", configProperty.getEs_max_result_window());
 			setting.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
 			logService.updateSettings(index, setting);
-			// 在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
+			/**
+			 * 初始化工作二：在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
+			 */
 			try {
 				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
 				List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
@@ -255,6 +248,42 @@ public class LogController extends BaseController{
 					map.put("msg", "备份仓库初始化失败！");
 					return JSONArray.fromObject(map).toString();
 				}
+			}
+
+			/**
+			 * 初始化工作三：在初始化过程中创建index的生命周期
+			 */
+			try {
+				Boolean LifeCycleResult = logService.createLifeCycle("hs_policy",Long.parseLong(configProperty.getEs_days_of_log_storage()));
+				if (!LifeCycleResult){
+					map.put("state", false);
+					map.put("msg", "创建index生命周期失败！");
+					return JSONArray.fromObject(map).toString();
+				}
+			} catch (Exception e){
+				e.printStackTrace();
+				logger.error("创建index生命周期报错："+e.getMessage());
+
+			}
+
+			/**
+			 * 初始化工作四：在初始化过程中创建完index的生命周期后开启生命周期管理
+			 */
+			try {
+				String status = logService.getLifecycleManagementStatus();
+				if (status.equals("STOPPED")||status.equals("STOPPING")){
+					Boolean startIndexLifeCyclestatus = logService.startIndexLifeCycle();
+					if (!startIndexLifeCyclestatus){
+						map.put("state", false);
+						map.put("msg", "开启index生命周期管理失败！");
+						return JSONArray.fromObject(map).toString();
+					}
+				}
+			} catch (Exception e){
+				e.printStackTrace();
+				map.put("state", false);
+				map.put("msg", "开启index生命周期管理失败！");
+				return JSONArray.fromObject(map).toString();
 			}
 
 			map.put("state", true);
@@ -670,6 +699,7 @@ public class LogController extends BaseController{
 		String page = pageo.toString();
 		String size = sizeo.toString();
 
+		//String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 
 		Map<String, Object> map = new HashMap<>();
@@ -1912,6 +1942,7 @@ public class LogController extends BaseController{
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
+		System.out.println(new Syslog().toMapping());
 
 	}
 

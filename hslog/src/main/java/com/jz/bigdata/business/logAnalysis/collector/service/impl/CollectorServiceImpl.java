@@ -4,30 +4,33 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 
+import com.carrotsearch.sizeof.RamUsageEstimator;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.log.LogType;
+import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.joda.time.DateTime;
 import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.util.NifSelector;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -76,6 +79,8 @@ public class CollectorServiceImpl implements ICollectorService{
 	private Map<String, String> urlmap = new HashMap<String, String>();
 	//private Set<String> urlSet = new HashSet<>();
 	PacketStream packetStream ;
+	//咖啡因缓存对象定义
+	Cache<Long, Http> httpCache = null;
 	
 	@Resource(name="assetsService")
 	private IAssetsService assetsService;
@@ -94,6 +99,9 @@ public class CollectorServiceImpl implements ICollectorService{
 
 	@Resource
 	private IServiceInfoDao serviceInfoDao;
+
+	/*@Autowired
+	private ehcache cacheManager;*/
 	
 //	public Thread getT() {
 //		return t;
@@ -127,8 +135,6 @@ public class CollectorServiceImpl implements ICollectorService{
 		}finally{
 			return result;
 		}
-
-		
 	}
 
 	/**
@@ -256,14 +262,29 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
-	
+	public static String getRandomString(int length) {
+		String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+		Random random = new Random();
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < length; i++) {
+			int number = random.nextInt(str.length());
+			sb.append(str.charAt(number));
+		}
+		return sb.toString();
+	}
 	/**
 	 * 开启pcap4j
 	 */
 	public String startPcap4jCollector(ILogCrudDao logCurdDao,ConfigProperty configProperty) {
 		
 		Map<String, Object> map = new HashMap<>();
-		
+		// elasticsearch批量提交缓存区
+		List<IndexRequest> requests = Collections.synchronizedList(new ArrayList<IndexRequest>());
+		// 针对javabean中date类型的格式转化
+		Gson gson = new GsonBuilder()
+				.setDateFormat("yyyy-MM-dd HH:mm:ss")
+				.create();
+
 		HashMap<String, TcpStream> tcpStreamList=new HashMap<String, TcpStream>();
 		PcapNetworkInterface nif = getCaptureNetworkInterface(configProperty.getPcap4j_network());
 		
@@ -273,6 +294,39 @@ public class CollectorServiceImpl implements ICollectorService{
 			map.put("msg", "网卡获取失败！数据包采集器开启失败！");
 			return JSONArray.fromObject(map).toString();
         }
+
+		// 手动加载-初始化缓存
+		httpCache = Caffeine.newBuilder()
+				.maximumSize(3000000)//300万流量，占用大概3G内存
+				.expireAfterWrite(10, TimeUnit.DAYS)//过期时间10天
+				.recordStats()
+				//.expireAfterAccess(1,TimeUnit.SECONDS)
+				/*
+               EXPLICIT: 这个原因是，用户造成的，通过调用remove方法从而进行删除。
+               REPLACED: 更新的时候，其实相当于把老的value给删了。
+               COLLECTED: 用于我们的垃圾收集器，java的软引用，弱引用机制
+               EXPIRED： 过期淘汰。
+               SIZE: 大小淘汰，当超过最大的时候就会进行淘汰。
+                */
+				.removalListener((Long Long, Http http, RemovalCause cause) ->
+				{
+					//目前request所有的处理机制都是通过触发此方法入es
+					System.out.println("驱逐原因：" + cause);
+					if("EXPLICIT".equals(cause)){
+
+					}else if ("EXPIRED".equals(cause)||"SIZE".equals(cause)){
+					    http.setFlag("未匹配");
+					    // 过期的request数据入库
+						String json = gson.toJson(http);
+						try {
+							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+				})
+				.build();
         // 抓取包长度
         int snaplen = 64 * 1024 * 20;
         // 超时50ms
@@ -312,11 +366,9 @@ public class CollectorServiceImpl implements ICollectorService{
 			map.put("msg", "网卡设置过滤器失败！数据包采集器开启失败！"+e.getMessage());
 			return JSONArray.fromObject(map).toString();
 		}
-        Gson gson = new GsonBuilder()
-				 .setDateFormat("yyyy-MM-dd HH:mm:ss")  
-				 .create(); 
-        
-        List<IndexRequest> requests = new ArrayList<IndexRequest>();
+
+
+		final int[] j = {0};
 		//BulkRequest requests = new BulkRequest();
 
         //初始化listener
@@ -324,7 +376,7 @@ public class CollectorServiceImpl implements ICollectorService{
         	public void gotPacket(PcapPacket packet) {
         		try {
         			//packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
-        			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap);
+        			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap,httpCache);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
        				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());
@@ -379,7 +431,9 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	public String stopPcap4jCollector() {
-		
+
+		// TODO  关闭流量采集的时候httpcache需要处理
+
 		Map<String, Object> map = new HashMap<>();
 		if (pcap4jCollector!=null) {
 			if (pcap4jCollector.getPcap4jStatus()) {
@@ -397,7 +451,44 @@ public class CollectorServiceImpl implements ICollectorService{
 		
 		return JSONArray.fromObject(map).toString();
 	}
-	
+
+	//缓存测试
+	public String startCaffeineTest() {
+		StringBuilder sb = new StringBuilder();
+		String len50 = "asdhljkdhfjkadhfkjhdfhjkdlfhadjkfhkasjdfhkjhf123hs";
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		sb.append(len50);
+		Http h = null;
+		String begin,end;
+		for(int i = 1; i<999999999; i++){
+			begin = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
+			for(int k=1;k<10000;k++){
+				h = new Http();
+				h.setNextacknum((long)i);
+				h.setOperation_des((i+"a"+k+"")+sb.toString());
+				httpCache.put((long)(i*10000+k),h);
+			}
+			end = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
+
+			try {
+				Thread.sleep(1L);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			System.out.println(i+"------------"+RamUsageEstimator.sizeOf(httpCache)+"---"+begin+"|||||"+end);
+			System.out.println(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS"));
+		}
+		return null;
+	}
+
 	/**
      * 根据IP获取指定网卡设备
 	* @param NameOrIP 网卡IP或者网卡名
@@ -553,6 +644,8 @@ public class CollectorServiceImpl implements ICollectorService{
 				funservice.setPort(url.getPort()+"");
 			}catch(Exception e){
 				e.printStackTrace();
+				//出现异常信息，进行标记
+				funservice.setDescribe("AbnormalUrl");
 			}
 			funservice.setProtocol(protocol);
 			funservice.setUrl(key.getKey());
@@ -599,4 +692,5 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
+
 }

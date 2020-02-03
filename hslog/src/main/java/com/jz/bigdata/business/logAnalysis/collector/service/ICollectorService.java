@@ -29,4 +29,5 @@ public interface ICollectorService {
 	public String statePcap4jCollector();
 
 	public String stopPcap4jCollector();
+	public String startCaffeineTest();
 }

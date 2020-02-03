@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.benmanes.caffeine.cache.Cache;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -48,8 +49,9 @@ public class PacketStream {
 
 	//BulkRequest requests ;
 	List<IndexRequest> requests;
+	Cache<Long, Http> httpCache;
 	
-	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap)
+	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap, Cache<Long, Http> httpCache)
 	{
 		this.configProperty = configProperty;
 		this.logCurdDao = logCurdDao;
@@ -57,6 +59,7 @@ public class PacketStream {
 		this.requests = requests;
 		this.domainSet = domainSet;
 		this.urlmap = urlmap;
+		this.httpCache = httpCache;
 	}
 	
 	
@@ -75,11 +78,14 @@ public class PacketStream {
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 
+			// 通过ip4packet包的header信息确认流量包是什么协议，该判断条件为是TCP协议
 			if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
 				TcpPacket tcpPacket = packet.get(TcpPacket.class);
 				String dst_port = tcpPacket.getHeader().getDstPort().valueAsString();
+				// 判断TCP流量包的payload是否为null，如果不为空则继续解析payload中的内容
 				if (tcpPacket.getPayload()!=null) {
 					String payloadString = tcpPacket.getPayload().toString().substring(tcpPacket.getPayload().toString().indexOf(":")+1).trim();
+					// 通过正则判断应用层协议是否为http
 					if ((getSubUtil(hexStringToString(payloadString), httpRequest)!=""||getSubUtil(hexStringToString(payloadString), httpResponse)!="")&&!dst_port.equals("9300")) {
 						try {
 							http =new Http(packet);
@@ -89,12 +95,42 @@ public class PacketStream {
 							}
 							if (http.getRequest_url()!=null&&!http.getRequest_url().equals("")) {
 								urlmap.put("http://"+http.getIpv4_dst_addr()+":"+http.getL4_dst_port()+""+http.getRequest_url(), http.getDomain_url());
-								//System.out.println("--urlmap---"+urlmap);
 							}
-							json = gson.toJson(http);
-							//requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_DEFAULTPACKET, json));
-							//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+							// 如果http协议是request的请求，则将数据存入到caffeine的cache中
+							if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("request")){
+								if(http.getPacket_length()>=1460||(http.getDomain_url().indexOf("_bulk")>=0)){
+									//httpCache.put(http.getNextacknum(),http);
+								}else{
+									httpCache.put(http.getNextacknum(),http);
+								}
+
+							}else if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("response")){
+								// 通过response的acknum查找缓存区对应request数据，且触发caffeine的过期机制（将时间过期数据从缓存中移除）
+								Http httprequest = httpCache.getIfPresent(http.getAcknum());
+								// 当request的数据存在时进行：1、request/response配对；2、计算响应时间
+								// 当request不存在时，直接将response数据入库
+								if (httprequest!=null){
+								    // 生成uuid进行request/response打标签
+								    httprequest.setFlag(UUID.randomUUID().toString());
+									http.setFlag(httprequest.getFlag());
+									// 将计算的响应时间存入request和response
+									httprequest.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
+									http.setResponsetime(http.getLogdate().getTime() - httprequest.getLogdate().getTime());
+									//httpCache.put(httprequest.getNextacknum(),httprequest);
+									httpCache.invalidate(httprequest.getNextacknum());
+
+									// request数据入库
+									json = gson.toJson(httprequest);
+									requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+								}else{
+								    http.setFlag("未匹配");
+                                }
+                                // response数据入库
+								json = gson.toJson(http);
+								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+							}
+
+
 						} catch (Exception e) {
 							System.out.println("---------------范式化失败·······---------"+e.getMessage());
 							e.printStackTrace();
@@ -125,9 +161,10 @@ public class PacketStream {
 			}
 			
 		
-			if (requests.size()==configProperty.getEs_bulk()) {
+			if (requests.size()>=configProperty.getEs_bulk()) {
 				try {
 					logCurdDao.bulkInsert(requests);
+					System.out.println("caffine length-----------"+httpCache.asMap().size());
 					requests.clear();
 				} catch (Exception e) {
 					//logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());
@@ -138,17 +175,22 @@ public class PacketStream {
 		} catch (NumberFormatException ee){
             defaultpacket = new DefaultPacket(packet);
             defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
-            defaultpacket.setOperation_des("异常playload");
+            defaultpacket.setOperation_des("jiyourui");
             if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
                 defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
             }
             json = gson.toJson(defaultpacket);
+            logger.error(json);
             try {
+            	System.out.println("异常数据，提示requests size:" + requests.size());
                 requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+                logCurdDao.bulkInsert(requests);
+                requests.clear();
+                System.out.println("异常数据采集后提交，提示requests size:" + requests.size());
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
+            ee.printStackTrace();
         } catch (Exception e) {
 			//logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());
 			e.printStackTrace();
@@ -309,7 +351,7 @@ public class PacketStream {
 	}
  	
  	public static void main(String [] args) {
-		String payload = "HTTP/1.1 200 Content-Disposition: inline;filename=f.txt Content-Type: application/json;charset=utf-8 Content-Length";
+		/*String payload = "HTTP/1.1 200 Content-Disposition: inline;filename=f.txt Content-Type: application/json;charset=utf-8 Content-Length";
  		String pString = "POST /jzLog/collector/statePcap4jCollector.do HTTP/1.1 Host: 192.168.2.182:8080 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0 Accept";
 		// 识别http数据包的正则表达式
 		String httpRequest = "^(POST|GET) /[^\\s]* HTTP/1.[0,1]";
@@ -319,6 +361,20 @@ public class PacketStream {
 		}
 		if ((getSubUtil(pString, httpRequest)!=""||getSubUtil(pString, httpResponse)!="")) {
 			System.out.println(pString);
+		}*/
+		String payload = "[Illegal Packet (45 bytes)]\n" +
+				"  Hex stream: 00 2b fa 73 01 00 00 01 00 00 00 00 00 00 02 32 39 02 36 38 03 31 38 30 02 38 31 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00 00 0c 00 01\n" +
+				"  Cause: org.pcap4j.packet.IllegalRawDataException: The data is too short to build a question in DnsHeader. data: fe ee 0b ca e5 69 52 54 00 b4 e4 09 08 00 45 00 00 55 49 80 40 00 40 06 3a b5 ac 15 00 09 b7 3c 53 13 d4 c6 00 35 27 17 3a de 2a bc 19 72 50 18 00 e5 55 74 00 00 00 2b fa 73 01 00 00 01 00 00 00 00 00 00 02 32 39 02 36 38 03 31 38 30 02 38 31 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00 00 0c 00 01, offset: 54, length: 45, cursor: 45";
+		String sss = payload.substring(payload.indexOf(":")+1).trim();
+		System.out.println(sss);
+
+		String hexstrem = "525400b4e409feee0bcae5690800456801a4915a4000fb0644aa3ae3c0e5ac1500090035dc0cf2c337ea6c80dc2c801800f3435400000101080a7017ad8b2daefdc8";
+
+		try {
+			String s = hexStringToString(hexstrem);
+			System.out.println(s);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 }

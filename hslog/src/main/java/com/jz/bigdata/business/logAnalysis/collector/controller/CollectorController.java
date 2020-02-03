@@ -318,7 +318,13 @@ public class CollectorController {
 	*/
 		return result;
 	}
-	
+	// 缓存测试demo开关
+	@ResponseBody
+	@RequestMapping(value = "/startCaffeineTest", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "缓存测试demo开关")
+	public String startCaffeineTest(HttpServletRequest request) {
+		return collectorService.startCaffeineTest();
+	}
 	
 	// 监控pcap4j抓取数据包运行状态
 	@ResponseBody

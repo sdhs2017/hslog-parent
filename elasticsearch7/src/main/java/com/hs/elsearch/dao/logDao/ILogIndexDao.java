@@ -99,5 +99,37 @@ public interface ILogIndexDao {
      */
     public boolean checkOfIndexOrTemplate(String... indexOrTemplate) throws Exception;
 
+    /**
+     * 初始化elasticsearch 7版本的template或者5版本的index
+     * @param indexOrTemplate
+     * @param templatePattern
+     * @param type
+     * @param settings
+     * @param mapping
+     * @throws Exception
+     */
     public void initOfElasticsearch(String indexOrTemplate, String templatePattern, String type, Map<String, Object> settings, String mapping) throws Exception;
+
+    /**
+     * index 的生命周期设置
+     * @param policy_name 生命周期名称
+     * @param delete_duration index删除周期
+     * @return
+     * @throws Exception
+     */
+    public boolean createLifeCycle(String policy_name,long delete_duration) throws Exception;
+
+    /**
+     * 开启生命周期管理
+     * @return
+     * @throws Exception
+     */
+    public boolean startIndexLifeCycle() throws Exception;
+
+    /**
+     * 查看生命周期管理状态
+     * @return
+     * @throws Exception
+     */
+    public String getLifecycleManagementStatus() throws Exception;
 }

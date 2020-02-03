@@ -4,9 +4,11 @@ import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.jz.bigdata.util.GeoIPUtil;
 import com.jz.bigdata.util.Pattern_Matcher;
 import eu.bitwalker.useragentutils.UserAgent;
 import org.pcap4j.core.PcapPacket;
@@ -47,8 +49,9 @@ public class Http {
 	private String request_url;//请求地址
 	private String response_state;//返回状态
 	private String request_type;//请求类型
-	private String acknum; // tcp 确认号
-	private String seqnum; // tcp 顺序号
+	private Long acknum; // tcp 确认号
+	private Long seqnum; // tcp 顺序号
+	private Long nextacknum; // 下一个流量数据包的acknum
 	private String complete_url; // 完整的url http://192.168.2.182:8080/jzLog/getIndicesCount.do?_=1555924017369
 	private String url_param; // url参数
 	private String domain_url; // 域名
@@ -58,6 +61,22 @@ public class Http {
 	private String user_agent_browser;  // 客户端浏览器
 	private String user_agent_browser_version; // 客户端浏览器版本
 	private String session_status; // 回话状态
+
+	/**
+	 * 目的地址详细信息
+	 */
+	private String dst_addr_country; // 国家
+	private String dst_addr_province; // 省份
+	private String dst_addr_city; // 城市
+	private String dst_addr_locations; // 经纬度
+	/**
+	 * 源地址
+	 */
+	private String src_addr_country;// 国家
+	private String src_addr_province;// 省份
+	private String src_addr_city;// 城市
+	private String src_addr_locations;// 经纬度
+
 	/**
 	 * id
 	 */
@@ -83,11 +102,6 @@ public class Http {
 	 */
 	private Date logdate;
 	private String logtime;
-	/*private String logtime_minute;
-	private String logtime_hour;
-	private String logtime_day;
-	private String logtime_month;
-	private String logtime_year;*/
 
 	/**
 	 * 操作描述
@@ -103,7 +117,15 @@ public class Http {
 	 */
 	private String index_suffix;
 
-	
+	/**
+	 * 标签UUID，用于对应request/response
+	 */
+	private String flag;
+
+	/**
+	 * 响应时间
+	 */
+	private long responsetime;
 
 	public String getL4_src_port() {
 		return l4_src_port;
@@ -267,20 +289,28 @@ public class Http {
 		this.request_type = request_type;
 	}
 
-	public String getAcknum() {
+	public Long getAcknum() {
 		return acknum;
 	}
 
-	public void setAcknum(String acknum) {
+	public void setAcknum(Long acknum) {
 		this.acknum = acknum;
 	}
 
-	public String getSeqnum() {
+	public Long getSeqnum() {
 		return seqnum;
 	}
 
-	public void setSeqnum(String seqnum) {
+	public void setSeqnum(Long seqnum) {
 		this.seqnum = seqnum;
+	}
+
+	public Long getNextacknum() {
+		return nextacknum;
+	}
+
+	public void setNextacknum(Long nextacknum) {
+		this.nextacknum = nextacknum;
 	}
 
 	public String getComplete_url() {
@@ -371,6 +401,94 @@ public class Http {
 		this.index_suffix = index_suffix;
 	}
 
+	public Integer getPacket_length() {
+		return packet_length;
+	}
+
+	public void setPacket_length(Integer packet_length) {
+		this.packet_length = packet_length;
+	}
+
+	public String getDst_addr_country() {
+		return dst_addr_country;
+	}
+
+	public void setDst_addr_country(String dst_addr_country) {
+		this.dst_addr_country = dst_addr_country;
+	}
+
+	public String getDst_addr_province() {
+		return dst_addr_province;
+	}
+
+	public void setDst_addr_province(String dst_addr_province) {
+		this.dst_addr_province = dst_addr_province;
+	}
+
+	public String getDst_addr_city() {
+		return dst_addr_city;
+	}
+
+	public void setDst_addr_city(String dst_addr_city) {
+		this.dst_addr_city = dst_addr_city;
+	}
+
+	public String getDst_addr_locations() {
+		return dst_addr_locations;
+	}
+
+	public void setDst_addr_locations(String dst_addr_locations) {
+		this.dst_addr_locations = dst_addr_locations;
+	}
+
+	public String getSrc_addr_country() {
+		return src_addr_country;
+	}
+
+	public void setSrc_addr_country(String src_addr_country) {
+		this.src_addr_country = src_addr_country;
+	}
+
+	public String getSrc_addr_province() {
+		return src_addr_province;
+	}
+
+	public void setSrc_addr_province(String src_addr_province) {
+		this.src_addr_province = src_addr_province;
+	}
+
+	public String getSrc_addr_city() {
+		return src_addr_city;
+	}
+
+	public void setSrc_addr_city(String src_addr_city) {
+		this.src_addr_city = src_addr_city;
+	}
+
+	public String getSrc_addr_locations() {
+		return src_addr_locations;
+	}
+
+	public void setSrc_addr_locations(String src_addr_locations) {
+		this.src_addr_locations = src_addr_locations;
+	}
+
+	public String getFlag() {
+		return flag;
+	}
+
+	public void setFlag(String flag) {
+		this.flag = flag;
+	}
+
+	public long getResponsetime() {
+		return responsetime;
+	}
+
+	public void setResponsetime(long responsetime) {
+		this.responsetime = responsetime;
+	}
+
 	/**
 	 * @param packet
 	 * 构造方法，填充数据
@@ -431,6 +549,41 @@ public class Http {
 		this.l4_src_port=tcppacket.getHeader().getSrcPort().valueAsInt()+"";
 		this.ipv4_dst_addr=ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
 		this.l4_dst_port=tcppacket.getHeader().getDstPort().valueAsInt()+"";
+
+		if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
+			try {
+				this.dst_addr_country = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getCountryName();
+				this.dst_addr_province = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getProvinceName();
+				this.dst_addr_city = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getCityName();
+				if (GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getLocations()!=null){
+					this.dst_addr_locations = GeoIPUtil.getIPMsg(this.ipv4_dst_addr).getLocations();
+				}
+			}catch (Exception e){
+				this.dst_addr_country = "中国";
+				this.dst_addr_province = "山东";
+				this.dst_addr_city = "jinan";
+				this.dst_addr_locations = "36.4006,117.0113";
+			}
+
+		}
+
+		if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
+			try {
+				this.src_addr_country = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getCountryName();
+				this.src_addr_province = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getProvinceName();
+				this.src_addr_city = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getCityName();
+				if (GeoIPUtil.getIPMsg(this.ipv4_src_addr).getLocations()!=null){
+					this.src_addr_locations = GeoIPUtil.getIPMsg(this.ipv4_src_addr).getLocations();
+				}
+			}catch (Exception e){
+				//e.printStackTrace();
+				this.src_addr_country = "中国";
+				this.src_addr_province = "山东";
+				this.src_addr_city = "jinan";
+				this.src_addr_locations = "36.4006,117.0113";
+			}
+
+		}
 		this.protocol="6";
 		this.protocol_name="TCP";
 		this.application_layer_protocol = "http";
@@ -443,8 +596,11 @@ public class Http {
 		//httpResponse
 		String httpResponse = "^HTTP/1.[0,1] [0-9]{0,3} *";
 		
-		this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong()+"";
-		this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong()+"";
+		this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong();
+		this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong();
+		if (this.seqnum!=null&&this.packet_length!=null){
+			this.nextacknum = this.seqnum + this.packet_length;
+		}
 		
 		//获取数据是否为空
 		if (httphex!=null&&!httphex.equals("")) {
@@ -526,6 +682,7 @@ public class Http {
 		}
 
 		this.index_suffix = "packet";
+		//this.flag = UUID.randomUUID().toString();
         
 	}
 		

@@ -118,8 +118,9 @@ public class DefaultPacket {
 	 */
 	private String packet_source;
 	
-	private String acknum; // tcp 确认号
-	private String seqnum; // tcp 顺序号
+	private Long acknum; // tcp 确认号
+	private Long seqnum; // tcp 顺序号
+	private Long nextacknum; // 下一个流量数据包的acknum
 
 	// -------------http数据包属性---------------
 	private String requestorresponse;//请求或返回
@@ -327,20 +328,28 @@ public class DefaultPacket {
 		this.packet_source = packet_source;
 	}
 
-	public String getAcknum() {
+	public Long getAcknum() {
 		return acknum;
 	}
 
-	public void setAcknum(String acknum) {
+	public void setAcknum(Long acknum) {
 		this.acknum = acknum;
 	}
 
-	public String getSeqnum() {
+	public Long getSeqnum() {
 		return seqnum;
 	}
 
-	public void setSeqnum(String seqnum) {
+	public void setSeqnum(Long seqnum) {
 		this.seqnum = seqnum;
+	}
+
+	public Long getNextacknum() {
+		return nextacknum;
+	}
+
+	public void setNextacknum(Long nextacknum) {
+		this.nextacknum = nextacknum;
 	}
 
 	public String getRequestorresponse() {
@@ -447,6 +456,74 @@ public class DefaultPacket {
 		this.session_status = session_status;
 	}
 
+	public void setPacket_length(Integer packet_length) {
+		this.packet_length = packet_length;
+	}
+
+	public String getDst_addr_country() {
+		return dst_addr_country;
+	}
+
+	public void setDst_addr_country(String dst_addr_country) {
+		this.dst_addr_country = dst_addr_country;
+	}
+
+	public String getDst_addr_province() {
+		return dst_addr_province;
+	}
+
+	public void setDst_addr_province(String dst_addr_province) {
+		this.dst_addr_province = dst_addr_province;
+	}
+
+	public String getDst_addr_city() {
+		return dst_addr_city;
+	}
+
+	public void setDst_addr_city(String dst_addr_city) {
+		this.dst_addr_city = dst_addr_city;
+	}
+
+	public String getDst_addr_locations() {
+		return dst_addr_locations;
+	}
+
+	public void setDst_addr_locations(String dst_addr_locations) {
+		this.dst_addr_locations = dst_addr_locations;
+	}
+
+	public String getSrc_addr_country() {
+		return src_addr_country;
+	}
+
+	public void setSrc_addr_country(String src_addr_country) {
+		this.src_addr_country = src_addr_country;
+	}
+
+	public String getSrc_addr_province() {
+		return src_addr_province;
+	}
+
+	public void setSrc_addr_province(String src_addr_province) {
+		this.src_addr_province = src_addr_province;
+	}
+
+	public String getSrc_addr_city() {
+		return src_addr_city;
+	}
+
+	public void setSrc_addr_city(String src_addr_city) {
+		this.src_addr_city = src_addr_city;
+	}
+
+	public String getSrc_addr_locations() {
+		return src_addr_locations;
+	}
+
+	public void setSrc_addr_locations(String src_addr_locations) {
+		this.src_addr_locations = src_addr_locations;
+	}
+
 	public DefaultPacket(){
 		
 	}
@@ -461,23 +538,6 @@ public class DefaultPacket {
 		this.logtime = format.format(this.logdate);
 		this.ipv4_dst_addr = ip4packet.getHeader().getDstAddr().toString().replaceAll("/", "");
 		this.ipv4_src_addr = ip4packet.getHeader().getSrcAddr().toString().replaceAll("/", "");
-
-		/*if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
-			try {
-				GeoIPUtil util = new GeoIPUtil(this.ipv4_dst_addr);
-				this.dst_addr_country = util.getCountry();
-				this.dst_addr_province = util.getProvince();
-				this.dst_addr_city = util.getCity_name();
-				this.dst_addr_locations = util.getLocations();
-
-			}catch (Exception e){
-				this.dst_addr_country = "中国";
-				this.dst_addr_province = "山东";
-				this.dst_addr_city = "jinan";
-				this.dst_addr_locations = "36.0986,120.3719";
-			}
-
-		}*/
 
 		if (this.ipv4_dst_addr!=null&&!this.ipv4_dst_addr.equals("")){
 			try {
@@ -495,23 +555,6 @@ public class DefaultPacket {
 			}
 
 		}
-
-		/*if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
-			try {
-				GeoIPUtil util = new GeoIPUtil(this.ipv4_src_addr);
-				this.src_addr_country = util.getCountry();
-				this.src_addr_province = util.getProvince();
-				this.src_addr_city = util.getCity_name();
-				this.src_addr_locations = util.getLocations();
-			}catch (Exception e){
-				//e.printStackTrace();
-				this.src_addr_country = "中国";
-				this.src_addr_province = "山东";
-				this.src_addr_city = "jinan";
-				this.src_addr_locations = "36.0986,120.3719";
-			}
-
-		}*/
 
 		if (this.ipv4_src_addr!=null&&!this.ipv4_src_addr.equals("")){
 			try {
@@ -582,13 +625,16 @@ public class DefaultPacket {
 			this.l4_dst_port = tcppacket.getHeader().getDstPort().valueAsInt()+"";
 			this.l4_src_port = tcppacket.getHeader().getSrcPort().valueAsInt()+"";
 			
-			this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong()+"";
-			this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong()+"";
+			this.acknum = tcppacket.getHeader().getAcknowledgmentNumberAsLong();
+			this.seqnum = tcppacket.getHeader().getSequenceNumberAsLong();
+			if (this.seqnum!=null&&this.packet_length!=null){
+				this.nextacknum = this.seqnum + this.packet_length;
+			}
 			
 			this.protocol="6";
 			this.protocol_name="TCP";
 			if (tcppacket.getPayload()!=null) {
-				this.payload = tcppacket.getPayload().toString();
+				this.payload = packet.toString();
 			}
 			
 			String hexstring = tcppacket.toHexString().replaceAll(" ", "");
@@ -604,13 +650,26 @@ public class DefaultPacket {
 			
 			
 		}else if (ip4packet.getHeader().getProtocol().toString().contains("UDP")) {
-			UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
-			this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
-			this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
-			
+			try {
+				UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
+				this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
+				this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
+				if (udpPacket.getPayload()!=null){
+					this.payload = udpPacket.getPayload().toString();
+				}
+			}catch (ArrayIndexOutOfBoundsException arraye){
+                this.payload = packet.toString();
+                this.operation_des = "ArrayIndexOutOfBoundsException";
+                arraye.printStackTrace();
+            }catch (Exception e){
+				this.payload = packet.toString();
+				this.operation_des = "异常udp";
+				e.printStackTrace();
+			}
+
 			this.protocol="17";
 			this.protocol_name="UDP";
-			this.payload = udpPacket.getPayload().toString();
+
 			
 		}else if (ip4packet.getHeader().getProtocol().toString().contains("ICMPv4")) {
 

@@ -17,14 +17,14 @@
                         <div class="con">
                             <div class="ranking-head">
                                 <span class="order">#</span>
-                                <span class="val">IP</span>
+                                <span class="val">URL</span>
                                 <span class="num">数量</span>
                             </div>
                             <ul class="ranking-ul">
                                 <li v-for="(i , index) in rankingData" :key="index" :class="index === 0 ? 'first-li' : (index === 1) ? 'second-li' : (index === 2) ? 'third-li' :''">
                                     <span class="order">{{index + 1}}</span>
-                                    <span class="val">{{i.val}}</span>
-                                    <span class="num">{{i.num}}</span>
+                                    <span class="val" :title="i.val">{{i.val}}</span>
+                                    <span class="num">{{(i.num) > 10000 ? ((i.num)/10000).toFixed(2) + '万' : i.num}}</span>
                                 </li>
                             </ul>
                         </div>
@@ -90,6 +90,7 @@
         data() {
             return {
                 eData:[[{"name":"jinan","value":[120.3719,36.0986]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Hangzhou","value":[120.1619,30.294]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Singapore","value":[103.8547,1.2929]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Beijing","value":[116.3889,39.9288]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Tokyo","value":[139.7532,35.6882]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Mountain View","value":[-122.0748,37.4043]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Central","value":[114.15,22.2909]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Seattle","value":[-122.3451,47.6348]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Qingdao","value":[120.3694,36.066]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Ashburn","value":[-77.4728,39.0481]}],[{"name":"Hangzhou","value":[120.1619,30.294]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Mountain View","value":[-122.0748,37.4043]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Beijing","value":[116.3889,39.9288]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Singapore","value":[103.8547,1.2929]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Central","value":[114.15,22.2909]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Tokyo","value":[139.7532,35.6882]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Seattle","value":[-122.3451,47.6348]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Ashburn","value":[-77.4728,39.0481]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"San Francisco","value":[-122.4121,37.7506]},{"name":"jinan","value":[120.3719,36.0986]}]],
+                option:{},
                 interTime:'',
                 timeInterval:5000,
                 //数据日期间隔
@@ -158,6 +159,7 @@
         mounted(){
             //设置地球
             this.setEarth();
+            //可能会出现图片还未加载完全，出现白球旋转
             //获取流量数
             this.getFlowCount();
             //获取实时流量大小
@@ -225,161 +227,225 @@
                 }
                 this.fullscreen = !this.fullscreen;
             },
+            /*设置地球opt*/
+            setOpt(img){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.get(this.$baseUrl+'/flow/getMap.do','')
+                        .then(res=> {
+                            layer.closeAll('loading');
+                            let earthData = res.data;
+                            /*
+                             图中相关城市经纬度,根据你的需求添加数据
+                             关于国家的经纬度，可以用首都的经纬度或者其他城市的经纬度
+                             */
+                            var series = [];// 3D飞线
+                            var dser = [];  // 2D散点坐标
+                            earthData.forEach(function(item, i) {
+                                //线
+                                series.push({
+                                    type: 'lines3D',
+                                    effect: {
+                                        show: true,
+                                        period: 3,//速度
+                                        trailLength: 0.1//尾部阴影
+                                    },
+                                    lineStyle: {//航线的视图效果
+                                        color: '#9ae5fc',
+                                        width: 1,
+                                        opacity: 0.6
+                                    },
+                                    // data: convertData(item[1])// 特效的起始、终点位置，一个二维数组，相当于coords: convertData(item[1])
+                                    data:[[item[0].value,item[1].value]]
+                                })
+                                //点
+                                series.push({
+                                    type: 'scatter3D',
+                                    coordinateSystem: 'globe',
+                                    blendMode: 'lighter',
+                                    symbolSize: 10,
+                                    label:{
+                                        show:true,
+                                        formatter:function(val){
+                                            return item[0].name
+                                        },
+                                        textStyle:{
+                                            color:'blue',
+                                            fontSize:'12'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        color: 'rgb(255,0,0)',
+                                        opacity: 1
+                                    },
+                                    data:[
+                                        [item[0].value[0],item[0].value[1],0]
+                                    ]
+                                })
+                                series.push({
+                                    type: 'scatter3D',
+                                    coordinateSystem: 'globe',
+                                    blendMode: 'lighter',
+                                    symbolSize: 10,
+                                    label:{
+                                        show:true,
+                                        formatter:function(val){
+                                            return item[0].name
+                                        },
+                                        textStyle:{
+                                            color:'blue',
+                                            fontSize:'12'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        color: 'rgb(255,0,0)',
+                                        opacity: 1
+                                    },
+                                    data:[
+                                        [item[1].value[0],item[1].value[1],0]
+                                    ]
+                                })
+                            })
+                            this.option = {
+                                backgroundColor: 'rgba(0,0,0,0)',//canvas的背景颜色
+                                globe: {
+                                    // show:!!img,
+                                    baseTexture:'./static/img/world.png',
+                                    //baseTexture:myChart,
+                                    top: 'middle',
+                                    left: 'center',
+                                    displacementScale: 0,
+                                    environment:'none',
+                                    shading: 'color',
+                                    viewControl: {
+                                        distance:240,
+                                        autoRotate: false,
+                                        autoRotateAfterStill:5,
+                                        // 定位到北京
+                                        targetCoord: [116.46, 39.92]
+                                    }
+                                },
+                                series:series
+                            };
+                        })
+                        .catch(err =>{
+                            layer.closeAll('loading');
+                        })
+                })
+            },
             /*设置地球*/
             setEarth(){
-                let earthData = this.eData;
-                /*
-                 图中相关城市经纬度,根据你的需求添加数据
-                 关于国家的经纬度，可以用首都的经纬度或者其他城市的经纬度
-                 */
-                var series = [];// 3D飞线
-                var dser = [];  // 2D散点坐标
-                earthData.forEach(function(item, i) {
-                    dser.push({
-                        type: 'effectScatter',
-                        coordinateSystem: 'geo',
-                        zlevel: 3,
-                        rippleEffect: {
-                            brushType: 'stroke'
-                        },
-                        label: {
-                            fontSize:18,
-                            show: true,
-                            position: 'right',
-                            formatter: '{b}'
-                        },
-                        itemStyle: {
-                            normal: {
-                                color: '#f5f802'
-                            }
-                        },
-                        data:[{
-                            name:item[0].name,
-                            value:item[0].value,
-                            symbolSize:10,
-                            label: {
-                                normal: {
-                                    position: 'right'
-                                }
-                            }
-                        }]
-                    },{
-                        type: 'effectScatter',
-                        coordinateSystem: 'geo',
-                        zlevel: 3,
-                        rippleEffect: {
-                            brushType: 'stroke'
-                        },
-                        label: {
-                            normal: {
-                                show: true,
-                                position: 'left',
-                                fontSize:18,
-                                formatter: '{b}'
-                            }
-                        },
-                        itemStyle: {
-                            normal: {
-                                /*color: '#ff0000'*/
-                                color: '#f5f802'
-                            }
-                        },
-                        data: [{
-                            name:item[1].name,
-                            value:item[1].value,
-                            symbolSize:10,
-                            label: {
-                                normal: {
-                                    position: 'right'
-                                }
-                            }
-                        }]
-                    })
-                    series.push({
-                        type: 'lines3D',
-                        effect: {
-                            show: true,
-                            period: 3,//速度
-                            trailLength: 0.1//尾部阴影
-                        },
-                        lineStyle: {//航线的视图效果
-                            color: '#9ae5fc',
-                            width: 1,
-                            opacity: 0.6
-                        },
-                        // data: convertData(item[1])// 特效的起始、终点位置，一个二维数组，相当于coords: convertData(item[1])
-                        data:[[item[0].value,item[1].value]]
-                    })
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    //this.$axios.get('../../../static/filejson/data.json','')
+                    this.$axios.get(this.$baseUrl+'/flow/getMap.do','')
+                        .then(res=> {
+                            layer.closeAll('loading');
+                            let earthData = res.data;
+                            /*
+                             图中相关城市经纬度,根据你的需求添加数据
+                             关于国家的经纬度，可以用首都的经纬度或者其他城市的经纬度
+                             */
+                            var series = [];// 3D飞线
+                            var dser = [];  // 2D散点坐标
+                            earthData.forEach(function(item, i) {
+                                //线
+                                series.push({
+                                    type: 'lines3D',
+                                    effect: {
+                                        show: true,
+                                        period: 3,//速度
+                                        trailLength: 0.1//尾部阴影
+                                    },
+                                    lineStyle: {//航线的视图效果
+                                        color: '#9ae5fc',
+                                        width: 1,
+                                        opacity: 0.6
+                                    },
+                                    // data: convertData(item[1])// 特效的起始、终点位置，一个二维数组，相当于coords: convertData(item[1])
+                                    data:[[item[0].value,item[1].value]]
+                                })
+                                //点
+                                series.push({
+                                    type: 'scatter3D',
+                                    coordinateSystem: 'globe',
+                                    blendMode: 'lighter',
+                                    symbolSize: 10,
+                                    label:{
+                                        show:true,
+                                        formatter:function(val){
+                                            return item[0].name
+                                        },
+                                        textStyle:{
+                                            color:'blue',
+                                            fontSize:'12'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        color: 'rgb(255,0,0)',
+                                        opacity: 1
+                                    },
+                                    data:[
+                                        [item[0].value[0],item[0].value[1],0]
+                                    ]
+                                })
+                                series.push({
+                                    type: 'scatter3D',
+                                    coordinateSystem: 'globe',
+                                    blendMode: 'lighter',
+                                    symbolSize: 10,
+                                    label:{
+                                        show:true,
+                                        formatter:function(val){
+                                            return item[1].name
+                                        },
+                                        textStyle:{
+                                            color:'blue',
+                                            fontSize:'12'
+                                        }
+                                    },
+                                    itemStyle: {
+                                        color: 'rgb(255,0,0)',
+                                        opacity: 1
+                                    },
+                                    data:[
+                                        [item[1].value[0],item[1].value[1],0]
+                                    ]
+                                })
+                            })
+                            this.option = {
+                                backgroundColor: 'rgba(0,0,0,0)',//canvas的背景颜色
+                                globe: {
+                                    // show:!!img,
+                                    baseTexture:'./static/img/world.png',
+                                    //baseTexture:myChart,
+                                    top: 'middle',
+                                    left: 'center',
+                                    displacementScale: 0,
+                                    environment:'none',
+                                    shading: 'color',
+                                    viewControl: {
+                                        distance:240,
+                                        autoRotate: false,
+                                        autoRotateAfterStill:5,
+                                        // 定位到北京
+                                        targetCoord: [116.46, 39.92]
+                                    }
+                                },
+                                series:series
+                            };
+                            var ee = echarts.init(this.$refs.mybox);
+                            ee.setOption(this.option, true);
+                            window.addEventListener("resize",()=>{
+                                // myChart.resize();
+                                ee.resize();
+                            });
+                        })
+                        .catch(err =>{
+                            layer.closeAll('loading');
+                        })
                 })
-                var canvas = document.createElement('canvas');
 
-                var myChart = echarts.init(canvas, null, {
-                    width: 4096,
-                    height: 2048
-                });
-                myChart.setOption({
-                    backgroundColor: 'rgba(3,28,72,0.3)',
-                    title: {
-                        show:true
-                    },
-                    geo: {
-                        type: 'map',
-                        map: 'world',
-                        left:0,
-                        top:0,
-                        right: 0,
-                        bottom: 0,
-                        boundingCoords: [[-180, 90], [180, -90]],
-                        zoom:0,
-                        roam: false,
-                        itemStyle: {
-                            borderColor:'#000d2d',
-                            normal: {
-                                areaColor: '#2455ad',
-                                borderColor:'#000c2d'
-                            },
-                            emphasis: {
-
-                                areaColor: '#357cf8'
-                            }
-                        },
-                        emphasis:{
-                            label:{
-                                show:false
-                            }
-                        },
-                        label:{
-                            fontSize:24
-                        }
-                    },
-                    series:dser
-                })
-                var option = {
-                    backgroundColor: 'rgba(0,0,0,0)',//canvas的背景颜色
-                    globe: {
-                        baseTexture:myChart,
-                        top: 'middle',
-                        left: 'center',
-                        displacementScale: 0,
-                        environment:'none',
-                        shading: 'color',
-                        viewControl: {
-                            distance:240,
-                            autoRotate: false,
-                            autoRotateAfterStill:5,
-                            // 定位到北京
-                            targetCoord: [116.46, 39.92]
-                        }
-                    },
-                    series:series
-                };
-
-                var ee = echarts.init(this.$refs.mybox);
-                ee.setOption(option, true);
-                window.addEventListener("resize",()=>{
-                    // myChart.resize();
-                    ee.resize();
-                });
 
             },
             setEarth2(){
@@ -875,6 +941,7 @@
     .ranking .ranking-head{
         height: 36px;
         line-height: 36px;
+        display: flex;
     }
     .ranking .ranking-ul{
         height: calc(100% - 40px);
@@ -884,6 +951,7 @@
         height: 36px;
         line-height: 36px;
         border-top: 1px solid #283261;
+        display: flex;
     }
     .ranking-ul li.first-li{
         color:#F54545;
@@ -903,8 +971,14 @@
     }
     .ranking .val{
         width: calc(100% - 125px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
     .ranking .num{
         width: 80px;
+    }
+    #ca{
+        position: absolute;
     }
 </style>

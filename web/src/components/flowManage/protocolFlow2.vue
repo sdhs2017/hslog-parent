@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">协议流量
-            <v-flowchartfrom class="from-wapper" refreshBus="protocolFlowRefreshBus" dataBus="protocolFlowDataBus" switchBus="protocolFlowSwitchBus" timeBus="protocolFlowTimeBus"></v-flowchartfrom>
+            <v-basedate class="from-wapper" type="datetimerange" busName="protocolFlowTimeBus2"></v-basedate>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -55,12 +55,12 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
+    import vBasedate from '../common/baseDate'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
-        name: "protocolFlow",
+        name: "protocolFlow2",
         data() {
             return {
                 interTime:'',
@@ -131,53 +131,13 @@
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('protocolFlowRefreshBus',(val)=>{
-                    this.refreshIntTime = val;
-                    clearInterval(this.interTime);
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取传输层协议长度统计*/
-                        this.getTUData(paramObj);
-                        /*获取应用层协议长度统计*/
-                        this.getAppData(paramObj);
-                        /*获取协议长度综合统计*/
-                        this.getAgreementData(paramObj);
-                    },this.refreshIntTime);
-            })
-            /*监听数据时间改变*/
-            bus.$on('protocolFlowDataBus',(val)=>{
-                this.dataTime = val;
-            })
-            /*监听switch改变*/
-            bus.$on('protocolFlowSwitchBus',(obj)=>{
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取传输层协议长度统计*/
-                        this.getTUData(paramObj);
-                        /*获取应用层协议长度统计*/
-                        this.getAppData(paramObj);
-                        /*获取协议长度综合统计*/
-                        this.getAgreementData(paramObj);
-                    },this.refreshIntTime);
-                }
-            })
             /*监听日期改变*/
-            bus.$on('protocolFlowTimeBus',(obj)=>{
+            bus.$on('protocolFlowTimeBus2',(arr)=>{
                 let paramObj = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
+                    starttime:arr[0],
+                    endtime:arr[1]
                 }
+                layer.load(1);
                 /*获取传输层协议长度统计*/
                 this.getTUData(paramObj);
                 /*获取应用层协议长度统计*/
@@ -186,30 +146,7 @@
                 this.getAgreementData(paramObj);
             })
         },
-        mounted(){
-            //第一次获取数据
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取传输层协议长度统计*/
-            this.getTUData(paramObj);
-            /*获取应用层协议长度统计*/
-            this.getAppData(paramObj);
-            /*获取协议长度综合统计*/
-            this.getAgreementData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取传输层协议长度统计*/
-                this.getTUData(paramObj);
-                /*获取应用层协议长度统计*/
-                this.getAppData(paramObj);
-                /*获取协议长度综合统计*/
-                this.getAgreementData(paramObj);
-            },this.refreshIntTime);
-        },
+        mounted(){},
         methods:{
             /*获取传输层协议长度统计*/
             getTUData(paramObj){
@@ -303,10 +240,10 @@
             },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+           // clearInterval(this.interTime);
         },
         components:{
-            vFlowchartfrom,
+            vBasedate,
             vEcharts
         }
     }

@@ -5,7 +5,8 @@
             <i class="el-icon-menu"></i>
         </div>
         <div class="logo">
-            <img src="../../../static/img/login_cx.png" alt="">
+            <!--<img src="../../../static/img/login_cx.png" alt="">-->
+            <img src="../../../static/img/logo_ay.png" alt="">
         </div>
         <ul class="header-ul">
             <li v-for="(item,index) in this.systemMenu" :class="{ active:index === current}" :key="index" @click="changeSystem(item.id,index)">{{item.systemName}}</li>
@@ -131,7 +132,7 @@
                 }else{
                     layer.load(1)
                     let userObj = JSON.parse(localStorage.getItem("LoginUser"));
-                    this.passwordObj.id = userObj[0].id;
+                    this.passwordObj.id = userObj.id;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(this.passwordObj))
                             .then(res =>{
@@ -169,6 +170,13 @@
                     })
 
                 }else if(command === 'showPasswordForm'){
+                    //初始化参数
+                    this.passwordObj={
+                        oldPassword:'',
+                        password:''
+                    }
+                    this.password2='';
+                    //弹窗
                     this.passWordForm = true;
                 }
             },

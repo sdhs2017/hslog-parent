@@ -1,22 +1,23 @@
 <template>
     <div class="login-wrap">
         <div class="ms-login">
-            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>
+<!--            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>-->
+            <div class="ms-title"><img src="../../../static/img/logo_ay.png" alt=""></div>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
                     <el-input v-model="ruleForm.phone" placeholder="账号">
-                        <el-button slot="prepend" icon="el-icon-lx-people"></el-button>
+                        <el-button slot="prepend" icon="fa fa-user-o"></el-button>
                     </el-input>
                 </el-form-item>
                 <el-form-item prop="password">
                     <el-input type="password" placeholder="密码" v-model="ruleForm.password">
-                        <el-button slot="prepend" icon="el-icon-lx-lock"></el-button>
+                        <el-button slot="prepend" icon="fa fa-lock"></el-button>
                     </el-input>
                 </el-form-item>
                 <div class="login-btn">
                     <el-button type="primary" native-type="submit" @click="login">登录</el-button>
                 </div>
-                <p><router-link class="go-register" to="/resigter">没有账号？点击注册</router-link></p>
+                <p style="height: 30px"><!--<router-link class="go-register" to="/resigter">没有账号？点击注册</router-link>--></p>
                 <p class="gengxin" @click="uploadCertificate">证书更新</p>
             </el-form>
         </div>

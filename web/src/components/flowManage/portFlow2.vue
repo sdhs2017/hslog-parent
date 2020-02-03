@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">全局端口流量
-            <v-flowchartfrom class="from-wapper" refreshBus="portFlowRefreshBus" dataBus="portFlowDataBus" switchBus="portFlowSwitchBus" timeBus="portFlowTimeBus"></v-flowchartfrom>
+            <v-basedate class="from-wapper" type="datetimerange" busName="portFlowTimeBus2"></v-basedate>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -55,12 +55,12 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
+    import vBasedate from '../common/baseDate'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
-        name: "portFlow",
+        name: "portFlow2",
         data() {
             return {
                 interTime:'',
@@ -131,52 +131,11 @@
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('portFlowRefreshBus',(val)=>{
-                this.refreshIntTime = val;
-                clearInterval(this.interTime);
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.dataTime
-                    }
-                    /*获取目的端口总流量*/
-                    this.getTargetPortFlowData(paramObj);
-                    /*获取TCP端口总流量*/
-                    this.getTCPPortFlowData(paramObj);
-                    /*获取UDP端口总流量*/
-                    this.getUDPPortFlowData(paramObj);
-                },this.refreshIntTime);
-            })
-            /*监听数据时间改变*/
-            bus.$on('portFlowDataBus',(val)=>{
-                this.dataTime = val;
-            })
-            /*监听switch改变*/
-            bus.$on('portFlowSwitchBus',(obj)=>{
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取目的端口总流量*/
-                        this.getTargetPortFlowData(paramObj);
-                        /*获取TCP端口总流量*/
-                        this.getTCPPortFlowData(paramObj);
-                        /*获取UDP端口总流量*/
-                        this.getUDPPortFlowData(paramObj);
-                    },this.refreshIntTime);
-                }
-            })
             /*监听日期改变*/
-            bus.$on('portFlowTimeBus',(obj)=>{
+            bus.$on('portFlowTimeBus2',(arr)=>{
                 let paramObj = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
+                    starttime:arr[0],
+                    endtime:arr[1]
                 }
                 layer.load(1);
                 /*获取目的端口总流量*/
@@ -187,30 +146,7 @@
                 this.getUDPPortFlowData(paramObj);
             })
         },
-        mounted(){
-            //第一次获取数据
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取目的端口总流量*/
-            this.getTargetPortFlowData(paramObj);
-            /*获取TCP端口总流量*/
-            this.getTCPPortFlowData(paramObj);
-            /*获取UDP端口总流量*/
-            this.getUDPPortFlowData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取目的端口总流量*/
-                this.getTargetPortFlowData(paramObj);
-                /*获取TCP端口总流量*/
-                this.getTCPPortFlowData(paramObj);
-                /*获取UDP端口总流量*/
-                this.getUDPPortFlowData(paramObj);
-            },this.refreshIntTime);
-        },
+        mounted(){},
         methods:{
             /*获取目的端口总流量*/
             getTargetPortFlowData(paramObj){
@@ -330,10 +266,10 @@
             },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            // clearInterval(this.interTime);
         },
         components:{
-            vFlowchartfrom,
+            vBasedate,
             vEcharts
         }
     }

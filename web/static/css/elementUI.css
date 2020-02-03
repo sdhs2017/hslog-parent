@@ -56,6 +56,13 @@
 .el-select-dropdown__item.hover, .el-select-dropdown__item:hover {
     background-color: #5a7494;
 }
+.el-select__tags>span{
+    display: flex;
+}
+.el-select .el-tag{
+    display: flex;
+    align-items: center;
+}
 .el-popper[x-placement^=bottom] .popper__arrow::after{
     border-bottom-color: #409eff;
 }
@@ -259,6 +266,7 @@
 }
 .el-tooltip__popper,.el-tooltip__popper.is-dark{
     background:#2d6fb3;
+    word-break: break-all;
 }
 .el-tooltip__popper[x-placement^=top] .popper__arrow, .el-tooltip__popper[x-placement^=bottom] .popper__arrow{
     border-top-color: #2d6fb3;

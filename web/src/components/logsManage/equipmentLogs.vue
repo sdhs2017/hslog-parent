@@ -287,8 +287,8 @@
         display: flex;
         justify-content: center;
         margin-bottom: 20px;
-        top: 64px;
-        right: 84px;
+        top: 32px;
+        right: 44px;
         z-index: 0;
     }
     .equipment-table{

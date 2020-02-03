@@ -8,7 +8,7 @@
                         <div class="department-top">
                             <h5>系统列表</h5>
                             <div class="department-btns">
-                                <el-button type="primary" size="mini" plain title="添加系统" @click="addBtn"><i class="el-icon-lx-add"></i></el-button>
+                                <el-button type="primary" size="mini" plain title="添加系统" @click="addBtn"><i class="el-icon-plus"></i></el-button>
                                 <el-button type="success" size="mini" plain title="修改系统" @click="editBtn"><i class="el-icon-edit"></i></el-button>
                                 <el-button type="danger" size="mini" plain title="删除系统" @click="removeTree"><i class="el-icon-close"></i></el-button>
                             </div>
@@ -31,7 +31,7 @@
                         <div class="user-department-name">{{selectedTreeNode.sys_name}}</div>
                         <div class="user-tools-wapper">
                             <div class="user-btn">
-                                <el-button type="primary"  size="mini" plain title="添加菜单" @click="addMenuBtn"><i class="el-icon-lx-add"></i>添加菜单</el-button>
+                                <el-button type="primary"  size="mini" plain title="添加菜单" @click="addMenuBtn"><i class="el-icon-plus"></i>添加菜单</el-button>
                                 <!--<el-button type="danger" size="mini" plain title="删除菜单" @click="removeUser"><i class="el-icon-close"></i>删除菜单</el-button>-->
                             </div>
                             <!--<div class="user-search">

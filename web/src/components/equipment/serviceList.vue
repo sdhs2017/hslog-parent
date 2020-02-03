@@ -17,6 +17,9 @@
         <!--修改服务列表-->
         <el-dialog title="修改服务列表" :visible.sync="reviseWapper" width="440px">
             <el-form label-width="80px">
+                <el-form-item label="路径:" >
+                    <el-input :title="reviseCondition.url" v-model="reviseCondition.url" disabled></el-input>
+                </el-form-item>
                 <el-form-item label="名称:" >
                     <el-input v-model="reviseCondition.name" ></el-input>
                 </el-form-item>
@@ -177,7 +180,7 @@
                         btns:[
                             {
                                 icon:'el-icon-edit',
-                                text:'修改资产',
+                                text:'修改',
                                 btnType: 'reviseService',
                                 clickFun:(params)=>{
                                     this.getServiceById(params.id);
@@ -195,6 +198,7 @@
                 reviseWapper:false,//修改弹窗状态
                 reviseCondition:{
                     id:'',
+                    url:'',
                     name:'',
                     state:'',
                     describe:'',
@@ -370,6 +374,7 @@
                             layer.closeAll('loading');
                             //填充信息
                             this.reviseCondition.id = res.data.id;
+                            this.reviseCondition.url = res.data.url;
                             this.reviseCondition.name = res.data.name;
                             this.reviseCondition.state = res.data.state;
                             this.reviseCondition.describe = res.data.describe;

@@ -8,7 +8,7 @@
                         <div class="department-top">
                             <h5>机构列表</h5>
                             <div class="department-btns">
-                                <el-button type="primary" size="mini" plain title="添加组织机构" @click="addBtn" v-if="this.$is_has('userManage_addDepartment')"><i class="el-icon-lx-add"></i></el-button>
+                                <el-button type="primary" size="mini" plain title="添加组织机构" @click="addBtn" v-if="this.$is_has('userManage_addDepartment')"><i class="el-icon-plus"></i></el-button>
                                 <el-button type="success" size="mini" plain title="修改组织机构" @click="editBtn" v-if="this.$is_has('userManage_reviseDepartment')"><i class="el-icon-edit"></i></el-button>
                                 <el-button type="danger" size="mini" plain title="删除组织机构" @click="removeTree" v-if="this.$is_has('userManage_deleteDepartment')"><i class="el-icon-close"></i></el-button>
                             </div>
@@ -23,10 +23,10 @@
                                 lazy>
                                 <span class="custom-tree-node" slot-scope="{ node, data }">
                                     <span v-if="node.data.departmentName" class="tree-label">
-                                        <span class="people-icon el-icon-lx-peoplefill"></span>{{ node.label }}
+                                        <span class="people-icon el-icon-user-solid"></span>{{ node.label }}
                                     </span>
                                     <span v-else class="tree-label">
-                                        <span class="tree-icon el-icon-lx-homefill"></span>{{ node.label }}
+                                        <span class="tree-icon el-icon-s-home"></span>{{ node.label }}
                                     </span>
                                 </span>
                             </el-tree>
@@ -38,7 +38,7 @@
                         <div class="user-department-name">{{fatherName.split('/')[1]}}</div>
                         <div class="user-tools-wapper">
                             <div class="user-btn">
-                                <el-button type="primary" size="mini" plain title="添加用户" @click="addUserBtn"><i class="el-icon-lx-add"></i>添加用户</el-button>
+                                <el-button type="primary" size="mini" plain title="添加用户" @click="addUserBtn"><i class="el-icon-plus"></i>添加用户</el-button>
                                 <el-button type="danger" size="mini" plain title="删除用户" @click="removeUser"><i class="el-icon-close"></i>删除用户</el-button>
                             </div>
                             <div class="user-search">

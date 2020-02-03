@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title"></div>
+        <div class="top-title">流量控制中心</div>
         <div class="content">
             <div class="service-state-wapper">
                 <span>服务状态：</span>
@@ -28,12 +28,14 @@
         name: "flowServiceManage",
         data() {
             return {
-                state:'未开启'
+                state:'未开启',
+                interval:''
             }
         },
         created(){
+            this.getServiceStatus();
             //查看服务状态
-            setInterval(this.getServiceStatus,5000);
+            this.interval = setInterval(this.getServiceStatus,5000);
         },
         methods:{
             /*查看服务状态*/
@@ -109,6 +111,9 @@
                     layer.close();
                 });
             }
+        },
+        beforeDestroy() {
+            clearInterval(this.interval)
         }
     }
 </script>

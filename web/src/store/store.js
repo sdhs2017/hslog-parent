@@ -7,7 +7,8 @@ Vue.use(Vuex);
 const state = { //一般通过外部文件引入的，东西很多的。
                 //定义数据 --- 类似data
     logshowcolumn:{},
-    closeState:false
+    closeState:false,
+    tagRouteList:[]
 }
 const mutations = {
     /*//定义方法 --- 类似methods
@@ -22,6 +23,12 @@ const mutations = {
     },
     updateCloseState(state,data){
         state.closeState = data;
+    },
+    pushRoute(state,data){
+        state.tagRouteList.push(data)
+    },
+    deleteRoute(state,index){
+        state.tagRouteList.splice(index,1)
     }
 }
 export default new Vuex.Store({

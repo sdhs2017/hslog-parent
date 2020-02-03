@@ -64,12 +64,12 @@
                         </a>
                     </div>
                     <ul class="tools-ul" data-angle="[0,215]" @mouseenter="zzIndex = 2" @mouseleave="zzIndex = -2">
-                        <li class="item"><i class="el-icon-edit "></i></li>
-                        <li class="item"><i class="el-icon-tickets"></i></li>
-                        <li class="item"><i class="el-icon-share"></i></li>
-                        <li class="item"><i class="el-icon-date"></i></li>
-                        <li class="item"><i class="el-icon-bell"></i></li>
-                        <li class="item"><i class="el-icon-view"></i></li>
+                        <li class="item" title="修改资产" @click="reviseEquipment(i)"><i class="el-icon-edit "></i></li>
+                        <li class="item" title="查看资产日志" @click="equipmentLogs(i)"><i class="el-icon-tickets"></i></li>
+                        <li class="item" title="查看资产报表" @click="equipmentEcharts(i)"><i class="el-icon-share"></i></li>
+                        <li class="item" title="查看资产事件" @click="equipmentEvents(i)"><i class="el-icon-date"></i></li>
+                        <li class="item" title="设置安全策略" @click="setSafe(i)"><i class="el-icon-bell"></i></li>
+                        <li class="item" title="潜在威胁分析" @click="theartAnalyse(i)"><i class="el-icon-view"></i></li>
                     </ul>
                 </li>
             </ul>
@@ -86,7 +86,8 @@
 <script>
     import vSearchForm from '../common/BaseSearchForm';
     import bus from '../common/bus';
-	export default {
+    import {jumpHtml} from "../../../static/js/common";
+    export default {
 		name: "device2",
 		data() {
 			return {
@@ -264,6 +265,36 @@
                 this.getData(this.saveCondition,page);
                 //改变标识
                // this.firstGetData = false;
+            },
+            /*修改资产按钮*/
+            reviseEquipment(rowData,index){
+                //跳转页面
+                jumpHtml('reviseEquipment'+rowData.id,'equipment/reviseEquipment.vue',{ name:rowData.name,id: rowData.id },'资产修改')
+            },
+            /*查看资产日志*/
+            equipmentLogs(rowData,index){
+                //跳转页面
+                jumpHtml('equipmentLogs'+rowData.id,'logsManage/equipmentLogs.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
+            },
+            /*查看资产图表*/
+            equipmentEcharts(rowData,index){
+                //跳转页面
+                jumpHtml('equipmentEcharts'+rowData.id,'equipment/equipmentEcharts.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'统计')
+            },
+            /*查看资产事件*/
+            equipmentEvents(rowData,index){
+                //跳转页面
+                jumpHtml('equipmentEvents'+rowData.id,'eventManage/equipmentEvents.vue',{ name:rowData.name,id: rowData.id },'事件')
+            },
+            /*设置安全策略*/
+            setSafe(rowData,index){
+                //跳转页面
+                jumpHtml('equipmentSafe'+rowData.id,'equipment/equipmentSafe.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'安全策略')
+            },
+            /*潜在威胁分析*/
+            theartAnalyse(rowData,index){
+                //跳转页面
+                jumpHtml('equipmentThreat'+rowData.id,'equipment/equipmentThreat.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'威胁分析')
             },
             liMouseenter(event){
                 let ce = event.currentTarget;

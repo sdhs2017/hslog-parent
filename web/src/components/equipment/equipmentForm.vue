@@ -274,10 +274,10 @@
                   this.equipmentData.type.push(type);
               }
               //赋值
-              for(let i in this.equipmentData){
-
+              for(let i in this.form){
+                  this.form[i] = this.equipmentData[i]
               }
-              this.form = this.equipmentData;
+              //this.form = this.equipmentData;
           }
         },
         methods:{

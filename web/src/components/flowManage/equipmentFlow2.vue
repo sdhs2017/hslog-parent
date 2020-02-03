@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">资产流量
-            <v-flowchartfrom class="from-wapper" refreshBus="equipmentFlowRefreshBus" dataBus="equipmentFlowDataBus" switchBus="equipmentFlowSwitchBus" timeBus="equipmentFlowTimeBus"></v-flowchartfrom>
+            <v-basedate class="from-wapper" type="datetimerange" busName="equipmentFlowTimeBus2"></v-basedate>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -40,12 +40,12 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
+    import vBasedate from '../common/baseDate'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
-        name: "equipmentFlow",
+        name: "equipmentFlow2",
         data() {
             return {
                 interTime:'',
@@ -96,48 +96,11 @@
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('equipmentFlowRefreshBus',(val)=>{
-                this.refreshIntTime = val;
-                clearInterval(this.interTime);
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.dataTime
-                    }
-                    /*获取资产（ip）数据包个数*/
-                    this.getIpPacketsData(paramObj);
-                    /*获取资产（域名）数据包个数*/
-                    this.getDomainPacketsData(paramObj);
-                },this.refreshIntTime);
-            })
-            /*监听数据时间改变*/
-            bus.$on('equipmentFlowDataBus',(val)=>{
-                this.dataTime = val;
-            })
-            /*监听switch改变*/
-            bus.$on('equipmentFlowSwitchBus',(obj)=>{
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取资产（ip）数据包个数*/
-                        this.getIpPacketsData(paramObj);
-                        /*获取资产（域名）数据包个数*/
-                        this.getDomainPacketsData(paramObj);
-                    },this.refreshIntTime);
-                }
-            })
             /*监听日期改变*/
-            bus.$on('equipmentFlowTimeBus',(obj)=>{
+            bus.$on('equipmentFlowTimeBus2',(arr)=>{
                 let paramObj = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
+                    starttime:arr[0],
+                    endtime:arr[1]
                 }
                 layer.load(1);
                 /*获取资产（ip）数据包个数*/
@@ -146,26 +109,7 @@
                 this.getDomainPacketsData(paramObj);
             })
         },
-        mounted(){
-            //第一次获取数据
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取资产（ip）数据包个数*/
-            this.getIpPacketsData(paramObj);
-            /*获取资产（域名）数据包个数*/
-            this.getDomainPacketsData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取资产（ip）数据包个数*/
-                this.getIpPacketsData(paramObj);
-                /*获取资产（域名）数据包个数*/
-                this.getDomainPacketsData(paramObj);
-            },this.refreshIntTime);
-        },
+        mounted(){},
         methods:{
             /*获取资产（ip）数据包个数*/
             getIpPacketsData(paramObj){
@@ -229,10 +173,9 @@
             },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
         },
         components:{
-            vFlowchartfrom,
+            vBasedate,
             vEcharts
         }
     }

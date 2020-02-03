@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">IP主机流量
-            <v-flowchartfrom class="from-wapper" refreshBus="IPHostFlowRefreshBus" dataBus="IPHostFlowDataBus" switchBus="IPHostFlowSwitchBus" timeBus="IPHostFlowTimeBus"></v-flowchartfrom>
+            <v-basedate class="from-wapper" type="datetimerange" busName="IPHostFlowTimeBus2"></v-basedate>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -40,12 +40,12 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
+    import vBasedate from '../common/baseDate'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
-        name: "IPHostFlow",
+        name: "IPHostFlow2",
         data() {
             return {
                 interTime:'',
@@ -96,48 +96,11 @@
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('IPHostFlowRefreshBus',(val)=>{
-                this.refreshIntTime = val;
-                clearInterval(this.interTime);
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.dataTime
-                    }
-                    /*获取全局利用率百分比*/
-                    this.getSourceIpData(paramObj);
-                    /*获取全局数据包个数*/
-                    this.getTargetIpData(paramObj);
-                },this.refreshIntTime);
-            })
-            /*监听数据时间改变*/
-            bus.$on('IPHostFlowDataBus',(val)=>{
-                this.dataTime = val;
-            })
-            /*监听switch改变*/
-            bus.$on('IPHostFlowSwitchBus',(obj)=>{
-               //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取全局利用率百分比*/
-                        this.getSourceIpData(paramObj);
-                        /*获取全局数据包个数*/
-                        this.getTargetIpData(paramObj);
-                    },this.refreshIntTime);
-                }
-            })
             /*监听日期改变*/
-            bus.$on('IPHostFlowTimeBus',(obj)=>{
+            bus.$on('IPHostFlowTimeBus2',(arr)=>{
                 let paramObj = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
+                    starttime:arr[0],
+                    endtime:arr[1]
                 }
                 layer.load(1);
                 /*获取全局利用率百分比*/
@@ -146,27 +109,7 @@
                 this.getTargetIpData(paramObj);
             })
         },
-        mounted(){
-            //第一次获取数据
-            /*获取全局利用率百分比*/
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取全局利用率百分比*/
-            this.getSourceIpData(paramObj);
-            /*获取全局数据包个数*/
-            this.getTargetIpData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取全局利用率百分比*/
-                this.getSourceIpData(paramObj);
-                /*获取全局数据包个数*/
-                this.getTargetIpData(paramObj);
-            },this.refreshIntTime);
-        },
+        mounted(){},
         methods:{
             /*获取源IP地址流量排行*/
             getSourceIpData(paramObj){
@@ -224,10 +167,9 @@
             },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
         },
         components:{
-            vFlowchartfrom,
+            vBasedate,
             vEcharts
         }
     }

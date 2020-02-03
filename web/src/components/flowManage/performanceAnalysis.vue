@@ -131,7 +131,7 @@
             getAppAvgResTimeData(obj){
                 let paramObj = JSON.stringify(obj)
                 this.chartDataType = 'all'
-                this.allParams = paramObj;
+                this.allParams = obj;
                 this.chartTitle = "应用平均响应时间统计"
                 this.busName.clickName = 'appAvgResTimeClick';
                 this.$nextTick(()=>{

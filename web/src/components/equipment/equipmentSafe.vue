@@ -226,6 +226,7 @@
                     ACPI:"ACPI日志",
                     PM:"PM日志",
                     SRAT:"SRAT日志",
+                    ssh_failed:'ssh登录失败',
                     crond:"定时任务"
 
                 },
@@ -427,7 +428,7 @@
                     for(let i in this.winlogEventObj){
                         let obj = {};
                         obj.value = i;
-                        obj.label = this.syslogEventObj[i];
+                        obj.label = this.winlogEventObj[i];
                         this.eventTypeArr.push(obj);
                     }
                 }

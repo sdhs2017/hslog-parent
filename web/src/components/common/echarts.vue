@@ -137,14 +137,20 @@
             },
             //柱状图
             barEchart(){
+                if(this.echartData.baseConfig.dispose){
+                    echarts.init(this.$refs.mybox).dispose();//销毁前一个实例
+                }
                 // 基于准备好的dom，初始化echarts实例
                 // var myChart = echarts.init(document.getElementById('echart-wapper'));
                // let myChart1 = 'bar'+new Date();
+                if(this.echartData.baseConfig.dispose){
+                    echarts.init(this.$refs.mybox).dispose();//销毁前一个实例
+                }
                 let myChart = echarts.init(this.$refs.mybox);
                 // 绘制图表
                 myChart.setOption({
                     title: {
-                        text: this.echartData.baseConfig.title,
+                        text: this.echartData.baseConfig.title ? this.echartData.baseConfig.title : '',
                         x:'center',
                         textStyle:{
                             color:'#5bc0de'
@@ -238,7 +244,7 @@
                 let myChart = echarts.init(this.$refs.mybox);
                 myChart.setOption({
                     title: {
-                        text:this.echartData.baseConfig.title,
+                        text:this.echartData.baseConfig.title ? this.echartData.baseConfig.title : '',
                         x:'center',
                         textStyle:{
                             color:'#5bc0de'
@@ -339,7 +345,7 @@
                 let myChart = echarts.init(this.$refs.mybox);
                 let option = {
                     title: {
-                        text:this.echartData.baseConfig.title,
+                        text:this.echartData.baseConfig.title ? this.echartData.baseConfig.title : '',
                         x:'center',
                         textStyle:{
                             color:'#5bc0de'
@@ -448,10 +454,13 @@
             },
             //实时动态更新
             timeLineEchart(){
+                if(this.echartData.baseConfig.dispose){
+                    echarts.init(this.$refs.mybox).dispose();//销毁前一个实例
+                }
                 let myChart = echarts.init(this.$refs.mybox);
                 let option = {
                     title: {
-                        text:this.echartData.baseConfig.title,
+                        text:this.echartData.baseConfig.title ? this.echartData.baseConfig.title : '',
                         x:'center',
                         textStyle:{
                             color:'#5bc0de'
@@ -559,7 +568,7 @@
                 let myChart = echarts.init(this.$refs.mybox);
                 myChart.setOption({
                     title : {
-                        text: this.echartData.baseConfig.title,
+                        text: this.echartData.baseConfig.title ? this.echartData.baseConfig.title : '',
                         x:'center',
                         textStyle:{
                             color:'#5bc0de'
@@ -688,7 +697,7 @@
                 let myChart = echarts.init(this.$refs.mybox);
                 myChart.setOption({
                     title : {
-                        text: this.echartData.baseConfig.title,
+                        text: this.echartData.baseConfig.title ? this.echartData.baseConfig.title : '',
                         x:'center',
                         textStyle:{
                             color:'#5bc0de'

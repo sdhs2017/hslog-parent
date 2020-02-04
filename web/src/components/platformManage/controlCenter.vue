@@ -53,12 +53,14 @@
         name: "controlCenter",
         data() {
             return {
-                state:'未开启'
+                state:'未开启',
+                interval:''
             }
         },
         created(){
+            this.getServiceStatus();
             //查看服务状态
-            setInterval(this.getServiceStatus,5000);
+             this.interval = setInterval(this.getServiceStatus,5000);
         },
         methods:{
             /*查看服务状态*/
@@ -220,6 +222,9 @@
                     layer.close();
                 });
             }
+        },
+        beforeDestroy() {
+            clearInterval(this.interval)
         }
     }
 </script>

@@ -162,7 +162,10 @@
                     {
                         prop:'operation_des',
                         label:'内容',
-                        width:''
+                        width:'',
+                        formatData:(val)=>{
+                            return '<script type="text/html" style="display:block">'+val+'</scrip'+'t>'
+                        }
                     },
                     {
                         prop:'tools',

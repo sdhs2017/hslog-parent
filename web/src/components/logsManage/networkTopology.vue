@@ -79,11 +79,15 @@
             //let startTime = curYear+'-'+curMonth+'-01';
             let date2 = new Date(newDate);
             date2.setDate(newDate.getDate()-7);
+            let sm = date2.getMonth()+1;
+            if(sm < 10){
+                sm = "0" + sm;
+            }
             let sd = date2.getDate();
             if(sd < 10){
                 sd = "0"+ sd;
             }
-            let startTime = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+sd;
+            let startTime = date2.getFullYear()+"-"+sm+"-"+sd;
             let endTime = curYear+'-'+curMonth+'-'+curDay;
             this.timepicker=[startTime,endTime];
             this.getNetflowTopologyData(this.timepicker)

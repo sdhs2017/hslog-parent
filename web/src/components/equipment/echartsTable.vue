@@ -320,13 +320,13 @@
                             //判断图表的类型
                             if(this.echartType === 'line'){
                                 let yVal = [];
-                                for(let i = 0;i<24;i++){
-                                    if(i < 10){
-                                        i = "0"+i;
-                                    }
-                                    yVal.push(res.data[0][i]);
+                                let xVal = [];
+                                for(let i in res.data){
+                                    xVal.push(res.data[i].hour);
+                                    yVal.push(res.data[i].count)
                                 }
-                                this.echartData.lineData.yAxisArr = yVal
+                                this.echartData.lineData.yAxisArr = yVal;
+                                this.echartData.lineData.xAxisArr = xVal;
                             }else if(this.echartType === 'moreline'){
                                 this.echartData.lineData.yAxisArr = [];
                                 let whole = {
@@ -350,13 +350,10 @@
                                     data:[]
                                 }
                                 for(let i = 0;i<24;i++){
-                                    if(i < 10){
-                                        i = "0"+i;
-                                    }
-                                    whole.data.push(res.data[0][i]);
-                                    high.data.push(res.data[1][i]);
-                                    middle.data.push(res.data[2][i]);
-                                    low.data.push(res.data[3][i]);
+                                    whole.data.push(res.data[0][i].count);
+                                    high.data.push(res.data[1][i].count);
+                                    middle.data.push(res.data[2][i].count);
+                                    low.data.push(res.data[3][i].count);
                                 }
                                 this.echartData.lineData.yAxisArr.push(whole)
                                 this.echartData.lineData.yAxisArr.push(high)

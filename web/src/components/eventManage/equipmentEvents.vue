@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">事件搜索</div>
+        <div class="top-title">'{{equipmentName}}'事件</div>
         <div class="event-search-condition">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
@@ -303,7 +303,9 @@
                 params.size = this.size;
                 params.page = page;
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/log/getEventListByBlend.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/log/getEventListByBlend.do',this.$qs.stringify({
+                        hsData:JSON.stringify(params)
+                    }))
                         .then((res)=>{
                             layer.closeAll();
                             this.tableData = res.data[0].list;
@@ -406,8 +408,8 @@
         justify-content: center;
         margin-bottom: 30px;
         position: absolute;
-        top: 64px;
-        right: 84px;
+        top: 32px;
+        right: 30px;
         z-index: 0;
     }
     .equipment-table{

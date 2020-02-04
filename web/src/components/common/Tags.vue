@@ -47,6 +47,7 @@
             closeTags(index) {
                 const delItem = this.tagsList.splice(index, 1)[0];
                 const item = this.tagsList[index] ? this.tagsList[index] : this.tagsList[index - 1];
+                this.$store.commit('deleteRoute',index)
                 if (item) {
                     delItem.path === this.$route.fullPath && this.$router.push(item.path);
                 }else{
@@ -86,13 +87,15 @@
                             pn = decodeURIComponent(route.fullPath.split('=')[1].split('&')[0])
                         }
                     }
-                    //将新加的标签添加到数组中
-                    this.tagsList.push({
+                    let obj = {
                         title: route.meta.title,
                         path: route.fullPath,
                         name: route.matched[1].components.default.name,
                         other:pn
-                    })
+                    }
+                    //将新加的标签添加到数组中
+                    this.tagsList.push(obj)
+                    this.$store.commit('pushRoute',obj)
                     this.computedLeft();
                 }
                 bus.$emit('tags', this.tagsList);

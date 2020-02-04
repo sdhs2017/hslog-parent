@@ -298,24 +298,25 @@ public class CollectorServiceImpl implements ICollectorService{
 		// 手动加载-初始化缓存
 		httpCache = Caffeine.newBuilder()
 				.maximumSize(3000000)//300万流量，占用大概3G内存
-				.expireAfterWrite(10, TimeUnit.DAYS)//过期时间10天
+				.expireAfterWrite(1, TimeUnit.HOURS)//过期时间1小时
 				.recordStats()
 				//.expireAfterAccess(1,TimeUnit.SECONDS)
 				/*
-               EXPLICIT: 这个原因是，用户造成的，通过调用remove方法从而进行删除。
-               REPLACED: 更新的时候，其实相当于把老的value给删了。
-               COLLECTED: 用于我们的垃圾收集器，java的软引用，弱引用机制
-               EXPIRED： 过期淘汰。
-               SIZE: 大小淘汰，当超过最大的时候就会进行淘汰。
+               所有存储到缓存容器中的数据，在被移除时都会触发listener事件，该listener事件有要移除的对象信息以及移除的状态：
+				EXPLICIT: 当request找到配对的response时，调用remove方法后，触发listener的状态。（这个状态不需要进行处理）
+				REPLACED: 更新的时候，其实相当于把老的value给删了。（未写处理方式）
+				COLLECTED: 用于我们的垃圾收集器，java的软引用，弱引用机制。（未写处理方式）
+				EXPIRED： 过期淘汰，即超过设置的1小时。（打上unmatched标记，入ES）
+				SIZE: 大小淘汰，当超过最大的时候就会进行淘汰，设置的300W。（未写处理方式）
                 */
 				.removalListener((Long Long, Http http, RemovalCause cause) ->
 				{
-					//目前request所有的处理机制都是通过触发此方法入es
+
 					System.out.println("驱逐原因：" + cause);
 					if("EXPLICIT".equals(cause)){
-
+						//不需要进行处理
 					}else if ("EXPIRED".equals(cause)||"SIZE".equals(cause)){
-					    http.setFlag("未匹配");
+					    http.setFlag("unmatched");
 					    // 过期的request数据入库
 						String json = gson.toJson(http);
 						try {
@@ -452,6 +453,11 @@ public class CollectorServiceImpl implements ICollectorService{
 		return JSONArray.fromObject(map).toString();
 	}
 
+
+	//获取caffeine数据占用内存大小
+	public String getCaffeineSize(){
+		return "length:"+httpCache.asMap().size()+"----size(byte):"+RamUsageEstimator.sizeOf(httpCache)+"";
+	}
 	//缓存测试
 	public String startCaffeineTest() {
 		StringBuilder sb = new StringBuilder();
@@ -470,21 +476,21 @@ public class CollectorServiceImpl implements ICollectorService{
 		String begin,end;
 		for(int i = 1; i<999999999; i++){
 			begin = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
-			for(int k=1;k<10000;k++){
+			for(int k=1;k<1000;k++){
 				h = new Http();
 				h.setNextacknum((long)i);
 				h.setOperation_des((i+"a"+k+"")+sb.toString());
-				httpCache.put((long)(i*10000+k),h);
+				httpCache.put((long)(i*1000+k),h);
 			}
 			end = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
 
 			try {
-				Thread.sleep(1L);
+				Thread.sleep(100L);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			System.out.println(i+"------------"+RamUsageEstimator.sizeOf(httpCache)+"---"+begin+"|||||"+end);
-			System.out.println(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS"));
+			System.out.println(i+"------------"+begin+"||"+end);
+			//System.out.println(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS"));
 		}
 		return null;
 	}

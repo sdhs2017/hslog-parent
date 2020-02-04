@@ -98,6 +98,7 @@ public class PacketStream {
 							}
 							// 如果http协议是request的请求，则将数据存入到caffeine的cache中
 							if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("request")){
+								//TODO 对于不符合要求的request进行处理
 								if(http.getPacket_length()>=1460||(http.getDomain_url().indexOf("_bulk")>=0)){
 									//httpCache.put(http.getNextacknum(),http);
 								}else{
@@ -123,7 +124,7 @@ public class PacketStream {
 									json = gson.toJson(httprequest);
 									requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 								}else{
-								    http.setFlag("未匹配");
+								    http.setFlag("unmatched");
                                 }
                                 // response数据入库
 								json = gson.toJson(http);
@@ -164,7 +165,7 @@ public class PacketStream {
 			if (requests.size()>=configProperty.getEs_bulk()) {
 				try {
 					logCurdDao.bulkInsert(requests);
-					System.out.println("caffine length-----------"+httpCache.asMap().size());
+					//System.out.println("caffine length-----------"+httpCache.asMap().size());
 					requests.clear();
 				} catch (Exception e) {
 					//logger.error("----------------jiyourui-----clientTemplate.bulk------报错信息：-----"+e.getMessage());

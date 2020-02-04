@@ -1633,7 +1633,7 @@ public class FlowController {
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getDomaiUrlAvgResponsetime")
+    @RequestMapping(value="/getDomaiUrlAvgResponsetime", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="统计应用的平均响应时间")
     public String getDomaiUrlAvgResponsetime(HttpServletRequest request) {
         String index = configProperty.getEs_index();
@@ -1683,8 +1683,25 @@ public class FlowController {
                 e.printStackTrace();
             }
         }
-
-        return JSONArray.fromObject(list).toString();
+        //将获取的数据与服务列表中的信息进行匹配，服务列表中名字不为空的，进行替换
+        List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
+        if(list.size()>0){
+            //遍历统计的数据
+            for(Map<String,Object> tmap : list){
+                Map<String,Object> lmap = new ConcurrentHashMap<>();
+                //与获取的ip信息与域名url进行对应
+                ServiceInfo sInfo = serviceInfoDao.selectServiceByUrl(tmap.get("key").toString());
+                if(sInfo!=null&&sInfo.getName()!=null&&sInfo.getName()!=""){
+                    lmap.put("key",sInfo.getName());
+                    //lmap.put((sInfo.getName()==null||sInfo.getName()=="")?tmap.get("key").toString():sInfo.getName(),tmap.get("value").toString());
+                }else{
+                    lmap.put("key",tmap.get("key").toString());
+                }
+                lmap.put("value",tmap.get("value"));
+                llist.add(lmap);
+            }
+        }
+        return JSONArray.fromObject(llist).toString();
     }
 
     /**
@@ -1693,17 +1710,19 @@ public class FlowController {
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getRequestUrlAvgResponsetime")
+    @RequestMapping(value="/getRequestUrlAvgResponsetime", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="统计单个应用的功能url平均响应时间")
     public String getRequestUrlAvgResponsetime(HttpServletRequest request) {
         String index = configProperty.getEs_index();
-        String groupfields = "request_url.raw";
+        //获取全量的url，用以
+        String groupfields = "complete_url.raw";
         String avgfield = "responsetime";
         String [] types = {"defaultpacket"};
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
         List<Map<String, Object>> list = new ArrayList<>();
         int size =10;
+
         // 判断封装参数的hsdata是否为null，不是解析里面的参数内容
         if (hsData!=null) {
             ObjectMapper mapper = new ObjectMapper();
@@ -1743,7 +1762,23 @@ public class FlowController {
                 e.printStackTrace();
             }
         }
-
-        return JSONArray.fromObject(list).toString();
+        //将获取的数据与服务列表中的信息进行匹配，服务列表中名字不为空的，进行替换
+        List<Map<String,Object>> llist = new ArrayList<Map<String,Object>> ();
+        if(list.size()>0){
+            //遍历统计的数据
+            for(Map<String,Object> tmap : list){
+                Map<String,Object> lmap = new ConcurrentHashMap<>();
+                //与获取的ip信息与域名url进行对应
+                ServiceInfo sInfo = serviceInfoDao.selectServiceByUrl(tmap.get("key").toString());
+                if(sInfo!=null&&sInfo.getName()!=null&&sInfo.getName()!=""){
+                    lmap.put("key",sInfo.getName());
+                }else{
+                    lmap.put("key",tmap.get("key").toString());
+                }
+                lmap.put("value",tmap.get("value"));
+                llist.add(lmap);
+            }
+        }
+        return JSONArray.fromObject(llist).toString();
     }
 }

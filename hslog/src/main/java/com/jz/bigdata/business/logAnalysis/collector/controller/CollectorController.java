@@ -325,7 +325,13 @@ public class CollectorController {
 	public String startCaffeineTest(HttpServletRequest request) {
 		return collectorService.startCaffeineTest();
 	}
-	
+    // 获取caffeine占用内存大小
+    @ResponseBody
+    @RequestMapping(value = "/getCaffeineSize", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取caffeine占用内存大小")
+    public String getCaffeineSize(HttpServletRequest request) {
+        return collectorService.getCaffeineSize();
+    }
 	// 监控pcap4j抓取数据包运行状态
 	@ResponseBody
 	@RequestMapping(value = "/statePcap4jCollector", produces = "application/json; charset=utf-8")

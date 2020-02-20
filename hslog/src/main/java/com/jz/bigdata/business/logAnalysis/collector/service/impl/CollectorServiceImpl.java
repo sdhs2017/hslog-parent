@@ -456,6 +456,7 @@ public class CollectorServiceImpl implements ICollectorService{
 
 	//获取caffeine数据占用内存大小
 	public String getCaffeineSize(){
+
 		return "length:"+httpCache.asMap().size()+"----size(byte):"+RamUsageEstimator.sizeOf(httpCache)+"";
 	}
 	//缓存测试

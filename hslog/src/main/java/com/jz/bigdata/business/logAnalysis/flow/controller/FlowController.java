@@ -1618,9 +1618,12 @@ public class FlowController {
         String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
         String [] types = {"defaultpacket"};
         List<List<Map<String, Object>>> list = new ArrayList<>();
+        //默认获取一周内的数据
+        String oneWeekSecond = "604800";
+        Map<String,String> map = getStartEndTime(oneWeekSecond);
         int size =10;
         try {
-            list = flowService.groupBy(index,types,groupfields,size,null,null,null);
+            list = flowService.groupBy(index,types,groupfields,size,map.get("starttime"),map.get("endtime"),null);
         } catch (Exception e) {
             e.printStackTrace();
         }

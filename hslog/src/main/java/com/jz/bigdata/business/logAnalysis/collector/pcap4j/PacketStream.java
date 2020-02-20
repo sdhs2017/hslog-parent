@@ -100,6 +100,8 @@ public class PacketStream {
 							if (http.getRequestorresponse()!=null&&http.getRequestorresponse().equals("request")){
 								//TODO 对于不符合要求的request进行处理
 								if(http.getPacket_length()>=1460||(http.getDomain_url().indexOf("_bulk")>=0)){
+									int a=1;
+									//System.out.println(http.getAcknum()+"----"+http.getSession_status());
 									//httpCache.put(http.getNextacknum(),http);
 								}else{
 									httpCache.put(http.getNextacknum(),http);
@@ -139,6 +141,10 @@ public class PacketStream {
 						
 					}else {
 						defaultpacket = new DefaultPacket(packet);
+						if("ACK".equals(defaultpacket.getSession_status())&&defaultpacket.getPacket_length()!=1404&&defaultpacket.getPacket_length()!=1424){
+							int a=0;
+						}
+						//System.out.println(defaultpacket.getSession_status()+"---"+defaultpacket.getPacket_length());
 						defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
 						if (defaultpacket.getApplication_layer_protocol()!=null&&defaultpacket.getApplication_layer_protocol().equals("HTTPS")) {
 							defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));

@@ -435,6 +435,9 @@ public class FlowController {
     @DescribeLog(describe="通过netflow数据获取网络拓扑数据")
     public String getNetworkTopological(HttpServletRequest request) {
 
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        logger.info("进入业务流分析统计   "+format.format(new Date()));
+
         String index = configProperty.getEs_index();
 
         // 双向划线
@@ -476,7 +479,9 @@ public class FlowController {
             // 聚合源IP和目的IP
             List<Map<String, Object>> list = null;
             try {
+                logger.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
                 list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
+                logger.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -510,7 +515,9 @@ public class FlowController {
         // 源IP、目的IP的连线，连线次数
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
         try {
+            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
             linkslist = logService.groupBy(index,types,groupbys,1000,starttime,endtime,searchmap);
+            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -518,6 +525,7 @@ public class FlowController {
 
         //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
         Iterator<Map<String, Object>> iterator = linkslist.iterator();
+        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
         while (iterator.hasNext()) {
             Map<String, Object> linkmap = iterator.next();
             if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
@@ -526,10 +534,11 @@ public class FlowController {
 				System.out.println("包含："+linkmap);
 			}*/
         }
+        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
         map.put("data", datalist);
         map.put("links", linkslist);
 
-
+        logger.info("结束业务流分析统计   "+format.format(new Date()));
         return JSONArray.fromObject(map).toString();
     }
 

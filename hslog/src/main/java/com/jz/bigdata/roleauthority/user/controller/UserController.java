@@ -132,7 +132,8 @@ public class UserController {
 //		获取id
 //		String id = request.getParameter("id");
 		String role = userService.selectUserRole(session);
-		return role;
+		return Constant.successMessage(role);
+		//return role;
 	}
 	/**
 	 * @param request

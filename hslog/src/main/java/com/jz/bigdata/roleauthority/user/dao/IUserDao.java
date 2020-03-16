@@ -30,9 +30,11 @@ public interface IUserDao {
 	 List<User> selectUser(String id);
 	 
 	 User selectById(String id);
-	 
-	 List<User> selectByPhonePwd(User user);
-	 
+
+	User selectByPhonePwd(User user);
+
+	User selectByPhone(User user);
+
 	 int updateByPhone(String phone);
 
 	List<List<Map<String,Object>>> selectUserRole(String id);

@@ -21,6 +21,7 @@ import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
+import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -1629,6 +1630,11 @@ public class LogServiceImpl implements IlogService {
 	@Override
 	public String getLifecycleManagementStatus() throws Exception {
 		return logIndexDao.getLifecycleManagementStatus();
+	}
+
+	@Override
+	public List<IndexTemplateMetaData> getTemplate(String... templatename) throws Exception {
+		return logIndexDao.getTemplateData(templatename);
 	}
 
 

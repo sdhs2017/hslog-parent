@@ -65,9 +65,9 @@ public class MappingOfSyslog {
 	 */
 	private String process;
 	/**
-	 * PID
+	 * pid
 	 */
-	private String PID;
+	private String pid;
 	/**
 	 * 操作描述
 	 */
@@ -163,6 +163,18 @@ public class MappingOfSyslog {
 	 * 出现问题网段
 	 */
 	private String network_error;
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
 
 	public String getId() {
 		return id;
@@ -276,12 +288,12 @@ public class MappingOfSyslog {
 		this.process = process;
 	}
 
-	public String getPID() {
-		return PID;
+	public String getPid() {
+		return pid;
 	}
 
-	public void setPID(String pID) {
-		PID = pID;
+	public void setPid(String pid) {
+		pid = pid;
 	}
 
 	public String getOperation_des() {

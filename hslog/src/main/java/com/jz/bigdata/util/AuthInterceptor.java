@@ -53,7 +53,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
 		//如果是登陆、注册、上传激活请求，放行
-		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0){
+ 		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0){
 //		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.uploadPATH)>=0||handler.toString().indexOf(Constant.APIPATH)>=0){
 			//退出登录，注册，上传不拦截
 			/**
@@ -79,16 +79,17 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 				return true;
 			}else{
 				//登陆，校验
+				/*
 				String phone=request.getParameter("phone");
 				String password=request.getParameter("password");
 				User user =new User();
 				user.setPhone(phone);
 				user.setPassword(MD5.EncoderByMd5(password));
 				//查询用户
-				List<User> _userList = userDao.selectByPhonePwd(user);
-
+				User _user = userDao.selectByPhonePwd(user);
+*/
 //    		System.out.println(_userList.get(0).getName());
-				GetfunctionMap getfunctionMap= new GetfunctionMap();
+				//GetfunctionMap getfunctionMap= new GetfunctionMap();
 //    		getfunctionMap.map;
 				//获取权限列表
 				/**
@@ -97,10 +98,10 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 				 * 1.多线程隐患：GetfunctionMap.map应声明为线程安全的Map
 				 * 2.不使用静态方式声明，不使用对象.成员变量形式引用
 				 */
-				Map<String,Map<String,String>> map=GetfunctionMap.map;
+				//Map<String,Map<String,String>> map=GetfunctionMap.map;
 //    		System.out.println(map.get(_userList.get(0).getRole()));
 
-				if(_userList.size()<1){
+				//if(_userList.size()<1){
 					/**
 					 * TODO
 					 * true为放行
@@ -108,8 +109,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 					 * 也可以用以下方式返回
 					 * out.print("{\"success\":\"false\",\"message\":\"登录超时，请刷新页面重新登录\"}");
 					 */
-					return true;
-				}else{
+					//return true;
+				//}else{
 					//判断缓存中是否有数据
 					/**
 					 * TODO
@@ -119,7 +120,7 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 					//if(map.get(String.valueOf(_userList.get(0).getRole()) )==null||map.get(String.valueOf(_userList.get(0).getRole())).equals("")){
 					//	getfunctionMap.getfunctionMap(_userList.get(0).getRole(),functionService);
 					//}
-				}
+				//}
 //    		System.out.println(GetfunctionMap.map.size());
 //    		funService.map;
 //    		functionService.getClass()

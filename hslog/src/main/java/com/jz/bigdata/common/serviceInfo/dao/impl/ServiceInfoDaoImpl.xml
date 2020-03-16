@@ -124,7 +124,9 @@
 		<if test="name != null and name !=''"> and name LIKE CONCAT('%',
 			#{name}, '%') </if>
 		<if test="ip != null and ip !=''">
-			and ip = #{ip,jdbcType=VARCHAR}
+			and ip LIKE CONCAT('%',
+			#{ip,jdbcType=VARCHAR}, '%')
+			<!--and ip = #{ip,jdbcType=VARCHAR}-->
 		</if>
 		<if test="port != null and port !=''">
 			and port = #{port,jdbcType=VARCHAR}
@@ -133,27 +135,34 @@
 			and protocol = #{protocol,jdbcType=VARCHAR}
 		</if>
 		<if test="url != null and url !=''">
-			and url = #{url,jdbcType=VARCHAR}
+			and url LIKE CONCAT('%',
+			#{url,jdbcType=VARCHAR}, '%')
+			<!--and url = #{url,jdbcType=VARCHAR}-->
 		</if>
 		<if test="relativeUrl != null and relativeUrl !=''">
-			and relativeUrl = #{relativeUrl,jdbcType=VARCHAR}
+			and relativeUrl LIKE CONCAT('%',
+			#{relativeUrl,jdbcType=VARCHAR}, '%')
+			<!--and relativeUrl = #{relativeUrl,jdbcType=VARCHAR}-->
 		</if>
 		<if test=" complementState !='2' and complementState !=2 ">
 			and complementState = #{complementState,jdbcType=INTEGER}
 		</if>
-		<if test="state !='2' and state !=2 ">
+
+		<if test="state !=null">
 			and state = #{state,jdbcType=INTEGER}
 		</if>
-		
-		<!-- <choose>
+		<!--
+
+		<choose>
 			<when test="state != null and state !=''   ">
 				and state = #{state,jdbcType=INTEGER}
 			</when>
 			<otherwise>
 				and state = 1
 			</otherwise>
-		</choose> -->
-		order by complementState desc,ip ASC,url ASC,relativeUrl ASC
+		</choose>
+		-->
+		order by complementState desc,url ASC
 	    limit #{startRecord},#{pageSize}
 	   
 	</select>
@@ -184,7 +193,8 @@
 		<if test=" complementState !='2' and complementState !=2">
 			and complementState = #{complementState,jdbcType=INTEGER}
 		</if>
-		<if test="state !='2' and state !=2">
+
+		<if test="state !=null">
 			and state = #{state,jdbcType=INTEGER}
 		</if>
 	</select>

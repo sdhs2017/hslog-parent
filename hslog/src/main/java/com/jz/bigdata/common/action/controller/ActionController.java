@@ -43,7 +43,7 @@ public class ActionController {
 	
 	/**
 	 * @param request
-	 * @param department
+	 * @param session
 	 * @return 查询信息
 	 */
 	@ResponseBody

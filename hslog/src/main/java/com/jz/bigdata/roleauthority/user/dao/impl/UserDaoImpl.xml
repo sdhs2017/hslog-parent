@@ -150,7 +150,7 @@
   
 <!--   添加数据 -->
 	<insert id="insert" parameterType="com.jz.bigdata.roleauthority.user.entity.User">
-   		 insert into user
+   		 insert into HS_User
 <!--     格式化 -->
     	<trim prefix="(" suffix=")" suffixOverrides=",">
 <!--     判断参数是否为空 -->
@@ -256,13 +256,19 @@
       from HS_User
       where phone=#{phone,jdbcType=VARCHAR} and password=#{password,jdbcType=VARCHAR} 
    </select>
-	
+	<!-- 登录查询是否有用户  -->
+	<select id="selectByPhone" resultMap="BaseResultMap" parameterType="com.jz.bigdata.roleauthority.user.entity.User">
+		select
+		<include refid="Base_Column_List" />
+		from HS_User
+		where phone=#{phone,jdbcType=VARCHAR}
+	</select>
 	
 <!--   id, name, phone, password, sex,age,email,departmentId -->
 	<update id="updateByPhone" parameterType="java.lang.String">  
-        update user set state=0
+        update HS_User set state=0
         <!-- if else判断语句 -->
-    	where phone=#{phone}  
+    	where phone=#{phone}  and state!=2 and state!=0
     </update>  
 	
 	

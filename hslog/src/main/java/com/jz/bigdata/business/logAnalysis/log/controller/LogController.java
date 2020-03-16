@@ -33,8 +33,11 @@ import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFirewalls;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfNet;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfSyslog;
 import com.jz.bigdata.util.*;
+import net.sf.json.JSON;
+import net.sf.json.JSONObject;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -299,8 +302,30 @@ public class LogController extends BaseController{
 		}
 
 	}
+	/**
+	 * 获取template信息，暂时只支持一个template的查询
+	 * @param request
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping("/getTemplateInfo")
+	@DescribeLog(describe="获取template信息")
+	public String getTemplateInfo(HttpServletRequest request){
+		String templateName = request.getParameter("templatename");
 
+		try{
+			List<IndexTemplateMetaData> data = logService.getTemplate(templateName);
+			IndexTemplateMetaData tmpData = data.get(0);
+			Map<String,Object> resultMap = new HashMap<>();
+			resultMap.put("name",tmpData.name());
+			resultMap.put("mappings",tmpData.mappings().getSourceAsMap());
+			return JSONObject.fromObject(resultMap).toString();
+		}catch(Exception e){
+			e.printStackTrace();
+			return Constant.failureMessage("查询失败");
+		}
 
+	}
 	/**
 	 * @param request
 	 * @return

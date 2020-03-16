@@ -110,7 +110,7 @@ public class Syslog {
 	/**
 	 * PID
 	 */
-	private String PID;
+	private String pid;
 	/**
 	 * 操作描述
 	 */
@@ -231,12 +231,12 @@ public class Syslog {
 		this.process = process;
 	}
 
-	public String getPID() {
-		return PID;
+	public String getPid() {
+		return pid;
 	}
 
-	public void setPID(String pID) {
-		PID = pID;
+	public void setPid(String pid) {
+		pid = pid;
 	}
 
 	public String getOperation_level() {
@@ -453,7 +453,7 @@ public class Syslog {
 					String jc = jingcheng[0];
 					String pid = jingcheng[1].substring(0, jingcheng[1].length()-2);
 					this.process = jc;
-					this.PID = pid;
+					this.pid = pid;
 				}else{
 					this.process = logtype.replace(":", "");
 				}

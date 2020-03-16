@@ -171,8 +171,8 @@ public class UserServiceImpl implements IUserService {
 	public String login(User user,HttpSession session){
 		//查询账号密码对应的用户信息
 		user.setPassword(MD5.EncoderByMd5(user.getPassword()));
-		List<User> _userList = userDao.selectByPhonePwd(user);
-		
+		//通过账号和密码查询用户信息
+		User _user = userDao.selectByPhonePwd(user);
 		Map<String,Object> map =new HashMap<String,Object>();
 		//获取参数
 		verifyLicense.setParam("/verifyparam.properties");
@@ -180,47 +180,45 @@ public class UserServiceImpl implements IUserService {
 		Boolean vresult = verifyLicense.verify();
 		//证书是否存在
 		if (vresult) {
-			//用户是否存在
-			if(_userList.size()==1){
-				User _user = _userList.get(0);
-				//用户是否可用
-				if(_user.getState()==1){
-					Department department= departmentDao.selectDepartment((_user.getDepartmentId())+"");
-					//用户是否存在
-					if(_user.getId()!=null){
-						session.setAttribute(Constant.SESSION_USERID, _user.getId());
-						session.setAttribute(Constant.SESSION_USERNAME, _user.getName());
-						session.setAttribute(Constant.SESSION_USERACCOUNT, _user.getPhone());
-						//是否有所属部门
-						if(_user.getDepartmentId()!=0){
-							session.setAttribute(Constant.SESSION_DEPARTMENTNAME, department.getName());
-							session.setAttribute(Constant.SESSION_DEPARTMENTID, _user.getDepartmentId());
-							session.setAttribute(Constant.SESSION_DEPARTMENTNODEID, department.getDepartmentNodeId());
-						}
-						
-						session.setAttribute(Constant.SESSION_ID, session.getId());
-						//TODO
-						session.setAttribute(Constant.SESSION_USERROLE, "1");
-//						return "{\"success\":\"true\",\"message\":\"登陆成功\"}";
-						map.put("success", "true");
-						map.put("message", "登陆成功");
-						map.put("user", _user);
-//						result=1;
-						JSONObject json = JSONObject.fromObject(map);
-						return json.toString();
-					}
-				//账号被锁定
-				}else{
+			//是否有账号密码都匹配的账号信息
+			if(_user!=null){
+				//状态值为2 账号停用
+				if(_user.getState()==2){
+					map.put("success", "false");
+					map.put("message", "账号暂停服务");
+					return JSONObject.fromObject(map).toString();
+				}else if(_user.getState()==0){//状态值为 0 账号被锁定
+					//TODO 判定账号能否解锁
 					map.put("success", "false");
 					map.put("message", "您已连续5次输入密码错误，账号已被锁定");
-//					result=3;
-					JSONObject json = JSONObject.fromObject(map);
-					return json.toString();
+					return JSONObject.fromObject(map).toString();
+				}else{//账号正常
+					Department department= departmentDao.selectDepartment((_user.getDepartmentId())+"");
+					session.setAttribute(Constant.SESSION_USERID, _user.getId());
+					session.setAttribute(Constant.SESSION_USERNAME, _user.getName());
+					session.setAttribute(Constant.SESSION_USERACCOUNT, _user.getPhone());
+					//是否有所属部门
+					if(_user.getDepartmentId()!=0){
+						session.setAttribute(Constant.SESSION_DEPARTMENTNAME, department.getName());
+						session.setAttribute(Constant.SESSION_DEPARTMENTID, _user.getDepartmentId());
+						session.setAttribute(Constant.SESSION_DEPARTMENTNODEID, department.getDepartmentNodeId());
+					}
+
+					session.setAttribute(Constant.SESSION_ID, session.getId());
+					//TODO 角色相关模块的处理
+					session.setAttribute(Constant.SESSION_USERROLE, "1");
+					map.put("success", "true");
+					map.put("message", "登陆成功");
+					map.put("user", _user);
+					return JSONObject.fromObject(map).toString();
 				}
-				
+			}else{
+				map.put("success", "false");
+				map.put("message", "登录失败，账号或密码错误");
 			}
+			//计算当前时间之前的半小时的起始和截至时间
 			Date date=new Date();
-			SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");   
+			SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String startTime =df.format(new Date(date.getTime() -  30 * 60 * 1000));
 			String endTime=df.format(date);
 
@@ -228,30 +226,28 @@ public class UserServiceImpl implements IUserService {
 			List<Note> list=noteDao.selectLimitNote(user.getPhone(), startTime, endTime);
 			Boolean res = false;
 			//
-			//判断登录密码次数过多，锁定账号
-			if(list.size()==5){
+			//判断登录密码次数过多，5次锁定锁定账号
+			if(list.size()>=5){
 				for(int i=0;i<list.size();i++){
 					if(list.get(i).getResult()==1){
 						res=true;
 					}
 				}
-				//修改状态
+				//修改状态，为了保证不覆盖停用状态以及锁定的重复更新，更新时增加条件 状态位不为2和0
 				if(res==false){
-					userDao.updateByPhone(user.getPhone());	
+					userDao.updateByPhone(user.getPhone());
 				}
 			}
 			map.put("success", "false");
 			map.put("message", "登录失败，账号或密码错误");
-			JSONObject json = JSONObject.fromObject(map);
-			return json.toString();
+			return JSONObject.fromObject(map).toString();
 		//无授权
 		}else {
 			map.put("success", "false");
 			map.put("message", "产品已过期");
-			JSONObject json = JSONObject.fromObject(map);
-			return json.toString();
+			return JSONObject.fromObject(map).toString();
 		}
-		
+
 	}
 	
 	public static void main(String[] agrs){

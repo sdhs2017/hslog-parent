@@ -134,7 +134,7 @@ public class ServiceInfoController {
 			complementState=Integer.valueOf(complementStateString);
 		}
 		if(stateString.equals("")){
-			state=2;
+			state=1;
 		}else{
 			state=Integer.valueOf(stateString);
 		}

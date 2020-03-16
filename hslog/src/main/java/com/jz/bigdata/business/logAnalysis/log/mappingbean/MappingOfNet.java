@@ -180,6 +180,19 @@ public class MappingOfNet {
 	 * 响应时间
 	 */
 	private Long responsetime;
+	/**
+	 * 设置index名称的后缀
+	 */
+	private String index_suffix;
+
+
+	public String getIndex_suffix() {
+		return index_suffix;
+	}
+
+	public void setIndex_suffix(String index_suffix) {
+		this.index_suffix = index_suffix;
+	}
 
 	/**
 	 * 关联字段

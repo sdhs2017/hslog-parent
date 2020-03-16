@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
+import org.elasticsearch.client.indices.IndexTemplateMetaData;
 
 public interface IlogService {
 
@@ -454,5 +455,13 @@ public interface IlogService {
 	 * @throws Exception
 	 */
 	public String getLifecycleManagementStatus() throws Exception;
+
+	/**
+	 *
+	 * @param templatename 名称，支持多个名称一起查询
+	 * @return
+	 * @throws Exception
+	 */
+	public List<IndexTemplateMetaData> getTemplate(String ...templatename) throws Exception;
 
 }

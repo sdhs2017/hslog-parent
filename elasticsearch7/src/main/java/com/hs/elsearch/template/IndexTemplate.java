@@ -13,6 +13,8 @@ import org.elasticsearch.action.admin.indices.open.OpenIndexRequest;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplateRequest;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -20,6 +22,7 @@ import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.indexlifecycle.*;
 import org.elasticsearch.client.indices.*;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
@@ -417,15 +420,43 @@ public class IndexTemplate {
     curl -X GET "IP:9200/_template/temp*?pretty"
     curl -X GET "IP:9200/_template/template_1,template_2?pretty"
      */
-    public List<IndexTemplateMetaData> getTemplate(String... templatename) throws Exception {
-        GetIndexTemplatesRequest request = new GetIndexTemplatesRequest(templatename);
-
+    public List<IndexTemplateMetaData> getTemplate(String... templateNames) throws Exception {
+        GetIndexTemplatesRequest request = new GetIndexTemplatesRequest(templateNames);
         GetIndexTemplatesResponse getTemplatesResponse = restHighLevelClient.indices().getIndexTemplate(request, RequestOptions.DEFAULT);
-
         List<IndexTemplateMetaData> templates = getTemplatesResponse.getIndexTemplates();
         return  templates;
     }
 
+    /**
+     * 获取index名称 模糊查询
+     * @param indexNames
+     * @return
+     * @throws Exception
+     */
+    public String[] getIndex(String... indexNames) throws Exception {
+        GetIndexRequest request = new GetIndexRequest(indexNames);
+
+        GetIndexResponse getTemplatesResponse = restHighLevelClient.indices().get(request, RequestOptions.DEFAULT);
+
+        String[] indices = getTemplatesResponse.getIndices();
+        return  indices;
+    }
+    /**
+     * 根据index获取mapping信息
+     * @param indices 索引的名称
+     * @return
+     * @throws Exception
+     *
+    GET hslog_syslog2019-12-31/_mapping
+     */
+
+    public Map<String, MappingMetaData> getIndexMapping(String... indices) throws Exception {
+        GetMappingsRequest getRequest = new GetMappingsRequest();
+        getRequest.indices(indices);
+        GetMappingsResponse getMappingResponse = restHighLevelClient.indices().getMapping(getRequest, RequestOptions.DEFAULT);
+        Map<String, MappingMetaData> mappings = getMappingResponse.mappings();
+        return  mappings;
+    }
     /**
      * 判断模板是否存在
      * @param templatename

@@ -3,6 +3,8 @@ package com.hs.elsearch.dao.logDao.impl;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.template.IndexTemplate;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
+import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
@@ -112,4 +114,21 @@ public class LogIndexDaoImpl implements ILogIndexDao {
     public String getLifecycleManagementStatus() throws Exception {
         return indexTemplate.getLifecycleManagementStatus();
     }
+
+    @Override
+    public List<IndexTemplateMetaData> getTemplateData(String... templatename) throws Exception {
+        return indexTemplate.getTemplate(templatename);
+    }
+
+    @Override
+    public Map<String, MappingMetaData> getIndexMappingData(String... indexname) throws Exception {
+        return indexTemplate.getIndexMapping(indexname);
+    }
+
+    @Override
+    public String[] getIndices(String indexname) throws Exception {
+        return indexTemplate.getIndex(indexname);
+    }
+
+
 }

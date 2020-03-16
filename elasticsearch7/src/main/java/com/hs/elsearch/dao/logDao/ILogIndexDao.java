@@ -1,6 +1,8 @@
 package com.hs.elsearch.dao.logDao;
 
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
+import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 
 import java.io.IOException;
 import java.util.List;
@@ -132,4 +134,28 @@ public interface ILogIndexDao {
      * @throws Exception
      */
     public String getLifecycleManagementStatus() throws Exception;
+
+    /**
+     * 获取Template信息
+     * @param templatename 名称，支持多个一起查询
+     * @return
+     * @throws Exception
+     */
+    public List<IndexTemplateMetaData> getTemplateData(String ...templatename) throws Exception;
+
+    /**
+     * 获取index mapping信息
+     * @param indexname 索引名称，支持多个一起查询
+     * @return
+     * @throws Exception
+     */
+    public Map<String, MappingMetaData> getIndexMappingData(String ...indexname) throws Exception;
+
+    /**
+     * 模糊查询获取index的名称
+     * @param indexname
+     * @return
+     * @throws Exception
+     */
+    public String[] getIndices(String indexname) throws Exception;
 }

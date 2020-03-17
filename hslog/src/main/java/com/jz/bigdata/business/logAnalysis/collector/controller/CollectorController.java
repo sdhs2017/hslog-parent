@@ -80,32 +80,23 @@ public class CollectorController {
 	public String startKafkaCollector() {
 		
 		Map<String, Object> map = new HashMap<>();
-		// 判断index是否存在，如果不存在提示执行初始化操作
+		/**
+		 * 判断index或者index的template是否存在，如果不存在提示执行初始化操作
+		 */
 		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
 			map.put("state", false);
 			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
 			return JSONArray.fromObject(map).toString();
 		}
 
-		/*SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-		//boolean indexExists = logService.indexExists(configProperty.getEs_index());
-		boolean indexExists = false;
-		try {
-			indexExists = logService.indexExists(index);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		if (!indexExists) {
-			map.put("state", false);
-			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
-			return JSONArray.fromObject(map).toString();
-		}*/
-
-
+		/**
+		 * 符合上述条件后执行开启kafka采集器
+		 */
 		boolean result = collectorService.startKafkaCollector(equipmentService, logCrudDao, configProperty,
 				alarmService, usersService);
-		
+		/**
+		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述
+		 */
 		if (result) {
 			map.put("state", result);
 			map.put("msg", "数据采集器开启成功");
@@ -318,13 +309,6 @@ public class CollectorController {
 	*/
 		return result;
 	}
-	// 缓存测试demo开关
-	@ResponseBody
-	@RequestMapping(value = "/startCaffeineTest", produces = "application/json; charset=utf-8")
-	@DescribeLog(describe = "缓存测试demo开关")
-	public String startCaffeineTest(HttpServletRequest request) {
-		return collectorService.startCaffeineTest();
-	}
     // 获取caffeine占用内存大小
     @ResponseBody
     @RequestMapping(value = "/getCaffeineSize", produces = "application/json; charset=utf-8")
@@ -420,7 +404,88 @@ public class CollectorController {
 		}
 		return null;
 	}
-	
+
+
+
+	// ****************************************beats数据发送到kafka，kafka采集器管理*****************************************************
+
+	// 开启kakfaOfBeats采集器
+	@ResponseBody
+	@RequestMapping(value = "/startKafkaOfBeatsCollector", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "开启数据采集器")
+	public String startKafkaOfBeatsCollector() {
+
+		Map<String, Object> map = new HashMap<>();
+		/**
+		 * 判断index或者index的template是否存在，如果不存在提示执行初始化操作
+		 */
+		/*if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
+			map.put("state", false);
+			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
+			return JSONArray.fromObject(map).toString();
+		}*/
+
+		/**
+		 * 符合上述条件后执行开启kafka采集器
+		 */
+		boolean result = collectorService.startKafkaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+		/**
+		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述
+		 */
+		if (result) {
+			map.put("state", result);
+			map.put("msg", "数据采集器开启成功");
+			return JSONArray.fromObject(map).toString();
+		} else {
+			map.put("state", result);
+			map.put("msg", "数据采集器开启失败，请勿重复开启");
+			return JSONArray.fromObject(map).toString();
+		}
+	}
+
+	// 关闭kakfaOfBeats采集器
+	@ResponseBody
+	@RequestMapping(value = "/stopKafkaOfBeatsCollector", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "关闭数据采集器")
+	public String stopKafkaOfBeatsCollector() {
+		Map<String, Object> map = new HashMap<>();
+		try {
+			boolean result = collectorService.stopKafkaOfBeatsCollector();
+			if (result) {
+				map.put("state", result);
+				map.put("msg", "数据采集器关闭成功");
+				return JSONArray.fromObject(map).toString();
+			} else {
+				map.put("state", result);
+				map.put("msg", "数据采集器已关闭");
+				return JSONArray.fromObject(map).toString();
+			}
+
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			map.put("state", false);
+			map.put("msg", "数据采集器关闭失败");
+			return JSONArray.fromObject(map).toString();
+		}
+	}
+
+	// 监听KafkaOfBeats采集器状态
+	@ResponseBody
+	@RequestMapping(value = "/stateKafkaOfBeatsCollector", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "监控数据采集器状态")
+	public String stateKafkaOfBeatsCollector() {
+		Map<String, Object> map = new HashMap<>();
+		boolean result = collectorService.stateKafkaOfBeatsCollector();
+		map.put("state", result);
+		return JSONArray.fromObject(map).toString();
+	}
+
+
+
+
+
+
+
 	/**
 	 * 正则匹配
 	 * @param soap

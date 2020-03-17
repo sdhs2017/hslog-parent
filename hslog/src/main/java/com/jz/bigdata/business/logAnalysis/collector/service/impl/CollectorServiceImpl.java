@@ -18,6 +18,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
@@ -57,22 +58,35 @@ import net.sf.json.JSONArray;
 
 @Service(value="CollectorService")
 public class CollectorServiceImpl implements ICollectorService{
-	
+
+	/**
+	 * *****************************************默认kafka管理器属性****************************8
+	 */
+
 	//开关
 	boolean flag = false;
 	
 	//kafka采集器
 	KafkaCollector kc = null;
-	
-	MascanCollector Masscan = null;
-	
-	boolean flagMasscan = false;
-	
+
+	//kafka线程
 	Thread t;
+
+	/**
+	 * *****************************************masscan管理器属性****************************8
+	 */
+	// masscan开关
+	boolean flagMasscan = false;
+	// masscan
+	MascanCollector Masscan = null;
+	// masscan线程
 	Thread masscanThread;
-	
-	// pcap4j 开关设置
-	Thread pcap4jthread = null;
+
+	/**
+	 * *****************************************pcap4j流量采集管理器属性****************************8
+	 */
+	// pcap4j 线程
+	Thread pcap4jThread = null;
 	FutureTask<String> futureTask = null;
 	Pcap4jCollector pcap4jCollector  = null;
 	private Set<String> domainSet = new HashSet<>();
@@ -81,6 +95,17 @@ public class CollectorServiceImpl implements ICollectorService{
 	PacketStream packetStream ;
 	//咖啡因缓存对象定义
 	Cache<Long, Http> httpCache = null;
+
+	/**
+	 * *****************************************kafka of beats数据采集管理器属性****************************8
+	 */
+	//kafka of beats 开关
+	boolean kafkaOfBeatsFlag = false;
+	// kafka of beats 采集器
+	KafakaOfBeatsCollector kafakaOfBeatsCollector = null;
+	//kafka of beats 线程
+	Thread kafkaOfBeatsThread = null;
+
 	
 	@Resource(name="assetsService")
 	private IAssetsService assetsService;
@@ -149,15 +174,15 @@ public class CollectorServiceImpl implements ICollectorService{
 	@Override
 	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
 		boolean result = false;
-		//如果为true，则表示已经开启，反之，则为未开启，需要初始化
-		
+		//如果为true，则表示已经开启，反之，则为未开启，需要进行kafka的初始化
 		initKafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
+		/**
+		 * 如果为非开启状态，则新建kafka线程
+		 */
 		if(!kc.isStarted()){
-
 			t = new Thread(kc);
 			kc.setStarted(true);
 			t.start();
-			
 			result = true;
 		}else{
 //				kc.setStarted(true);
@@ -390,16 +415,16 @@ public class CollectorServiceImpl implements ICollectorService{
 		try {
 			pcap4jCollector = new Pcap4jCollector(configProperty.getPcap4j_network(),handle,listener);
 			futureTask = new FutureTask<>(pcap4jCollector);
+
+			pcap4jThread = new Thread(futureTask);
+			pcap4jThread.start();
 			
-			pcap4jthread = new Thread(futureTask);
-			pcap4jthread.start();
-			
-			if(pcap4jthread.isAlive()==true){
-				map.put("state", pcap4jthread.isAlive());
+			if(pcap4jThread.isAlive()==true){
+				map.put("state", pcap4jThread.isAlive());
 				map.put("msg", "数据包采集器开启成功");
 				return JSONArray.fromObject(map).toString();
 			}else{
-				map.put("state", pcap4jthread.isAlive());
+				map.put("state", pcap4jThread.isAlive());
 				map.put("msg", "数据包采集器开启失败");
 				return JSONArray.fromObject(map).toString();
 			}
@@ -459,41 +484,77 @@ public class CollectorServiceImpl implements ICollectorService{
 
 		return "length:"+httpCache.asMap().size()+"----size(byte):"+RamUsageEstimator.sizeOf(httpCache)+"";
 	}
-	//缓存测试
-	public String startCaffeineTest() {
-		StringBuilder sb = new StringBuilder();
-		String len50 = "asdhljkdhfjkadhfkjhdfhjkdlfhadjkfhkasjdfhkjhf123hs";
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		sb.append(len50);
-		Http h = null;
-		String begin,end;
-		for(int i = 1; i<999999999; i++){
-			begin = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
-			for(int k=1;k<1000;k++){
-				h = new Http();
-				h.setNextacknum((long)i);
-				h.setOperation_des((i+"a"+k+"")+sb.toString());
-				httpCache.put((long)(i*1000+k),h);
-			}
-			end = DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS");
 
-			try {
-				Thread.sleep(100L);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+
+	public boolean initKafkaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCrudDao, ConfigProperty configProperty){
+
+		boolean result = false;
+		try{
+			if(!kafkaOfBeatsFlag){
+				kafakaOfBeatsCollector = new KafakaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+				kafkaOfBeatsFlag = true;
 			}
-			System.out.println(i+"------------"+begin+"||"+end);
-			//System.out.println(DateTime.now().toString("yyyy-MM-dd HH:mm:ss.SSS"));
+			result = true;
+		}finally{
+			return result;
 		}
-		return null;
+	}
+
+	@Override
+	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCrudDao, ConfigProperty configProperty) {
+		boolean result = false;
+
+		initKafkaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+		/**
+		 * 如果为非开启状态，则新建kafka线程
+		 */
+		if(!kafakaOfBeatsCollector.isStarted()){
+			kafkaOfBeatsThread = new Thread(kafakaOfBeatsCollector);
+			// 设置为开启状态
+			kafakaOfBeatsCollector.setStarted(true);
+			// 线程开启操作
+			kafkaOfBeatsThread.start();
+			result = true;
+		}else{
+			/**
+			 * 开启状态，无需再开启，返回false
+			 */
+		}
+
+		return result;
+	}
+
+	@Override
+	public boolean stopKafkaOfBeatsCollector() {
+		boolean result = false;
+		/**
+		 * 如果kafkaOfBeatsFlag为true，则采集器的线程是开启状态，进入关闭线程的操作；
+		 */
+		if(kafkaOfBeatsFlag){
+			kafakaOfBeatsCollector.setStarted(false);
+			kafakaOfBeatsCollector.closeKafkaStream();
+			kafkaOfBeatsFlag = false;
+			result = true;
+		}else{
+			/**
+			 * 如果为false则线程未开启，不需要执行关闭操作
+			 */
+		}
+		return result;
+	}
+
+	@Override
+	public boolean stateKafkaOfBeatsCollector() {
+		/**
+		 * 如果kafakaOfBeatsCollector未被初始化，那么采集器的状态必然为关闭状态，返回false
+		 */
+		if (kafakaOfBeatsCollector==null) {
+			return false;
+		}
+		/**
+		 * kafakaOfBeatsCollector初始化后，返回其运行状态
+		 */
+		return kafakaOfBeatsCollector.isStarted();
 	}
 
 	/**

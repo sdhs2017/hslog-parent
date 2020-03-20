@@ -78,10 +78,10 @@ public class Bean2Mapping {
 			if (Arrays.asList(fielddata).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"fielddata\": " + "true" + "\n");
 			}
-			if (Arrays.asList(analyzer).contains(fields[i].getName())) {
+			/*if (Arrays.asList(analyzer).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"analyzer\": \"" + "index_ansj\"" + "\n");
 				fieldstring.append("\t\t\t\t\t\t,\"search_analyzer\": \"" + "query_ansj\"" + "\n");
-			}
+			}*/
 			if (Arrays.asList(rawkeywords).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"fields\": " + "{\"raw\": {\"type\": \"keyword\"}}" + "\n");
 			}

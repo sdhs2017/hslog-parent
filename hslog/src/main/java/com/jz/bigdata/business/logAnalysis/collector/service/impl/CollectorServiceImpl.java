@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -64,8 +65,8 @@ public class CollectorServiceImpl implements ICollectorService{
 	 */
 
 	//开关
-	boolean flag = false;
-	
+	private Boolean flag = false;
+
 	//kafka采集器
 	KafkaCollector kc = null;
 
@@ -152,10 +153,10 @@ public class CollectorServiceImpl implements ICollectorService{
 
 		boolean result = false;
 		try{
-//			if(!flag){
+			if(!flag){
 				kc = new KafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
 				flag = true;
-//			}
+			}
 			result = true;
 		}finally{
 			return result;
@@ -172,7 +173,8 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	@Override
-	public boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
+	public synchronized boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
+		//TODO 后续考虑使用ReentrantLock实现
 		boolean result = false;
 		//如果为true，则表示已经开启，反之，则为未开启，需要进行kafka的初始化
 		initKafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
@@ -204,8 +206,8 @@ public class CollectorServiceImpl implements ICollectorService{
 		
 		if(flag){
 			kc.setStarted(false);
-			kc.closeKafkaStream();
-//			flag = false;
+			kc.closeKafkaStream();//同时会将线程关闭
+			flag = false;
 			result = true;
 		}else{
 			
@@ -760,5 +762,4 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
-
 }

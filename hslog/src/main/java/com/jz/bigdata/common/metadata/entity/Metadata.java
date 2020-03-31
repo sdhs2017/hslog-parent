@@ -2,10 +2,7 @@ package com.jz.bigdata.common.metadata.entity;
 
 import scala.Int;
 
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -13,6 +10,8 @@ import java.util.stream.Collectors;
  * 基于不同的数据源，其元数据会有所不同，但是需要一个统一的bean进行存储和显示
  */
 public class Metadata {
+    //唯一id，前端构建treegrid时需要
+    private String id;
     //数据源的名称，可以是mysql的表名，可以是ES的template的名称，也可以是ES的index的名称
     private String sourceName;
     //数据源的类别，MySql、Elastic。后续可以根据需要增加如mongoDB等
@@ -25,6 +24,8 @@ public class Metadata {
     private String fieldName;
     //别名，对于英文的列名，通常会用文字说明含义
     private String fieldAlisName;
+    private String fieldType;
+    /*
     //数据类型
     private FieldType fieldType;
     public enum FieldType{
@@ -63,8 +64,12 @@ public class Metadata {
             return null;
         }
     }
+    */
+
     //对FieldType的文字说明
     private String fieldTypeName;
+    private String rawType;
+    /*
     //字段 A.raw的数据类型
     private RawType RawType;
     public enum RawType{
@@ -82,12 +87,14 @@ public class Metadata {
             return Optional.ofNullable(map.get(type.toLowerCase())).orElse(UNKNOWN);
         }
     }
+     */
     //超过设置长度的字符串将不会被索引或存储。
     private Integer rawIgnoreAbove;
     //数据入库时候分词建立索引
     private Analyzer analyzer;
     public enum Analyzer{
         INDEX_ANSJ,
+        STANDARD,
         UNKNOWN;
         private static final Map<String, Analyzer> map;
         static {
@@ -105,6 +112,7 @@ public class Metadata {
     private SearchAnalyzer searchAnalyzer;
     public enum SearchAnalyzer{
         QUERY_ANSJ,
+        STANDARD,
         UNKNOWN;
         private static final Map<String, SearchAnalyzer> map;
         static {
@@ -118,10 +126,54 @@ public class Metadata {
             return Optional.ofNullable(map.get(type.toLowerCase())).orElse(UNKNOWN);
         }
     }
-    //字段是否可聚合
-    private boolean fieldData;
+    //字段是否可聚合 true/false/空
+    private String fieldData;
     //出现在type:date时，设置日期的格式
     private String format;
+    //下一级
+    private List<Metadata> children;
+    //是否有子节点，即该节点是否有properties属性
+    private boolean hasChildren;
+
+    public String getFieldType() {
+        return fieldType;
+    }
+
+    public void setFieldType(String fieldType) {
+        this.fieldType = fieldType;
+    }
+
+    public String getRawType() {
+        return rawType;
+    }
+
+    public void setRawType(String rawType) {
+        this.rawType = rawType;
+    }
+
+    public boolean isHasChildren() {
+        return hasChildren;
+    }
+
+    public void setHasChildren(boolean hasChildren) {
+        this.hasChildren = hasChildren;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public List<Metadata> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Metadata> children) {
+        this.children = children;
+    }
 
     public String getSourceName() {
         return sourceName;
@@ -155,13 +207,6 @@ public class Metadata {
         this.fieldAlisName = fieldAlisName;
     }
 
-    public FieldType getFieldType() {
-        return fieldType;
-    }
-
-    public void setFieldType(FieldType fieldType) {
-        this.fieldType = fieldType;
-    }
 
     public String getFieldTypeName() {
         return fieldTypeName;
@@ -169,14 +214,6 @@ public class Metadata {
 
     public void setFieldTypeName(String fieldTypeName) {
         this.fieldTypeName = fieldTypeName;
-    }
-
-    public RawType getRawType() {
-        return RawType;
-    }
-
-    public void setRawType(RawType rawType) {
-        RawType = rawType;
     }
 
     public Integer getRawIgnoreAbove() {
@@ -203,11 +240,11 @@ public class Metadata {
         this.searchAnalyzer = searchAnalyzer;
     }
 
-    public boolean isFieldData() {
+    public String getFieldData() {
         return fieldData;
     }
 
-    public void setFieldData(boolean fieldData) {
+    public void setFieldData(String fieldData) {
         this.fieldData = fieldData;
     }
 

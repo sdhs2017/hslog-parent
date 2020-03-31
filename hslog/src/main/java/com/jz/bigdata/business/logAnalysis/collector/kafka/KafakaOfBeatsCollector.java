@@ -2,6 +2,7 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
@@ -151,6 +152,7 @@ public class KafakaOfBeatsCollector implements Runnable {
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 
+
     @Override
     public void run() {
 
@@ -177,22 +179,35 @@ public class KafakaOfBeatsCollector implements Runnable {
              * 判断迭代器中是否有数据，且kafka的状态为开启中
              */
             while (it.hasNext() && isStarted()) {
-                String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-
                 String log = it.next().message();
+                /**
+                 * 处理数据
+                 */
+                //1.数据转为json对象
+                JsonElement jsonElement = new JsonParser().parse(log);
+                JsonObject jsonObject= jsonElement.getAsJsonObject();
+                //添加  ip equipmentid
+                jsonObject.add("fields",new JsonParser().parse("{\"ip\":\"192.168.200.15\",\"equipmentid\":\"1926e695d8284fd7b648fbe807522c36\"}"));
+                //2.获取属性值，拼接index
+                JsonObject metadata = jsonObject.getAsJsonObject("@metadata");
+
+                //auditbeat-7.6.1-
+                String index = metadata.get("beat").getAsString()+"-"+metadata.get("version").getAsString()+"-"+format.format(new Date());
+
+                //String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+
+
                 /**
                  *  打印采集到的数据
                  */
                 System.out.println(log);
-                // TODO 采集的数据为json格式，需要先补全资产信息再入库，是否需要将json转为java bean？
-                JsonElement jsonElement = new JsonParser().parse(log);
-                JsonObject jsonObject= jsonElement.getAsJsonObject();
+
                 //json = gson.toJson(syslog);
 
                 /**
                  * 批量入库
                  */
-                //indicesrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),syslog.getIndex_suffix(),syslog.getLogdate()), LogType.LOGTYPE_SYSLOG, json));
+                indicesrequests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_SYSLOG, jsonObject.toString()));
                 /**
                  * 当 indices request中的数据大于等于 配置中设置的批量提交阈值时进行批量提交操作，并清空indicesrequests
                  */

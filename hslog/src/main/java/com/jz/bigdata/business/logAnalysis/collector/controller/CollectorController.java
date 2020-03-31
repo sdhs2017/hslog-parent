@@ -17,6 +17,8 @@ import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,6 +39,7 @@ import net.sf.json.JSONArray;
 @Controller
 @RequestMapping("/collector")
 public class CollectorController {
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Resource(name = "CollectorService")
 	private ICollectorService collectorService;
@@ -78,14 +81,16 @@ public class CollectorController {
 	@RequestMapping(value = "/startCollectorState", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "开启数据采集器")
 	public String startKafkaCollector() {
-		
+		String resultInfo;
 		Map<String, Object> map = new HashMap<>();
 		/**
 		 * 判断index或者index的template是否存在，如果不存在提示执行初始化操作
 		 */
 		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
+			resultInfo = "数据采集器开启失败，请先执行初始化操作";
 			map.put("state", false);
-			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
+			map.put("msg", resultInfo);
+			logger.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		}
 
@@ -98,12 +103,16 @@ public class CollectorController {
 		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述
 		 */
 		if (result) {
+			resultInfo = "数据采集器开启成功";
 			map.put("state", result);
-			map.put("msg", "数据采集器开启成功");
+			map.put("msg", resultInfo);
+			logger.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		} else {
+			resultInfo = "数据采集器开启失败，请勿重复开启";
 			map.put("state", result);
-			map.put("msg", "数据采集器开启失败，请勿重复开启");
+			map.put("msg", resultInfo);
+			logger.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		}
 	}
@@ -113,16 +122,21 @@ public class CollectorController {
 	@RequestMapping(value = "/stopKafkaCollector", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "关闭数据采集器")
 	public String stopKafkaCollector() {
+		String resultInfo;
 		Map<String, Object> map = new HashMap<>();
 		try {
 			boolean result = collectorService.stopKafkaCollector();
 			if (result) {
+				resultInfo = "数据采集器关闭成功";
 				map.put("state", result);
-				map.put("msg", "数据采集器关闭成功");
+				map.put("msg", resultInfo);
+				logger.info(resultInfo);
 				return JSONArray.fromObject(map).toString();
 			} else {
+				resultInfo = "数据采集器关闭失败，已关闭";
 				map.put("state", result);
-				map.put("msg", "数据采集器关闭失败，已关闭");
+				map.put("msg", resultInfo);
+				logger.info(resultInfo);
 				return JSONArray.fromObject(map).toString();
 			}
 
@@ -479,11 +493,6 @@ public class CollectorController {
 		map.put("state", result);
 		return JSONArray.fromObject(map).toString();
 	}
-
-
-
-
-
 
 
 	/**

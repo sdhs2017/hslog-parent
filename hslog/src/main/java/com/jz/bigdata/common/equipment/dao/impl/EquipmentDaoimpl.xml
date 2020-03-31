@@ -92,10 +92,10 @@
 		select
 		<!-- 引用查询字段 -->
 		<include refid="Base_Column_List" />
-		, user.`name` AS userName
-		from equipment,user
+		, HS_User.`name` AS userName
+		from equipment,HS_User
 		where 1=1 and
-		user.id=equipment.userId
+		HS_User.id=equipment.userId
 		<if test="name != null and name !=''"> and equipment.name LIKE
 			CONCAT('%',
 			#{name}, '%') </if>
@@ -318,9 +318,9 @@
 		select
 		<!-- 引用查询字段 -->
 		<include refid="Base_Column_List" />
-		,user.`name` AS userName
-		FROM equipment LEFT JOIN `user` ON
-		equipment.userId=`user`.id
+		,HS_User.`name` AS userName
+		FROM equipment LEFT JOIN `HS_User` ON
+		equipment.userId=`HS_User`.id
 		where equipment.id=#{id}
 	</select>
 
@@ -438,7 +438,7 @@
 		FROM equipment_event
 		LEFT JOIN equipment on
 		equipment_event.equipmentId=equipment.id
-		LEFT JOIN user AS a on
+		LEFT JOIN HS_User AS a on
 		equipment.userId=a.id
 		WHERE
 		equipment_event.eventId=#{eventId,jdbcType=VARCHAR}

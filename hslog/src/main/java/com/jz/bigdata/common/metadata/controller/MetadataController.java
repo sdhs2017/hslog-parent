@@ -1,6 +1,5 @@
 package com.jz.bigdata.common.metadata.controller;
 
-import com.hs.elsearch.template.IndexTemplate;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.metadata.entity.Metadata;
 import com.jz.bigdata.common.metadata.service.IMetadataService;
@@ -8,16 +7,13 @@ import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * 获取ES的metadata
@@ -37,6 +33,43 @@ public class MetadataController {
         try{
             String template = request.getParameter("template");
             List<Metadata> list = iMetadataService.getTemplateMapping(template);
+            if(list!=null){
+                return JSONArray.fromObject(list).toString();
+            }else{
+                return Constant.failureMessage("Template数据查询出错");
+            }
+        }catch(Exception e){
+            logger.error("template数据获取失败");
+            return Constant.failureMessage("数据获取失败");
+        }
+
+    }
+    @ResponseBody
+    @RequestMapping("/getMedataByIndexDynamically")
+    @DescribeLog(describe = "获取index的mapping，结构化返回,动态加载")
+    public String getMedataByIndexDynamically(HttpServletRequest request) {
+        try{
+            String index = request.getParameter("index");
+            String id = request.getParameter("id");
+            List<Metadata> list =iMetadataService.getIndexMappingDynamically(index,id);
+            if(list!=null){
+                return JSONArray.fromObject(list).toString();
+            }else{
+                return Constant.failureMessage("IndexMapping数据查询出错");
+            }
+        }catch(Exception e){
+            logger.error("index mapping 获取失败");
+            return Constant.failureMessage("数据获取失败");
+        }
+    }
+    @ResponseBody
+    @RequestMapping("/getMedataByTemplateDynamically")
+    @DescribeLog(describe = "获取template，结构化返回，动态加载")
+    public String getMedataByTemplateDynamically(HttpServletRequest request) {
+        try{
+            String template = request.getParameter("template");
+            String id = request.getParameter("id");
+            List<Metadata> list = iMetadataService.getTemplateMappingDynamically(template,id);
             if(list!=null){
                 return JSONArray.fromObject(list).toString();
             }else{

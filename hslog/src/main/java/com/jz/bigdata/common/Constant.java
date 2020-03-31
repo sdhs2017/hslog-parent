@@ -126,6 +126,14 @@ public class Constant {
 		return message(true,1,message);
 	}
 	/**
+	 * @param data 返回数据
+	 * @return {success:true,message:...,state:1}
+	 * @description 默认图标为1号
+	 */
+	public static String successData(String data){
+		return "{\"success\":\"true\",\"data\":"+data+"}";
+	}
+	/**
 	 * @return {success:true,message:操作成功！,state:1}
 	 * @description 默认成功返回json信息
 	 */

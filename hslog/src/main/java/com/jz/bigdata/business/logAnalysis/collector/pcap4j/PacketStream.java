@@ -2,12 +2,16 @@ package com.jz.bigdata.business.logAnalysis.collector.pcap4j;
 
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -358,6 +362,19 @@ public class PacketStream {
 	}
  	
  	public static void main(String [] args) {
+ 		Gson gson = new Gson();
+ 		//模拟数据，beat穿过来的一条数据
+ 		String data = "{\"@timestamp\":\"2020-03-16T09:05:13.735Z\",\"@metadata\":{\"beat\":\"winlogbeat\",\"type\":\"_doc\",\"version\":\"7.6.0\"},\"host\":{\"name\":\"ZHANGYIYANG\",\"id\":\"d2c6f258-099c-466c-b748-c0e71faae209\",\"hostname\":\"ZHANGYIYANG\",\"architecture\":\"x86_64\",\"os\":{\"platform\":\"windows\",\"version\":\"10.0\",\"family\":\"windows\",\"name\":\"Windows 10 Enterprise 2016 LTSB\",\"kernel\":\"10.0.14393.2395 (rs1_release_inmarket.180714-1932)\",\"build\":\"14393.2395\"}},\"log\":{\"level\":\"信息\"},\"message\":\"帐户登录失败。\\n\\n使用者:\\n\\t安全 ID:\\t\\tS-1-0-0\\n\\t帐户名:\\t\\t-\\n\\t帐户域:\\t\\t-\\n\\t登录 ID:\\t\\t0x0\\n\\n登录类型:\\t\\t\\t3\\n\\n登录失败的帐户:\\n\\t安全 ID:\\t\\tS-1-0-0\\n\\t帐户名:\\t\\tliangsht\\n\\t帐户域:\\t\\t.\\n\\n失败信息:\\n\\t失败原因:\\t\\t未知用户名或密码错误。\\n\\t状态:\\t\\t\\t0xC000006D\\n\\t子状态:\\t\\t0xC0000064\\n\\n进程信息:\\n\\t调用方进程 ID:\\t0x0\\n\\t调用方进程名:\\t-\\n\\n网络信息:\\n\\t工作站名:\\tLIANGSHANTING\\n\\t源网络地址:\\t192.168.200.49\\n\\t源端口:\\t\\t32773\\n\\n详细身份验证信息:\\n\\t登录进程:\\t\\tNtLmSsp \\n\\t身份验证数据包:\\tNTLM\\n\\t传递服务:\\t-\\n\\t数据包名(仅限 NTLM):\\t-\\n\\t密钥长度:\\t\\t0\\n\\n登录请求失败时在尝试访问的计算机上生成此事件。\\n\\n“使用者”字段指明本地系统上请求登录的帐户。这通常是一个服务(例如 Server 服务)或本地进程(例如 Winlogon.exe 或 Services.exe)。\\n\\n“登录类型”字段指明发生的登录的种类。最常见的类型是 2 (交互式)和 3 (网络)。\\n\\n“进程信息”字段表明系统上的哪个帐户和进程请求了登录。\\n\\n“网络信息”字段指明远程登录请求来自哪里。“工作站名”并非总是可用，而且在某些情况下可能会留为空白。\\n\\n“身份验证信息”字段提供关于此特定登录请求的详细信息。\\n\\t-“传递服务”指明哪些直接服务参与了此登录请求。\\n\\t-“数据包名”指明在 NTLM 协议之间使用了哪些子协议。\\n\\t-“密钥长度”指明生成的会话密钥的长度。如果没有请求会话密钥，则此字段为 0。\",\"winlog\":{\"task\":\"登录\",\"event_data\":{\"TargetDomainName\":\".\",\"SubjectDomainName\":\"-\",\"SubjectUserName\":\"-\",\"TargetUserSid\":\"S-1-0-0\",\"SubStatus\":\"0xc0000064\",\"TargetUserName\":\"liangsht\",\"SubjectLogonId\":\"0x0\",\"Status\":\"0xc000006d\",\"KeyLength\":\"0\",\"LogonProcessName\":\"NtLmSsp \",\"TransmittedServices\":\"-\",\"SubjectUserSid\":\"S-1-0-0\",\"LmPackageName\":\"-\",\"LogonType\":\"3\",\"AuthenticationPackageName\":\"NTLM\",\"FailureReason\":\"%%2313\"},\"computer_name\":\"ZHANGYIYANG\",\"keywords\":[\"审核失败\"],\"record_id\":175748,\"provider_guid\":\"{54849625-5478-4994-A5BA-3E3B0328C30D}\",\"activity_id\":\"{F02C442B-FB3F-0003-3A44-2CF03FFBD501}\",\"process\":{\"pid\":900,\"thread\":{\"id\":10804}},\"provider_name\":\"Microsoft-Windows-Security-Auditing\",\"channel\":\"Security\",\"api\":\"wineventlog\",\"logon\":{\"type\":\"Network\",\"failure\":{\"sub_status\":\"User logon with misspelled or bad user account\",\"reason\":\"Unknown user name or bad password.\",\"status\":\"This is either due to a bad username or authentication information\"}},\"event_id\":4625,\"opcode\":\"信息\"},\"event\":{\"kind\":\"event\",\"provider\":\"Microsoft-Windows-Security-Auditing\",\"module\":\"security\",\"outcome\":\"failure\",\"code\":4625,\"action\":\"logon-failed\",\"created\":\"2020-03-16T09:17:55.378Z\",\"category\":\"authentication\",\"type\":\"authentication_failure\"},\"source\":{\"ip\":\"192.168.200.49\",\"port\":32773,\"domain\":\"LIANGSHANTING\"},\"ecs\":{\"version\":\"1.4.0\"},\"agent\":{\"type\":\"winlogbeat\",\"ephemeral_id\":\"61d9a3c0-0e20-4959-b0de-906087d0f68e\",\"hostname\":\"ZHANGYIYANG\",\"id\":\"30aceb8a-496f-429e-bfc0-f383734c0eac\",\"version\":\"7.6.0\"},\"user\":{\"id\":\"S-1-0-0\",\"name\":\"liangsht\",\"domain\":\".\"},\"process\":{\"executable\":\"-\",\"name\":\"-\",\"pid\":0}}";
+ 		JsonElement je = new JsonParser().parse(data);
+		//转成JsonObject
+		JsonObject jobj = je.getAsJsonObject();
+		//通过key查value
+		System.out.println(jobj.get("message"));
+		//多层的key查value
+		System.out.println(jobj.getAsJsonObject("winlog").get("task"));
+		//插入一个K/V
+		jobj.addProperty("test","123");
+		System.out.println(jobj.toString());
 		/*String payload = "HTTP/1.1 200 Content-Disposition: inline;filename=f.txt Content-Type: application/json;charset=utf-8 Content-Length";
  		String pString = "POST /jzLog/collector/statePcap4jCollector.do HTTP/1.1 Host: 192.168.2.182:8080 User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:66.0) Gecko/20100101 Firefox/66.0 Accept";
 		// 识别http数据包的正则表达式
@@ -369,6 +386,7 @@ public class PacketStream {
 		if ((getSubUtil(pString, httpRequest)!=""||getSubUtil(pString, httpResponse)!="")) {
 			System.out.println(pString);
 		}*/
+		/*
 		String payload = "[Illegal Packet (45 bytes)]\n" +
 				"  Hex stream: 00 2b fa 73 01 00 00 01 00 00 00 00 00 00 02 32 39 02 36 38 03 31 38 30 02 38 31 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00 00 0c 00 01\n" +
 				"  Cause: org.pcap4j.packet.IllegalRawDataException: The data is too short to build a question in DnsHeader. data: fe ee 0b ca e5 69 52 54 00 b4 e4 09 08 00 45 00 00 55 49 80 40 00 40 06 3a b5 ac 15 00 09 b7 3c 53 13 d4 c6 00 35 27 17 3a de 2a bc 19 72 50 18 00 e5 55 74 00 00 00 2b fa 73 01 00 00 01 00 00 00 00 00 00 02 32 39 02 36 38 03 31 38 30 02 38 31 07 69 6e 2d 61 64 64 72 04 61 72 70 61 00 00 0c 00 01, offset: 54, length: 45, cursor: 45";
@@ -382,6 +400,6 @@ public class PacketStream {
 			System.out.println(s);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
+		}*/
 	}
 }

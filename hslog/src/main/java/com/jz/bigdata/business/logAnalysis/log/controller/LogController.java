@@ -19,6 +19,7 @@ import javax.servlet.http.HttpSession;
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFilebeat;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFirewalls;
@@ -312,6 +313,8 @@ public class LogController extends BaseController{
 			// elasticsearch7 版本初始化template
 			//logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			//logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
+			//初始化BI图表及dashboard存储template
+			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap,new HSData().toMapping());
 			//初始化beat template
 			logService.initOfElasticsearch("auditbeat-7.6.1","auditbeat-7.6.1*",null,settingmap,beatTemplate.getAuditBeatTemplate());
 			logService.initOfElasticsearch("winlogbeat-7.6.0","winlogbeat-7.6.0*",null,settingmap,beatTemplate.getWinlogBeatTemplate());
@@ -765,6 +768,7 @@ public class LogController extends BaseController{
 			String [] types = null;
 			// 判断资产日志类型
 			if (logtype!=null) {
+				arrayList.add(logtype);
 				types = arrayList.toArray(new String[arrayList.size()]);
 			}
 

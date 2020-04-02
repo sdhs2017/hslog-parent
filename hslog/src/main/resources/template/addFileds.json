@@ -1,0 +1,1 @@
+{"properties":{"ip":{"type":"ip","fields":{"raw":{"type":"keyword"}}},"equipmentid":{"type":"keyword"}}}

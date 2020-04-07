@@ -27,7 +27,6 @@ public class ExecuteCmd {
 	/**
 	 * 执行命令行，返回执行结果
 	 * @param cmd 命令行
-	 * @param dir 执行命令进程需要的工作目录，null表示与当前主进程工作目录相同
 	 * @return
 	 */
 	public static Map<String, String> execCmd(String cmd) {
@@ -280,7 +279,7 @@ public class ExecuteCmd {
 	/**
 	 * 执行命令行，返回与关键字匹配的执行结果
 	 * @param cmd 命令行
-	 * @param dir 执行命令进程需要的工作目录，null表示与当前主进程工作目录相同
+	 * @param filepath 执行命令进程需要的工作目录，null表示与当前主进程工作目录相同
 	 * @return
 	 */
 	public static Map<String, Set<String>> execCmd(String cmd,String filepath) {

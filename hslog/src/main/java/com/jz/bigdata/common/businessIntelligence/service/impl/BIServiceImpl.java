@@ -1,33 +1,34 @@
 package com.jz.bigdata.common.businessIntelligence.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.*;
 import com.hs.elsearch.dao.biDao.IBIDao;
-import com.hs.elsearch.dao.flowDao.IFlowSearchDao;
+import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.jz.bigdata.common.businessIntelligence.cache.BICache;
-import com.jz.bigdata.common.businessIntelligence.controller.BIController;
+import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
+import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
-import com.jz.bigdata.common.metadata.entity.Metadata;
 import net.sf.json.JSONArray;
-import org.apache.log4j.Logger;
-import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import net.sf.json.JSONObject;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+
 @Service(value="BIService")
 public class BIServiceImpl implements IBIService {
-    /**
-     * number类型包含long、integer、short、byte、double、float、half_float、scaled_float
-     */
-    //用,将具体类型隔开
-    private final String numberTypes = ",long,integer,short,byte,double,float,half_float,scaled_float,";//定义number类型
-    private final String dateTypes = ",date,";
-    private final String keywordTypes = ",keyword,";
+    //json处理全局对象
+    private final Gson gson = new GsonBuilder().create();
 
     @Autowired
     protected ILogIndexDao logIndexDao;
+    @Autowired
+    protected ILogCrudDao logCurdDao;
     @Autowired
     protected IBIDao ibiDao;
     @Override
@@ -41,38 +42,153 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
-    public String groupByThenSum(String index, String groupByField, String groupByFieldType, String sumField, int size, String sort, String starttime, String endtime, Map<String, String> map) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListBySumOfAggregation(starttime,endtime,groupByField,groupByFieldType,sumField,size,sort,map,index);
+    public String groupByThenSum(VisualParam params) throws Exception {
+        List<Map<String, Object>> list = ibiDao.getListBySumOfAggregation(params);
         //处理数据
         return this.dataFormat(list);
     }
 
     @Override
-    public String groupByThenCount(String index, String groupByField, String groupByFieldType, String sumField, int size, String sort, String starttime, String endtime, Map<String, String> map) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByCountOfAggregation(starttime,endtime,groupByField,groupByFieldType,size,sort,map,index);
+    public String groupByThenCount(VisualParam params) throws Exception {
+        List<Map<String, Object>> list = ibiDao.getListByCountOfAggregation(params);
         //处理数据
         return this.dataFormat(list);
     }
 
     @Override
-    public String groupByThenAvg(String index, String groupByField, String groupByFieldType, String sumField, int size, String sort, String starttime, String endtime, Map<String, String> map) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByAvgOfAggregation(starttime,endtime,groupByField,groupByFieldType,sumField,size,sort,map,index);
+    public String groupByThenAvg(VisualParam params) throws Exception {
+        List<Map<String, Object>> list = ibiDao.getListByAvgOfAggregation(params);
         //处理数据
         return this.dataFormat(list);
     }
 
     @Override
-    public String groupByThenMax(String index, String groupByField, String groupByFieldType, String sumField, int size, String sort, String starttime, String endtime, Map<String, String> map) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByMaxOfAggregation(starttime,endtime,groupByField,groupByFieldType,sumField,size,sort,map,index);
+    public String groupByThenMax(VisualParam params) throws Exception {
+        List<Map<String, Object>> list = ibiDao.getListByMaxOfAggregation(params);
         //处理数据
         return this.dataFormat(list);
     }
 
     @Override
-    public String groupByThenMin(String index, String groupByField, String groupByFieldType, String sumField, int size, String sort, String starttime, String endtime, Map<String, String> map) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByMinOfAggregation(starttime,endtime,groupByField,groupByFieldType,sumField,size,sort,map,index);
+    public String groupByThenMin(VisualParam params) throws Exception {
+        List<Map<String, Object>> list = ibiDao.getListByMinOfAggregation(params);
         //处理数据
         return this.dataFormat(list);
+    }
+
+    @Override
+    public DocWriteResponse.Result saveVisualization(Visualization visual, String indexName) throws Exception {
+        //构建数据格式
+        HSData hsdata = new HSData();
+        hsdata.setVisualization(visual);
+        //新增or更新
+        DocWriteResponse.Result result = logCurdDao.upsert(indexName,visual.getId(),gson.toJson(hsdata));
+        return result;
+
+    }
+
+    @Override
+    public String getVisualizations(String indexName) throws Exception {
+        List<Visualization> result = new ArrayList<>();
+        //获取index的visualization列存在数据的信息
+        List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,"visualization");
+        //遍历结果集
+        for(Map<String,Object> map:list){
+            Visualization visual = new Visualization();
+            visual.setId(map.get("id").toString());
+            //visualization存储图表的数据
+            Map<String,Object> visualizationInfo = (HashMap<String,Object>)map.get("visualization");
+            visual.setTitle(visualizationInfo.get("title").toString());//标题
+            visual.setDescription(visualizationInfo.get("description").toString());//描述
+            visual.setType(visualizationInfo.get("type").toString());//图表类型
+            visual.setIndexName(visualizationInfo.get("indexName").toString());//数据查询的数据源（index名称）
+            result.add(visual);
+        }
+        return JSONArray.fromObject(result).toString();
+    }
+
+    @Override
+    public String getVisualizationById(String id,String indexName) throws Exception {
+        Visualization visual =new Visualization();
+        //根据id获取图表详情
+        Map<String, Object> map = logCurdDao.searchById(indexName,"",id);
+        if(null!=map){
+            //将数据赋值给bean，方便回显
+            visual.setId(map.get("id").toString());
+            Map<String,Object> visualization = (HashMap<String,Object>)map.get("visualization");
+            visual.setType(visualization.get("type").toString());
+            visual.setDescription(visualization.get("description").toString());
+            visual.setTitle(visualization.get("title").toString());
+            visual.setIndexName(visualization.get("indexName").toString());
+            visual.setOption(visualization.get("option").toString());
+            //处理查询参数
+            String params = visualization.get("params").toString();
+            visual.setParams(params);
+            //查询数据
+            //1.解析params变成map  params中的数据格式为{a:1,b:2,c:3} json格式
+            //JsonElement jsonElement = new JsonParser().parse(params);
+
+            //JsonObject jsonObject= jsonElement.getAsJsonObject();
+            HashMap<String,String[]> result = new ObjectMapper().readValue(params, HashMap.class);
+            VisualParam vp = new VisualParam();
+            vp = vp.mapToBean(result);
+            //VisualParam vp = (VisualParam)JSONObject.toBean(JSONObject.fromObject(params),VisualParam.class);
+            /*
+            //2.根据参数数据调用查询方法
+            //查询索引名称
+            String searchIndexName = jsonObject.get("indexName").getAsString();
+            //聚合方式
+            String x_agg = jsonObject.get("x_agg").getAsString();
+            String y_agg = jsonObject.get("y_agg").getAsString();
+            //聚合的字段
+            String x_field = jsonObject.get("x_field").getAsString();
+            String y_field = jsonObject.get("y_field").getAsString();
+            //查询数据条数
+            String size = jsonObject.get("size").getAsString();
+            //默认为10条记录
+            int sizeInt = 10;
+            if(size!=null&&!"".equals(size)){
+                sizeInt = Integer.parseInt(size);
+            }
+            //排序，Y轴
+            String sort = jsonObject.get("sort").getAsString();
+            //时间间隔类型
+            //String intervalType = jsonObject.get("intervalType").getAsString();
+            //时间间隔数值
+            //String intervalValue = jsonObject.get("intervalValue").getAsString();
+
+             */
+            //返回结果
+            String searchResult;
+            //根据聚合方式调用不同的方法
+            switch (vp.getY_agg()){
+                case "Average":
+                    searchResult = groupByThenAvg(vp);
+                    break;
+                case "Sum":
+                    searchResult = groupByThenSum(vp);
+                    break;
+                case "Max":
+                    searchResult = groupByThenMax(vp);
+                    break;
+                case "Min":
+                    searchResult = groupByThenMin(vp);
+                    break;
+                case "Count":
+                    searchResult = groupByThenCount(vp);
+                    break;
+                default:
+                    searchResult = "";
+                    break;
+            }
+            visual.setData(searchResult);
+        }
+        return JSONObject.fromObject(visual).toString();
+    }
+
+    @Override
+    public String deleteVisualizationById(String id, String indexName) throws Exception {
+        return logCurdDao.deleteById(indexName,"",id);
     }
 
     /**

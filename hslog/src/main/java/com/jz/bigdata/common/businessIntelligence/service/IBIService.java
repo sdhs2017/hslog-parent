@@ -1,10 +1,11 @@
 package com.jz.bigdata.common.businessIntelligence.service;
 
+import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
-import com.jz.bigdata.common.metadata.entity.Metadata;
+import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
+import org.elasticsearch.action.DocWriteResponse;
 
 import java.util.List;
-import java.util.Map;
 
 public interface IBIService {
 
@@ -38,7 +39,7 @@ public interface IBIService {
      * @param map 其他限制条件
      * @return
      */
-    public String groupByThenSum(String indices,String groupByField,String groupByFieldType,String sumField, int size, String sort, String starttime, String endtime,Map<String, String> map) throws Exception;
+    public String groupByThenSum(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
      * @param indices 索引或template名称
@@ -52,7 +53,7 @@ public interface IBIService {
      * @param map 其他限制条件
      * @return
      */
-    public String groupByThenCount(String indices,String groupByField,String groupByFieldType,String sumField, int size, String sort, String starttime, String endtime,Map<String, String> map) throws Exception;
+    public String groupByThenCount(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
      * @param indices 索引或template名称
@@ -66,7 +67,7 @@ public interface IBIService {
      * @param map 其他限制条件
      * @return
      */
-    public String groupByThenAvg(String indices,String groupByField,String groupByFieldType,String sumField, int size, String sort, String starttime, String endtime,Map<String, String> map) throws Exception;
+    public String groupByThenAvg(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
      * @param indices 索引或template名称
@@ -80,7 +81,7 @@ public interface IBIService {
      * @param map 其他限制条件
      * @return
      */
-    public String groupByThenMax(String indices,String groupByField,String groupByFieldType,String sumField, int size, String sort, String starttime, String endtime,Map<String, String> map) throws Exception;
+    public String groupByThenMax(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
      * @param indices 索引或template名称
@@ -94,6 +95,30 @@ public interface IBIService {
      * @param map 其他限制条件
      * @return
      */
-    public String groupByThenMin(String indices,String groupByField,String groupByFieldType,String sumField, int size, String sort, String starttime, String endtime,Map<String, String> map) throws Exception;
+    public String groupByThenMin(VisualParam params) throws Exception;
 
+    /**
+     * 保存图表信息
+     * @param visual 图表信息bean
+     * @return
+     */
+    public DocWriteResponse.Result saveVisualization(Visualization visual , String indexName) throws Exception;
+    /**
+     * 获取图表列表，不包含option和params信息（数据内容太多，影响响应速度）
+     * @return
+     */
+    public String getVisualizations(String indexName) throws Exception;
+
+    /**
+     * 根据id获取图表详情以及查询的数据结果
+     * @param id
+     * @return
+     */
+    public String getVisualizationById(String id,String indexName) throws Exception;
+    /**
+     * 根据id删除图表
+     * @param id
+     * @return
+     */
+    public String deleteVisualizationById(String id,String indexName) throws Exception;
 }

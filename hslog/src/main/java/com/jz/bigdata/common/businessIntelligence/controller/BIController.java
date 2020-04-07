@@ -1,17 +1,17 @@
 package com.jz.bigdata.common.businessIntelligence.controller;
 
+import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
+import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
-import com.jz.bigdata.common.metadata.controller.MetadataController;
-import com.jz.bigdata.common.metadata.service.IMetadataService;
 import com.jz.bigdata.util.DescribeLog;
 import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
+import org.elasticsearch.action.DocWriteResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import scala.collection.immutable.Stream;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +25,7 @@ import java.util.Map;
 @RequestMapping("/BI")
 public class BIController {
     private static Logger logger = Logger.getLogger(BIController.class);
-
+    private final String biIndexName = "hsdata";
     @Resource(name = "BIService")
     private IBIService iBIService;
     /**
@@ -85,6 +85,7 @@ public class BIController {
     @DescribeLog(describe = "通过图表参数获取查询结果，并返回")
     public String getDataByChartParams(HttpServletRequest request){
         try{
+            /*
             //聚合方式
             String x_agg = request.getParameter("x_agg");
             String y_agg = request.getParameter("y_agg");
@@ -110,24 +111,29 @@ public class BIController {
             String intervalValue = request.getParameter("intervalValue");
             //索引名称
             String indexName = request.getParameter("indexName");
+             */
+
+            VisualParam vp = new VisualParam();
+            Map<String, String[]> params = request.getParameterMap();
+            vp.mapToBean(params);
             //返回结果
             String result;
             //根据聚合方式调用不同的方法
-            switch (y_agg){
+            switch (vp.getY_agg()){
                 case "Average":
-                    result = iBIService.groupByThenAvg(indexName,x_field,x_agg,y_field,sizeInt,sort,null,null,null);
+                    result = iBIService.groupByThenAvg(vp);
                     break;
                 case "Sum":
-                    result = iBIService.groupByThenSum(indexName,x_field,x_agg,y_field,sizeInt,sort,null,null,null);
+                    result = iBIService.groupByThenSum(vp);
                     break;
                 case "Max":
-                    result = iBIService.groupByThenMax(indexName,x_field,x_agg,y_field,sizeInt,sort,null,null,null);
+                    result = iBIService.groupByThenMax(vp);
                     break;
                 case "Min":
-                    result = iBIService.groupByThenMin(indexName,x_field,x_agg,y_field,sizeInt,sort,null,null,null);
+                    result = iBIService.groupByThenMin(vp);
                     break;
                 case "Count":
-                    result = iBIService.groupByThenCount(indexName,x_field,x_agg,y_field,sizeInt,sort,null,null,null);
+                    result = iBIService.groupByThenCount(vp);
                     break;
                 default:
                     result = Constant.failureMessage("聚合格式错误");
@@ -137,6 +143,74 @@ public class BIController {
         }catch(Exception e){
             logger.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
+        }
+    }
+    /**
+     * 保存图表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/saveVisualization", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "图表保存")
+    public String saveVisualization(HttpServletRequest request, Visualization visual){
+        try{
+            DocWriteResponse.Result result = iBIService.saveVisualization(visual,biIndexName);
+            if (result == DocWriteResponse.Result.CREATED) {
+                return Constant.successMessage("数据保存成功");
+            } else if (result == DocWriteResponse.Result.UPDATED) {
+                return Constant.successMessage("数据更新成功");
+            }else{
+                return Constant.failureMessage("数据操作成功");
+            }
+        }catch(Exception e){
+            return Constant.failureMessage("数据操作失败");
+        }
+    }
+    /**
+     * 获取图表列表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getVisualizations", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取图表列表")
+    public String getVisualizations(HttpServletRequest request){
+        try{
+            String result = iBIService.getVisualizations(biIndexName);
+            return Constant.successData(result);
+        }catch(Exception e){
+            return Constant.failureMessage("获取图表列表失败");
+        }
+    }
+    /**
+     * 获取图表的详情
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getVisualizationById", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取图表详情")
+    public String getVisualizationById(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.getVisualizationById(id,biIndexName);
+            return Constant.successData(result);
+        }catch(Exception e){
+            return Constant.failureMessage("获取图表详情失败");
+        }
+    }
+    /**
+     * 获取图表的详情
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/deleteVisualizationById", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "删除图表")
+    public String deleteVisualizationById(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.deleteVisualizationById(id,biIndexName);
+            return Constant.successMessage(result);
+        }catch(Exception e){
+            return Constant.failureMessage("删除图表失败");
         }
     }
 }

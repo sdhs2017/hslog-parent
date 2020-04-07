@@ -1,5 +1,6 @@
 package com.hs.elsearch.dao.logDao;
 
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -33,7 +34,13 @@ public interface ILogCrudDao {
      */
     public void insert(String index, String type, String json) throws Exception;
 
-
+    /**
+     * 增删单条记录
+     * @param index 索引名称
+     * @param id 增删的判定条件，有id则更新，没有就新增
+     * @param json 数据内容json格式
+     */
+    public DocWriteResponse.Result upsert(String index, String id, String json) throws Exception;
     /**
      * 通过ID查询数据
      * @param index

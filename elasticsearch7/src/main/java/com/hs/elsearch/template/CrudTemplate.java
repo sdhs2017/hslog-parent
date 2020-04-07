@@ -123,6 +123,29 @@ public class CrudTemplate {
     }
 
     /**
+     * 实现数据的增删
+     * 有id为更新
+     * 无id为新增，id由es自动生成
+     * @param index
+     * @param id
+     * @param json
+     * @return
+     * @throws Exception
+     */
+    public DocWriteResponse.Result upsert(String index, String id, String json)throws Exception {
+        IndexRequest request = new IndexRequest();
+        request.index(index);
+        //id不为空
+        if(null!=id&&!"".equals(id)){
+            request.id(id);
+        }
+        request.source(json, XContentType.JSON);
+
+        IndexResponse response = restHighLevelClient.index(request, RequestOptions.DEFAULT);
+        return response.getResult();
+    }
+
+    /**
      * 实现elasticsearch的index插入文档，id由数据段生成,但不提交
      * @param index
      * @param json

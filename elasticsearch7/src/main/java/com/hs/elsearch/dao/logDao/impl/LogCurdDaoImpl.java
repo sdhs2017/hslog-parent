@@ -2,6 +2,7 @@ package com.hs.elsearch.dao.logDao.impl;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.template.CrudTemplate;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -39,6 +40,11 @@ public class LogCurdDaoImpl implements ILogCrudDao {
     @Override
     public void insert(String index, String type, String json) throws Exception {
         crudTemplate.insert(index,json);
+    }
+
+    @Override
+    public DocWriteResponse.Result upsert(String index, String id, String json) throws Exception {
+        return crudTemplate.upsert(index,id,json);
     }
 
     @Override

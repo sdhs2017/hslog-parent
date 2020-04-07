@@ -1,6 +1,7 @@
 package com.hs.elsearch.dao.biDao.impl;
 
 import com.hs.elsearch.dao.biDao.IBIDao;
+import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.hs.elsearch.template.SearchTemplate;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -19,40 +20,13 @@ public class BIDaoImpl implements IBIDao {
     @Autowired
     SearchTemplate searchTemplate;
     @Override
-    public List<Map<String, Object>> getListBySumOfAggregation(String starttime, String endtime, String groupByField, String groupFieldType, String sumField, int size, String sort,Map<String, String> map, String... indices) throws Exception {
+    public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception {
         //TODO 后期增加
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
-        boolean asc = "asc".equals(sort)?true:false;
         // 聚合bucket查询group by
-        AggregationBuilder aggregationBuilder;
-        //TODO 使用枚举类
-        if("Date".equals(groupFieldType)){
-            //TODO 对聚合方式进行更深度的扩展，可以定义时间间隔
-            aggregationBuilder =
-                    AggregationBuilders
-                            // 聚合别名
-                            .dateHistogram("aggs")
-                            // 聚合字段
-                            .field(groupByField)
-                            // 聚合的方式，小时
-                            .calendarInterval(DateHistogramInterval.HOUR);
-                            // 为空的话则填充0
-                            //.minDocCount(0)
-                            // 需要填充0的范围
-                            //.extendedBounds(extendedBounds);
-
-                            //.order(BucketOrder.compound(BucketOrder.aggregation("sum",asc)));
-
-        }else{
-            aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("sum",asc))).size(size);
-        }
-        // 在bucket上聚合metric查询sum
-        SumAggregationBuilder sumBuilder = AggregationBuilders.sum("sum").field(sumField);
-
-        aggregationBuilder.subAggregation(sumBuilder);
+        AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -61,7 +35,7 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
-            NumericMetricsAggregation.SingleValue sum = bucket.getAggregations().get("sum");
+            NumericMetricsAggregation.SingleValue sum = bucket.getAggregations().get(params.getY_agg());
             bucketmap.put(bucket.getKeyAsString(),sum.value());
         }
         list.add(bucketmap);
@@ -69,40 +43,13 @@ public class BIDaoImpl implements IBIDao {
     }
 
     @Override
-    public List<Map<String, Object>> getListByCountOfAggregation(String starttime, String endtime, String groupByField, String groupFieldType, int size, String sort, Map<String, String> map, String... indices) throws Exception {
+    public List<Map<String, Object>> getListByCountOfAggregation(VisualParam params) throws Exception {
         //TODO 后期增加
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         // 聚合bucket查询group by
-        //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
-        boolean asc = "asc".equals(sort)?true:false;
-        // 聚合bucket查询group by
-        AggregationBuilder aggregationBuilder;
-        //TODO 使用枚举类
-        if("Date".equals(groupFieldType)){
-            //TODO 对聚合方式进行更深度的扩展，可以定义区间
-            aggregationBuilder =
-                    AggregationBuilders
-                            // 聚合别名
-                            .dateHistogram("aggs")
-                            // 聚合字段
-                            .field(groupByField)
-                            // 聚合的方式，小时
-                            .calendarInterval(DateHistogramInterval.HOUR);
-                            // 为空的话则填充0
-                            //.minDocCount(0)
-                            // 需要填充0的范围
-                            //.extendedBounds(extendedBounds);
-                            //.order(BucketOrder.compound(BucketOrder.aggregation("count",asc)));
-
-        }else{
-            aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("count",asc))).size(size);
-        }
-        // 在bucket上聚合metric查询count
-        ValueCountAggregationBuilder countBuilder = AggregationBuilders.count("count").field(groupByField);
-
-        aggregationBuilder.subAggregation(countBuilder);
+        AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -111,7 +58,7 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
-            NumericMetricsAggregation.SingleValue count = bucket.getAggregations().get("count");
+            NumericMetricsAggregation.SingleValue count = bucket.getAggregations().get(params.getY_agg());
             bucketmap.put(bucket.getKeyAsString(),count.value());
         }
         list.add(bucketmap);
@@ -119,41 +66,13 @@ public class BIDaoImpl implements IBIDao {
     }
 
     @Override
-    public List<Map<String, Object>> getListByAvgOfAggregation(String starttime, String endtime, String groupByField, String groupFieldType, String avgField, int size, String sort, Map<String, String> map, String... indices) throws Exception {
+    public List<Map<String, Object>> getListByAvgOfAggregation(VisualParam params) throws Exception {
         //TODO 后期增加
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
-        boolean asc = "asc".equals(sort)?true:false;
         // 聚合bucket查询group by
-        AggregationBuilder aggregationBuilder;
-        //TODO 使用枚举类
-        if("Date".equals(groupFieldType)){
-            //ExtendedBounds extendedBounds = new ExtendedBounds("2020-03-06",endtime);
-            //TODO 对聚合方式进行更深度的扩展，可以定义区间
-            aggregationBuilder =
-                    AggregationBuilders
-                            // 聚合别名
-                            .dateHistogram("aggs")
-                            // 聚合字段
-                            .field(groupByField)
-                            // 聚合的方式，小时
-                            .calendarInterval(DateHistogramInterval.HOUR);
-                            // 为空的话则填充0
-                            //.minDocCount(0)
-                            // 需要填充0的范围
-                            //.extendedBounds(extendedBounds)
-                            //.order(BucketOrder.compound(BucketOrder.aggregation("avg",asc)));
-
-        }else{
-            aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("avg",asc))).size(size);
-        }
-
-        // 在bucket上聚合metric查询avg
-        AvgAggregationBuilder avgBuilder = AggregationBuilders.avg("avg").field(avgField);
-
-        aggregationBuilder.subAggregation(avgBuilder);
+        AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -162,7 +81,7 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
-            NumericMetricsAggregation.SingleValue avg = bucket.getAggregations().get("avg");
+            NumericMetricsAggregation.SingleValue avg = bucket.getAggregations().get(params.getY_agg());
             //double有INFINITY和NaN两种特殊值，一般情况下都是数据为空时，在这里都转换成0
             //INFINITY为无穷，NaN为非数
             bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(avg.value())||Double.isNaN(avg.value()))?0:avg.value());
@@ -172,39 +91,13 @@ public class BIDaoImpl implements IBIDao {
     }
 
     @Override
-    public List<Map<String, Object>> getListByMaxOfAggregation(String starttime, String endtime, String groupByField, String groupFieldType, String maxField, int size, String sort, Map<String, String> map, String... indices) throws Exception {
+    public List<Map<String, Object>> getListByMaxOfAggregation(VisualParam params) throws Exception {
         //TODO 后期增加
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
-        boolean asc = "asc".equals(sort)?true:false;
         // 聚合bucket查询group by
-        AggregationBuilder aggregationBuilder;
-        //TODO 使用枚举类
-        if("Date".equals(groupFieldType)){
-            //TODO 对聚合方式进行更深度的扩展，可以定义区间
-            aggregationBuilder =
-                    AggregationBuilders
-                            // 聚合别名
-                            .dateHistogram("aggs")
-                            // 聚合字段
-                            .field(groupByField)
-                            // 聚合的方式，小时
-                            .calendarInterval(DateHistogramInterval.HOUR);
-                            // 为空的话则填充0
-                            //.minDocCount(0)
-                            // 需要填充0的范围
-                            //.extendedBounds(extendedBounds);
-                            //.order(BucketOrder.compound(BucketOrder.aggregation("max",asc)));
-
-        }else{
-            aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("max",asc))).size(size);
-        }
-        // 在bucket上聚合metric查询max
-        MaxAggregationBuilder maxBuilder = AggregationBuilders.max("max").field(maxField);
-
-        aggregationBuilder.subAggregation(maxBuilder);
+        AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -213,7 +106,7 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
-            NumericMetricsAggregation.SingleValue max = bucket.getAggregations().get("max");
+            NumericMetricsAggregation.SingleValue max = bucket.getAggregations().get(params.getY_agg());
             bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(max.value())||Double.isNaN(max.value()))?0:max.value());
         }
         list.add(bucketmap);
@@ -221,39 +114,13 @@ public class BIDaoImpl implements IBIDao {
     }
 
     @Override
-    public List<Map<String, Object>> getListByMinOfAggregation(String starttime, String endtime, String groupByField, String groupFieldType, String minField, int size, String sort, Map<String, String> map, String... indices) throws Exception {
+    public List<Map<String, Object>> getListByMinOfAggregation(VisualParam params) throws Exception {
         //TODO 后期增加
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
-        boolean asc = "asc".equals(sort)?true:false;
         // 聚合bucket查询group by
-        AggregationBuilder aggregationBuilder;
-        //TODO 使用枚举类
-        if("Date".equals(groupFieldType)){
-            //TODO 对聚合方式进行更深度的扩展，可以定义区间
-            aggregationBuilder =
-                    AggregationBuilders
-                            // 聚合别名
-                            .dateHistogram("aggs")
-                            // 聚合字段
-                            .field(groupByField)
-                            // 聚合的方式，小时
-                            .calendarInterval(DateHistogramInterval.HOUR);
-                            // 为空的话则填充0
-                            //.minDocCount(0)
-                            // 需要填充0的范围
-                            //.extendedBounds(extendedBounds);
-                            //.order(BucketOrder.compound(BucketOrder.aggregation("avg",asc)));
-
-        }else{
-            aggregationBuilder = AggregationBuilders.terms("aggs").field(groupByField).order(BucketOrder.compound(BucketOrder.aggregation("min",asc))).size(size);
-        }
-        // 在bucket上聚合metric查询min
-        MinAggregationBuilder minBuilder = AggregationBuilders.min("min").field(minField);
-
-        aggregationBuilder.subAggregation(minBuilder);
+        AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -262,7 +129,7 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
-            NumericMetricsAggregation.SingleValue min = bucket.getAggregations().get("min");
+            NumericMetricsAggregation.SingleValue min = bucket.getAggregations().get(params.getY_agg());
             //bucketmap.put(bucket.getKeyAsString(),min.getValue());
             bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(min.value())||Double.isNaN(min.value()))?0:min.value());
         }
@@ -272,16 +139,97 @@ public class BIDaoImpl implements IBIDao {
 
     /**
      * 根据参数创建AggregationBuilder //TODO
-     * @param groupByField
-     * @param groupFieldType
-     * @param minField
-     * @param size
-     * @param sort
+     * @param params
      * @return
      */
-    private AggregationBuilder buildAggregation( String groupByField, String groupFieldType,String minField, int size, String sort){
+    private AggregationBuilder buildAggregation(VisualParam params){
+        //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
+        boolean asc = "asc".equals(params.getSort())?true:false;
         // 聚合bucket查询group by
-        AggregationBuilder aggregationBuilder;
-        return null;
+        AggregationBuilder aggregationBuilder = null;
+        //TODO 使用枚举类
+        if("Date".equals(params.getX_agg())){
+            //默认1小时间隔
+            DateHistogramInterval dateHis = DateHistogramInterval.hours(1);
+            //TODO 对聚合方式进行更深度的扩展，可以定义时间间隔
+            if(params.getIntervalType()!=null){
+
+                switch(params.getIntervalType()){
+                    case SECOND:
+                        dateHis = DateHistogramInterval.seconds(params.getIntervalValue());
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
+                        break;
+                    case MINUTE:
+                        dateHis = DateHistogramInterval.minutes(params.getIntervalValue());
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
+                        break;
+                    case HOURLY:
+                        dateHis = DateHistogramInterval.hours(params.getIntervalValue());
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
+                        break;
+                    case DAILY:
+                        dateHis = DateHistogramInterval.days(params.getIntervalValue());
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
+                        break;
+                    case WEEKLY://ES目前不支持 N周、N月、N年的间隔设置
+                        dateHis = DateHistogramInterval.WEEK;
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).calendarInterval(dateHis);
+                        break;
+                    case MONTHLY:
+                        dateHis = DateHistogramInterval.MONTH;
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).calendarInterval(dateHis);
+                        break;
+                    case YEARLY:
+                        dateHis = DateHistogramInterval.YEAR;
+                        aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).calendarInterval(dateHis);
+                        break;
+                }
+            }
+
+        }else{
+            aggregationBuilder = AggregationBuilders.terms("aggs").field(params.getX_field()).order(BucketOrder.compound(BucketOrder.aggregation(params.getY_agg(),asc))).size(params.getSize());
+        }
+        switch(params.getY_agg()){
+            case "Sum":
+                // 在bucket上聚合metric查询sum
+                SumAggregationBuilder sumBuilder = AggregationBuilders.sum(params.getY_agg()).field(params.getY_field());
+                aggregationBuilder.subAggregation(sumBuilder);
+                break;
+            case "Count":
+                // 在bucket上聚合metric查询count
+                ValueCountAggregationBuilder countBuilder = AggregationBuilders.count(params.getY_agg()).field(params.getY_field());
+                aggregationBuilder.subAggregation(countBuilder);
+                break;
+            case "Average":
+                // 在bucket上聚合metric查询avg
+                AvgAggregationBuilder avgBuilder = AggregationBuilders.avg(params.getY_agg()).field(params.getY_field());
+                aggregationBuilder.subAggregation(avgBuilder);
+                break;
+            case "Max":
+                // 在bucket上聚合metric查询min
+                MaxAggregationBuilder maxBuilder = AggregationBuilders.max(params.getY_agg()).field(params.getY_field());
+                aggregationBuilder.subAggregation(maxBuilder);
+                break;
+            case "Min":
+                // 在bucket上聚合metric查询min
+                MinAggregationBuilder minBuilder = AggregationBuilders.min(params.getY_agg()).field(params.getY_field());
+                aggregationBuilder.subAggregation(minBuilder);
+                break;
+        }
+        return aggregationBuilder;
+    }
+
+    /**
+     * 获取某个字段不为空的数据list
+     * @param indexName
+     * @param fieldName
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, Object>> getListExistsField(String indexName,String fieldName) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery(fieldName)));
+        List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder,indexName);
+        return list;
     }
 }

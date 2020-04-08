@@ -316,11 +316,12 @@ public class LogController extends BaseController{
 			//初始化BI图表及dashboard存储template
 			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap,new HSData().toMapping());
 			//初始化beat template
-			logService.initOfElasticsearch("auditbeat-7.6.1","auditbeat-7.6.1*",null,settingmap,beatTemplate.getAuditBeatTemplate());
-			logService.initOfElasticsearch("winlogbeat-7.6.0","winlogbeat-7.6.0*",null,settingmap,beatTemplate.getWinlogBeatTemplate());
-			logService.initOfElasticsearch("packetbeat-7.6.1","packetbeat-7.6.1*",null,settingmap,beatTemplate.getPacketBeatTemplate());
-			logService.initOfElasticsearch("filebeat-7.6.1","filebeat-7.6.1*",null,settingmap,beatTemplate.getFileBeatTemplate());
-			logService.initOfElasticsearch("metricbeat-7.6.0","metricbeat-7.6.0*",null,settingmap,beatTemplate.getMetricBeatTemplate());
+
+			logService.initOfElasticsearch("auditbeat-","auditbeat-*",null,settingmap,beatTemplate.getAuditBeatTemplate());
+			logService.initOfElasticsearch("winlogbeat-","winlogbeat-*",null,settingmap,beatTemplate.getWinlogBeatTemplate());
+			logService.initOfElasticsearch("packetbeat-","packetbeat-*",null,settingmap,beatTemplate.getPacketBeatTemplate());
+			logService.initOfElasticsearch("filebeat-","filebeat-*",null,settingmap,beatTemplate.getFileBeatTemplate());
+			logService.initOfElasticsearch("metricbeat-","metricbeat-*",null,settingmap,beatTemplate.getMetricBeatTemplate());
 			/**
 			 * 初始化工作二：在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
 			 */

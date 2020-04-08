@@ -6,26 +6,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
+import com.alibaba.fastjson.JSON;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
+import net.sf.json.JSONObject;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
-import com.jz.bigdata.business.logAnalysis.log.entity.App_file;
-import com.jz.bigdata.business.logAnalysis.log.entity.DHCP;
-import com.jz.bigdata.business.logAnalysis.log.entity.DNS;
-import com.jz.bigdata.business.logAnalysis.log.entity.Log4j;
-import com.jz.bigdata.business.logAnalysis.log.entity.Mysql;
-import com.jz.bigdata.business.logAnalysis.log.entity.Netflow;
-import com.jz.bigdata.business.logAnalysis.log.entity.PacketFilteringFirewal;
-import com.jz.bigdata.business.logAnalysis.log.entity.Syslog;
-import com.jz.bigdata.business.logAnalysis.log.entity.Winlog;
-import com.jz.bigdata.business.logAnalysis.log.entity.ZtsApp;
-import com.jz.bigdata.business.logAnalysis.log.entity.ZtsLog4j;
-import com.jz.bigdata.business.logAnalysis.log.entity.ZtsSyslog;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
@@ -40,6 +31,7 @@ import kafka.consumer.KafkaStream;
 import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +83,10 @@ public class KafkaCollector implements Runnable {
 	private Pattern dhcppattern = Pattern.compile("\\s+dhcpd:");
 	//filebeat
 	private Pattern filebeatpattern = Pattern.compile("\"logtype\":\"app_*");
+	private Pattern logstashSyslogPattern = Pattern.compile("\"type\":\"system-syslog\"");
 
+	//logstash 发送的syslog对应winlogbeat，声明index
+	private String logstashIndexName ;
 
 	/**
 	 * 线程操作
@@ -141,6 +136,7 @@ public class KafkaCollector implements Runnable {
 	DNS dns;
 	DHCP dhcp;
 	App_file app_file;
+	LogstashSyslog logstashSyslog;
 
 	/**
 	 *
@@ -318,8 +314,41 @@ public class KafkaCollector implements Runnable {
 					Matcher dhcpmatcher = dhcppattern.matcher(log);
 					//filebeat
 					Matcher filebeatmatcher = filebeatpattern.matcher(log);
+					//logstash syslog
+					Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(log);
+					//logstash发送的日志信息
+					if(logstashSyslogMatcher.find()){
+						logType = LogType.LOGTYPE_SYSLOG;
+						try{
+							logstashSyslog = (LogstashSyslog) JSON.parseObject(log, LogstashSyslog.class);
+							ipadress = logstashSyslog.getHost().toString();
+							if (ipadressSet.contains(ipadress)) {
+								equipment = equipmentMap.get(ipadress+logType);
+								if (equipment!=null) {
+									//TODO 日志级别的判定
+									logstashSyslog.setUserid(equipment.getUserId());
+									logstashSyslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
+									logstashSyslog.setEquipmentname(equipment.getName());
+									logstashSyslog.setEquipmentid(equipment.getId());
+								}
+							}else{
+								logstashSyslog.setUserid(LogType.LOGTYPE_UNKNOWN);
+								logstashSyslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
+								logstashSyslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+								logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+							}
+							json = new Logstash2ECS().toJson(logstashSyslog);
+							logstashIndexName = "winlogbeat-"+ DateTime.now().toString("yyyy.MM.dd");
+							newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName,null,null), LogType.LOGTYPE_SYSLOG, json));
+						}catch (Exception e){
+							e.printStackTrace();
+							logger.error("范式化失败 ，日志内容："+builder.toString());
+							//System.out.println("范式化失败 ，日志内容："+builder.toString());
+							continue;
+						}
+					}
 					//log4j日志信息
-					if (facility_matcher.find()) {
+					else if (facility_matcher.find()) {
 						logType = LogType.LOGTYPE_LOG4J;
 						//同步锁，其他试图访问该对象（log）的线程将被阻塞
 						synchronized (log) {

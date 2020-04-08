@@ -106,7 +106,6 @@ public class CollectorServiceImpl implements ICollectorService{
 	KafakaOfBeatsCollector kafakaOfBeatsCollector = null;
 	//kafka of beats 线程
 	Thread kafkaOfBeatsThread = null;
-
 	
 	@Resource(name="assetsService")
 	private IAssetsService assetsService;
@@ -507,6 +506,7 @@ public class CollectorServiceImpl implements ICollectorService{
 		boolean result = false;
 
 		initKafkaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+
 		/**
 		 * 如果为非开启状态，则新建kafka线程
 		 */

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.ecs.service.IecsWinlogService;
+import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
@@ -41,7 +41,7 @@ public class EcsWinlogController {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource(name="ecsService")
-    private IecsWinlogService ecsService;
+    private IecsService ecsService;
 
     @Resource(name = "EquipmentService")
     private IEquipmentService equipmentService;

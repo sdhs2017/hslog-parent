@@ -1,17 +1,10 @@
 package com.jz.bigdata.business.logAnalysis.ecs.controller;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
-import com.jz.bigdata.business.logAnalysis.log.LogType;
-import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
+import com.jz.bigdata.business.logAnalysis.ecs.service.IecsWinlogService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
@@ -31,7 +24,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,13 +35,13 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 
 @Controller
-@RequestMapping("/ecs")
-public class EcsController {
+@RequestMapping("/ecsWinlog")
+public class EcsWinlogController {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource(name="ecsService")
-    private IecsService ecsService;
+    private IecsWinlogService ecsService;
 
     @Resource(name = "EquipmentService")
     private IEquipmentService equipmentService;

@@ -1,8 +1,7 @@
 package com.jz.bigdata.business.logAnalysis.ecs.service.impl;
 
 import com.hs.elsearch.dao.ecsDao.IEcsSearchDao;
-import com.hs.elsearch.dao.logDao.ILogSearchDao;
-import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
+import com.jz.bigdata.business.logAnalysis.ecs.service.IecsWinlogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,7 @@ import java.util.Map;
  * @create: 2020-03-30 14:47
  **/
 @Service(value="ecsService")
-public class EcsServiceImpl implements IecsService {
+public class EcsWinlogServiceImpl implements IecsWinlogService {
 
     @Autowired
     protected IEcsSearchDao ecsSearchDao;

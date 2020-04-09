@@ -3,7 +3,7 @@ package com.jz.bigdata.business.logAnalysis.ecs.service;
 import java.util.List;
 import java.util.Map;
 
-public interface IecsService {
+public interface IecsWinlogService {
 
     /**
      * 获取索引数据量通过条件

@@ -300,7 +300,13 @@ public class LogSearchDaoImpl implements ILogSearchDao {
                         // 为空的话则填充0
                         .minDocCount(0)
                         // 需要填充0的范围
-                        .extendedBounds(extendedBounds);
+                        .extendedBounds(extendedBounds)
+                        /**
+                         * 7 版本中extend edBounds要求对时间格式进行定义，否则会报格式错误
+                         * "type" : "parse_exception"
+                         * "reason" : failed to parse date field [2020-04-03 00:00:00] with format [strict_date_optional_time||epoch_millis]
+                         */
+                        .format("yyyy-MM-dd HH:mm:ss");
 
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);

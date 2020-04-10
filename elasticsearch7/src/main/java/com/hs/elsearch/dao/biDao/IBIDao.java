@@ -45,4 +45,13 @@ public interface IBIDao {
      * @throws Exception
      */
     public List<Map<String, Object>> getListExistsField(String indexName,String fieldName) throws Exception;
+
+    /**
+     * 根据查询条件获取count值
+     * @param map 查询参数
+     * @param indexName 索引名称
+     * @return
+     * @throws Exception
+     */
+    public long getCount(Map<String,String> map,String indexName)throws Exception;
 }

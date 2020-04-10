@@ -191,6 +191,19 @@ public class BIServiceImpl implements IBIService {
         return logCurdDao.deleteById(indexName,"",id);
     }
 
+    @Override
+    public boolean isVisualizationExists(String title, String indexName) throws Exception {
+        Map<String,String> map = new HashMap<>();
+        //按照标题名称查询
+        map.put("visualization.title.raw",title);
+        long count = ibiDao.getCount(map,indexName);
+        if(count>0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     /**
      * 将ES的聚合结果进行处理返回成前端需要的格式。
      * [{"data":[7.51308144E8,2.49168344E8],"name":["ZHANGYIYANG","jyr-PC"]}]

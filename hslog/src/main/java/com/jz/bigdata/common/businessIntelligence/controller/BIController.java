@@ -154,6 +154,13 @@ public class BIController {
     @DescribeLog(describe = "图表保存")
     public String saveVisualization(HttpServletRequest request, Visualization visual){
         try{
+            String isSaveAs = request.getParameter("isSaveAs");
+            //用户新建保存或者编辑时另存，需要检测标题是否重复
+            if(null!=isSaveAs&&"true".equals(isSaveAs)){
+                if(iBIService.isVisualizationExists(visual.getTitle(),biIndexName)){
+                    return Constant.failureMessage("标题名称重复，请修改！");
+                }
+            }
             DocWriteResponse.Result result = iBIService.saveVisualization(visual,biIndexName);
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");

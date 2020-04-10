@@ -14,7 +14,6 @@ public interface IecsService {
      * @return
      */
     public long getCount(Map<String, String> map, String starttime,String endtime, String... indices) throws Exception;
-
     /**
      * 通过ID删除索引数据
      * @param index
@@ -86,4 +85,17 @@ public interface IecsService {
      * @throws Exception
      */
     public List<Map<String, Object>> getListGroupByTimeAndEvent(String starttime, String endtime, String groupByDateField, String subgroupbyType, String subgroupbyField, int size, Map<String, String> map, String... indices) throws Exception;
+
+    /**
+     * 事件数据统计，分 全部/高危/中危/普通
+     * @param starttime 时间范围-开始时间
+     * @param endtime 时间范围-结束时间
+     * @param map 其他限制条件
+     * @param indices 索引
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, Object>> getCountGroupByEventType(String starttime, String endtime,String groupByDateField,Map<String, String> map, String... indices) throws Exception;
+
+
 }

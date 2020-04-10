@@ -35,9 +35,9 @@
 	<!-- 查询所有数据 -->
 	<select id="selectAll" parameterType="com.jz.bigdata.common.note.entity.Note"  resultMap="BaseResultMap" >
 		SELECT note.id, result, note.`describe`, time, userId,note.departmentId,account,error,ip,
-		`user`.`name` as userName, department.`name` as departmentName
-		FROM note LEFT JOIN user ON note.account=`user`.phone 
-		LEFT JOIN  department  ON user.departmentId=department.id 
+		HS_User.`name` as userName, department.`name` as departmentName
+		FROM note LEFT JOIN HS_User ON note.account=HS_User.phone
+		LEFT JOIN  department  ON HS_User.departmentId=department.id
 		 where 1=1 
 		  <if test="startTime != null and startTime !=''" >
 		  	<![CDATA[
@@ -54,7 +54,7 @@
 		  	and account = #{account,jdbcType=VARCHAR} 
 		  </if>
 		  <if test="userName != null and userName !=''" >
-		  	and `user`.`name`  LIKE CONCAT('%', #{userName}, '%') 
+		  	and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
 		  </if>
 		  <if test="departmentName != null and departmentName !=''" >
 		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 
@@ -213,9 +213,9 @@
 	<!-- 查询所有数据 -->
 	<select id="selectByPage" parameterType="com.jz.bigdata.common.note.entity.Note"  resultMap="BaseResultMap" >
 		SELECT note.id, result, note.`describe`, time, userId,note.departmentId,account,error,ip,
-		`user`.`name` as userName, department.`name` as departmentName
-		FROM note LEFT JOIN user ON note.account=`user`.phone 
-		LEFT JOIN  department  ON user.departmentId=department.id 
+		HS_User.`name` as userName, department.`name` as departmentName
+		FROM note LEFT JOIN HS_User ON note.account=HS_User.phone
+		LEFT JOIN  department  ON HS_User.departmentId=department.id
 		 where 1=1 
 		  <if test="startTime != null and startTime !=''" >
 		  	<![CDATA[
@@ -232,7 +232,7 @@
 		  	and account = #{account,jdbcType=VARCHAR} 
 		  </if>
 		  <if test="userName != null and userName !=''" >
-		  	and `user`.`name`  LIKE CONCAT('%', #{userName}, '%') 
+		  	and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
 		  </if>
 		  <if test="departmentName != null and departmentName !=''" >
 		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 
@@ -248,8 +248,8 @@
 	<!-- 查询所有数据 -->
 	<select id="countByPage"   resultMap="BaseResultMap" >
 		SELECT count(*) as count
-		FROM note LEFT JOIN user ON note.account=`user`.phone 
-		LEFT JOIN  department  ON user.departmentId=department.id 
+		FROM note LEFT JOIN HS_User ON note.account=HS_User.phone
+		LEFT JOIN  department  ON HS_User.departmentId=department.id
 		 where 1=1 
 		  <if test="startTime != null and startTime !=''" >
 		  	<![CDATA[
@@ -266,7 +266,7 @@
 		  	and account = #{account,jdbcType=VARCHAR} 
 		  </if>
 		  <if test="userName != null and userName !=''" >
-		  	and `user`.`name`  LIKE CONCAT('%', #{userName}, '%') 
+		  	and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
 		  </if>
 		  <if test="departmentName != null and departmentName !=''" >
 		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 

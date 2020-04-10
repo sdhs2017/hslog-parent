@@ -63,7 +63,7 @@ public class MetadataController {
         }
     }
     @ResponseBody
-    @RequestMapping("/getMedataByTemplateDynamically")
+    @RequestMapping(value="/getMedataByTemplateDynamically",produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取template，结构化返回，动态加载")
     public String getMedataByTemplateDynamically(HttpServletRequest request) {
         try{

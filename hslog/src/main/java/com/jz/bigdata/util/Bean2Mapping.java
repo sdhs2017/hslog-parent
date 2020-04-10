@@ -34,6 +34,7 @@ public class Bean2Mapping {
 				// 防火墙字段
 				"from","devid","dname","logtype","mod","act","sa","da","pa",
 				// filebeat
+
 				"host"};
 		// 设置需要分词的字段
 		String [] analyzer = {
@@ -61,7 +62,7 @@ public class Bean2Mapping {
 				// user-agent
 				"user_agent_os","user_agent_browser","session_status",
 				"dst_addr_country","dst_addr_province","dst_addr_city",
-				"src_addr_country","src_addr_province","src_addr_city"
+				"src_addr_country","src_addr_province","src_addr_city","title"
 		};
 		// 设置join field,通过父子关系使字段关联，一个索引只能建立一个关联字段,nextacknum是parent，acknum是child
 		String [] joinfields = {"nextacknum","acknum"};
@@ -102,7 +103,8 @@ public class Bean2Mapping {
 
 		// 设置keyword类型的字段
 		String [] keywords = {
-				"userid", "deptid", "id", "process_id"
+				"userid", "deptid", "id", "process_id",
+				"type"//图表字段
 		};
 		String es = "text";
 		switch (varType) {
@@ -129,7 +131,7 @@ public class Bean2Mapping {
 			} else if (name.contains("_locations")){
 				es = "geo_point\"";
 				// 针对ip类型的字段设置为ip类型，新版本的elasticsearch数据类型增加了IP类型
-			} else if (name.contains("ip")&&!name.equals("equipmentname")&&!name.equals("equipmentid")) {
+			} else if (name.contains("ip")&&!name.equals("equipmentname")&&!name.equals("equipmentid")&&!name.equals("description")) {
 				es = "ip\"";
 			} else if (name.equals("joinfield")){
 				es = "join\"";

@@ -81,4 +81,11 @@ public class EcsServiceImpl implements IecsService {
     public List<Map<String, Object>> getListGroupByTimeAndEvent(String starttime, String endtime, String groupByDateField, String subgroupbyType, String subgroupbyField, int size, Map<String, String> map, String... indices) throws Exception {
         return ecsSearchDao.getListByDateHistogramAggregation(starttime,endtime,groupByDateField,subgroupbyField,subgroupbyType,map,indices);
     }
+
+    @Override
+    public List<Map<String, Object>> getCountGroupByEventType(String starttime, String endtime, String groupByDateField,Map<String, String> map, String... indices) throws Exception {
+        return ecsSearchDao.getListByDateHistogramAggregation(starttime,endtime,groupByDateField,map,indices);
+    }
+
+
 }

@@ -121,4 +121,13 @@ public interface IBIService {
      * @return
      */
     public String deleteVisualizationById(String id,String indexName) throws Exception;
+
+    /**
+     * 查看该标题的图表是否存在
+     * @param title 标题
+     * @param indexName 索引
+     * @return
+     * @throws Exception
+     */
+    public boolean isVisualizationExists(String title,String indexName) throws Exception;
 }

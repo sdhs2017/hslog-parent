@@ -79,10 +79,22 @@ public class EcsSearchDao implements IEcsSearchDao {
         if (map != null && !map.isEmpty()) {
             // 遍历map中查询条件
             for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (entry.getKey().equals("log.level")) {
+                if (entry.getKey().equals("event")) {
+                    // 字段不为null查询
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("log.level")));
+                }else if (entry.getKey().equals("log.level")) {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery("log.level", level));
+                }else if(entry.getKey().equals("log.levels")){
+                    // 范围查询，根据自定义的文字描述事件级别，对应到实际的数字事件级别
+                    if (entry.getValue().equals("高危")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(0).lte(3));
+                    }else if (entry.getValue().equals("中危")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(4).lte(5));
+                    }else if (entry.getValue().equals("普通")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(6).lte(7));
+                    }
                 }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
@@ -235,6 +247,15 @@ public class EcsSearchDao implements IEcsSearchDao {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery("log.level", level));
+                }else if(entry.getKey().equals("log.levels")){
+                    // 范围查询，根据自定义的文字描述事件级别，对应到实际的数字事件级别
+                    if (entry.getValue().equals("高危")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(0).lte(3));
+                    }else if (entry.getValue().equals("中危")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(4).lte(5));
+                    }else if (entry.getValue().equals("普通")) {
+                        boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(6).lte(7));
+                    }
                 }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
@@ -318,8 +339,24 @@ public class EcsSearchDao implements IEcsSearchDao {
             for (Map.Entry<String,String> entry : map.entrySet()){
                 if (entry.getKey().equals(ECS_DATE_FIELD)) {
                     boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("log.syslog.severity.code")){
+                    int gte = 0;
+                    int lte = 7;
+                    if (Integer.valueOf(entry.getValue())==1) {
+                        gte = 0;
+                        lte = 3;
+                    }else if (Integer.valueOf(entry.getValue())==2) {
+                        gte = 4;
+                        lte = 5;
+                    }else if (Integer.valueOf(entry.getValue())==3) {
+                        gte = 6;
+                        lte = 7;
+                    }
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(gte).lte(lte));
+                }else{
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(),entry.getValue()));
                 }
-                boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(),entry.getValue()));
+
             }
         }
         ExtendedBounds extendedBounds = null;

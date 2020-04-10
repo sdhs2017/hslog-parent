@@ -82,4 +82,5 @@ public interface IEcsSearchDao {
      */
     public List<Map<String, Object>> getListByDateHistogramAggregation(String starttime, String endtime, String dateHistogramField,
                                                                        String subField, String subAggsType, Map<String, String> map, String... indices) throws Exception;
+
 }

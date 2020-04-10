@@ -4,6 +4,7 @@ import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.hs.elsearch.template.SearchTemplate;
 import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.*;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
@@ -231,5 +232,26 @@ public class BIDaoImpl implements IBIDao {
         boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery(fieldName)));
         List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder,indexName);
         return list;
+    }
+
+    @Override
+    public long getCount(Map<String, String> map, String indexName) throws Exception {
+        long result = 0L;
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        // 其他查询条件
+        if (map!=null&&!map.isEmpty()) {
+            // 遍历map中查询条件
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                // 不分词精确查询
+                boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+            }
+        }
+        try {
+            result = searchTemplate.getCountByQuery(boolQueryBuilder, indexName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            result = 0;
+        }
+        return result;
     }
 }

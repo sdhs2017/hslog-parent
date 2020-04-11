@@ -2,6 +2,8 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
+import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
@@ -105,23 +107,9 @@ public class KafakaOfBeatsCollector implements Runnable {
 
         consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
 
-        /**
-         * 非kafka配置相关，用于对采集数据进行补全的属性
-         */
-        this.logCurdDao = logCurdDao;
-        this.configProperty = configProperty;
-        this.usersService = usersService;
-        //初始化：获取设备列表、map
-        equipmentMap = equipmentService.selectAllEquipment();
+        /*Gson gson = new Gson();
 
-        ipadressSet = equipmentService.selectAllIPAdress();
-
-        equipmentLogLevel = equipmentService.selectLog_level();
-
-
-        Gson gson = new Gson();
-
-        protocolmap = gson.fromJson(this.configProperty.getProtocol(), protocolmap.getClass());
+        protocolmap = gson.fromJson(this.configProperty.getProtocol(), protocolmap.getClass());*/
 
 
         Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
@@ -133,6 +121,18 @@ public class KafakaOfBeatsCollector implements Runnable {
 
         consumerMap = consumer.createMessageStreams(topicCountMap,
                 keyDecoder, valueDecoder);
+
+        /**
+         * 非kafka配置相关，用于对采集数据进行补全的属性
+         */
+        this.logCurdDao = logCurdDao;
+        this.configProperty = configProperty;
+        //初始化：获取设备列表、map
+        equipmentMap = equipmentService.selectAllEquipment();
+
+        ipadressSet = equipmentService.selectAllIPAdress();
+
+        equipmentLogLevel = equipmentService.selectLog_level();
 
     }
 
@@ -150,8 +150,7 @@ public class KafakaOfBeatsCollector implements Runnable {
     public void closeKafkaStream(){
         consumer.shutdown();
     }
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
+    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     @Override
     public void run() {
@@ -174,20 +173,13 @@ public class KafakaOfBeatsCollector implements Runnable {
             String ipadress;
 
             List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
-            StringBuilder builder = new StringBuilder();
             /**
              * 判断迭代器中是否有数据，且kafka的状态为开启中
              */
             while (it.hasNext() && isStarted()) {
 
                 try {
-                    //String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-
                     String log = it.next().message();
-                    /**
-                     *  打印采集到的数据
-                     */
-                    //System.out.println(log);
                     /**
                      * 将采集到的log转为jsonObject格式
                      */
@@ -198,66 +190,92 @@ public class KafakaOfBeatsCollector implements Runnable {
                      */
                     String beat_type = jsonObject.getAsJsonObject("agent").get("type").getAsString().replaceAll("\"","");
                     if(beat_type.equals(ContextRoles.WINLOGBEAT)){
-                        /**
-                         * 判断日志级别是否是中文，如果是中文改成英文
-                         */
-                        String loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
-                        switch (loglevel){
-                            case ContextRoles.LOG_LEVEL_INFO:
-                                jsonObject.getAsJsonObject("log").addProperty("level","information");
-                                break;
-                            case ContextRoles.LOG_LEVEL_WARN:
-                                jsonObject.getAsJsonObject("log").addProperty("level","warning");
-                                break;
-                            case ContextRoles.LOG_LEVEL_ERROR:
-                                jsonObject.getAsJsonObject("log").addProperty("level","error");
-                                break;
-                            default:
-                                logger.info("日志级别符合标准");
-                        }
-                        /**
-                         * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
-                         */
-                        String beatdate = jsonObject.get("@timestamp").getAsString();
-                        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-                        try {
-                            Date date = format.parse(beatdate);
-                            Calendar cal = Calendar.getInstance();
-                            cal.setTime(date);
-                            cal.add(Calendar.HOUR_OF_DAY, +8);
-                            date = cal.getTime();
-                            jsonObject.addProperty("@timestamp",format.format(date));
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                        /**
-                         * index名称设置
-                         *
-                         */
-                        String version = jsonObject.getAsJsonObject("agent").get("version").getAsString().replaceAll("\"","");
-                        String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
-                        String index = beat_type+"-"+version+"-"+date;
-                        /**
-                         *  打印入库数据
-                         */
-                        System.out.println(index+" : "+jsonObject.toString());
-                        /**
-                         * 批量入库
-                         */
-                        indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
-                    }
-                    //System.out.println(jsonObject.toString());
-                    //jsonObject.addProperty("equipmentname","jyr-pc");
-                    /*if (jsonObject.get("fields")!=null){
-                        System.out.println("IP: "+jsonObject.getAsJsonObject("fields").get("ip")+"   资产ID： "+jsonObject.getAsJsonObject("fields").get("equipmentid"));
-                    }else{
-                        logger.info("fields 字段内容为空");
-                    }*/
+                        //判断是否在资产ip地址池里
+                        ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        if (ipadressSet.contains(ipadress)) {
+                            //判断是否在已识别资产里————日志类型可识别
+                            equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_WINLOG);
+                            if (null != equipment) {
+                                // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
+                                //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
+                                // 补全资产信息
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
+                            }else {
+                                // TODO 之前版本有对
+                                /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());*/
+                            }
+                            /**
+                             * 判断日志级别是否是中文，如果是中文改成英文
+                             */
+                            String loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
+                            switch (loglevel){
+                                case ContextRoles.LOG_LEVEL_INFO:
+                                    jsonObject.getAsJsonObject("log").addProperty("level","information");
+                                    break;
+                                case ContextRoles.LOG_LEVEL_WARN:
+                                    jsonObject.getAsJsonObject("log").addProperty("level","warning");
+                                    break;
+                                case ContextRoles.LOG_LEVEL_ERROR:
+                                    jsonObject.getAsJsonObject("log").addProperty("level","error");
+                                    break;
+                                default:
+                                    logger.info("日志级别符合标准");
+                            }
+                            /**
+                             * 判断windows日志事件event.action字段是否是中文，如果是中文改成英文
+                             */
+                            String event_action = jsonObject.getAsJsonObject("event").get("action").toString().replaceAll("\"","");
+                            if (Cn2En.event_cn.get(event_action)!=null){
+                                jsonObject.getAsJsonObject("event").addProperty("action",Cn2En.event_cn.get(event_action));
+                            }
+                            /**
+                             * 增加event.action_cn字段，作为event.action的中文对照,没有找到的情况下存""
+                             */
+                            jsonObject.getAsJsonObject("event").addProperty("action_cn",(Cn2En.event_en.get(event_action)!=null?Cn2En.event_en.get(event_action):""));
+                            /**
+                             * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                             */
+                            String beatdate = jsonObject.get("@timestamp").getAsString();
 
-                    //json = gson.toJson(syslog);
+                            try {
+                                Date date = format.parse(beatdate);
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(date);
+                                cal.add(Calendar.HOUR_OF_DAY, +8);
+                                date = cal.getTime();
+                                jsonObject.addProperty("@timestamp",format.format(date));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            /**
+                             * index名称设置
+                             *
+                             */
+                            String version = jsonObject.getAsJsonObject("agent").get("version").getAsString().replaceAll("\"","");
+                            String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                            String index = beat_type+"-"+version+"-"+date;
+                            /**
+                             *  打印入库数据
+                             */
+                            System.out.println(index+" : "+jsonObject.toString());
+                            /**
+                             * 批量入库
+                             */
+                            indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                        }else {
+                            // 不在资产池中的日志数据不处理
+                        }
+
+                    }
                 }catch (NullPointerException e){
                     e.printStackTrace();
-                    logger.error("获取数据出现空指针情况");
+                    logger.error("kafka范式化：获取数据出现空指针情况");
                     continue;
                 }catch (Exception e){
                     e.printStackTrace();

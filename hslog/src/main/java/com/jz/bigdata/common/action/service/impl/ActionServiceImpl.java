@@ -23,13 +23,13 @@ import com.jz.bigdata.util.Uuid;
 
 /**
  * @ClassName ActionServiceImpl
- * @Description 
+ * @Description
  * @Author shi cheng yu
  * @Date 2018年9月28日 下午2:05:27
  */
 @Service(value = "ActionService")
 public class ActionServiceImpl implements IActionService{
-	
+
 	@Resource
 	private IActionDao actionDao;
 	@Resource
@@ -72,16 +72,16 @@ public class ActionServiceImpl implements IActionService{
 				dic.setName(action.getName());
 				ansj_dicDao.insert(dic);
 			}
-			
+
 		}
-		
-		iManageService.doCutl("", "http://192.168.2.181:9200/_ansj/flush/dic?key=dic");
-		
+
+		iManageService.doCurl("", "http://192.168.2.181:9200/_ansj/flush/dic?key=dic");
+
 		return result;
 	}
 
 	/**
-	 * @param action
+	 * @param session
 	 * @return
 	 * @description
 	 * 查询数据

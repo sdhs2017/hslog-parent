@@ -1,6 +1,10 @@
 package com.hs.elsearch.client;
 
 import org.apache.http.HttpHost;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -62,8 +66,16 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
         logger.info("------------启动连接elasticsearch-----IP:"+elasticsearchbean.get("es_ip")+"   PORT:"+elasticsearchbean.get("es_port")+"-------");
         //System.out.println("------------启动连接elasticsearch------------");
         HttpHost httpHost = new HttpHost(elasticsearchbean.get("es_ip"),Integer.valueOf(elasticsearchbean.get("es_port")),"http");
+        // 用户名、密码
+        final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("elastic","hsdata.123"));
+
         //restClient = RestClient.builder(httpHost);
         RestClientBuilder builder = RestClient.builder(httpHost);
+        //设置安全
+        builder.setHttpClientConfigCallback(httpClientBuilder ->
+                httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
+        );
 
         restHighLevelClient = new RestHighLevelClient(builder);
     }

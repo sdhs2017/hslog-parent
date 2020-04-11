@@ -65,18 +65,16 @@ public class ManageController {
 	public String createSnapshotByIndices() {
 
 		Map<String, String> MessageResult = iManageService.doshell(
-				"curl -X GET http://" + configProperty.getHost_ip() + ":9200/_snapshot/EsBackup/snapshot",
+				"curl -X GET http://" + configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot",
 				configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
-		// System.out.println(MessageResult.get("curl -X GET
-		// http://"+configProperty.getHost_ip()+":9200/_snapshot/EsBackup/snapshot"));
 
 		String resultSuccess = Pattern_Matcher.getMatchedContentByParentheses(
 				MessageResult
-						.get("curl -X GET http://" + configProperty.getHost_ip() + ":9200/_snapshot/EsBackup/snapshot"),
+						.get("curl -X GET http://" + configProperty.getEs_path_snapshot() + "/_snapshot/EsBackup/snapshot"),
 				"\"state\":\"(.*?)\"");
 		String resultMissing = Pattern_Matcher.getMatchedContent(
 				MessageResult
-				.get("curl -X GET http://" + configProperty.getHost_ip() + ":9200/_snapshot/EsBackup/snapshot"),
+						.get("curl -X GET http://" + configProperty.getEs_path_snapshot() + "/_snapshot/EsBackup/snapshot"),
 				"\"type\":\"snapshot_missing_exception\"");
 
 		Map<String, Object> map = new HashMap<>();
@@ -99,7 +97,7 @@ public class ManageController {
 			map.put("state", true);
 			map.put("msg", "日志数据备份启动成功！");
 			return JSONArray.fromObject(map).toString();
-		// 判断快照状态提示快照missing，没有创建过快照
+			// 判断快照状态提示快照missing，没有创建过快照
 		} else if(resultMissing.contains("missing")){
 			// 初次创建快照
 			// 删除快照
@@ -185,6 +183,48 @@ public class ManageController {
 		Map<String, Object> map = new HashMap<>();
 		map.put("state", true);
 		map.put("msg", "恢复备份数据成功！");
+		return JSONArray.fromObject(map).toString();
+
+	}
+
+	@ResponseBody
+	@RequestMapping(value = "/doCurl", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "执行curl命令")
+	public String doCurl(HttpServletRequest request) {
+
+		/**
+		 * 接收前端返回的elasticsearch查询参数
+		 */
+		String indices = request.getParameter("indices");
+		String method = request.getParameter("method");
+		String parameter = request.getParameter("parameter");
+		String content = request.getParameter("content");
+		//String searchCmd = request.getParameter("cmd");
+		String searchCmd = "GET winlogbeat-7.6.0-2020.03.26/_search?size=0 {\"aggs\": {\"NAME\": {\"terms\": {\"field\":\"fields.equipmentid\", \"size\":10}}}\n" +
+				"}";
+
+		StringBuilder urlbuilder = new StringBuilder();
+		urlbuilder.append("http://192.168.2.181:9201/");
+		urlbuilder.append(indices);
+		if (parameter!=null&&!parameter.equals("")){
+			urlbuilder.append(parameter);
+		}
+		if (content!=null&&!content.equals("")){
+			urlbuilder.append("-H 'Content-Type: application/json' ");
+			urlbuilder.append("-d '");
+			urlbuilder.append(content);
+			urlbuilder.append("'");
+		}
+
+
+		//String result = "curl -XGET \"http://192.168.2.181:9201/winlogbeat-7.6.0-2020.03.26/_search?size=0\" -H 'Content-Type: application/json' -d'{\"aggs\": {\"NAME\": {\"terms\": {\"field\":\"fields.equipmentid\", \"size\":10}}}}'";
+
+		String result = iManageService.doCurl(method, urlbuilder.toString());
+
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("state", true);
+		map.put("msg", result);
 		return JSONArray.fromObject(map).toString();
 
 	}

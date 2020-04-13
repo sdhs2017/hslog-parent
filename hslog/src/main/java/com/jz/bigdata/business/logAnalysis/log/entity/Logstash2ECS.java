@@ -313,7 +313,7 @@ public class Logstash2ECS {
 
     public String toJson(LogstashSyslog logstashSyslog){
         //处理日志级别
-        String severityName = Severity.get(logstashSyslog.getSeverity_label());
+        String severityName = Severity.get(logstashSyslog.getSeverity());
         //log.level
         Log log = new Log();
         log.setLevel(severityName);

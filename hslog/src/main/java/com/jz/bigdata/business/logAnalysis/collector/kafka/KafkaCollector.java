@@ -330,12 +330,14 @@ public class KafkaCollector implements Runnable {
 									logstashSyslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									logstashSyslog.setEquipmentname(equipment.getName());
 									logstashSyslog.setEquipmentid(equipment.getId());
+									logstashSyslog.setIp(equipment.getIp());
 								}
 							}else{
 								logstashSyslog.setUserid(LogType.LOGTYPE_UNKNOWN);
 								logstashSyslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
 								logstashSyslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 								logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+								logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN);
 							}
 							json = new Logstash2ECS().toJson(logstashSyslog);
 							logstashIndexName = "winlogbeat-"+ DateTime.now().toString("yyyy.MM.dd");

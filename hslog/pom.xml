@@ -34,6 +34,7 @@
             <artifactId>elasticsearch7</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -114,6 +115,7 @@
                     <include>**/**/*.xml</include>
                     -->
                     <include>**/*.xml</include>
+                    <include>**/*.json</include>
                     <include>**/*.properties</include>
                     <include>*.properties</include>
                     <include>*.xml</include>

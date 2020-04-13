@@ -259,7 +259,11 @@ public class KafakaOfBeatsCollector implements Runnable {
                              */
                             String version = jsonObject.getAsJsonObject("agent").get("version").getAsString().replaceAll("\"","");
                             String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
-                            String index = beat_type+"-"+version+"-"+date;
+                            /**
+                             * index 名称不体现版本信息，但是版本数据依然在数据中存储
+                             */
+                            //String index = beat_type+"-"+version+"-"+date;
+                            String index = beat_type+"-"+date;
                             /**
                              *  打印入库数据
                              */

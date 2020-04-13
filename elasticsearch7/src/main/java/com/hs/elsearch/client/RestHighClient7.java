@@ -68,7 +68,7 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
         HttpHost httpHost = new HttpHost(elasticsearchbean.get("es_ip"),Integer.valueOf(elasticsearchbean.get("es_port")),"http");
         // 用户名、密码
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials("elastic","hsdata.123"));
+        credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticsearchbean.get("es_user"),elasticsearchbean.get("es_password")));
 
         //restClient = RestClient.builder(httpHost);
         RestClientBuilder builder = RestClient.builder(httpHost);

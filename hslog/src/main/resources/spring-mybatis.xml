@@ -27,7 +27,7 @@
 						">
 
 
-	 <!-- 过滤掉controller  -->
+	<!-- 过滤掉controller  -->
 	<!-- <context:component-scan base-package="com.jz.bigdata">
         <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>  
     </context:component-scan> -->
@@ -692,8 +692,10 @@
 	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
-				<entry key="es_ip" value="62.234.122.205"/>
+				<entry key="es_ip" value="192.168.2.181"/>
 				<entry key="es_port" value="9200"/>
+				<entry key="es_user" value="elastic"/>
+				<entry key="es_password" value="hsdata.123"/>
 			</map>
 		</property>
 	</bean>
@@ -704,7 +706,7 @@
 				<entry key="es_port" value="9300"/>
 				<entry key="es_name" value="myElasticsearchCluster"/>
 			</map>
-		</property>	
+		</property>
 	</bean>-->
 
 	<!--<bean id="clientTemplate" class="com.hs.elsearch.template.bak.ClientTemplate">
@@ -733,8 +735,15 @@
 	<bean id="logSearchDao" class="com.hs.elsearch.dao.logDao.impl.LogSearchDaoImpl">
 		<!--<constructor-arg ref="clientTemplate"/>-->
 	</bean>
-    <bean id="flowSearchDao" class="com.hs.elsearch.dao.flowDao.impl.FlowSearchDao">
-    </bean>
+
+	<bean id="flowSearchDao" class="com.hs.elsearch.dao.flowDao.impl.FlowSearchDao">
+	</bean>
+
+	<bean id="ecsSearchDao" class="com.hs.elsearch.dao.ecsDao.impl.EcsSearchDao">
+	</bean>
+
+	<bean id="ibiDao" class="com.hs.elsearch.dao.biDao.impl.BIDaoImpl">
+	</bean>
 
 	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">
@@ -885,7 +894,7 @@
 				<ref bean="updateRiskJobTrigger"/>
 				<!--<ref bean="CreateIndexJobTrigger"/>-->
 				<ref bean="urlJobTrigger" />
-                <ref bean="domainJobTrigger" />
+				<ref bean="domainJobTrigger" />
 				<!-- <ref bean="assetsHeartBeatJobTrigger" /> -->
 			</list>
 		</property>

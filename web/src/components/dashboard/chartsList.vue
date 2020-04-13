@@ -1,0 +1,247 @@
+<template>
+    <div class="content-bg">
+        <div class="top-title">图表列表</div>
+        <div class="tools-wapper">
+            <el-button  type="primary" plain @click="addChartsState = true" >添加</el-button>
+            <el-button  type="primary" plain @click="getChartsList" >刷新</el-button>
+        </div>
+        <div class="table-wapper">
+            <v-basetable :tableHead="tableHead" :tableData="tableData" :busName="busNames"></v-basetable>
+        </div>
+        <el-dialog title="选择图表类型" :visible.sync="addChartsState" width="440px">
+            <ul class="chart-type-list">
+                <li @click="addChartsState = false">
+                    <router-link :to="{name:'barChart'}">
+                        <p class="li-top-i"><i class="el-icon-s-data"></i></p>
+                        <p class="li-bottom-tit">柱状图</p>
+                    </router-link>
+                </li>
+                <li @click="addChartsState = false">
+                    <router-link :to="{name:'lineChart'}">
+                        <p class="li-top-i"><i class="el-icon-share"></i></p>
+                        <p class="li-bottom-tit">折线图</p>
+                    </router-link>
+                </li>
+                <li @click="addChartsState = false">
+                    <router-link :to="{name:'pieChart'}">
+                        <p class="li-top-i"><i class="el-icon-pie-chart"></i></p>
+                        <p class="li-bottom-tit">饼图</p>
+                    </router-link>
+                </li>
+            </ul>
+        </el-dialog>
+    </div>
+    
+</template>
+
+<script>
+    import vSearchForm from '../common/BaseSearchForm';
+    import vBasetable from '../common/Basetable';
+    import {jumpHtml} from "../../../static/js/common";
+    import bus from '../common/bus';
+    export default {
+        name: "chartsList",
+        data() {
+            return {
+                addChartsState:false,
+                busNames:{},
+                tableHead:[
+                    {
+                        prop:'title',
+                        label:'标题',
+                        width:'',
+                    },
+                    {
+                        prop:'type',
+                        label:'类型',
+                        width:'',
+                        formatData:(val)=>{
+                           switch (val) {
+                               case 'bar':
+                                   return '柱状图';
+                               case 'line':
+                                   return '折线图';
+                               case 'pie' :
+                                   return '饼图'
+                               default :
+                                   return val;
+                           }
+                        }
+                    },
+                    /*{
+                        prop:'createTime',
+                        label:'创建时间',
+                        width:'',
+                        formatData:(val)=>{return val.split('.')[0]}
+                    },*/
+                    {
+                        prop:'description',
+                        label:'描述',
+                        width:'',
+                    },
+                    {
+                        prop: 'tools',
+                        label: '操作',
+                        width: '',
+                        btns: [
+                            {
+                                icon: 'el-icon-edit',
+                                text: '修改',
+                                clickFun: (row, index) => {
+                                    this.reviseChart(row,index)
+                                }
+                            },
+                            {
+                                icon: 'el-icon-error',
+                                text: '删除',
+                                clickFun: (row, index) => {
+                                    this.removeChart(row,index)
+                                }
+                            },
+                        ]
+                    }
+                ],
+                tableData:[
+                    // {id:'aaa',name:'日志级别数量统计',type:'bar',createTime:'2020-02-13 12:10:10'},
+                    // {id:'bbb',name:'事件级别数量统计',type:'line',createTime:'2020-02-13 12:10:10'}
+                ]
+            }
+        },
+        created(){
+            this.getChartsList();
+        },
+        methods:{
+            /*获取图表列表*/
+            getChartsList(){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/BI/getVisualizations.do','')
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            let obj =res.data
+                            if (obj.success == 'true'){
+                                this.tableData = obj.data;
+                            } else {
+                                layer.msg(res.data.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+                            layer.msg('获取数据失败',{icon:5})
+                        })
+                })
+            },
+            /*跳转页面*/
+            goToHtml(chartsType,chartsId){
+                switch (chartsType) {
+                    case 'bar':
+                        jumpHtml('barChart','dashboard/barChart.vue',{},'创建柱状图');
+                        this.addChartsState = false;
+                        break;
+                    case 'pie':
+                        jumpHtml('barChart','dashboard/pieChart.vue',{},'创建饼图');
+                        this.addChartsState = false;
+                        break;
+                    case 'line':
+                        jumpHtml('barChart','dashboard/lineChart.vue',{},'创建折线图');
+                        this.addChartsState = false;
+                        break;
+                }
+            },
+            /*修改按钮*/
+            reviseChart(rowData,index){
+                console.log(rowData)
+                switch (rowData.type) {
+                    case 'bar':
+                        jumpHtml('barChart'+rowData.id,'dashboard/barChart.vue',{name:rowData.title,id:rowData.id},' 修改');
+                        break;
+                    case 'pie':
+                        jumpHtml('pieChart'+rowData.id,'dashboard/pieChart.vue',{name:rowData.title,id:rowData.id},' 修改');
+                        break;
+                    case 'line':
+                        jumpHtml('lineChart'+rowData.id,'dashboard/lineChart.vue',{name:rowData.title,id:rowData.id},' 修改');
+                        break;
+                }
+            },
+            /*删除*/
+            removeChart(row,index){
+                layer.confirm('您确定删除么？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=> {
+                    layer.load(1);
+                    this.$nextTick(()=>{
+                        layer.load(1);
+                        this.$axios.post(this.$baseUrl+'/BI/deleteVisualizationById.do',this.$qs.stringify({
+                            id:row.id
+                        }))
+                            .then(res=>{
+                                layer.closeAll('loading');
+                                let obj =res.data
+                                if (obj.success == 'true'){
+                                    layer.msg(res.data.message,{icon:1})
+                                    setTimeout(()=>{
+                                        this.getChartsList();
+                                    },1000)
+
+                                } else {
+                                    layer.msg(res.data.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                layer.closeAll('loading');
+
+                            })
+                    })
+                })
+
+            }
+        },
+        components:{
+            vSearchForm,
+            vBasetable
+        }
+    }
+</script>
+
+<style scoped>
+    .tools-wapper{
+        padding: 0 10px;
+        margin: 10px 0;
+    }
+    .table-wapper{
+        padding: 0 10px;
+    }
+    .chart-type-list{
+        overflow: hidden;
+    }
+    .chart-type-list li{
+        float: left;
+        margin: 15px;
+        width: 100px;
+        height: 100px;
+        background: #3a4a5d;
+        color: #fff;
+        box-sizing: border-box;
+    }
+    .chart-type-list li a{
+        color: #fff;
+    }
+    .chart-type-list li:hover{
+        cursor: pointer;
+        border: 1px solid #1dd8fe;
+    }
+    .chart-type-list li p{
+        text-align: center;
+    }
+    .li-top-i{
+        height: 40px;
+        line-height: 55px;
+        font-size: 34px;
+    }
+    .li-bottom-tit{
+        height: 60px;
+        line-height: 60px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+</style>

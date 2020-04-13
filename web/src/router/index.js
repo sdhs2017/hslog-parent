@@ -49,6 +49,13 @@ export default new Router({
                     meta: { title: '日志系统首页' }
                 },
                 {
+                    path: '/index_n',
+                    name:'index_n',
+                    /* component: resolve => require(['../components/index/index.vue'], resolve),*/
+                    component: () => lazyLoadView(import('../components/index/index_n.vue')),
+                    meta: { title: '日志系统首页' }
+                },
+                {
                     path: '/flowIndex',
                     name:'flowIndex',
                      component: resolve => require(['../components/flowManage/flowIndex.vue'], resolve),
@@ -290,6 +297,12 @@ export default new Router({
                     meta: { title: '控制中心' }
                 },
                 {
+                    path: '/controlCenter2',
+                    name:'controlCenter2',
+                    component: resolve => require(['../components/platformManage/controlCenter2.vue'], resolve),
+                    meta: { title: '控制中心2' }
+                },
+                {
                     path: '/flowServiceManage',
                     name:'flowServiceManage',
                     component: resolve => require(['../components/platformManage/flowServiceManage.vue'], resolve),
@@ -414,6 +427,78 @@ export default new Router({
                     component: resolve => require(['../components/flowManage/performanceAnalysis.vue'], resolve),
                     meta: { title: '应用性能分析' }
                 },
+                {
+                    path: '/dashboard',
+                    name:'dashboard',
+                    component: resolve => require(['../components/dashboard/dashboard.vue'], resolve),
+                    meta: { title: '仪表盘' }
+                },
+                {
+                    path: '/chartsList',
+                    name:'chartsList',
+                    component: resolve => require(['../components/dashboard/chartsList.vue'], resolve),
+                    meta: { title: '图表列表' }
+                },
+                {
+                    path: '/barChart',
+                    name:'barChart',
+                    component: resolve => require(['../components/dashboard/barChart.vue'], resolve),
+                    meta: { title: '创建柱状图' }
+                },
+                {
+                    path: '/lineChart',
+                    name:'lineChart',
+                    component: resolve => require(['../components/dashboard/lineChart.vue'], resolve),
+                    meta: { title: '创建折线图' }
+                },
+                {
+                    path: '/pieChart',
+                    name:'pieChart',
+                    component: resolve => require(['../components/dashboard/pieChart.vue'], resolve),
+                    meta: { title: '创建饼图' }
+                },
+                {
+                    path: '/property',
+                    name:'property',
+                    component: resolve => require(['../components/dashboard/property.vue'], resolve),
+                    meta: { title: '元数据' }
+                },
+                {
+                    path: '/devTools',
+                    name:'devTools',
+                    component: resolve => require(['../components/dashboard/devTools.vue'], resolve),
+                    meta: { title: '调试工具' }
+                },
+                {
+                    path: '/fulltextRetrieval',
+                    name:'fulltextRetrieval',
+                    component: resolve => require(['../components/logsManage/fulltextRetrieval.vue'], resolve),
+                    meta: { title: '全文检索' }
+                },
+                {
+                    path: '/accurateSearch2',
+                    name:'accurateSearch2',
+                    component: resolve => require(['../components/logsManage/accurateSearch2.vue'], resolve),
+                    meta: { title: '精确查询2' }
+                },
+                {
+                    path: '/eventSearch2',
+                    name:'eventSearch2',
+                    component: resolve => require(['../components/eventManage/eventSearch2.vue'], resolve),
+                    meta: { title: '事件检索2' }
+                },
+                {
+                    path: '/addEquipment2',
+                    name:'addEquipment2',
+                    component: resolve => require(['../components/equipment/addEquipment2.vue'], resolve),
+                    meta: { title: '添加资产' }
+                },
+                /*{
+                    // 富文本编辑器组件
+                    path: '/editVersion',
+                    component: resolve => require(['../components/versionManage/editVersion.vue'], resolve),
+                    meta: { title: '富文本编辑器' }
+                },*/
                 /*
                 {
                     path: '/table',

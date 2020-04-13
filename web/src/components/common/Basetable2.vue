@@ -9,17 +9,17 @@
             <template v-for="(item,index) in tableHead">
                 <el-table-column v-if="item.prop !== 'tools' && item.prop !== 'threats'"  show-overflow-tooltip  :prop="item.prop"  :label="item.label" :width="item.width" :key="index">
                     <template slot-scope="scope">
-                        <span v-if="!item.formatData && !item.clickFun " v-html="scope.row[item.prop]"></span>
-                        <el-button v-else-if="!item.formatData && item.clickFun " v-html="scope.row[item.prop]" @click.native.prevent="item.clickFun(scope.row,scope.index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
-                        <span v-else-if="item.formatData && !item.clickFun " v-html="tableFormatter(scope.row[item.prop],item.formatData,scope.row)" ></span>
-                        <el-button v-else v-html="tableFormatter(scope.row[item.prop],item.formatData,scope.row)" @click.native.prevent="item.clickFun(scope.row,scope.index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
+                        <span v-if="!item.formatData && !item.clickFun " v-html="dataChange(scope.row,item.prop)"></span>
+                        <el-button v-else-if="!item.formatData && item.clickFun " v-html="dataChange(scope.row,item.prop)" @click.native.prevent="item.clickFun(scope.row,scope.index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
+                        <span v-else-if="item.formatData && !item.clickFun " v-html="tableFormatter(dataChange(scope.row,item.prop),item.formatData,scope.row)" ></span>
+                        <el-button v-else v-html="tableFormatter(dataChange(scope.row,item.prop),item.formatData,scope.row)" @click.native.prevent="item.clickFun(scope.row,scope.index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
                     </template>
+<!--                    <template slot-scope="scope">-->
+<!--                        <span >{{dataChange(scope.row,item.prop)}}</span>-->
+<!--                    </template>-->
                 </el-table-column>
                 <el-table-column v-else-if ="item.prop === 'tools'" show-overflow-tooltip   :prop="item.prop"  :label="item.label" :width="item.width" :key="index">
                     <template slot-scope="scope">
-                        <!-- <i :class="item.btn.icon" @click="readDetails(scope.row)" :title="item.btn.text"></i> @click.native.prevent="o.clickFun(scope.row)"    -->
-                        <!--<i v-for="(ic,index) in item.btns" :class="ic.icon" @click= "btnClick($event,scope.row,scope.index)" :btnType="ic.btnType" :title="ic.text" :key="index"></i>-->
-                        <!--<i v-for="(ic,index) in item.btns" :class="ic.icon" @click.native.prevent= "ic.clickFun(scope.row,scope.index)" :btnType="ic.btnType" :title="ic.text" :key="index"></i>-->
                         <el-button v-for="(ic, ind) in item.btns" :key="ind"  @click.native.prevent="ic.clickFun(scope.row,scope.$index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#D6DFEB;">
                             <i :class="ic.icon" :title="ic.text"></i>
                         </el-button>
@@ -84,6 +84,15 @@
 
         },
         methods:{
+            //数据处理
+            dataChange(obj,prop){
+                let arr = prop.split('.');
+                let currentData = obj;
+                for (let i in arr){
+                    currentData = currentData[arr[i]];
+                }
+                return  currentData;
+            },
             /*多选框点击*/
             handleSelectionChange(val){
                 bus.$emit(this.busName.selectionName,val)

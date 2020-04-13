@@ -194,7 +194,8 @@
         </el-form>
         <div class="equipment-form-btns">
             <el-button type="primary" @click="saveEquipment">保存</el-button>
-            <el-button type="primary" @click="()=>{this.$router.push({path:routerUrl})}">返回</el-button>
+<!--            <el-button type="primary" @click="()=>{this.$router.push({path:routerUrl})}">返回</el-button>-->
+            <el-button type="info" @click="emptyData">清空</el-button>
         </div>
     </div>
 </template>
@@ -222,10 +223,10 @@
                     name:'',//资产名称
                     ip:'',//资产Ip
                     hostName:'',//主机名
-                    logType:[],//日志类型
+                    logType:'',//日志类型
                     //log_level:'',//日志级别
                     log_level:['emergency','alert','critical','error','warn','notice','info','debug'],
-                    type:[],//资产类型
+                    type:'',//资产类型
                     startUp:1,//是否启用
                     macAdress:'',//MAC地址
                     system:'',//系统
@@ -241,6 +242,7 @@
                     updateTime:'',//更新时间
                     endTime:''//截止时间
                 },
+                defaultForm:'',
                 logTypeArr:[],//日志类型数据
                 typeArr:[], //资产类型
                 equipmentData:{}
@@ -249,7 +251,7 @@
         created(){
             this.getLogType();
             this.getEquipmentType();
-
+            this.defaultForm = JSON.stringify(this.form);
         },
         mounted(){
             //console.log(this.formData)
@@ -344,6 +346,10 @@
                 }
 
 
+            },
+            /*清空数据*/
+            emptyData(){
+                this.form = JSON.parse(this.defaultForm);
             }
         }
     }

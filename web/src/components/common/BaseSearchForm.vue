@@ -221,8 +221,21 @@
                        }
                    }
                 }
-                //返回查询条件
-                bus.$emit(this.busName,searchObj);
+                //检测IP合法性
+                let reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+                let ip = searchObj['fields.ip'] ? searchObj['fields.ip'] : searchObj.ip ? searchObj.ip : undefined ;
+                if(ip != undefined && ip != ''){
+                    if(reg.test(ip)){
+                        //返回查询条件
+                        bus.$emit(this.busName,searchObj);
+                    }else{
+                        layer.msg('IP不合法',{icon:5})
+                    }
+                }else{
+                    bus.$emit(this.busName,searchObj);
+                }
+
+
             },
             //日志类型改变
             logTypeChange(type){

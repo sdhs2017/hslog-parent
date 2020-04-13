@@ -1,12 +1,27 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">资产概览</div>
+        <div class="top-title">资产概览
+            <div class="equipment-tools">
+                <div class="equipemnt-tools-btns">
+                    <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
+                    <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
+                    <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
+<!--                    <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>-->
+                </div>
+            </div>
+        </div>
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
         <div class="eq-wapper">
+            <el-checkbox-group v-model="checkList">
             <ul class="eq-ul">
                 <li v-for="(i,index) in equipmentList"  :key="index"  class="eq-li" @mouseenter="liMouseenter($event)" @mouseleave="liMouseleave($event)" @>
+                    <div class="eq-tools-01">
+                        <i class="el-icon-edit " title="修改资产" @click="reviseEquipment(i)"></i>
+                        <b>今日：{{i.log_count}}</b>
+                        <el-checkbox :label="i.id"></el-checkbox>
+                    </div>
                     <div class="eq-name">{{i.name}}</div>
                     <div class="eq-type">{{i.type}}</div>
                     <div class="eq-inf">
@@ -30,7 +45,7 @@
                             </li>
                             <li class="inf-type">
                                 <div class="inf-tit">资产类型：</div>
-                                <div class="inf-val">主机-windows</div>
+                                <div class="inf-val">{{i.type}}</div>
                             </li>
                             <li class="inf-domain">
                                 <div class="inf-tit">根域名：</div>
@@ -58,21 +73,30 @@
                             </li>
                         </ul>
                     </div>
-                    <div class="eq-tools">
-                        <a href="javascript:void(0)" class="tools-more">
-                            <i class="el-icon-arrow-down "></i>
-                        </a>
+                    <div class="eq-tools-02">
+                        <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>
+                        <i class="el-icon-share" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+                        <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
+                        <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
+                        <i class="el-icon-view" title="潜在威胁分析" @click="theartAnalyse(i)"></i>
                     </div>
-                    <ul class="tools-ul" data-angle="[0,215]" @mouseenter="zzIndex = 2" @mouseleave="zzIndex = -2">
-                        <li class="item" title="修改资产" @click="reviseEquipment(i)"><i class="el-icon-edit "></i></li>
-                        <li class="item" title="查看资产日志" @click="equipmentLogs(i)"><i class="el-icon-tickets"></i></li>
-                        <li class="item" title="查看资产报表" @click="equipmentEcharts(i)"><i class="el-icon-share"></i></li>
-                        <li class="item" title="查看资产事件" @click="equipmentEvents(i)"><i class="el-icon-date"></i></li>
-                        <li class="item" title="设置安全策略" @click="setSafe(i)"><i class="el-icon-bell"></i></li>
-                        <li class="item" title="潜在威胁分析" @click="theartAnalyse(i)"><i class="el-icon-view"></i></li>
-                    </ul>
+
+<!--                    <div class="eq-tools">-->
+<!--                        <a href="javascript:void(0)" class="tools-more">-->
+<!--                            <i class="el-icon-arrow-down "></i>-->
+<!--                        </a>-->
+<!--                    </div>-->
+<!--                    <ul class="tools-ul" data-angle="[0,215]" @mouseenter="zzIndex = 2" @mouseleave="zzIndex = -2">-->
+<!--                        <li class="item" title="修改资产" @click="reviseEquipment(i)"><i class="el-icon-edit "></i></li>-->
+<!--                        <li class="item" title="查看资产日志" @click="equipmentLogs(i)"><i class="el-icon-tickets"></i></li>-->
+<!--                        <li class="item" title="查看资产报表" @click="equipmentEcharts(i)"><i class="el-icon-share"></i></li>-->
+<!--                        <li class="item" title="查看资产事件" @click="equipmentEvents(i)"><i class="el-icon-date"></i></li>-->
+<!--                        <li class="item" title="设置安全策略" @click="setSafe(i)"><i class="el-icon-bell"></i></li>-->
+<!--                        <li class="item" title="潜在威胁分析" @click="theartAnalyse(i)"><i class="el-icon-view"></i></li>-->
+<!--                    </ul>-->
                 </li>
             </ul>
+            </el-checkbox-group>
         </div>
         <div class="equipment-table-page">
             <span>共检索到资产数量为 <b>{{allCounts}}</b> 台</span>
@@ -91,8 +115,9 @@
 		name: "device2",
 		data() {
 			return {
+                checkList:[],
 			    zzIndex:-2,
-                busName:'searchEquipment',
+                busName:'searchEquipment2',
                 size:15,
                 c_page:1,
                 allCounts:0,
@@ -105,69 +130,70 @@
                 logBaseJson:[],
                 logType:[],
                 typeArr:[],
+                selectEquipmentId:'',//日志页面跳转过来的资产id
                 equipmentList:[],
-                formConditionsArr:[
-                    {
-                        label:'资产名称',
-                        paramName:'name',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    },
-                    {
-                        label:'IP地址',
-                        paramName:'ip',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        type:'input'
-                    },
-                    {
-                        label:'主机名',
-                        paramName:'hostname',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    },
-                    {
-                        label:'日志类型',
-                        paramName:'logType',
-                        type:'select',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        options:this.logType
-                    },
-                    {
-                        label:'资产类型',
-                        paramName:'type',
-                        type:'cascader',
-                        itemType:'',
-                        model:{
-                            model:[]
-                        },
-                        options:[]
-                    }
-                ]
+                formConditionsArr:[]
             }
 		},
         created(){
             //获取日志类型数据
             this.getLogType();
-            this.getEquipmentType();
+            // this.getEquipmentType();
+            this.formConditionsArr=[
+                {
+                    label:'资产名称',
+                    paramName:'name',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'IP地址',
+                    paramName:'ip',
+                    itemType:'',
+                    model:{
+                        model:''
+                    },
+                    type:'input'
+                },
+                {
+                    label:'主机名',
+                    paramName:'hostname',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'日志类型',
+                    paramName:'logType',
+                    type:'select',
+                    itemType:'',
+                    model:{
+                        model:''
+                    },
+                    options:this.logType
+                },
+                {
+                    label:'资产类型',
+                    paramName:'type',
+                    type:'cascader',
+                    itemType:'',
+                    model:{
+                        model:[]
+                    },
+                    options:[]
+                }
+            ]
             //监听查询条件组件传过来的条件
             bus.$on(this.busName,(params)=>{
                 this.searchConditions = params;
                 this.getData(this.searchConditions,1)
                 this.c_page = 1;
             })
-            this.getData(this.searchConditions,1)
         },
         mounted(){
 
@@ -187,6 +213,7 @@
                                 };
                                 this.logType.push(obj);
                             }
+                            // console.log(this.logType)
                         })
                         .catch((err)=>{
                             console.log(err)
@@ -194,32 +221,12 @@
                 })
             },
             /*获得资产类型数据*/
-            getEquipmentType(){
+            getEquipmentType(data){
                 this.$nextTick(()=>{
                     this.$axios.get('static/filejson/equiptype.json',{})
                         .then((res)=>{
                             this.typeArr = res.data
-                            this.formConditionsArr[this.formConditionsArr.length - 1].options = this.typeArr
-                        })
-                        .catch((err)=>{
-                            console.log(err)
-                        })
-                })
-            },
-		    /*获取数据*/
-            getData(searchObj,page){
-                this.$nextTick(()=>{
-                    layer.load(1);
-                    let obj = searchObj;
-                    obj.pageIndex = page;//当前页
-                    obj.pageSize = this.size;//页的条数
-                    this.$axios.post(this.$baseUrl+'/equipment/selectPage.do',this.$qs.stringify(obj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let data = res.data[0].equipment;
-                            this.allCounts = JSON.parse(res.data[0].count.count);
-                            //将查询条件保存，用于分页
-                            this.saveCondition = this.searchConditions;
+                            this.formConditionsArr[this.formConditionsArr.length - 1].options = this.typeArr;
                             for (let i in data){
                                 let type = '';
                                 const str = data[i].type.substring(0,2);
@@ -241,17 +248,69 @@
                                 }
 
                             }
-
                             this.equipmentList = data;
-                            this.$nextTick(()=>{
+                        })
+                        .catch((err)=>{
+                            console.log(err)
+                        })
+                })
+            },
+		    /*获取数据*/
+            getData(searchObj,page){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    let obj = searchObj;
+                    obj.pageIndex = page;//当前页
+                    obj.pageSize = this.size;//页的条数
+                    this.$axios.post(this.$baseUrl+'/equipment/selectPage.do',this.$qs.stringify(obj))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            let data = res.data[0].equipment;
+                            this.allCounts = JSON.parse(res.data[0].count.count);
+                            //将查询条件保存，用于分页
+                            this.saveCondition = this.searchConditions;
+                            //判断资产类型是否已经加载
+                            this.getEquipmentType(data);
+
+/*                            this.$nextTick(()=>{
                                 $(".tools-more").wheelmenu({
                                     trigger: "hover",
                                     animation: "fly",
                                     animationSpeed: "fast",
                                     angle: "all",
                                 });
-                            })
+                            })*/
 
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
+            },
+            /*根据id查询资产*/
+            selectEquipment(){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/equipment/selectEquipmentByLog.do',this.$qs.stringify({id:this.selectEquipmentId}))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            if(res.data.success === 'false'){
+                                layer.msg(res.data.message,{icon:5});
+                            }else {
+                                let data = res.data.equipment;
+                                this.allCounts = data.length;
+                                //判断资产类型是否已经加载
+                                this.getEquipmentType(data);
+                                this.$nextTick(()=>{
+                                    $(".tools-more").wheelmenu({
+                                        trigger: "hover",
+                                        animation: "fly",
+                                        animationSpeed: "fast",
+                                        angle: "all",
+                                    });
+                                })
+                            }
                         })
                         .catch(err=>{
                             layer.closeAll('loading');
@@ -266,25 +325,77 @@
                 //改变标识
                // this.firstGetData = false;
             },
+            /*跳转到添加资产页面*/
+            goToAddEquipment(){
+                this.$router.push({path:'addEquipment2'});
+            },
+            /*跳转到所有资产报表*/
+            goToAllEcharts(){
+                this.$router.push({path:'allEcharts'})
+            },
+            /*删除资产*/
+            removeEquipment(){
+                console.log(this.checkList)
+                if(this.checkList.length === 0){
+                    layer.msg('未选中任何资产',{icon: 5});
+                }else{
+                    //询问框
+                    layer.confirm('您确定删除么？', {
+                        btn: ['确定','取消'] //按钮
+                    }, (index)=>{
+                        layer.close(index);
+                        let delectEquipmentIds = ''
+                        for(let i in this.checkList){
+                            delectEquipmentIds += this.checkList[i]+','
+                        }
+                        this.$nextTick(()=>{
+                            this.$axios.post(this.$baseUrl+'/equipment/delete.do',this.$qs.stringify({id:delectEquipmentIds}))
+                                .then((res)=>{
+                                    if(res.data.success == "true"){
+                                        layer.msg("删除成功",{icon:1});
+                                        this.getData(this.searchConditions,1)
+                                        this.c_page = 1;
+                                    }else{
+                                        layer.msg("删除失败",{icon:5});
+                                    }
+
+                                })
+                                .catch((err)=>{
+                                    layer.msg("删除失败",{icon:5});
+                                })
+                        })
+                    }, function(){
+                        layer.close();
+                    })
+                }
+            },
             /*修改资产按钮*/
             reviseEquipment(rowData,index){
                 //跳转页面
-                jumpHtml('reviseEquipment'+rowData.id,'equipment/reviseEquipment.vue',{ name:rowData.name,id: rowData.id },'资产修改')
+                jumpHtml('reviseEquipment2'+rowData.id,'equipment/reviseEquipment2.vue',{ name:rowData.name,id: rowData.id },'资产修改')
             },
             /*查看资产日志*/
             equipmentLogs(rowData,index){
                 //跳转页面
-                jumpHtml('equipmentLogs'+rowData.id,'logsManage/equipmentLogs.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
+                jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
             },
             /*查看资产图表*/
             equipmentEcharts(rowData,index){
-                //跳转页面
-                jumpHtml('equipmentEcharts'+rowData.id,'equipment/equipmentEcharts.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'统计')
+                //判断资产日志类型
+                let logType = rowData.logType;
+                if(logType === 'syslog'){
+                    //跳转页面
+                    jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }else if(logType === 'winlog' || logType === 'winlogbeat'){
+                    //跳转页面
+                    jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }
+
             },
             /*查看资产事件*/
             equipmentEvents(rowData,index){
                 //跳转页面
-                jumpHtml('equipmentEvents'+rowData.id,'eventManage/equipmentEvents.vue',{ name:rowData.name,id: rowData.id },'事件')
+                jumpHtml('equipmentEvents2'+rowData.id,'eventManage/equipmentEvents2.vue',{ name:rowData.name,id: rowData.id },'事件')
             },
             /*设置安全策略*/
             setSafe(rowData,index){
@@ -324,6 +435,30 @@
                 $(ce).next().css({"zIndex":"-1","opacity":"0","right":"-240px"});
             }
         },
+        watch: {
+            '$route' (to, from) {
+                if(from.name === 'addEquipment2'|| from.name.indexOf('reviseEquipment2') !== -1){
+                    this.getEquipmentType();
+                    this.getData(this.searchConditions,1);
+                    this.c_page = 1;
+                }
+            }
+        },
+        beforeRouteEnter(to, from, next) {
+            next (vm => {
+                //vm.getEquipmentType();
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //console.log(to.params.equipmentid)
+                if(to.params.equipmentid !== undefined){
+                    vm.selectEquipmentId = to.params.equipmentid;
+                    vm.selectEquipment();
+                    vm.c_page = 1;
+                }else {
+                    vm.getData(vm.searchConditions,1)
+                    vm.c_page = 1;
+                }
+            })
+        },
         components:{
             vSearchForm
         }
@@ -331,30 +466,47 @@
 </script>
 
 <style scoped>
+    .equipment-tools{
+        height: 30px;
+        padding: 0 20px;
+        float: right;
+        margin-right: 10px;
+    }
+    .equipemnt-tools-btns button{
+        margin: 0;
+        background: 0;
+    }
     .eq-wapper{
         background: #293846;
         padding: 20px;
         margin: 20px;
 
     }
+    .eq-wapper /deep/ .el-checkbox__label{
+        display: none;
+    }
     .eq-ul{
-        padding-bottom: 100px;
+        padding-bottom: 10px;
+        display: flex;
+        flex-wrap: wrap;
+        /*justify-content: space-evenly;*/
+        justify-content: center;
     }
     .eq-ul:after{
-        content: '';
-        clear: both;
-        display: block;
-        height: 0;
-        visibility: hidden;
+        /*content: '';*/
+        /*clear: both;*/
+        /*display: block;*/
+        /*height: 0;*/
+        /*visibility: hidden;*/
     }
     .eq-li{
         width: 238px;
         float: left;
         color: #5bc0de;
-        margin: 20px;
+        margin: 20px 10px;
         position: relative;
         transition: all .2s linear;
-        height: 110px;
+        height: 125px;
         padding: 0 10px;
         background-image: linear-gradient(to right, #2f455c 0%, #386c9a 100%);
         border: 1px solid #365778;
@@ -362,8 +514,8 @@
     .eq-li:after{
         content: '';
         position: absolute;
-        left: 0;
-        top: 110px;
+        left: -1px;
+        top: 126px;
         width: 0;
         border: 8px solid;
         transition: all .3s;
@@ -375,6 +527,37 @@
     }
     .eq-li:hover{
         box-shadow: 5px 5px 20px #4995ba;
+    }
+    .eq-tools-01{
+        position: absolute;
+        left: 11px;
+        top: 3px;
+        font-size: 13px;
+        color: #ccc;
+        z-index: 3;
+        width: 245px;
+        display: flex;
+        justify-content: space-between;
+        height: 20px;
+        line-height: 20px;
+    }
+    .eq-tools-01 b{
+        color: #4995ba;
+    }
+    .eq-tools-01 i{
+        float: left;
+    }
+    .eq-tools-02{
+        display: flex;
+        justify-content: space-evenly;
+        cursor: pointer;
+        font-size: 15px;
+    }
+    .eq-tools-02 i{
+        color: #4995bb;
+    }
+    .eq-tools-02 i:hover ,.eq-tools-01 i:hover{
+        color: #E4956D;
         cursor: pointer;
     }
     .eq-name{
@@ -388,7 +571,15 @@
         overflow: hidden;
         position: relative;
         /*z-index: 2;*/
+        /*cursor: pointer;*/
+    }
+    .eq-name i{
+        font-size: 12px;
+        color: #5bc0de;
         cursor: pointer;
+    }
+    .eq-name i:hover{
+        color: #E4956D;
     }
     .eq-name:after{
         content: "";

@@ -242,7 +242,7 @@ function getCurrentDate(fmt) {
 }
 /*
 * 时间格式化
-* fmt - yyyy-mm-dd hh:mm:ss
+* fmt - yyyy-mm-dd HH:MM:SS
 * date - 时间
 * */
 function dateFormat(fmt, date) {

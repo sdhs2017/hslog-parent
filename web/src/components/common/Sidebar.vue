@@ -1,7 +1,7 @@
 <template>
     <div class="sidebar">
         <el-menu class="sidebar-el-menu" :default-active="onRoutes" :collapse="collapse" background-color="#1A242F"
-            text-color="#bfcbd9" active-text-color="#20a0ff" unique-opened router>
+            text-color="#bfcbd9" active-text-color="#20a0ff" router>
             <template v-for="item in items">
                 <template v-if="item.menus">
                     <el-submenu :index="item.id" :key="item.id">
@@ -206,6 +206,9 @@
     }
     .sidebar-el-menu:not(.el-menu--collapse){
         width: 170px;
+    }
+    .el-menu--collapse{
+        width: 65px;
     }
     .sidebar > ul {
         height:100%;

@@ -53,6 +53,7 @@ axios.interceptors.response.use(data => {
     }
     return data;
 },err => {
+    console.log(err)
     if (err.response.status == 504 ){
         layer.msg('连接超时', {icon: 5});
     }else if(err.response.status == 500){
@@ -62,6 +63,8 @@ axios.interceptors.response.use(data => {
     } else if (err.response.status == 403) {
         layer.msg('权限不足,请联系管理员!', {icon: 5});
        // Message.error({message: '权限不足,请联系管理员!'});
+    }else if(err.response.status == undefined){
+        layer.msg(err, {icon: 5});
     }else{
         layer.msg('未知错误', {icon: 5});
        // Message.error({message: '未知错误!'});
@@ -105,7 +108,7 @@ router.beforeEach((to, from, next) => {
                    })
                }else{ //登录不过期
                    //获取权限btn
-                   axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
+                   /*axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
                        .then((res)=>{
                            let arr = [];
                            for (let i in res.data){
@@ -115,7 +118,7 @@ router.beforeEach((to, from, next) => {
                        })
                        .catch(err=>{
                            console.log(err)
-                       })
+                       })*/
                    //获取本地存储的路由
                    let newRouterVal = JSON.parse(sessionStorage.getItem(to.path));
                    //删除本地存储的路由，防止进入死循环

@@ -45,7 +45,7 @@ public class MetadataController {
 
     }
     @ResponseBody
-    @RequestMapping("/getMedataByIndexDynamically")
+    @RequestMapping(value="/getMedataByIndexDynamically",produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取index的mapping，结构化返回,动态加载")
     public String getMedataByIndexDynamically(HttpServletRequest request) {
         try{

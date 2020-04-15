@@ -159,7 +159,7 @@
                         })
                         .catch((err) => {
                             //关闭进度条
-                            layer.closeAll('loading');
+                            layer.closeAll(index1);
                             console.log(err)
                         })
                 })

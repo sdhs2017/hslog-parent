@@ -6,7 +6,7 @@ const titleConfig = {
     'ql-code':'插入代码',
     'ql-italic':'斜体',
     'ql-link':'添加链接',
-    'ql-background':'背景颜色',
+    'ql-background':'颜色',
     'ql-size':'字体大小',
     'ql-strike':'删除线',
     'ql-script':'上标/下标',

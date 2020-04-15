@@ -342,6 +342,9 @@
                 });
             },
             moreLineEchart(){
+                if(this.echartData.baseConfig.dispose){
+                    echarts.init(this.$refs.mybox).dispose();//销毁前一个实例
+                }
                 let myChart = echarts.init(this.$refs.mybox);
                 let option = {
                     title: {
@@ -361,7 +364,12 @@
                         }
                     },
                     legend: {
+                        type:'scroll',
+                        pageTextStyle:{
+                            color:'#eee'
+                        },
                         data:[],
+                        width:'80%',
                         right:"5%",
                         top:"25px",
                         textStyle:{

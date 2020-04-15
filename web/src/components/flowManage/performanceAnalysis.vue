@@ -7,7 +7,7 @@
             <div class="echarts-item">
                 <p class="echarts-tit">
                     {{this.chartTitle}}
-                    <span v-if="this.chartDataType !== 'all'" class="goBack" @click="goBack">返回</span>
+                    <el-button type="primary" plain v-if="this.chartDataType !== 'all'" class="goBack" @click="goBack" size="mini">返回</el-button>
                 </p>
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
@@ -71,7 +71,7 @@
                 appAvgResTimeData:{
                     baseConfig:{
                         title:'',
-                        xAxisName:'应用名称',
+                        xAxisName:'应用\n名称',
                         yAxisName:'时间/ms',
                         rotate:'15',
                         dispose:true,
@@ -257,7 +257,7 @@
     .goBack{
         float: left;
         margin-left: 20px;
-        font-size: 15px;
+        margin-top: 15px;
         color: #15c5e3;
         cursor: pointer;
     }

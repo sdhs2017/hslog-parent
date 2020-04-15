@@ -1,14 +1,14 @@
 <template>
     <div class="content-bg">
         <div class="top-title">资产管理</div>
+        <div class="equipemnt-tools-form">
+            <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
+        </div>
         <div class="equipment-tools">
             <div class="equipemnt-tools-btns">
                 <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                 <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                 <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>
-            </div>
-            <div class="equipemnt-tools-form">
-                <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
             </div>
         </div>
         <div class="equipment-table-wapper">
@@ -490,7 +490,6 @@
                 }
 
             })
-
         },
         components:{
             vSearchForm,
@@ -507,6 +506,7 @@
     }
     .equipemnt-tools-btns{
         float: left;
+        margin: 10px 0;
     }
     .equipemnt-tools-btns button{
         margin: 0;

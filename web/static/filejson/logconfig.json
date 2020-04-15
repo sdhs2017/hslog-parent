@@ -111,6 +111,45 @@
             {"operation_des":"日志内容"}
         ]
     },
+    "winlogbeat":{
+        "level":["error","warning","information"],
+        "searchFrom":{},
+        "tableHead":[
+            {
+                "prop":"@timestamp",
+                "label":"时间",
+                "width":"150"
+            },
+            {
+                "prop":"log.level",
+                "label":"级别",
+                "width":"100"
+            },
+            {
+                "prop":"agent.type",
+                "label":"日志类型",
+                "width":"100"
+            },
+            {
+                "prop":"fields.ip",
+                "label":"IP",
+                "width":"125"
+            },
+            {
+                "prop":"message",
+                "label":"日志内容",
+                "width":""
+            }
+        ],
+        "detailsListArr":[
+            {"@timestamp":"时间"},
+            {"log.level":"级别"},
+            {"agent.type":"日志类型"},
+            {"host.hostname":"资产名称"},
+            {"fields.ip":"IP"},
+            {"message":"日志内容"}
+        ]
+    },
     "log4j":{
         "level":["error","warn","info","debug"],
         "searchFrom":{},
@@ -552,6 +591,17 @@
             {"equipmentname":"资产名称"},
             {"ip":"IP"},
             {"operation_des":"日志内容"}
+        ]
+    },
+    "eventDetail": {
+        "detailsListArr":[
+            {"@timestamp":"时间"},
+            {"event.action":"事件名称"},
+            {"event.type":"事件类型"},
+            {"fields.ip":"IP地址"},
+            {"host.hostname":"资产名称"},
+            {"winlog":"事件原因"},
+            {"message":"日志内容"}
         ]
     }
 }

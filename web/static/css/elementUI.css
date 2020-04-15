@@ -192,9 +192,13 @@
 .el-cascader__label span{
     color: #409EFF;
 }
+.el-cascader-node:not(.is-disabled):focus, .el-cascader-node:not(.is-disabled):hover{
+    background: #5a7494;
+}
 .el-cascader-menu{
     background-color: #3a4a5d;
     border-right: solid 1px #409EFF;
+    color: #fff;
 }
 .el-cascader-menus{
     border: 1px solid #409EFF;
@@ -204,6 +208,9 @@
 }
 .el-cascader-menu__item:focus:not(:active), .el-cascader-menu__item:hover{
     background: #5a7494;
+}
+.el-cascader__dropdown{
+    border: 1px solid #409eff;
 }
 .el-textarea__inner{
     background: 0;
@@ -371,4 +378,49 @@
 }
 .el-step__title.is-finish {
     color: #ffffff;
+}
+/*抽屉*/
+.el-drawer__wrapper{
+    /*position: absolute;*/
+    height: calc(100% - 150px);
+    top: 100px;
+}
+.el-drawer__body:focus{
+    outline: none;
+}
+.el-drawer__wrapper:focus{
+    outline: none;
+}
+.el-drawer{
+    background: #303e4e;
+}
+/*颜色选择器*/
+.el-color-picker__trigger{
+    border: 0;
+}
+/*switch*/
+.el-switch__label{
+    color: #aaa;
+}
+/*弹出框*/
+.el-popover{
+    border: 1px solid #409eff;
+    background: #29415a;
+    color: #eee;
+}
+.ql-editor{
+    color: #fff;
+}
+/*层级下拉框*/
+.el-cascader-node.is-selectable.in-active-path {
+    color: #91aed0;
+}
+.el-cascader__dropdown{
+    background-color: #3a4a5d;
+}
+.el-cascader__suggestion-item{
+    color:#fff;
+}
+.el-cascader__suggestion-item:focus, .el-cascader__suggestion-item:hover {
+    background: #4c6179;
 }

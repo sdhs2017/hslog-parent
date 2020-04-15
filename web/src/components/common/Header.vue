@@ -111,8 +111,12 @@
                 this.$nextTick(()=>{
                     this.$axios.get(this.$baseUrl+'/user/selectUserRole.do','')
                         .then(res =>{
-                            this.roleName = res.data;
-
+                            let obj =res.data;
+                            if(obj.success == 'true'){
+                                this.roleName = obj.message;
+                            }else{
+                                this.roleName = obj.message;
+                            }
                         })
                         .catch(res =>{
 
@@ -232,6 +236,17 @@
             changeSystem(id,index){
                 this.current = index;
                 bus.$emit('systemId', id);
+                //判断折叠状态
+                if(this.collapse){
+                    this.collapse = false;
+                    bus.$emit('collapse', this.collapse);
+                }else{
+                    this.collapseChage();
+                    setTimeout(()=>{
+                        this.collapseChage()
+                    },700)
+                }
+
             }
         },
         mounted(){

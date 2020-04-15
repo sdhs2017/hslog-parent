@@ -12,8 +12,16 @@ public class System {
 	
 	private String id;
 	private String sys_name;//系统名称
+	private String icon;//图标
 	private String note;//说明
 
+	public String getIcon() {
+		return icon;
+	}
+
+	public void setIcon(String icon) {
+		this.icon = icon;
+	}
 
 	public String getId() {
 		return id;

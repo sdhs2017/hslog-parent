@@ -2,6 +2,7 @@ package com.jz.bigdata.common.businessIntelligence.controller;
 
 import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
@@ -174,6 +175,34 @@ public class BIController {
         }
     }
     /**
+     * 保存仪表盘
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/saveDashboard", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "仪表盘保存")
+    public String saveDashboard(HttpServletRequest request, Dashboard dashboard){
+        try{
+            String isSaveAs = request.getParameter("isSaveAs");
+            //用户新建保存或者编辑时另存，需要检测标题是否重复
+            if(null!=isSaveAs&&"true".equals(isSaveAs)){
+                if(iBIService.isDashboardExists(dashboard.getTitle(),biIndexName)){
+                    return Constant.failureMessage("标题名称重复，请修改！");
+                }
+            }
+            DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,biIndexName);
+            if (result == DocWriteResponse.Result.CREATED) {
+                return Constant.successMessage("数据保存成功");
+            } else if (result == DocWriteResponse.Result.UPDATED) {
+                return Constant.successMessage("数据更新成功");
+            }else{
+                return Constant.failureMessage("数据操作成功");
+            }
+        }catch(Exception e){
+            return Constant.failureMessage("数据操作失败");
+        }
+    }
+    /**
      * 获取图表列表
      * @return
      */
@@ -185,7 +214,22 @@ public class BIController {
             String result = iBIService.getVisualizations(biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
-            return Constant.failureMessage("获取图表列表失败");
+            return Constant.successData(null);
+        }
+    }
+    /**
+     * 获取仪表盘
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDashboards", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取仪表盘列表")
+    public String getDashboards(HttpServletRequest request){
+        try{
+            String result = iBIService.getDashboards(biIndexName);
+            return Constant.successData(result);
+        }catch(Exception e){
+            return Constant.failureMessage("获取仪表盘列表失败");
         }
     }
     /**
@@ -205,7 +249,23 @@ public class BIController {
         }
     }
     /**
-     * 获取图表的详情
+     * 获取dashboard详情
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDashboardById", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取仪表盘详情")
+    public String getDashboardById(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.getDashboardById(id,biIndexName);
+            return Constant.successData(result);
+        }catch(Exception e){
+            return Constant.failureMessage("获取仪表盘详情失败");
+        }
+    }
+    /**
+     * 删除图表
      * @return
      */
     @ResponseBody
@@ -218,6 +278,22 @@ public class BIController {
             return Constant.successMessage(result);
         }catch(Exception e){
             return Constant.failureMessage("删除图表失败");
+        }
+    }
+    /**
+     * 删除仪表盘
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/deleteDashboardById", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "删除仪表盘")
+    public String deleteDashboardById(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.deleteDashboardById(id,biIndexName);
+            return Constant.successMessage(result);
+        }catch(Exception e){
+            return Constant.failureMessage("删除仪表盘失败");
         }
     }
 }

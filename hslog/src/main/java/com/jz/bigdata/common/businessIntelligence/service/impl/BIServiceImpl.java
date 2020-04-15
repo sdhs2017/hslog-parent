@@ -7,6 +7,7 @@ import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.jz.bigdata.common.businessIntelligence.cache.BICache;
+import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
@@ -88,6 +89,16 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
+    public DocWriteResponse.Result saveDashboard(Dashboard dashboard, String indexName) throws Exception {
+        //构建数据格式
+        HSData hsdata = new HSData();
+        hsdata.setDashboard(dashboard);
+        //新增or更新
+        DocWriteResponse.Result result = logCurdDao.upsert(indexName,dashboard.getId(),gson.toJson(hsdata));
+        return result;
+    }
+
+    @Override
     public String getVisualizations(String indexName) throws Exception {
         List<Visualization> result = new ArrayList<>();
         //获取index的visualization列存在数据的信息
@@ -103,6 +114,25 @@ public class BIServiceImpl implements IBIService {
             visual.setType(visualizationInfo.get("type").toString());//图表类型
             visual.setIndexName(visualizationInfo.get("indexName").toString());//数据查询的数据源（index名称）
             result.add(visual);
+        }
+        return JSONArray.fromObject(result).toString();
+    }
+
+    @Override
+    public String getDashboards(String indexName) throws Exception {
+        List<Dashboard> result = new ArrayList<>();
+        //获取index的visualization列存在数据的信息
+        List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,"dashboard");
+        //遍历结果集
+        for(Map<String,Object> map:list){
+            Dashboard dashboard = new Dashboard();
+            dashboard.setId(map.get("id").toString());
+            //visualization存储图表的数据
+            Map<String,Object> dashboardInfo = (HashMap<String,Object>)map.get("dashboard");
+            dashboard.setTitle(dashboardInfo.get("title").toString());//标题
+            dashboard.setDescription(dashboardInfo.get("description").toString());//描述
+
+            result.add(dashboard);
         }
         return JSONArray.fromObject(result).toString();
     }
@@ -187,7 +217,29 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
+    public String getDashboardById(String id, String indexName) throws Exception {
+        Dashboard dashboard =new Dashboard();
+        //根据id获取图表详情
+        Map<String, Object> map = logCurdDao.searchById(indexName,"",id);
+        if(null!=map){
+            //将数据赋值给bean，方便回显
+            dashboard.setId(map.get("id").toString());
+            Map<String,Object> visualization = (HashMap<String,Object>)map.get("dashboard");
+            dashboard.setDescription(visualization.get("description").toString());
+            dashboard.setTitle(visualization.get("title").toString());
+            dashboard.setOption(visualization.get("option").toString());
+
+        }
+        return JSONObject.fromObject(dashboard).toString();
+    }
+
+    @Override
     public String deleteVisualizationById(String id, String indexName) throws Exception {
+        return logCurdDao.deleteById(indexName,"",id);
+    }
+
+    @Override
+    public String deleteDashboardById(String id, String indexName) throws Exception {
         return logCurdDao.deleteById(indexName,"",id);
     }
 
@@ -196,6 +248,19 @@ public class BIServiceImpl implements IBIService {
         Map<String,String> map = new HashMap<>();
         //按照标题名称查询
         map.put("visualization.title.raw",title);
+        long count = ibiDao.getCount(map,indexName);
+        if(count>0){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isDashboardExists(String title, String indexName) throws Exception {
+        Map<String,String> map = new HashMap<>();
+        //按照标题名称查询
+        map.put("dashboard.title.raw",title);
         long count = ibiDao.getCount(map,indexName);
         if(count>0){
             return true;

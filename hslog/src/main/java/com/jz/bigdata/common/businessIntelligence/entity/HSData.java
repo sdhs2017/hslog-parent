@@ -13,7 +13,15 @@ import com.jz.bigdata.util.Bean2Mapping;
  */
 public class HSData {
     private Visualization visualization;//图表
-    //TODO dashboard
+    private Dashboard dashboard;//仪表盘
+
+    public Dashboard getDashboard() {
+        return dashboard;
+    }
+
+    public void setDashboard(Dashboard dashboard) {
+        this.dashboard = dashboard;
+    }
 
     public Visualization getVisualization() {
         return visualization;
@@ -23,10 +31,12 @@ public class HSData {
         this.visualization = visualization;
     }
     public String toMapping() {
-        String template = "{\n" + "\t\t\"properties\":{\n" + "\t\t{#}\n" + "\t\t\t\t}" + "}";
+        //图表mapping
         String visualFieldString =new Visualization().toMapping();
-        template = template.replace("{#}", visualFieldString);
-        return template;
+        //仪表盘mapping
+        String dashboardFieldString =new Dashboard().toMapping();
+        String hsdataTemplate = "{\n"+"\t\t\"properties\":{\n" +visualFieldString+","+ dashboardFieldString+"\t\t\n" + "\t\t\t\t}"+"}";
+        return hsdataTemplate;
     }
     public static void main(String[] args){
         System.out.println(new HSData().toMapping());

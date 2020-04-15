@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.businessIntelligence.service;
 
 import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
@@ -104,10 +105,21 @@ public interface IBIService {
      */
     public DocWriteResponse.Result saveVisualization(Visualization visual , String indexName) throws Exception;
     /**
+     * 保存图表信息
+     * @param visual 图表信息bean
+     * @return
+     */
+    public DocWriteResponse.Result saveDashboard(Dashboard dashboard , String indexName) throws Exception;
+    /**
      * 获取图表列表，不包含option和params信息（数据内容太多，影响响应速度）
      * @return
      */
     public String getVisualizations(String indexName) throws Exception;
+    /**
+     * 获取仪表盘列表，不包含option和params信息（数据内容太多，影响响应速度）
+     * @return
+     */
+    public String getDashboards(String indexName) throws Exception;
 
     /**
      * 根据id获取图表详情以及查询的数据结果
@@ -116,12 +128,23 @@ public interface IBIService {
      */
     public String getVisualizationById(String id,String indexName) throws Exception;
     /**
+     * 根据id获取dashboard详情
+     * @param id
+     * @return
+     */
+    public String getDashboardById(String id,String indexName) throws Exception;
+    /**
      * 根据id删除图表
      * @param id
      * @return
      */
     public String deleteVisualizationById(String id,String indexName) throws Exception;
-
+    /**
+     * 根据id删除仪表盘
+     * @param id
+     * @return
+     */
+    public String deleteDashboardById(String id,String indexName) throws Exception;
     /**
      * 查看该标题的图表是否存在
      * @param title 标题
@@ -130,4 +153,12 @@ public interface IBIService {
      * @throws Exception
      */
     public boolean isVisualizationExists(String title,String indexName) throws Exception;
+    /**
+     * 查看该标题的仪表盘
+     * @param title 标题
+     * @param indexName 索引
+     * @return
+     * @throws Exception
+     */
+    public boolean isDashboardExists(String title,String indexName) throws Exception;
 }

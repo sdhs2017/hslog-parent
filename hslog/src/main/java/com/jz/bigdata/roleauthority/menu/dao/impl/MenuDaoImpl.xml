@@ -37,7 +37,7 @@
 	</select>
 	<!-- 查询所有数据 -->
 	<select id="selectSystem" parameterType="java.lang.String" resultMap="BaseResultMap"  >
-		select sys.id as id,sys_name as systemName
+		select sys.id as id,sys_name as systemName,sys.icon
 		from HS_Menu menu
 		left join HS_RoleMenuButton rm on rm.fk_menuAndButon_id = menu.id
 		left join HS_System sys on sys.id = menu.fk_system_id

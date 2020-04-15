@@ -80,7 +80,7 @@ public class PacketStream {
 
 			// index名称定义
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+			//String index = configProperty.getEs_old_index().replace("*",format.format(new Date()));
 
 			// 通过ip4packet包的header信息确认流量包是什么协议，该判断条件为是TCP协议
 			if (ip4packet.getHeader().getProtocol().toString().contains("TCP")) {
@@ -128,13 +128,13 @@ public class PacketStream {
 
 									// request数据入库
 									json = gson.toJson(httprequest);
-									requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+									requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 								}else{
 								    http.setFlag("unmatched");
                                 }
                                 // response数据入库
 								json = gson.toJson(http);
-								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 							}
 
 
@@ -156,7 +156,7 @@ public class PacketStream {
 						json = gson.toJson(defaultpacket);
 						//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 						//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-						requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+						requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 					}
 				}
 				
@@ -168,7 +168,7 @@ public class PacketStream {
 				}
 				json = gson.toJson(defaultpacket);
 				//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-				requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+				requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 			}
 			
 		
@@ -194,7 +194,7 @@ public class PacketStream {
             logger.error(json);
             try {
             	System.out.println("异常数据，提示requests size:" + requests.size());
-                requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+                requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
                 logCurdDao.bulkInsert(requests);
                 requests.clear();
                 System.out.println("异常数据采集后提交，提示requests size:" + requests.size());

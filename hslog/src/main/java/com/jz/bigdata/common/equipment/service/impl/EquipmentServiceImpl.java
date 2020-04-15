@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,9 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 	@Resource(name="logService")
 	private IlogService logService;
+
+	@Resource(name="ecsService")
+	private IecsService ecsService;
 
 	/**
 	 * @param equipment
@@ -168,19 +172,18 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		}*/
 
 		String equipmentid = equipmentmap.get("id").toString();
-		esMap.put("equipmentid", equipmentid);
-		/*esMap.put("starttime", starttime);
-		esMap.put("endtime", endtime);*/
-		//equipmentmap.put("log_count", logService.getCount(configProperty.getEs_index(), null, esMap)+"");
+		/*esMap.put("equipmentid", equipmentid);
+		equipmentmap.put("log_count", logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");*/
+		/**
+		 *
+		 */
+		esMap.put("fields.equipmentid", equipmentid);
 		equipmentmap.put("log_count", logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
-		//equipmentmap.put("log_count", "20");
 
 		equipment = JavaBeanUtil.convertMapToBean(Equipment.class, equipmentmap);
-//		equipment = JavaBeanUtil.convertMapToBean(new Equipment(), equipmentmap);
 
 		myList.add(equipment);
 		return myList;
-		//return listEquipment;
 	}
 
 	/**
@@ -195,7 +198,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * @return
 	 */
 	@Override
-	public String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize,HttpSession session) {
+	public String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize,HttpSession session) throws Exception {
 		// 获取起始数
 		int startRecord = (pageSize * (pageIndex - 1));
 		// 获取总数
@@ -219,10 +222,13 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		String endtime = df.format(new Date());
 		for(Equipment equipment : listEquipment) {
 			Map<String, String> esMap = new HashMap<>();
-			esMap.put("equipmentid", equipment.getId());
-
-			//equipment.setLog_count(logService.getCount(configProperty.getEs_index(), null, esMap)+"");
-			equipment.setLog_count(logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
+			//esMap.put("equipmentid", equipment.getId());
+			//equipment.setLog_count(logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
+			/**
+			 * ECS的资产id改成fields.equipmentid
+ 			 */
+			esMap.put("fields.equipmentid", equipment.getId());
+			equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
 		}
 		// 数据添加到map
 		map.put("equipment", listEquipment);

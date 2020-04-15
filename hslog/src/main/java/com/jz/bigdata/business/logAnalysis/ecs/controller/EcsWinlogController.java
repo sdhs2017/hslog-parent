@@ -242,14 +242,18 @@ public class EcsWinlogController {
             map.remove("endtime");
         }
 
-        List<Map<String, Object>> list =null;
-
+        List<Map<String, Object>> list = null;
+        Map<String, Object> allmap = new HashMap<>();
         try {
             list = ecsService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_index());
         } catch (Exception e) {
+            logger.error("日志精确查询：失败！");
             e.printStackTrace();
+            allmap.put("count",0);
+            allmap.put("list",null);
+            return JSONArray.fromObject(allmap).toString();
         }
-        Map<String, Object> allmap = new HashMap<>();
+
         allmap = list.get(0);
         list.remove(0);
         allmap.put("list", list);
@@ -372,7 +376,7 @@ public class EcsWinlogController {
             map.remove("endtime");
         }
 
-        List<Map<String, Object>> list = null;
+        List<Map<String, Object>> list = new ArrayList<>();
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {

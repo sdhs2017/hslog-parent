@@ -267,7 +267,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                             /**
                              *  打印入库数据
                              */
-                            System.out.println(index+" : "+jsonObject.toString());
+                            /*System.out.println(index+" : "+jsonObject.toString());*/
                             /**
                              * 批量入库
                              */

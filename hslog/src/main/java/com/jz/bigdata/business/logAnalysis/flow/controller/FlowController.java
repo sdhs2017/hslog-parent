@@ -117,7 +117,7 @@ public class FlowController {
     @RequestMapping("/getTopGroupByIPOrPort")
     @DescribeLog(describe="统计netflow源IP、目的IP、源端口、目的端口的数量")
     public String getTopGroupByIPOrPort(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         // 默认需要统计的4个属性，目的ip、源ip、目的端口、源端口
         String [] groupbys = {"ipv4_dst_addr.raw","ipv4_src_addr.raw","l4_dst_port","l4_src_port"};
         String [] types = {"defaultpacket"};
@@ -199,7 +199,7 @@ public class FlowController {
     @RequestMapping("/getDstIPCountGroupByHTTPSrcIP")
     @DescribeLog(describe="统计应用资产的IP访问次数")
     public String getDstIPCountGroupByHTTPSrcIP(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "ipv4_src_addr";
         String [] types = {"defaultpacket"};
         // 资产的ip
@@ -258,7 +258,7 @@ public class FlowController {
     @DescribeLog(describe="通过netflow源IP、目的IP、源端口、目的端口的一项作为条件统计其他三项的数量")
     public String getIPAndPortTop(HttpServletRequest request) {
 
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupby = request.getParameter("groupfiled");
         String iporport = request.getParameter("iporport");
 
@@ -310,7 +310,7 @@ public class FlowController {
     @DescribeLog(describe="通过netflow数据获取网络拓扑数据")
     public String getTopologicalData(HttpServletRequest request) {
 
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupby = request.getParameter("groupfiled");
         String iporport = request.getParameter("iporport");
         String count = request.getParameter("count");
@@ -438,7 +438,7 @@ public class FlowController {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         logger.info("进入业务流分析统计   "+format.format(new Date()));
 
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
 
         // 双向划线
         String [] groupbys = {"ipv4_src_addr.raw","ipv4_dst_addr.raw"};
@@ -603,14 +603,14 @@ public class FlowController {
                 map.remove("type");
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
                 try {
-                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
+                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_old_index());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }else {
                 String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
                 try {
-                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
+                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_old_index());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -628,7 +628,7 @@ public class FlowController {
             }
         }else{
             try {
-                list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
+                list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_old_index());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -703,16 +703,16 @@ public class FlowController {
                 map.remove("type");
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
                 if (userrole.equals("1")) {
-                    //list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+                    //list = logService.getListByMap(configProperty.getEs_old_index(), types, starttime, endtime, map,page,size);
                     try {
-                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_old_index());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }else {
                     map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
                     try {
-                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_old_index());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -720,16 +720,16 @@ public class FlowController {
             }else {
                 String[] types = {LogType.LOGTYPE_DEFAULTPACKET};
                 if (userrole.equals("1")) {
-                    //list = logService.getListByMap(configProperty.getEs_index(), types, starttime, endtime, map,page,size);
+                    //list = logService.getListByMap(configProperty.getEs_old_index(), types, starttime, endtime, map,page,size);
                     try {
-                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_old_index());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }else {
                     map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
                     try {
-                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_old_index());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -746,7 +746,7 @@ public class FlowController {
             }
         }else{
             try {
-                list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_index());
+                list = flowService.getFlowListByBlend(null,  null, null, "1", "12", null, configProperty.getEs_old_index());
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -772,7 +772,7 @@ public class FlowController {
     @RequestMapping("/getVisitCountGroupByHttpSourceIP")
     @DescribeLog(describe="统计IP-->domain的访问次数")
     public String getVisitCountGroupByHttpSourceIP(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "ipv4_src_addr";
         String [] types = {"defaultpacket"};
         // 资产的ip和端口
@@ -827,7 +827,7 @@ public class FlowController {
     @RequestMapping("/getCountGroupByUrl")
     @DescribeLog(describe="统计url的数据量")
     public String getCountGroupByUrl(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "domain_url.raw";
         String [] types = {"defaultpacket"};
         // 资产的ip和端口即目的IP和目的端口
@@ -904,7 +904,7 @@ public class FlowController {
     @RequestMapping("/getCountGroupByHttpComUrl")
     @DescribeLog(describe="统计domain下全url被访问的次数")
     public String getCountGroupByHttpComUrl(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "complete_url.raw";
         String [] types = {"defaultpacket"};
         // 资产的ip和端口
@@ -957,7 +957,7 @@ public class FlowController {
     @RequestMapping("/getVisitCountOfComUrlGroupByHttpSourceIP")
     @DescribeLog(describe="统计单个url被IP访问的次数")
     public String getVisitCountOfComUrlGroupByHttpSourceIP(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "ipv4_src_addr";
         String [] types = {"defaultpacket"};
         // 资产的ip和端口
@@ -1017,7 +1017,7 @@ public class FlowController {
     @RequestMapping("/getUserAgentOSGroupByTime")
     @DescribeLog(describe="通过时间段统计操作系统的种类及数量")
     public String getUserAgentOSGroupByTime(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "user_agent_os.raw";
         String [] types = {"defaultpacket"};
 
@@ -1044,7 +1044,7 @@ public class FlowController {
     @RequestMapping("/getRequestPacketOfDstIP")
     @DescribeLog(describe="统计业务系统IP的数据访问包大小")
     public String getRequestPacketOfDstIP(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "ipv4_dst_addr.raw";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
@@ -1077,7 +1077,7 @@ public class FlowController {
     @RequestMapping("/getUserAgentBrowserGroupByTime")
     @DescribeLog(describe="通过时间段统计浏览器的种类及数量")
     public String getUserAgentBrowserGroupByTime(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String  groupby = "user_agent_browser.raw";
         String [] types = {"defaultpacket"};
 
@@ -1107,7 +1107,7 @@ public class FlowController {
     @RequestMapping("/getPacketLengthPerSecond")
     @DescribeLog(describe="实时统计流量数据访问包大小")
     public String getPacketLengthPerSecond(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
         //获取参数
@@ -1140,7 +1140,7 @@ public class FlowController {
     @RequestMapping("/getSrcIPFlow")
     @DescribeLog(describe="源ip地址流量")
     public String getSrcIPFlow(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "ipv4_src_addr";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
@@ -1165,7 +1165,7 @@ public class FlowController {
     @RequestMapping("/getDstIPFlow")
     @DescribeLog(describe="目的ip地址流量")
     public String getDstIPFlow(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "ipv4_dst_addr";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
@@ -1190,7 +1190,7 @@ public class FlowController {
     @RequestMapping("/getTransportLength")
     @DescribeLog(describe="传输层协议长度排行")
     public String getTransportLength(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "protocol_name.raw";//.raw 不分词
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
@@ -1216,7 +1216,7 @@ public class FlowController {
     @RequestMapping("/getApplicationLength")
     @DescribeLog(describe="应用层协议长度排行")
     public String getApplicationLength(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "application_layer_protocol.raw";
         String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
@@ -1241,7 +1241,7 @@ public class FlowController {
     @RequestMapping("/getMultipleLength")
     @DescribeLog(describe="综合协议长度排行")
     public String getMultipleLength(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfieldApplication = "application_layer_protocol.raw";
         String groupfieldTransport = "protocol_name.raw";
         String sumfield = "packet_length";
@@ -1296,7 +1296,7 @@ public class FlowController {
     @RequestMapping("/getPacketTypeCount")
     @DescribeLog(describe="全局数据包类型及个数")
     public String getPacketTypeCount(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "application_layer_protocol";
         //String sumfield = "packet_length";
         String [] types = {"defaultpacket"};
@@ -1344,7 +1344,7 @@ public class FlowController {
     @RequestMapping(value="/getDstIPPacketCount", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="资产（ip） 数据包个数")
     public String getDstIPPacketCount(HttpServletRequest request,HttpSession session) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "ipv4_dst_addr";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1387,7 +1387,7 @@ public class FlowController {
     @RequestMapping(value="/getDstUrlPacketCount", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="资产（服务） 数据包个数")
     public String getDstUrlPacketCount(HttpServletRequest request,HttpSession session) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "domain_url.raw";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1430,7 +1430,7 @@ public class FlowController {
     @RequestMapping("/getDstPortCount")
     @DescribeLog(describe="目的端口总流量")
     public String getDstPortCount(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "l4_dst_port";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1469,7 +1469,7 @@ public class FlowController {
     @RequestMapping("/getMulticastAndBroadcastPacketTypeCount")
     @DescribeLog(describe="组播+广播包数据个数")
     public String getMulticastAndBroadcastPacketTypeCount(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String countfield = "ipv4_dst_addr";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1523,7 +1523,7 @@ public class FlowController {
     @RequestMapping("/getTCPDstPortCount")
     @DescribeLog(describe="TCP目的端口总流量")
     public String getTCPDstPortCount(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "l4_dst_port";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1557,7 +1557,7 @@ public class FlowController {
     @RequestMapping("/getUDPDstPortCount")
     @DescribeLog(describe="UDP目的端口总流量")
     public String getUDPDstPortCount(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfield = "l4_dst_port";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1591,7 +1591,7 @@ public class FlowController {
     @RequestMapping("/getPacketCount")
     @DescribeLog(describe="全局-数据包个数")
     public String getPacketCount(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String countfield = "packet_length";
         String [] types = {"defaultpacket"};
         Map<String,String> tMap = getStartEndTime(request);
@@ -1623,7 +1623,7 @@ public class FlowController {
     @RequestMapping("/getMap")
     @DescribeLog(describe="首页地图地球-展示流量的流向")
     public String getMap(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
         String [] types = {"defaultpacket"};
         List<List<Map<String, Object>>> list = new ArrayList<>();
@@ -1648,7 +1648,7 @@ public class FlowController {
     @RequestMapping(value="/getDomaiUrlAvgResponsetime", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="统计应用的平均响应时间")
     public String getDomaiUrlAvgResponsetime(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         String groupfields = "domain_url.raw";
         String avgfield = "responsetime";
         String [] types = {"defaultpacket"};
@@ -1725,7 +1725,7 @@ public class FlowController {
     @RequestMapping(value="/getRequestUrlAvgResponsetime", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="统计单个应用的功能url平均响应时间")
     public String getRequestUrlAvgResponsetime(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
+        String index = configProperty.getEs_old_index();
         //获取全量的url，用以
         String groupfields = "complete_url.raw";
         String avgfield = "responsetime";

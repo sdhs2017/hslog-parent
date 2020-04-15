@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,7 +40,7 @@ public class EquipmentController {
 	
 	@Autowired protected ILogCrudDao logCrudDao;
 
-
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 	@ResponseBody
 //	@RequestMapping("/insert")
@@ -135,7 +137,15 @@ public class EquipmentController {
 		// 资产类型
 		String type = request.getParameter("type");
 
-		return equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session);
+		String result = "";
+		try {
+			result = equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session);
+			logger.info("查询资产：成功");
+		} catch (Exception e) {
+			logger.error("查询资产：失败");
+			e.printStackTrace();
+		}
+		return result;
 	}
 	
 	

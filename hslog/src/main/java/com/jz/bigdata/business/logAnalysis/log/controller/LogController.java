@@ -872,7 +872,7 @@ public class LogController extends BaseController{
 	@DescribeLog(describe="组合查询日志数据")
 	public String getLogListByBlend(HttpServletRequest request,HttpSession session) {
 		// receive parameter
-		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+			Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -912,7 +912,7 @@ public class LogController extends BaseController{
 
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
-
+		Map<String, Object> allmap = new HashMap<>();
 		// 判断type是否存在，如果存在使用type值，否则使用默认
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
@@ -921,16 +921,24 @@ public class LogController extends BaseController{
 			try {
 				list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
 			} catch (Exception e) {
+				logger.error("日志精确查询：失败！");
 				e.printStackTrace();
+				allmap.put("count",0);
+				allmap.put("list",null);
+				return JSONArray.fromObject(allmap).toString();
 			}
 		}else {
 			try {
 				list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
 			} catch (Exception e) {
+				logger.error("日志精确查询：失败！");
 				e.printStackTrace();
+				allmap.put("count",0);
+				allmap.put("list",null);
+				return JSONArray.fromObject(allmap).toString();
 			}
 		}
-		Map<String, Object> allmap = new HashMap<>();
+
 		allmap = list.get(0);
 		list.remove(0);
 		allmap.put("list", list);
@@ -939,70 +947,6 @@ public class LogController extends BaseController{
 
 		return replace;
 	}
-
-	/**
-	 * 组合查询
-	 * @param request
-	 * @author jiyourui
-	 * @return
-	 */
-	/*@SuppressWarnings("unchecked")
-	@ResponseBody
-	@RequestMapping(value="/getLogListByFlow",produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="业务流分析-深钻-日志内容")
-	public String getLogListByFlow(HttpServletRequest request,HttpSession session) {
-		// receive parameter
-		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-		String ztData = request.getParameter(ContextFront.DATA_CONDITIONS);
-
-		ObjectMapper mapper = new ObjectMapper();
-		Map<String, String> map = new HashMap<String, String>();
-
-		map = removeMapEmptyValue(mapper.readValue(ztData, Map.class));
-		System.out.println(map);
-		Object pageo = map.get("page");
-		Object sizeo = map.get("size");
-
-		String page = pageo.toString();
-		String size = sizeo.toString();
-		map.remove("page");
-		map.remove("size");
-
-		ArrayList<String> arrayList = new ArrayList<>();
-		List<Map<String, Object>> list =null;
-		Map<String, String[]> param = new HashMap<>();
-		String[] multified = {"ipv4_dst_addr","ipv4_src_addr"};
-		param.put(map.get("ip"), multified);
-
-		if (map.get("type")!=null&&!map.get("type").equals("")) {
-			arrayList.add(map.get("type"));
-			map.remove("type");
-			String [] types = arrayList.toArray(new String[arrayList.size()]);
-			if (userrole.equals(ContextRoles.MANAGEMENT)) {
-				list = logService.getListByMultiField(configProperty.getEs_index(), types, param,map,page,size);
-			}else {
-				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
-                list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-			}
-		}else {
-			String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-			if (userrole.equals(ContextRoles.MANAGEMENT)) {
-				list = logService.getListByBlend(configProperty.getEs_index(), types, map,page,size);
-			}else {
-				//list = logService.getListByBlend(configProperty.getEs_index(), types, map,session.getAttribute(Constant.SESSION_USERID).toString(),page,size);
-                list = logService.getLogListByBlend(map, null, null, page, size, types, configProperty.getEs_index());
-			}
-		}
-		Map<String, Object> allmap = new HashMap<>();
-		allmap = list.get(0);
-		list.remove(0);
-		allmap.put("list", list);
-		String result = JSONArray.fromObject(allmap).toString();
-		String replace=result.replace("\\\\005", "<br/>");
-
-		return replace;
-	}*/
-
 
 	/**
 	 * 查询+导出至文件，放在服务器指定目录
@@ -1266,7 +1210,7 @@ public class LogController extends BaseController{
 
 		ArrayList<String> arrayList = new ArrayList<>();
 		List<Map<String, Object>> list =null;
-
+		Map<String, Object> allmap = new HashMap<>();
 		// 判断type是否存在，如果存在使用type值，否则使用默认
 		if (map.get("type")!=null&&!map.get("type").equals("")) {
 			arrayList.add(map.get("type"));
@@ -1275,17 +1219,25 @@ public class LogController extends BaseController{
 			try {
 				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			} catch (Exception e) {
+				logger.error("DNS日志查询：失败！");
 				e.printStackTrace();
+				allmap.put("count",0);
+				allmap.put("list",null);
+				return JSONArray.fromObject(allmap).toString();
 			}
 		}else {
 			String[] types = {LogType.LOGTYPE_DNS};
 			try {
 				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			} catch (Exception e) {
+				logger.error("DNS日志查询：失败！");
 				e.printStackTrace();
+				allmap.put("count",0);
+				allmap.put("list",null);
+				return JSONArray.fromObject(allmap).toString();
 			}
 		}
-		Map<String, Object> allmap = new HashMap<>();
+
 		allmap = list.get(0);
 		list.remove(0);
 		allmap.put("list", list);
@@ -1346,65 +1298,30 @@ public class LogController extends BaseController{
 			endtime = end.toString();
 			map.remove("endtime");
 		}
-		//
-		/*String type = request.getParameter("type");
-		// 开始时间
-		String starttime = request.getParameter("starttime");
-		// 结束时间
-		String endtime = request.getParameter("endtime");
-		// 资产ip
-		String ip = request.getParameter("ip");
-		// 资产id
-		String equipmentid = request.getParameter("equipmentid");
-		// 资产名
-		String hostname = request.getParameter("hostname");
-		// 事件级别，对应日志级别（0-8）
-		String event_level = request.getParameter("event_level");
-		// 事件级别，高中低危，0-3高危
-		String event_levels = request.getParameter("event_levels");
-		// 事件类型
-		String event_type = request.getParameter("event_type");
-		String page = request.getParameter("page");
-		String size = request.getParameter("size");*/
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 
 		//Map<String, String> map = new HashMap<String, String>();
 		// 事件查询自定义值，该字段确认日志中是否定性事件
 		map.put("event", "event");
 
-		/*if (ip!=null&&!ip.equals("")) {
-			map.put("ip", ip);
-		}
-		if (hostname!=null&&!hostname.equals("")) {
-			map.put("equipmentname", hostname);
-		}
-		if (event_level!=null&&!event_level.equals("")) {
-			map.put("event_level", event_level);
-		}
-		if (event_levels!=null&&!event_levels.equals("")) {
-			map.put("event_levels", event_levels);
-		}
-		if (event_type!=null&&!event_type.equals("")) {
-			map.put("event_type", event_type);
-		}
-		if (equipmentid!=null&&!equipmentid.equals("")) {
-			map.put("equipmentid", equipmentid);
-		}*/
 		// 判断是否是非管理员角色，是传入参数用户id
 		if (!userrole.equals(ContextRoles.MANAGEMENT)){
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 
 		List<Map<String, Object>> list =null;
-
+		Map<String, Object> allmap = new HashMap<>();
 		String[] types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 		try {
 			list = logService.getLogListByBlend(map,starttime,endtime,page,size,types,configProperty.getEs_index());
 		} catch (Exception e) {
+			logger.error("事件查询：失败！");
 			e.printStackTrace();
+			allmap.put("count",0);
+			allmap.put("list",null);
+			return JSONArray.fromObject(allmap).toString();
 		}
 
-		Map<String, Object> allmap = new HashMap<>();
 		allmap = list.get(0);
 		list.remove(0);
 		allmap.put("list", list);
@@ -1546,7 +1463,7 @@ public class LogController extends BaseController{
 
 		try {
 			long count = 0;
-			count = logService.getCount(configProperty.getEs_index(), types,null);
+			count = logService.getCount(configProperty.getEs_old_index(), types,null);
 			map.put("indices_defaultpacket", count);
 		} catch (Exception e) {
 			map.put("indices_defaultpacket", "获取异常");

@@ -25,7 +25,7 @@ public interface IEquipmentService {
 	
 	List<Equipment> selectEquipment(Equipment equipment);
 	
-	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session);
+	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session) throws Exception;
 	
 	Equipment selectOneEquipment(Equipment equipment);
 	

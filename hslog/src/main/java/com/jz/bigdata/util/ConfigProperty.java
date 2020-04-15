@@ -44,6 +44,9 @@ public class ConfigProperty {
 	@Value("#{prop.es_tempalatePattern}")
 	private String es_tempalatePattern;
 
+	@Value("#{prop.es_old_index}")
+	private String es_old_index;
+
     @Value("#{prop.es_index}")
     private String es_index;
 
@@ -220,6 +223,14 @@ public class ConfigProperty {
 
 	public void setEs_tempalatePattern(String es_tempalatePattern) {
 		this.es_tempalatePattern = es_tempalatePattern;
+	}
+
+	public String getEs_old_index() {
+		return es_old_index;
+	}
+
+	public void setEs_old_index(String es_old_index) {
+		this.es_old_index = es_old_index;
 	}
 
 	public String getEs_index() {

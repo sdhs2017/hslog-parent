@@ -338,7 +338,7 @@ public class CollectorServiceImpl implements ICollectorService{
 				.removalListener((Long Long, Http http, RemovalCause cause) ->
 				{
 
-					System.out.println("驱逐原因：" + cause);
+					//System.out.println("驱逐原因：" + cause);
 					if("EXPLICIT".equals(cause)){
 						//不需要进行处理
 					}else if ("EXPIRED".equals(cause)||"SIZE".equals(cause)){

@@ -86,6 +86,12 @@ public class EcsSearchDao implements IEcsSearchDao {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery("log.level", level));
+                }else if (entry.getKey().equals("exists")){
+                    // 针对事件查询的保证事件类型不为空
+                    String [] fields = entry.getValue().split(",");
+                    for (String field : fields){
+                        boolQueryBuilder.must(QueryBuilders.existsQuery(field));
+                    }
                 }else if(entry.getKey().equals("log.levels")){
                     // 范围查询，根据自定义的文字描述事件级别，对应到实际的数字事件级别
                     if (entry.getValue().equals("高危")) {
@@ -247,6 +253,12 @@ public class EcsSearchDao implements IEcsSearchDao {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery("log.level", level));
+                }else if (entry.getKey().equals("exists")){
+                    // 针对事件查询的保证事件类型不为空
+                    String [] fields = entry.getValue().split(",");
+                    for (String field : fields){
+                        boolQueryBuilder.must(QueryBuilders.existsQuery(field));
+                    }
                 }else if(entry.getKey().equals("log.levels")){
                     // 范围查询，根据自定义的文字描述事件级别，对应到实际的数字事件级别
                     if (entry.getValue().equals("高危")) {

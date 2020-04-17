@@ -32,6 +32,8 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +89,9 @@ public class KafkaCollector implements Runnable {
 
 	//logstash 发送的syslog对应winlogbeat，声明index
 	private String logstashIndexName ;
+	//logstash syslog 日志转换
+	private final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+	private DateTime dateTime;
 
 	/**
 	 * 线程操作
@@ -280,6 +285,7 @@ public class KafkaCollector implements Runnable {
 				//BulkRequest newrequests = new BulkRequest();
 				StringBuilder builder = new StringBuilder();
 				while (it.hasNext() && isStarted()) {
+
 					//System.out.println("---中泰数据接收-----"+it.next().message().toString());
 					String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 					//System.out.println(index);
@@ -316,6 +322,7 @@ public class KafkaCollector implements Runnable {
 					Matcher filebeatmatcher = filebeatpattern.matcher(log);
 					//logstash syslog
 					Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(log);
+					//System.out.println("-------"+log);
 					//logstash发送的日志信息
 					if(logstashSyslogMatcher.find()){
 						logType = LogType.LOGTYPE_SYSLOG;
@@ -340,7 +347,8 @@ public class KafkaCollector implements Runnable {
 								logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN);
 							}
 							json = new Logstash2ECS().toJson(logstashSyslog);
-							logstashIndexName = "winlogbeat-"+ DateTime.now().toString("yyyy.MM.dd");
+							dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
+							logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
 							newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName,null,null), LogType.LOGTYPE_SYSLOG, json));
 						}catch (Exception e){
 							e.printStackTrace();
@@ -735,7 +743,7 @@ public class KafkaCollector implements Runnable {
 										json = gson.toJson(syslog);
 										//requests.add(template.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_SYSLOG, json));
 										//newrequests.add(logCurdDao.insertNotCommit(configProperty.getEs_index().replace("*","_"+syslog.getHslog_type()+format.format(syslog.getLogdate())), LogType.LOGTYPE_SYSLOG, json));
-										newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(),syslog.getIndex_suffix(),syslog.getLogdate()), LogType.LOGTYPE_SYSLOG, json));
+										newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),syslog.getIndex_suffix(),syslog.getLogdate()), LogType.LOGTYPE_SYSLOG, json));
 									}
 
 								}else{

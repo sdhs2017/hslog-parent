@@ -197,6 +197,7 @@ public class Logstash2ECS {
         private String equipmentname;
         private String userid;
         private String deptid;
+        private Boolean failure;
 
         public String getIp() {
             return ip;
@@ -236,6 +237,14 @@ public class Logstash2ECS {
 
         public void setDeptid(String deptid) {
             this.deptid = deptid;
+        }
+
+        public Boolean getFailure() {
+            return failure;
+        }
+
+        public void setFailure(Boolean failure) {
+            this.failure = failure;
         }
     }
 
@@ -418,13 +427,14 @@ public class Logstash2ECS {
         process.setPid(logstashSyslog.getPid());
         winlog.setProcess(process);
         this.setWinlog(winlog);
-        //fields ip equipmentid equipmentname userid deptid
+        //fields ip equipmentid equipmentname userid deptid failure
         Fields fields = new Fields();
         fields.setIp(logstashSyslog.getIp());
         fields.setDeptid(logstashSyslog.getDeptid());
         fields.setEquipmentid(logstashSyslog.getEquipmentid());
         fields.setEquipmentname(logstashSyslog.getEquipmentname());
         fields.setUserid(logstashSyslog.getUserid());
+        fields.setFailure(logstashSyslog.getFailure());
         this.setFields(fields);
 
         return JSON.toJSON(this).toString();

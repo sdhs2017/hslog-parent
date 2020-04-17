@@ -204,7 +204,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                                 jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
                                 jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
                             }else {
-                                // TODO 之前版本有对
+                                // TODO 之前版本对IP地址匹配但是资产未匹配的数据设置为unknow
                                 /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
                                 jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
                                 jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
@@ -227,6 +227,10 @@ public class KafakaOfBeatsCollector implements Runnable {
                                 default:
                                     logger.info("日志级别符合标准");
                             }
+                            /**
+                             * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                             */
+                            jsonObject.getAsJsonObject("fields").addProperty("failure",false);
                             /**
                              * 判断windows日志事件event.action字段是否是中文，如果是中文改成英文
                              */

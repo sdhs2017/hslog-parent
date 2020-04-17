@@ -852,7 +852,7 @@
                 }
                 for (let j in this.chartsConfig.yAxisArr){
                     this.chartsConfig.yAxisArr[j].aggregationParamArr = [];
-                    this.opt.series = [];
+                    this.opt.series[j].data = [];
                 }
                 //定义参数
                 let optStr = {

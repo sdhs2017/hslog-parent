@@ -1,9 +1,10 @@
 <template>
     <div class="content-bg">
         <div class="top-title">
-            <el-button  type="primary" plain @click="drawerState = true" >添加图表</el-button>
-            <el-button  type="primary" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
-            <el-button  type="success" plain @click="saveE">保存</el-button>
+            <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加图表</el-button>
+            <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
+            <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
+            <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;">刷新</el-button>
             <div class="date-wapper"><date-layout  :busName="busName"></date-layout></div>
         </div>
         <!--dashboard-->
@@ -35,10 +36,11 @@
                             <span>{{item.tit}}</span>
                             <!--                        <el-input class="tit-input" placeholder="请输入内容"></el-input>-->
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
-                            <i class="fullscreenE el-icon-full-screen" title="全屏" @click="fullscreenE(item)"></i>
+                            <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
+                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
-                        <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`">
-                        </div>
+                        <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
+                        <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`"></div>
                     </div>
                     <div v-else class="vue-draggable-handle text-box" style="height: 100%;">
                         <div class="text-wapper" v-html="item.text"></div>
@@ -60,12 +62,13 @@
                <div class="drawer-tit">
                    <i class="close-drawer el-icon-close" @click="drawerState = false"></i>
                    <span>图表列表</span>
-                   <i class="refresh-list el-icon-refresh-right"></i>
+                   <i class="refresh-list el-icon-refresh-right" @click="getChartsList"></i>
                </div>
                <el-checkbox-group v-model="checkedList" class="drawer-list">
                    <ul>
                        <li v-for="(item,i) in chartsList" :key="i">
                            <el-checkbox :label="item.id">{{item.title}}</el-checkbox>
+                           <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : ''}}</span>
                        </li>
                    </ul>
                </el-checkbox-group>
@@ -141,6 +144,27 @@
                 <el-button @click="wordsState = false">取 消</el-button>
             </div>
         </el-dialog>
+        <!--保存-->
+        <el-dialog title="保存" :visible.sync="dialogFormVisible" width="400px">
+            <el-form>
+                <el-form-item label="名称">
+                    <el-input v-model="dashboardParams.name"></el-input>
+                </el-form-item>
+                <el-form-item label="描述">
+                    <el-input type="textarea" v-model="dashboardParams.des"></el-input>
+                </el-form-item>
+                <el-form-item v-if="dashboardId !== ''">
+                    <el-switch
+                        v-model="dashboardParams.otherSave"
+                        active-text="另存为新的仪表盘">
+                    </el-switch>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveDashBoard" :disabled="dashboardParams.name === '' ? 'disabled' : false">确 定</el-button>
+            </div>
+        </el-dialog>
     </div>
     
 </template>
@@ -155,7 +179,7 @@
     import dateLayout from '../dashboard/dateLayout'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
-    import {dateFormat} from "../../../static/js/common";
+    import {dateFormat,jumpHtml} from "../../../static/js/common";
     const echarts = require('echarts');
     //引入font.css
     import '../../assets/font.css'
@@ -172,6 +196,20 @@
         name: "dashboard",
         data() {
             return {
+                dashboardId:'',
+                //保存图表的弹窗状态
+                dialogFormVisible:false,
+                //保存图表表单参数
+                dashboardParams:{
+                    //图表名称
+                    name:'',
+                    //图表描述
+                    des:'',
+                    //查询条件
+                    searchParam:'',
+                    //另存
+                    otherSave:false
+                },
                 //时间监听事件名称
                 busName:'dashboardBusName',
                 //文本框状态
@@ -185,6 +223,7 @@
                         }
                     }
                 },
+                color:['#1E73F0','#00D1CE','#33C3F7','#3952D3','#185BFF','#2455AD','#74EE9A','#253479'],
                 //文本框类型 添加/修改
                 wordType:'add',
                 //文本内容
@@ -207,10 +246,10 @@
                 checkedList:[],
                 //图例列表
                 chartsList:[
-                    {id:0,title:'日志级别数量统计',type:'bar'},
+                   /* {id:0,title:'日志级别数量统计',type:'bar'},
                     {id:1,title:'事件类型数量统计',type:'bar2'},
                     {id:2,title:'每小时日志数',type:'line'},
-                    {id:3,title:'日志级别百分比',type:'pie'}
+                    {id:3,title:'日志级别百分比',type:'pie'}*/
                 ],
                 addXLength:0,
                 fullscreenState:false,
@@ -225,7 +264,8 @@
         },
         mounted(){
             //获取dashboard数据
-            this.getDashboardData();
+            //this.getDashboardData();
+            this.getChartsList()
             //监听时间改变事件
             bus.$on(this.busName,(arr)=>{
                 console.log(arr);
@@ -245,6 +285,26 @@
             }
         },
         methods:{
+            /*获取图表列表*/
+            getChartsList(){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/BI/getVisualizations.do','')
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            let obj =res.data;
+                            if (obj.success == 'true'){
+                                this.chartsList = obj.data;
+                            } else {
+                                layer.msg(res.data.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+                            layer.msg('获取数据失败',{icon:5})
+                        })
+                })
+            },
             /*文字弹框确定按钮*/
             wordsOkBtn(){
                 console.log(JSON.stringify(this.content))
@@ -266,6 +326,20 @@
                 this.currentEditIndex = i;
                 this.content = this.layout[i].text;
             },
+            /*修改图表*/
+            editChartBtn(i){
+                switch (this.layout[i].chartType) {
+                    case 'bar':
+                        jumpHtml('barChart'+this.layout[i].eId,'dashboard/barChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId},' 修改');
+                        break;
+                    case 'pie':
+                        jumpHtml('pieChart'+this.layout[i].eId,'dashboard/pieChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId},' 修改');
+                        break;
+                    case 'line':
+                        jumpHtml('lineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId},' 修改');
+                        break;
+                }
+            },
             /*添加图例*/
             addE(){
                 this.addXLength = 0;
@@ -285,10 +359,10 @@
                                    //获取echarts结构数据
                                    return this.getEchartsConstruction(res)
                                })
-                               .then((res)=>{
+                             /*  .then((res)=>{
                                    //获取图例数据
                                    return this.getEchartsData(res)
-                               })
+                               })*/
                                .then((res)=>{
                                    //加载图例
                                    return this.creatEcharts(res)
@@ -302,10 +376,62 @@
                 this.drawerState = false;
             },
             /*保存dashboart*/
-            saveE(){
-                // console.log(JSON.stringify(this.layout))
-                localStorage.setItem('dashboard',JSON.stringify(this.layout));
-                layer.msg('保存成功',{icon:1})
+            saveDashBoard(){
+                for (let i in this.layout){
+                    this.layout[i].opt = {};
+                }
+                let params = {
+                    title:this.dashboardParams.name,
+                    description:this.dashboardParams.des,
+                    option:JSON.stringify(this.layout),
+                    isSaveAs:true
+                }
+                //判断是否是修改图表
+                if(this.dashboardId !== ''){
+                    //判断是否是另存图表
+                    if(!this.dashboardParams.otherSave){//不是另存（修改原先的）
+                        params.id = this.dashboardId;
+                        params.isSaveAs = false;
+                    }
+                }
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/BI/saveDashboard.do',this.$qs.stringify(params))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            if(res.data.success == 'true'){
+                                this.dialogFormVisible = false;
+                                layer.msg(res.data.message,{icon:1})
+                            }else{
+                                layer.msg(res.data.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+                            layer.msg('保存失败',{icon:5})
+                        })
+                })
+            },
+            /*刷新dashboard*/
+            refreshDashboard(){
+                if (this.dashboardId !== ''){
+                    this.getDashboardData()
+                } else {
+                    //获取echart结构数据
+                    for(let i in this.layout){
+                        this.chartsCount += 1;
+                        //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                        if(this.layout[i].chartType !== 'text'){
+                            this.getEchartsConstruction(this.layout[i])
+                                .then((res)=>{
+                                    //加载图例
+                                    return this.creatEcharts(res)
+                                })
+                        }
+
+                    }
+                }
+
             },
             /*删除图例*/
             deleteE(i){
@@ -328,78 +454,89 @@
             },
             /*获取dashboard数据*/
             getDashboardData(){
-                let arr = JSON.parse(localStorage.getItem('dashboard'));
-                console.log(arr)
-                if(arr !== null){
-                    for(let i in arr){
-                        this.layout.push(arr[i]);
-                        if(arr[i].chartType !== 'text'){
-                            this.$nextTick(()=>{
-                                setTimeout(()=>{
-                                    this.creatEcharts(arr[i])
-                                },1000)
-                            })
-
-                        }
-                    }
-                }else{
-                    this.$nextTick(()=>{
+                this.$nextTick(()=>{
                     layer.load(1);
-                    //this.$axios.post(this.$baseUrl+'',this.$qs.stringify())
-                    this.$axios.get('static/filejson/dashboard.json','')
+                    this.$axios.post(this.$baseUrl+'/BI/getDashboardById.do',this.$qs.stringify({
+                        id:this.dashboardId
+                    }))
                         .then(res=>{
                             layer.closeAll('loading');
-                             // this.layout = res.data;
-                             for (let i in res.data){
-                                 this.layout.push(res.data[i]);
-                                 if(res.data[i].chartType !== 'text'){
-                                     /*this.getEchartsConstruction(res.data[i])
-                                         .then((res)=>{
-                                             return this.getEchartsData(res)
-                                         })
-                                         .then((res)=>{
-                                             //加载图例
-                                             return this.creatEcharts(res)
-                                         })*/
-                                     this.$nextTick(()=>{
-                                         this.creatEcharts(res.data[i])
-                                     })
+                            let obj = res.data;
+                            if (obj.success == 'true'){
+                                this.dashboardParams.name = obj.data.title;
+                                this.dashboardParams.des = obj.data.description;
+                                let option = JSON.parse(obj.data.option);
+                                this.layout = option;
+                                this.$nextTick(()=>{
+                                    //获取echart结构数据
+                                    for(let i in this.layout){
+                                        this.chartsCount = i;
+                                        //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                                        if(this.layout[i].chartType !== 'text'){
+                                            this.getEchartsConstruction(this.layout[i])
+                                                .then((res)=>{
+                                                    //加载图例
+                                                    return this.creatEcharts(res)
+                                                })
+                                        }
 
-                                 }
+                                    }
+                                })
 
 
-                             }
+                            }
                         })
                         .catch(err=>{
                             layer.closeAll('loading');
 
                         })
                 })
-                }
-
-
-
-
-                /*1.获取结构数据（位置、宽高）
-                * 2.根据获取的id查询图表结构
-                * 3.根据获取的id查询图表数据
-                * */
-                /*this.layout = [
-                    {"x":0,"y":0,"w":12,"h":8,"i":"aa","tit":"日志级别统计","opt":{"title":{"text":"","x":"center","textStyle":{"color":"#5bc0de"}},"color":{"type":"linear","x":0,"y":0,"x2":0,"y2":1,"colorStops":[{"offset":0,"color":"rgba(15,219,243,1)"},{"offset":1,"color":"rgba(68,47,148,0.5)"}],"global":false},"tooltip":{},"xAxis":{"name":"级别","nameTextStyle":{"color":"#5bc0de"},"axisLine":{"lineStyle":{"color":"#5bc0de"}},"axisLabel":{"borderColor":"#5bc0de","interval":0,"rotate":"20"},"data":["info","error","message"]},"grid":{"bottom":"20%"},"yAxis":{"name":"数量/条","nameTextStyle":{"color":"#5bc0de"},"splitLine":{"lineStyle":{"color":"#303e4e"}},"axisLine":{"lineStyle":{"color":"#5bc0de"}},"axisLabel":{"margin":2}},"series":[{"name":"级别","type":"bar","data":[1121,2231,432]}]}},
-                    {"x":12,"y":0,"w":12,"h":8,"i":"bb","tit":"日志级别统计","opt":{"title":{"text":"","x":"center","textStyle":{"color":"#5bc0de"}},"color":{"type":"linear","x":0,"y":0,"x2":0,"y2":1,"colorStops":[{"offset":0,"color":"rgba(15,219,243,1)"},{"offset":1,"color":"rgba(68,47,148,0.5)"}],"global":false},"tooltip":{},"xAxis":{"name":"级别","nameTextStyle":{"color":"#5bc0de"},"axisLine":{"lineStyle":{"color":"#5bc0de"}},"axisLabel":{"borderColor":"#5bc0de","interval":0,"rotate":"20"},"data":["info","error","message"]},"grid":{"bottom":"20%"},"yAxis":{"name":"数量/条","nameTextStyle":{"color":"#5bc0de"},"splitLine":{"lineStyle":{"color":"#303e4e"}},"axisLine":{"lineStyle":{"color":"#5bc0de"}},"axisLabel":{"margin":2}},"series":[{"name":"级别","type":"bar","data":[1121,2231,432]}]}}
-                ]*/
             },
             /*获取echarts结构数据*/
             getEchartsConstruction(obj){
                 return new Promise((resolve,rej)=>{
                     this.$nextTick(()=>{
                         layer.load(1);
-                        this.$axios.get('static/filejson/baseConstruction.json','')
+                        this.$axios.post(this.$baseUrl+'/BI/getVisualizationById.do',this.$qs.stringify({
+                            id:obj.eId
+                        }))
                             .then(res=>{
                                 layer.closeAll('loading');
-                                obj.opt = res.data[obj.chartType];
-                                // obj.chartType = res.data.type;
-                                resolve(obj);
+                                let data = res.data;
+                                if (data.success == 'true'){
+                                    //判断图表是否适应被删除
+                                    if(data.data.id === ''){
+                                        obj.eId = '';
+                                        resolve(obj);
+                                    }
+                                    let option = JSON.parse(data.data.option).opt;
+                                    //console.log(option)
+                                    //填充ecahrt数据
+                                    option.title.show = false;
+                                    let xD = JSON.parse(data.data.data)[0].name;
+                                    let yD = JSON.parse(data.data.data)[0].data;
+                                    //判断图表类型
+                                    if(obj.chartType === 'line' || obj.chartType === 'bar'){
+                                        option.xAxis.data = xD;
+                                        option.series[0].data = yD;
+                                    }else if(obj.chartType === 'pie'){
+                                        let pieData = [];
+                                        for (let i in xD) {
+                                            pieData.push({
+                                                name:xD[i],
+                                                value:yD[i],
+                                                itemStyle: {color:this.color[i]}
+                                            })
+                                        }
+                                        option.series[0].data = pieData;
+                                    }
+                                    obj.tit = data.data.title;
+                                    obj.opt = option;
+                                    resolve(obj);
+                                }else{
+                                    layer.msg('获取数据失败',{icon:5})
+                                }
+
                                 /*//调用获取echart数据
                                 let echartsData = this.getEchartsData(res.data.bar);
                                 console.log(echartsData);*/
@@ -408,6 +545,7 @@
                                 layer.closeAll('loading');
                             })
                     })
+
                 })
             },
             /*获取echarts数据*/
@@ -444,16 +582,16 @@
             /*创建总体结构*/
             createConstruction(eObj){
                 return new Promise((resolve, reject) => {
-                    let x = 0;let w = 12;
+                    let x = 0;let w = 24;
                     if(this.addXLength === 0){
                         x = 0;
-                    }else if(24 - this.addXLength >= w){
+                    }else if(48 - this.addXLength >= w){
                         x = w
                     }
                     this.addXLength += w;
                     this.chartsCount = Number(this.chartsCount)+1;
                     let i = dateFormat('yyyy-mm-dd HH:MM:SS',new Date()).replace(/\s*/g,"");
-                    let obj = {"x":x,"y":0,"w":12,"h":8,"tit":eObj.title,"i":i+this.chartsCount,chartType:eObj.type,"opt":{}};
+                    let obj = {eId:eObj.id,"x":x,"y":0,"w":24,"h":8,"tit":'',"i":i+this.chartsCount,chartType:eObj.type,"opt":{}};
                     this.layout.push(obj);
                     resolve(obj);
                 })
@@ -494,6 +632,7 @@
                     window.addEventListener("resize",()=>{
                         this.echartsArr[obj.i].resize();
                     });
+
                 })
 
             },
@@ -525,6 +664,43 @@
                 }
 
             }
+        },
+        watch:{
+            'dashboardId'(newV) {
+                if (newV !== '') {
+                    this.getDashboardData()
+                }
+            }
+        },
+        beforeRouteEnter(to, from, next) {
+            next (vm => {
+                //判断是否有参数  有参数说明是修改功能页面
+                if(JSON.stringify(to.query) !== "{}"){
+                    // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                    //修改此组件的name值
+                    vm.$options.name = 'dashboard'+ to.query.id;
+                    //修改data参数
+                    vm.htmlTitle = `修改 ${to.query.name}`;
+                    vm.busName = 'resiveDashboard'+to.query.id;
+                    //时间范围监听事件
+                    bus.$on(vm.busName,(arr)=>{
+                        console.log(arr)
+                    })
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'dashboard'+to.query.id,
+                        component:'dashboard/dashboard.vue',
+                        title:'修改'
+                    }
+                    sessionStorage.setItem('/dashboard'+to.query.id,JSON.stringify(obj))
+                    if(vm.dashboardId === '' || vm.dashboardId !== to.query.id){
+                        vm.dashboardId = to.query.id;
+                    }
+                }
+
+
+            })
+
         },
         components:{
             vEcharts,
@@ -594,6 +770,17 @@
         /*width: 613px;
         height: 260px;*/
     }
+    .no-chart{
+        width: 100%;
+        position: absolute;
+        top: 50px;
+        height: calc(100% - 50px);
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #56769a;
+    }
     .charts-list{
         box-sizing: border-box;
         width: 300px;
@@ -630,9 +817,12 @@
     .drawer-list li{
         height: 40px;
         line-height: 40px;
-        padding-left: 20%;
         color: #fff;
         border-bottom: 1px solid #4b6179;
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+        padding-right:5px;
     }
     .drawer-list /deep/ .el-checkbox__label{
         color: #fff;

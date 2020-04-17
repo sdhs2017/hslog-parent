@@ -55,8 +55,11 @@
                 <el-form-item label="名称:" >
                     <el-input v-model="systemParams.sys_name" placeholder="名称"  class="item"></el-input>
                 </el-form-item>
+                <el-form-item label="图标:" >
+                    <el-input v-model="systemParams.icon" placeholder="图标"  class="item"></el-input>
+                </el-form-item>
                 <el-form-item label="描述:" >
-                    <el-input type="textarea"  :autosize="{ minRows:8, maxRows: 10}" v-model="systemParams.note"></el-input>
+                    <el-input type="textarea"  :autosize="{ minRows:6, maxRows: 8}" v-model="systemParams.note"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -134,7 +137,7 @@
     import {checkStrong,is_has} from  '../../../static/js/common.js'
     import bus from '../common/bus';
     export default {
-        name: "userManage",
+        name: "menuManage",
         data() {
             return {
                 //树节点数据
@@ -154,6 +157,7 @@
                 //树节点参数
                 systemParams:{
                     sys_name:'',
+                    icon:'',
                     note:''
                 },
                 //选中的树节点

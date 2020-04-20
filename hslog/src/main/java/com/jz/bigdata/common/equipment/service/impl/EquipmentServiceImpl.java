@@ -146,7 +146,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * @description 根据id查询单一资产
 	 */
 	@Override
-	public List<Equipment> selectEquipment(Equipment equipment) {
+	public List<Equipment> selectEquipment(Equipment equipment) throws Exception {
 		List<Equipment> list = equipmentDao.selectEquipment(equipment);
 		List<Equipment> listEquipment = (List<Equipment>) list.get(0);
 
@@ -175,10 +175,11 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		/*esMap.put("equipmentid", equipmentid);
 		equipmentmap.put("log_count", logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");*/
 		/**
-		 *
+		 * 新版本查询ecsService
 		 */
 		esMap.put("fields.equipmentid", equipmentid);
-		equipmentmap.put("log_count", logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
+		esMap.put("fields.failure","false");
+		equipmentmap.put("log_count", ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
 
 		equipment = JavaBeanUtil.convertMapToBean(Equipment.class, equipmentmap);
 
@@ -228,6 +229,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			 * ECS的资产id改成fields.equipmentid
  			 */
 			esMap.put("fields.equipmentid", equipment.getId());
+			esMap.put("fields.failure","false");
 			equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
 		}
 		// 数据添加到map

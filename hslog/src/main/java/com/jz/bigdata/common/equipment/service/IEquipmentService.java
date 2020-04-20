@@ -23,7 +23,7 @@ public interface IEquipmentService {
 	
 	int delete(String[] ids);
 	
-	List<Equipment> selectEquipment(Equipment equipment);
+	List<Equipment> selectEquipment(Equipment equipment) throws Exception;
 	
 	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session) throws Exception;
 	

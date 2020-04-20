@@ -292,7 +292,8 @@ public class EcsCommonController {
         }
         // 业务只查询范式化成功的日志
         map.put("fields.failure","false");
-
+        // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
+        map.put("exists", "event.action");
 
         // 判断是否是非管理员角色，是传入参数用户id
         if (!userrole.equals(ContextRoles.MANAGEMENT)){

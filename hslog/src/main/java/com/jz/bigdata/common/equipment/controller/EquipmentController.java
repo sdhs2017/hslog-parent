@@ -107,7 +107,12 @@ public class EquipmentController {
 	@RequestMapping(value="/selectEquipment.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="查询单个资产")
 	public List<Equipment> selectEquipment(HttpServletRequest request, Equipment equipment) {
-		List<Equipment> list=this.equipmentService.selectEquipment(equipment);
+		List<Equipment> list= null;
+		try {
+			list = this.equipmentService.selectEquipment(equipment);
+		} catch (Exception e) {
+			logger.error("查询单个资产：失败");
+		}
 		return list;
 	}
 
@@ -178,7 +183,13 @@ public class EquipmentController {
 	@RequestMapping(value="/selectEquipmentByLog.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="日志跳转资产")
 	public Map<String, Object> selectEquipmentByLog(HttpServletRequest request, Equipment equipment) {
-		List<Equipment> list=this.equipmentService.selectEquipment(equipment);
+		List<Equipment> list= null;
+		try {
+			list = this.equipmentService.selectEquipment(equipment);
+		} catch (Exception e) {
+			logger.error("查询资产：失败！");
+			e.printStackTrace();
+		}
 		Map<String,Object> map =new HashMap<>();
 		if(list.size()>0){
 			map.put("success", "true");

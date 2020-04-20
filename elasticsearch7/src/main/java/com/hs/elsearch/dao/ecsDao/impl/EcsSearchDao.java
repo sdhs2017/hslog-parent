@@ -82,13 +82,10 @@ public class EcsSearchDao implements IEcsSearchDao {
         if (map != null && !map.isEmpty()) {
             // 遍历map中查询条件
             for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (entry.getKey().equals("event")) {
-                    // 字段不为null查询
-                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("log.level")));
-                }else if (entry.getKey().equals("log.level")) {
+               if (entry.getKey().equals("log.level")) {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
-                    boolQueryBuilder.must(QueryBuilders.termsQuery("log.level", level));
+                    boolQueryBuilder.must(QueryBuilders.termsQuery(entry.getKey(), level));
                 }else if (entry.getKey().equals("exists")){
                     // 针对事件查询的保证事件类型不为空
                     String [] fields = entry.getValue().split(",");
@@ -377,6 +374,12 @@ public class EcsSearchDao implements IEcsSearchDao {
             for (Map.Entry<String,String> entry : map.entrySet()){
                 if (entry.getKey().equals(ECS_DATE_FIELD)) {
                     boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("exists")){
+                    // 针对事件查询的保证事件类型不为空
+                    String [] fields = entry.getValue().split(",");
+                    for (String field : fields){
+                        boolQueryBuilder.must(QueryBuilders.existsQuery(field));
+                    }
                 }else if (entry.getKey().equals("log.syslog.severity.code")){
                     int gte = 0;
                     int lte = 7;

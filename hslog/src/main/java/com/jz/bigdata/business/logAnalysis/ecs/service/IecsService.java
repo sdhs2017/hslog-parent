@@ -23,6 +23,8 @@ public interface IecsService {
     public String deleteById(String index, String id) throws Exception;
     /**
      * 全文检索
+     * @param starttime 开始时间
+     * @param endtime 截止时间
      * @param content 检索条件
      * @param multiQueryField 用于多字段匹配
      * @param map 其他查询条件
@@ -32,7 +34,7 @@ public interface IecsService {
      * @return
      * @throws Exception
      */
-    public List<Map<String, Object>> getListByContent(String content, String [] multiQueryField, Map<String, String> map, String page, String size, String... indices) throws Exception;
+    public List<Map<String, Object>> getListByContent(String starttime,String endtime,String content, String [] multiQueryField, Map<String, String> map, String page, String size, String... indices) throws Exception;
 
     /**
      * 日志管理-精确查询业务

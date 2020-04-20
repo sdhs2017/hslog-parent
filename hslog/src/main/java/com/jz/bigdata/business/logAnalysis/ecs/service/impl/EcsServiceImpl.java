@@ -33,7 +33,7 @@ public class EcsServiceImpl implements IecsService {
     }
 
     @Override
-    public List<Map<String, Object>> getListByContent(String content, String[] multiQueryField, Map<String, String> map, String page, String size, String... indices) throws Exception {
+    public List<Map<String, Object>> getListByContent(String starttime,String endtime,String content, String[] multiQueryField, Map<String, String> map, String page, String size, String... indices) throws Exception {
         Integer fromInt = 0;
         Integer sizeInt = 10;
 
@@ -41,7 +41,7 @@ public class EcsServiceImpl implements IecsService {
             fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
             sizeInt = Integer.parseInt(size);
         }
-        return ecsSearchDao.getListByContent(content,multiQueryField,map,fromInt,sizeInt,indices);
+        return ecsSearchDao.getListByContent(starttime,endtime,content,multiQueryField,map,fromInt,sizeInt,indices);
     }
 
     @Override

@@ -229,7 +229,7 @@ public class BIController {
             String result = iBIService.getDashboards(biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
-            return Constant.failureMessage("获取仪表盘列表失败");
+            return Constant.successData(null);
         }
     }
     /**

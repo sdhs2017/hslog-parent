@@ -29,71 +29,31 @@ public interface IBIService {
 
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param indices 索引或template名称
-     * @param groupByField 需要进行聚合的字段
-     * @param groupByFieldType 需要进行聚合方式（terms/DataHistogram）
-     * @param sumField 聚合分组后进行sum计算的字段
-     * @param size 聚合结果最大返回数
-     * @param sort 排序
-     * @param starttime 时间范围-开始时间
-     * @param endtime 时间范围-结束时间
-     * @param map 其他限制条件
+     * @param params 统计相关的参数
      * @return
      */
     public String groupByThenSum(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param indices 索引或template名称
-     * @param groupByField 需要进行聚合的字段
-     * @param groupByFieldType 需要进行聚合方式（terms/DataHistogram）
-     * @param sumField 聚合分组后进行sum计算的字段
-     * @param size 聚合结果最大返回数
-     * @param sort 排序
-     * @param starttime 时间范围-开始时间
-     * @param endtime 时间范围-结束时间
-     * @param map 其他限制条件
+     * @param params 统计相关的参数
      * @return
      */
     public String groupByThenCount(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param indices 索引或template名称
-     * @param groupByField 需要进行聚合的字段
-     * @param groupByFieldType 需要进行聚合方式（terms/DataHistogram）
-     * @param sumField 聚合分组后进行sum计算的字段
-     * @param size 聚合结果最大返回数
-     * @param sort 排序
-     * @param starttime 时间范围-开始时间
-     * @param endtime 时间范围-结束时间
-     * @param map 其他限制条件
+     * @param params 统计相关的参数
      * @return
      */
     public String groupByThenAvg(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param indices 索引或template名称
-     * @param groupByField 需要进行聚合的字段
-     * @param groupByFieldType 需要进行聚合方式（terms/DataHistogram）
-     * @param sumField 聚合分组后进行sum计算的字段
-     * @param size 聚合结果最大返回数
-     * @param sort 排序
-     * @param starttime 时间范围-开始时间
-     * @param endtime 时间范围-结束时间
-     * @param map 其他限制条件
+     * @param params 统计相关的参数
      * @return
      */
     public String groupByThenMax(VisualParam params) throws Exception;
     /**
      * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param indices 索引或template名称
-     * @param groupByField 需要进行聚合的字段
-     * @param groupByFieldType 需要进行聚合方式（terms/DataHistogram）
-     * @param sumField 聚合分组后进行sum计算的字段
-     * @param size 聚合结果最大返回数
-     * @param sort 排序
-     * @param starttime 时间范围-开始时间
-     * @param endtime 时间范围-结束时间
-     * @param map 其他限制条件
+     * @param params 统计相关的参数
      * @return
      */
     public String groupByThenMin(VisualParam params) throws Exception;

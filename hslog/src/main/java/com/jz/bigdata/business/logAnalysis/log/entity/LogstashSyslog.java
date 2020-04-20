@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.log.entity;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.google.gson.annotations.SerializedName;
 import org.joda.time.DateTime;
@@ -19,11 +20,13 @@ public class LogstashSyslog {
     private Object severity_label;//严重性标签
     private Object severity_name;//与severity_label相同，用来输出 写入ES的JSON
     private Object priority;//优先级：facility * 8 + severity 优先级越低情况越严重。
+    private Object tags; //logstash格式匹配标签
     private String ip;//ip信息
     private String equipmentid;//资产id
     private String equipmentname;//资产名称
     private String userid;//用户id
     private String deptid;//部门id
+    private Boolean failure;// logstash范式化是否失败，失败true，成功false
 
     public String getIp() {
         return ip;
@@ -171,4 +174,39 @@ public class LogstashSyslog {
         this.priority = priority;
     }
 
+    @JSONField(name ="tags")
+    public Object getTags() {
+        return tags;
+    }
+    @JSONField(name ="tags")
+    public void setTags(Object tags) {
+        this.tags = tags;
+    }
+
+    public Boolean getFailure() {
+        return failure;
+    }
+
+    public void setFailure(Boolean failure) {
+        this.failure = failure;
+    }
+
+    public static void main(String [] args){
+
+        //String log = "{\"priority\":30,\"facility\":3,\"severity_label\":\"Informational\",\"type\":\"system-syslog\",\"severity\":6,\"@timestamp\":\"2020-04-16T23:58:52.000Z\",\"host\":\"127.0.0.1\",\"facility_label\":\"system\",\"program\":\"logstash\",\"logsource\":\"jzlogserv181\",\"@version\":\"1\",\"message\":\"}\"}";
+        String log = "{\"type\":\"system-syslog\",\"severity\":0,\"tags\":[\"_grokparsefailure_sysloginput\"],\"priority\":0,\"@version\":\"1\",\"facility\":0,\"facility_label\":\"kernel\",\"host\":\"172.21.0.9\",\"message\":\"<30>Apr 16 11:05:01 VM_0_9_centos logstash: [2020-04-16T11:05\n" +
+                ":01,554][INFO ][logstash.inputs.syslog   ][main] new connection {:client=>\\\"172.21.0.9:60736\\\"}\\n\",\"@timestamp\":\"2020-04-16T11:05:01.650Z\",\"severity_label\":\"Emergency\"}";
+        LogstashSyslog logstashSyslog = (LogstashSyslog) JSON.parseObject(log, LogstashSyslog.class);
+        /**
+         * 判断tags确认logstash对syslog的日志范式化是否成功
+         */
+        if (logstashSyslog.getTags()!=null&&logstashSyslog.getTags().toString().contains("failure")){
+            logstashSyslog.setFailure(true);
+        }else{
+            logstashSyslog.setFailure(false);
+        }
+
+        String json = new Logstash2ECS().toJson(logstashSyslog);
+        System.out.println(json);
+    }
 }

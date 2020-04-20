@@ -56,7 +56,7 @@
                     width:'100'
                 },
                 {
-                    prop:'host.hostname',
+                    prop:'fields.equipmentname',
                     label:'资产名称',
                     width:'125',
                     clickFun:(item)=>{

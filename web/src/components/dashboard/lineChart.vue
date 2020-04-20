@@ -550,7 +550,7 @@
             },
             /*时间间隔选择 失去焦点事件*/
             timeIntervalBlur(event){
-                this.chartsConfig.xAxisArr[0].timeInterval = event.target.value;
+                //this.chartsConfig.xAxisArr[0].timeInterval = event.target.value;
             },
             /*y轴聚合类型改变*/
             yAggregationChange($event,index){
@@ -848,7 +848,7 @@
                 }
                 for (let j in this.chartsConfig.yAxisArr){
                     this.chartsConfig.yAxisArr[j].aggregationParamArr = [];
-                    this.opt.series = [];
+                    this.opt.series[j].data = [];
                 }
                 let optStr = {
                     config:this.chartsConfig,

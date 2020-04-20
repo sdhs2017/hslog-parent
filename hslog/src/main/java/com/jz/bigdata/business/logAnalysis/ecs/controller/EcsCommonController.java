@@ -71,11 +71,16 @@ public class EcsCommonController {
         Map<String, Object> map = new HashMap<>();
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
 
-        // error日志条数统计
+        /**
+         *  error日志条数统计
+         */
         try {
             long count = 0;
             Map<String, String> mappram = new HashMap<>();
+            // 业务只查询范式化成功的日志
+            mappram.put("fields.failure","false");
             mappram.put("log.level", "error");
+            // 判断资产查询条件是否为空，不为空则是全局error日志数查询
             if (equipmentid!=null&&!equipmentid.equals("")) {
                 mappram.put("fields.equipmentid", equipmentid);
             }
@@ -83,23 +88,33 @@ public class EcsCommonController {
             count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
             map.put("indiceserror", count);
         } catch (Exception e) {
+            logger.error("查询error日志数：失败！");
+            logger.error(e.getMessage());
             map.put("indiceserror", "获取异常");
         }
 
-        // 正常总数据统计
+        /**
+         * 所有日志总数据统计
+         */
         try {
             long count = 0;
             Map<String, String> mappram = new HashMap<>();
+            // 判断资产查询条件是否为空，不为空则是全局查询
             if (equipmentid!=null&&!equipmentid.equals("")) {
                 mappram.put("fields.equipmentid", equipmentid);
             }
+            // 业务只查询范式化成功的日志
+            mappram.put("fields.failure","false");
             count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
             map.put("indices", count);
         } catch (Exception e) {
+            logger.error("查询日志数：失败！");
+            logger.error(e.getMessage());
             map.put("indices", "获取异常");
         }
         list.add(map);
         String result = JSONArray.fromObject(list).toString();
+        logger.info("查询日志数：成功！");
 
         return result;
     }
@@ -114,27 +129,30 @@ public class EcsCommonController {
     public List<Map<String, Object>> getCountGroupByTime(HttpServletRequest request) {
         String index = configProperty.getEs_index();
 
-        //String param = request.getParameter("param");
         String equipmentid = request.getParameter("equipmentid");
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
 
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
         Map<String,String> map = new HashMap<>();
+
         if(null!=hsData){
             Gson gson = new Gson();
             map = gson.fromJson(hsData,Map.class);
-        }else{
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                map.put("fields.equipmentid", equipmentid);
-            }
         }
+        if (equipmentid!=null&&!equipmentid.equals("")) {
+            map.put("fields.equipmentid", equipmentid);
+        }
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
 
         List<Map<String, Object>> list = new ArrayList<>();
         int size = 10;
         try {
             list = ecsService.getListGroupByTime(starttime, endtime, "@timestamp", size, map, index);
         } catch (Exception e) {
+            logger.error("统计各时间段日志数据量：失败！");
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
 
@@ -156,9 +174,13 @@ public class EcsCommonController {
 
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
-        Gson gson = new Gson();
-        Map map = gson.fromJson(hsData,Map.class);
-
+        Map<String, String> map = new HashMap();
+        if (hsData!=null){
+            Gson gson = new Gson();
+            map = gson.fromJson(hsData,Map.class);
+        }
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String, List<Map<String, Object>>>  result = new HashMap<>();
         int size = 10;
@@ -215,6 +237,8 @@ public class EcsCommonController {
                 result.put(event_name,eventlist);
             }
         } catch (Exception e) {
+            logger.error("统计各时间段的各事件数据量：失败！");
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
 
@@ -222,14 +246,14 @@ public class EcsCommonController {
         return JSONArray.fromObject(result).toString();
     }
     /**
-     * 组合查询日志事件
+     * 精确查询日志事件
      * @param request
      * @author jiyourui
      * @return
      */
     @ResponseBody
     @RequestMapping(value="/getEventListByBlend",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="组合查询日志事件")
+    @DescribeLog(describe="精确查询日志事件")
     public String getEventListByBlend(HttpServletRequest request, HttpSession session) {
         // receive parameter
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
@@ -266,6 +290,8 @@ public class EcsCommonController {
             endtime = end.toString();
             map.remove("endtime");
         }
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
 
 
         // 判断是否是非管理员角色，是传入参数用户id
@@ -278,6 +304,8 @@ public class EcsCommonController {
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
+            logger.error("精确查询日志事件：失败！");
+            logger.error(e.getMessage());
             e.printStackTrace();
         }
 
@@ -333,6 +361,8 @@ public class EcsCommonController {
             endtime = end.toString();
             map.remove("endtime");
         }
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
 
         List<Map<String, Object>> list = null;
         try {

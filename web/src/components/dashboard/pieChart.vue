@@ -722,7 +722,7 @@
             saveChart(){
                 for (let j in this.chartsConfig.yAxisArr){
                     this.chartsConfig.yAxisArr[j].aggregationParamArr = [];
-                    this.opt.series = [];
+                    this.opt.series[j].data = [];
                 }
                 let optStr = {
                     config:this.chartsConfig,

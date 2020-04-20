@@ -9,7 +9,7 @@
             <img src="../../../static/img/logo_ay.png" alt="">
         </div>
         <ul class="header-ul">
-            <li v-for="(item,index) in this.systemMenu" :class="{ active:index === current}" :key="index" @click="changeSystem(item.id,index)">{{item.systemName}}</li>
+            <li v-for="(item,index) in this.systemMenu" :class="{ active:index === current}" :key="index" @click="changeSystem(item.id,index)"><i :class="item.icon"></i>{{item.systemName}}</li>
         </ul>
         <div class="header-right">
             <div class="header-user-con">
@@ -285,23 +285,56 @@
     }
     .header-ul{
         height: 50px;
-        width: 100%;
         position: absolute;
+        left: 50%;
         display: flex;
         justify-content: center;
         
     }
     .header-ul li{
+        position: relative;
+        left: -50%;
         height: 50px;
         line-height: 50px;
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 600;
-        padding: 0 15px;
+        padding: 0 20px;
         cursor: pointer;
+        /*background: #282d40;*/
+        background: #333a52;
+        color: #9ee0ec;
+        border-right: 1px solid #191c28;
+    }
+    .header-ul li i{
+        margin-right: 6px;
+    }
+    .header-ul li:hover {
+        background: #3b425d;
     }
     .header-ul li.active{
         color: #dd916b;
-        background: #343b56;
+        background: #464f73;
+    }
+    .header-ul li.active::after{
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 3px;
+        background:  #dd916b;
+        bottom: 0;
+        left: 0;
+    }
+    .header-ul li.active::before{
+        position: absolute;
+        width: 0;
+        bottom: 3px;
+        height: 0;
+        left: 50%;
+        margin-left: -5px;
+        content: " ";
+        border-bottom: 5px solid #dd916b;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
     }
     .header-right{
         float: right;

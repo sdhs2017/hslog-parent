@@ -58,58 +58,9 @@ public class EcsWinlogController {
     @Resource(name ="UserService")
     private IUserService usersService;
 
-    //@Autowired protected ClientTemplate clientTemplate;
     @Autowired
     protected ILogCrudDao logCrudDao;
 
-    /**
-     * 获取索引数据的数量
-     * 用于首页日志总数展示、首页error日志数展示、单个资产报表中的日志总数、error数展示
-     * @param request
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping(value="/getIndicesCount",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="获取索引数据的数量")
-    public String getIndicesCount(HttpServletRequest request) {
-
-
-        String equipmentid = request.getParameter("equipmentid");
-        Map<String, Object> map = new HashMap<>();
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
-        // error日志条数统计
-        try {
-            long count = 0;
-            Map<String, String> mappram = new HashMap<>();
-            mappram.put("log.level", "error");
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                mappram.put("fields.equipmentid", equipmentid);
-            }
-
-            count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
-            map.put("indiceserror", count);
-        } catch (Exception e) {
-            map.put("indiceserror", "获取异常");
-        }
-
-        // 正常总数据统计
-        try {
-            long count = 0;
-            Map<String, String> mappram = new HashMap<>();
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                mappram.put("fields.equipmentid", equipmentid);
-            }
-            count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
-            map.put("indices", count);
-        } catch (Exception e) {
-            map.put("indices", "获取异常");
-        }
-        list.add(map);
-        String result = JSONArray.fromObject(list).toString();
-
-        return result;
-    }
 
     /**
      * @param request
@@ -242,6 +193,9 @@ public class EcsWinlogController {
             map.remove("endtime");
         }
 
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
+
         List<Map<String, Object>> list = null;
         Map<String, Object> allmap = new HashMap<>();
         try {
@@ -308,7 +262,8 @@ public class EcsWinlogController {
             endtime = end.toString();
             map.remove("endtime");
         }
-
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
 
         // 判断是否是非管理员角色，是传入参数用户id
         if (!userrole.equals(ContextRoles.MANAGEMENT)){
@@ -316,14 +271,18 @@ public class EcsWinlogController {
         }
 
         List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> allmap = new HashMap<>();
 
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
+            logger.error("事件内容：查询失败");
             e.printStackTrace();
+            allmap.put("count", 0);
+            allmap.put("list", null);
+            return JSONArray.fromObject(allmap).toString();
         }
 
-        Map<String, Object> allmap = new HashMap<>();
         allmap = list.get(0);
         list.remove(0);
         allmap.put("list", list);
@@ -375,16 +334,20 @@ public class EcsWinlogController {
             endtime = end.toString();
             map.remove("endtime");
         }
-
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
         List<Map<String, Object>> list = new ArrayList<>();
+        Map<String, Object> allmap = new HashMap<>();
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
             logger.error("资产日志：查询失败");
             e.printStackTrace();
+            allmap.put("count", 0);
+            allmap.put("list", null);
+            return JSONArray.fromObject(allmap).toString();
         }
 
-        Map<String, Object> allmap = new HashMap<>();
         allmap = list.get(0);
         list.remove(0);
         allmap.put("list", list);
@@ -463,8 +426,6 @@ public class EcsWinlogController {
     public List<Map<String, Object>> getCountGroupByTime(HttpServletRequest request) {
         String index = configProperty.getEs_index();
 
-        String param = request.getParameter("param");
-        String equipmentid = request.getParameter("equipmentid");
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
 
@@ -498,9 +459,6 @@ public class EcsWinlogController {
         String index = configProperty.getEs_index();
 
         // TODO 前端字段改制：开始时间、结束时间作为单独字段传递;聚合单独字段；其他条件字段存入json中，方便后台处理
-
-        /*String time = request.getParameter("@timestamp");
-        String equipmentid = request.getParameter("equipmentid");*/
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
@@ -508,14 +466,18 @@ public class EcsWinlogController {
          * 聚合字段--日志级别
          */
         String groupbyfield = "log.level";
+        Map map = new HashMap();
 
-        Gson gson = new Gson();
-        Map map = Maps.newHashMap();
-        map = gson.fromJson(hsData,Map.class);
+        if(hsData!=null){
+            Gson gson = new Gson();
+            map = gson.fromJson(hsData,Map.class);
+        }
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
 
         // 聚合返回的数据条数，在目前的产品中日志级别总共有8个，设置为10个保证8个正常显示
         int size = 10;
-        List<Map<String, Object>> list = null;
+        List<Map<String, Object>> list = new ArrayList<>();
         try {
             list = ecsService.groupByThenCount(starttime,endtime,groupbyfield,size,map,index);
             logger.error("统计各个日志级别的数据量 : 成功！");
@@ -543,15 +505,19 @@ public class EcsWinlogController {
         String equipmentid = request.getParameter("equipmentid");
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
-
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
         /**
          * 聚合字段--事件
          */
         String groupbyfield = "event.action";
-        Gson gson = new Gson();
+
         Map map = Maps.newHashMap();
-        map = gson.fromJson(hsData,Map.class);
+        if (hsData!=null){
+            Gson gson = new Gson();
+            map = gson.fromJson(hsData,Map.class);
+        }
+        // 业务只查询范式化成功的日志
+        map.put("fields.failure","false");
         int size = 10;
 
         List<Map<String, Object>> list = null;
@@ -565,88 +531,6 @@ public class EcsWinlogController {
         }
 
         return list;
-    }
-
-    /**
-     * @param request
-     * 统计各时间段的各事件数据量
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping(value="/getCountGroupByTimeAndEvent",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="统计各时间段的各事件数据量")
-    public String getCountGroupByTimeAndEvent(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
-
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-
-        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-
-        Gson gson = new Gson();
-        Map map = gson.fromJson(hsData,Map.class);
-
-        List<Map<String, Object>> list = new ArrayList<>();
-        Map<String, List<Map<String, Object>>>  result = new HashMap<>();
-        int size = 10;
-        Set<String> events = new HashSet<>();
-        try {
-            list = ecsService.getListGroupByTimeAndEvent(starttime, endtime, "@timestamp","terms", "event.action", size, map, index);
-            /**
-             * 遍历list获取所有的事件名称存入Set
-             */
-            for (Map tmpmap : list){
-                List<Map<String, Object>> tmplist = (List<Map<String, Object>>) tmpmap.get("value");
-                for (Map<String,Object> submap : tmplist){
-                    events.addAll(submap.keySet());
-                }
-            }
-            /**
-             * 遍历Set事件名称
-             */
-            for (String event_name : events){
-                List<Map<String, Object>> eventlist = new ArrayList<>();
-                /**
-                 * 遍历service层返回的list，构建返回前端的数据
-                 * 一个event的前端结构应该是{"event_name":event_list(该事件在每个小时发生的次数)}
-                 * event_list结构，list中是每个小时的map数据：[{hour:0,count:事件发生次数},{hour:1,count:事件发生次数},...,{hour:23,count:事件发生次数}]
-                 */
-                for (Map tmpmap : list){
-                    // event_list结构中的map
-                    Map<String, Object> sub = new HashMap<>();
-                    // 时间
-                    sub.put("hour",tmpmap.get("hour"));
-                    // 获取service中封装的value，是一个List<Map<String, Object>>，map的key是event_name,value是event发生的次数
-                    List<Map<String, Object>> valuelist = (ArrayList)tmpmap.get("value");
-                    /**
-                     * 判断valuelist不为null且不为空，原因是某个时间段会出现一个事件都不存在的情况
-                     * true的情况进行遍历list
-                     * false设置count为0
-                     */
-                    if (valuelist!=null&&!valuelist.isEmpty()){
-                        /**
-                         * 遍历valuelist，获取event_name和event发生次数
-                         */
-                        for (Map<String,Object> valuemap : valuelist){
-                            // 如果没有匹配到设置为0，匹配到的情况下以实际数据为准，然后跳出当前循环
-                            sub.put("count",valuemap.get(event_name)!=null?valuemap.get(event_name):0);
-                            if (valuemap.get(event_name)!=null){
-                                break;
-                            }
-                        }
-                    }else {
-                        sub.put("count",0);
-                    }
-                    eventlist.add(sub);
-                }
-                result.put(event_name,eventlist);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
-        return JSONArray.fromObject(result).toString();
     }
 
 }

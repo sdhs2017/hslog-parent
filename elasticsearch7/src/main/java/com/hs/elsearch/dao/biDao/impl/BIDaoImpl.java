@@ -22,8 +22,8 @@ public class BIDaoImpl implements IBIDao {
     SearchTemplate searchTemplate;
     @Override
     public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception {
-        //TODO 后期增加
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -45,8 +45,8 @@ public class BIDaoImpl implements IBIDao {
 
     @Override
     public List<Map<String, Object>> getListByCountOfAggregation(VisualParam params) throws Exception {
-        //TODO 后期增加
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -68,8 +68,8 @@ public class BIDaoImpl implements IBIDao {
 
     @Override
     public List<Map<String, Object>> getListByAvgOfAggregation(VisualParam params) throws Exception {
-        //TODO 后期增加
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -93,8 +93,8 @@ public class BIDaoImpl implements IBIDao {
 
     @Override
     public List<Map<String, Object>> getListByMaxOfAggregation(VisualParam params) throws Exception {
-        //TODO 后期增加
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -116,8 +116,8 @@ public class BIDaoImpl implements IBIDao {
 
     @Override
     public List<Map<String, Object>> getListByMinOfAggregation(VisualParam params) throws Exception {
-        //TODO 后期增加
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -139,16 +139,40 @@ public class BIDaoImpl implements IBIDao {
     }
 
     /**
+     * 创建查询条件
+     * @param params
+     * @return
+     */
+    private BoolQueryBuilder buildQuery(VisualParam params){
+        String starttime = params.getStartTime();//起始时间
+        String endtime = params.getEndTime();//截止时间
+        String dateField = params.getDateField();//时间范围对应的字段名
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //存在时间类型字段，需要添加时间范围参数查询
+        if(dateField!=null&&!"".equals(dateField)){
+            //时间范围
+            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
+                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            } else if (starttime != null && !starttime.equals("")) {
+                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+            } else if (endtime != null && !endtime.equals("")) {
+                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+            }
+        }
+        return boolQueryBuilder;
+    }
+    /**
      * 根据参数创建AggregationBuilder //TODO
      * @param params
      * @return
      */
     private AggregationBuilder buildAggregation(VisualParam params){
+
         //TODO 排序字段暂时按照字符串匹配方式，后续会对此进行扩展
         boolean asc = "asc".equals(params.getSort())?true:false;
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = null;
-        //TODO 使用枚举类
         if("Date".equals(params.getX_agg())){
             //默认1小时间隔
             DateHistogramInterval dateHis = DateHistogramInterval.hours(1);
@@ -221,7 +245,7 @@ public class BIDaoImpl implements IBIDao {
     }
 
     /**
-     * 获取某个字段不为空的数据list
+     * 获取某个字段不为空的数据list，用于获取图表和dashborad列表
      * @param indexName
      * @param fieldName
      * @return
@@ -229,6 +253,7 @@ public class BIDaoImpl implements IBIDao {
      */
     public List<Map<String, Object>> getListExistsField(String indexName,String fieldName) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //查询条件
         boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery(fieldName)));
         List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder,indexName);
         return list;

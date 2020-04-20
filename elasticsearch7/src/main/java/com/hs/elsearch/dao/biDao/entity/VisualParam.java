@@ -21,6 +21,7 @@ public class VisualParam {
     private String indexName;//数据源：目前是索引，后期可能会调整
     private String startTime;
     private String endTime;
+    private String dateField;//时间范围查询时对应的字段
     public enum IntervalType{
         SECOND,//秒
         MINUTE,//分钟
@@ -30,6 +31,14 @@ public class VisualParam {
         MONTHLY,//月
         YEARLY,//年
         UNKNOWN;
+    }
+
+    public String getDateField() {
+        return dateField;
+    }
+
+    public void setDateField(String dateField) {
+        this.dateField = dateField;
     }
 
     public String getStartTime() {

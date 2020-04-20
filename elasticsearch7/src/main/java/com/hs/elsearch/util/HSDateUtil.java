@@ -67,7 +67,7 @@ public class HSDateUtil {
     }
 
     /**
-     * 将date的时分秒清零
+     * 将date的时分秒清零，方便计算日期
      * @param date
      * @return
      */

@@ -106,7 +106,8 @@ public class EcsWinlogController {
         Object wordso = mapper.get("words");
         Object pageo = mapper.get("page");
         Object sizeo = mapper.get("size");
-
+        String starttime = mapper.get("starttime");
+        String endtime = mapper.get("endtime");
         // 全文检索条件：关键字
         String keyWords = wordso!=null?wordso.toString():null;
 
@@ -126,7 +127,7 @@ public class EcsWinlogController {
         String [] mutlifields = {"agent.type","winlog.keywords","log.level","message","fields.ip.raw","winlog.channel"};
         Map<String, Object> map = new HashMap<>();
         try {
-            list = ecsService.getListByContent(keyWords,mutlifields,querymap,page,size,configProperty.getEs_index());
+            list = ecsService.getListByContent(starttime,endtime,keyWords,mutlifields,querymap,page,size,configProperty.getEs_index());
             logger.info("全文检索：查询成功");
             if (list.size()>0){
                 map = list.get(0);

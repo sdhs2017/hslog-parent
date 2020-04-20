@@ -198,7 +198,7 @@ public class BIDaoImpl implements IBIDao {
                 break;
             case "Count":
                 // 在bucket上聚合metric查询count
-                ValueCountAggregationBuilder countBuilder = AggregationBuilders.count(params.getY_agg()).field(params.getY_field());
+                ValueCountAggregationBuilder countBuilder = AggregationBuilders.count(params.getY_agg()).field(params.getX_field());
                 aggregationBuilder.subAggregation(countBuilder);
                 break;
             case "Average":

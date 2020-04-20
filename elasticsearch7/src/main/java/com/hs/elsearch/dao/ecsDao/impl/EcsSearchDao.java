@@ -3,6 +3,7 @@ package com.hs.elsearch.dao.ecsDao.impl;
 import com.hs.elsearch.dao.ecsDao.IEcsSearchDao;
 import com.hs.elsearch.template.CrudTemplate;
 import com.hs.elsearch.template.SearchTemplate;
+import com.hs.elsearch.util.HSDateUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.util.Strings;
 import org.apache.log4j.Logger;
@@ -67,6 +68,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            //存在时间范围时，添加对index的处理
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         } else if (starttime != null && !starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         } else if (endtime != null && !endtime.equals("")) {
@@ -115,7 +118,7 @@ public class EcsSearchDao implements IEcsSearchDao {
     }
 
     @Override
-    public List<Map<String, Object>> getListByContent(String content, String[] multiQueryField, Map<String, String> map, int page, int size, String... indices) throws Exception {
+    public List<Map<String, Object>> getListByContent(String starttime,String endtime,String content, String[] multiQueryField, Map<String, String> map, int page, int size, String... indices) throws Exception {
         long count = 0;
         List<Map<String, Object>> list = new ArrayList<>();
         List<Map<String, Object>> arrayList = new ArrayList<>();
@@ -135,9 +138,26 @@ public class EcsSearchDao implements IEcsSearchDao {
          * 查询条件-时间范围
          * 当客户的服务器没有ntp时钟服务时，服务器发送的日志时间可能会比标准时间早，引起歧义，所以时间范围的结束时间为当前标准时间
          */
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        RangeQueryBuilder dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date()));
+        //SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        //RangeQueryBuilder dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date()));
+        //查询时间范围
 
+        // 时间段处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        RangeQueryBuilder dateQueryBuilder = null;
+        //如果有时间范围参数
+        if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
+            dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime);
+            //存在时间范围时，添加对index的处理
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
+        }else if (starttime != null && !starttime.equals("")) {
+            dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime);
+        } else if (endtime != null && !endtime.equals("")) {
+            dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime);
+        }else{
+            //默认的时间范围
+            dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date()));
+        }
         // 构建排序体,指定排序字段
         SortBuilder sortBuilder = SortBuilders.fieldSort(ECS_DATE_FIELD).order(desc);
         // 构建高亮体，指定包含查询条件的所有列都高亮
@@ -238,6 +258,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            //存在时间范围时，添加对index的处理
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         } else if (starttime != null && !starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         } else if (endtime != null && !endtime.equals("")) {
@@ -289,6 +311,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            //存在时间范围时，添加对index的处理
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
@@ -338,6 +362,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            //存在时间范围时，添加对index的处理
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
@@ -428,6 +454,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            //存在时间范围时，添加对index的处理
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {

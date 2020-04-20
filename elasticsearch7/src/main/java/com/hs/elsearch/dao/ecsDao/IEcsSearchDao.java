@@ -23,6 +23,8 @@ public interface IEcsSearchDao {
 
     /**
      * 全文检索
+     * @param starttime 开始时间
+     * @param endtime 截止时间
      * @param content 关键字
      * @param  multiQueryField 多字段查询
      * @param map 其他查询条件
@@ -31,7 +33,7 @@ public interface IEcsSearchDao {
      * @param indices 索引名称
      * @return 返回符合关键字的日志内容
      */
-    public List<Map<String, Object>> getListByContent(String content, String [] multiQueryField, Map<String, String> map, int page, int size, String... indices) throws Exception;
+    public List<Map<String, Object>> getListByContent(String starttime,String endtime,String content, String [] multiQueryField, Map<String, String> map, int page, int size, String... indices) throws Exception;
 
     /**
      *

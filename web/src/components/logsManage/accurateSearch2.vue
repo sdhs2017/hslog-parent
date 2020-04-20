@@ -20,6 +20,7 @@
     import vSearchForm from '../common/BaseSearchForm';
     import vLogscontent2 from '@/components/logsManage/logsContent2';
     import bus from '../common/bus';
+    import {dateFormat} from "../../../static/js/common";
 
     export default {
         name: "accurateSearch2",
@@ -31,8 +32,7 @@
                 },
                 busName:'accurateSearch2',
                 words:'',//检索条件
-                searchConditions:{
-                },
+                searchConditions:{},
                 searchUrl:'ecsWinlog/getLogListByBlend.do',//数据地址
                 formConditionsArr:[],//查询条件
                 tableHead:[],//表头列
@@ -115,6 +115,19 @@
                 }
             ]
             this.getLogType();
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.searchConditions = {
+                'agent.type': "",
+                endtime: endTime,
+                'fields.ip': "",
+                'host.hostname': "",
+                'log.level': "",
+                starttime: startTime
+            },
             //检索条件
             this.formConditionsArr = [
                 {
@@ -123,7 +136,7 @@
                     itemType:'',
                     paramName:'time',
                     model:{
-                        model:[]
+                        model:[startTime,endTime]
                     },
                     val:''
                 },

@@ -30,7 +30,7 @@
     import vBasetable2 from '../common/Basetable2';
     import vListdetails2 from '../common/Listdetails2';
     import bus from '../common/bus';
-
+    import {dateFormat} from "../../../static/js/common";
     export default {
         name: "eventSearch2",
         data(){
@@ -61,53 +61,6 @@
                         },
                         val:''
                     },
-                    /*{
-                        label:'事件级别',
-                        paramName:'event_level',
-                        type:'select',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        options:[
-                            {
-                                value:'',
-                                label:'全部'
-                            },
-                            {
-                                value:'0',
-                                label:'Emergency'
-                            },
-                            {
-                                value:'1',
-                                label:'Alert'
-                            },
-                            {
-                                value:'2',
-                                label:'Critical'
-                            },
-                            {
-                                value:'3',
-                                label:'Error'
-                            },
-                            {
-                                value:'4',
-                                label:'Warn'
-                            },
-                            {
-                                value:'5',
-                                label:'Notice'
-                            },
-                            {
-                                value:'6',
-                                label:'Info'
-                            },
-                            {
-                                value:'7',
-                                label:'Debug'
-                            }
-                        ]
-                    },*/
                     {
                         label:'事件名称',
                         paramName:'event.action',
@@ -226,18 +179,25 @@
                         label:'1亿'
                     },
                 ],
-                eventSearchCondition:{
-                    starttime:'',
-                    endtime:'',
-                    'fields.ip':'',
-                    'host.hostname':'',
-                    'event.action':'',
-                    event_level:''
-                },
+                eventSearchCondition:{},
                 saveCondition:{},
             }
         },
         created(){
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.dateVal= [startTime,endTime];
+            this.eventSearchCondition={
+                'fields.ip':'',
+                'host.hostname':'',
+                'event.action':'',
+                endtime: endTime,
+                starttime: startTime
+            }
+            this.formConditionsArr[0].model.model= [startTime,endTime]
             //保存检索条件
             this.saveCondition = this.eventSearchCondition;
             //获取事件数据

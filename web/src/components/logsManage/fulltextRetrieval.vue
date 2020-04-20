@@ -1,6 +1,20 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">全文检索</div>
+        <div class="top-title">全文检索
+            <el-date-picker
+                class="date-wapper"
+                v-model="dateVal"
+                type="datetimerange"
+                range-separator="至"
+                size="mini"
+                start-placeholder="开始日期"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                :default-time="['00:00:00', '23:59:59']"
+                @change="timeChange"
+                end-placeholder="结束日期"
+                :picker-options="pickerOptions">
+            </el-date-picker>
+        </div>
         <div class="search-wapper">
             <el-form :inline="true" onsubmit="return false" class="demo-form-inline">
                 <el-form-item>
@@ -20,11 +34,44 @@
 
 <script>
     import vLogscontent2 from '@/components/logsManage/logsContent2';
-
+    import {dateFormat} from "../../../static/js/common";
     export default {
         name: "fulltextRetrieval",
         data(){
             return{
+                dateVal:[],
+                pickerOptions: {
+                    shortcuts: [{
+                        text: '最近一周',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近一个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '最近三个月',
+                        onClick(picker) {
+                            const end = new Date();
+                            const start = new Date();
+                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                            picker.$emit('pick', [start, end]);
+                        }
+                    }, {
+                        text: '全部',
+                        onClick(picker) {
+                            picker.$emit('pick', ['', '']);
+                        }
+                    }]
+                },
                 layerObj:{
                     detailData:{},//弹窗数据
                     layerState:false//弹窗状态
@@ -39,6 +86,19 @@
             }
         },
         created(){
+            //七天数据
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.dateVal= [startTime,endTime];
+            this.searchConditions={
+                words:'',
+                endtime: endTime,
+                starttime: startTime
+            },
+            //表头
             this.tableHead = [
                 {
                     prop:'@timestamp',
@@ -111,8 +171,15 @@
             /*查询按钮点击事件*/
             searchLogs(){
                 this.searchConditions = {
-                    words : this.words
+                    words : this.words,
+                    starttime: this.dateVal[0],
+                    endtime: this.dateVal[1]
                 }
+            },
+            /*日期改变*/
+            timeChange(){
+                //查询日志
+                this.searchLogs();
             },
             goToEquipment(){
                 console.log('ddd')
@@ -125,7 +192,11 @@
 </script>
 
 <style scoped>
-
+    .date-wapper{
+        float: right;
+        top: 10px;
+        right: 10px;
+    }
     .search-wapper{
         display: flex;
         justify-content: center;

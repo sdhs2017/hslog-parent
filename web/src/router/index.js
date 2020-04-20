@@ -493,6 +493,12 @@ export default new Router({
                     component: resolve => require(['../components/equipment/addEquipment2.vue'], resolve),
                     meta: { title: '添加资产' }
                 },
+                {
+                    path: '/dashboardList',
+                    name:'dashboardList',
+                    component: resolve => require(['../components/dashboard/dashboardList.vue'], resolve),
+                    meta: { title: '仪表盘' }
+                },
                 /*{
                     // 富文本编辑器组件
                     path: '/editVersion',

@@ -14,8 +14,8 @@
             <el-col :span="20">
                 <div class="content-right-wapper">
                     <div class="searchlogs-tools">
-                        <el-button v-show="moreDeleteBtn" type="danger" plain size="mini" style="background: 0;margin: 0 3px;" @click="moreDelete">删除</el-button>
-                        <div class="searchlogs-tools-left">
+                        <el-button v-show="moreDeleteBtn" type="danger" plain size="mini" style="background: 0;margin: 10px 3px;" @click="moreDelete" >删除</el-button>
+                        <!--<div class="searchlogs-tools-left">
                             <el-form :inline="true" class="demo-form-inline" style="display: flex;">
                                 <el-form-item style="flex: 1;" class="inputBox">
                                     <el-input class="input-fliterlog" v-model="filterWords" placeholder="输入过滤条件"></el-input>
@@ -24,8 +24,12 @@
                                     <el-button type="primary" class="filterLogs" @click="filterLogs" style="padding: 8px 5px;">过滤</el-button>
                                 </el-form-item>
                             </el-form>
+                        </div>-->
+                        <div class="searchlogs-tools-right" style="float: right;">
+                            <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="total"></el-pagination>
+                            <el-button v-if="exportBtn" type="primary" class="exportLogs" plain size="mini" @click="exportLogs">导出</el-button>
                         </div>
-                        <div class="searchlogs-tools-center">
+                        <div class="searchlogs-tools-center"  style="float: right;">
                             检索到日志 <b class="totalLogs">{{allCounts}}</b> 条，最大展示
                             <el-select v-model="selectVal" placeholder="请选择" size="mini" style="width: 84px;" @change="seletChange" class="maxSelect">
                                 <el-option
@@ -36,10 +40,7 @@
                                 </el-option>
                             </el-select> 条
                         </div>
-                        <div class="searchlogs-tools-right">
-                            <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="total"></el-pagination>
-                            <el-button v-if="exportBtn" type="primary" class="exportLogs" plain size="mini" @click="exportLogs">导出</el-button>
-                        </div>
+
                     </div>
                     <v-basetable2 :tableHead="tableHead" :tableData="tableData" :selection="moreDeleteBtn" :busName="{'selectionName':moreSelName}"></v-basetable2>
                 </div>
@@ -511,9 +512,9 @@
     .searchlogs-tools{
         height: 50px;
         border-bottom: 1px solid #4e7ba9;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        /*display: flex;*/
+        /*justify-content: space-between;*/
+        /*align-items: center;*/
     }
     .filterLogs{
         height: 28px;
@@ -524,10 +525,11 @@
     }
     .searchlogs-tools-center{
         font-size: 15px;
-        margin: 0 5px;
+        margin:10px 5px;
     }
     .searchlogs-tools-right{
         display: flex;
+        margin:10px 5px;
     }
     .totalLogs{
         color: #409EFF;

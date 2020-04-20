@@ -49,7 +49,12 @@
                 const item = this.tagsList[index] ? this.tagsList[index] : this.tagsList[index - 1];
                 this.$store.commit('deleteRoute',index)
                 if (item) {
-                    delItem.path === this.$route.fullPath && this.$router.push(item.path);
+                    //delItem.path === this.$route.fullPath && this.$router.push(item.path);
+                    if( delItem.path === this.$route.fullPath ){
+                        this.$router.push(item.path)
+                    }else{
+                        this.setTags(this.$route);
+                    }
                 }else{
                     this.$router.push('/index');
                 }

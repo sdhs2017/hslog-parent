@@ -72,7 +72,7 @@
 <script>
     import vSearchForm from '../common/BaseSearchForm';
     import vLogscontent from '@/components/logsManage/logsContent';
-    import {savePath} from "../../../static/js/common";
+    import {savePath,dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
         name: "flowLogs",
@@ -189,8 +189,14 @@
             }
         },
         created(){
-            //赋值查询条件
-            //this.searchConditions = Object.assign({}, this.formConditions);//复制对象 避免指针
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.timeArr=[startTime,endTime]
+            this.formConditions.endtime= endTime;
+            this.formConditions.starttime= startTime;
         },
         watch:{
             'htmlTitle'(){

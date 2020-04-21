@@ -25,6 +25,7 @@
 <script>
     import vSearchForm from '../common/BaseSearchForm';
     import vBasetable from '../common/Basetable'
+    import {dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
         name: "auditLog",
@@ -132,13 +133,27 @@
             }
         },
         created(){
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.searchConditions = {
+                endTime: endTime,
+                userName:'',
+                departmentName:'',
+                ip:'',
+                account:'',
+                startTime: startTime
+            }
+            this.formConditionsArr[0].model.model=[startTime,endTime]
             //监听检索按钮
             bus.$on(this.busName.formBusName,params=>{
                 let obj = {
                     userName:params.userName,
                     departmentName:params.departmentName,
-                    startTime:params.startTime,
-                    endTime:params.endTime,
+                    startTime:params.starttime,
+                    endTime:params.endtime,
                     ip:params.ip,
                     account:params.account
                 }

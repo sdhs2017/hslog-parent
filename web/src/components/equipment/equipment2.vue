@@ -41,7 +41,7 @@
                             </li>
                             <li class="inf-hostname">
                                 <div class="inf-tit">主机名：</div>
-                                <div class="inf-val">{{i.name}}</div>
+                                <div class="inf-val">{{i.hostName}}</div>
                             </li>
                             <li class="inf-type">
                                 <div class="inf-tit">资产类型：</div>
@@ -160,7 +160,7 @@
                 },
                 {
                     label:'主机名',
-                    paramName:'hostname',
+                    paramName:'hostName',
                     model:{
                         model:''
                     },

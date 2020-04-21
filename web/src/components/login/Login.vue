@@ -1,8 +1,8 @@
 <template>
     <div class="login-wrap">
         <div class="ms-login">
-<!--            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>-->
-            <div class="ms-title"><img src="../../../static/img/logo_ay.png" alt=""></div>
+            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>
+<!--            <div class="ms-title"><img src="../../../static/img/logo_ay.png" alt=""></div>-->
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
                     <el-input v-model="ruleForm.phone" placeholder="账号">
@@ -148,7 +148,8 @@
                            if (res.data.success === 'true'){
                                localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                this.getLogConfig();
-                               this.$router.push('/flowIndex');
+                               // this.$router.push('/flowIndex');
+                               this.$router.push('/index_n');
                            }else if(res.data.success==="false"){
                                layer.msg(res.data.message,{
                                    icon: 5,

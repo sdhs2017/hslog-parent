@@ -5,8 +5,8 @@
             <i class="el-icon-menu"></i>
         </div>
         <div class="logo">
-            <!--<img src="../../../static/img/login_cx.png" alt="">-->
-            <img src="../../../static/img/logo_ay.png" alt="">
+            <img src="../../../static/img/login_cx.png" alt="">
+<!--            <img src="../../../static/img/logo_ay.png" alt="">-->
         </div>
         <ul class="header-ul">
             <li v-for="(item,index) in this.systemMenu" :class="{ active:index === current}" :key="index" @click="changeSystem(item.id,index)"><i :class="item.icon"></i>{{item.systemName}}</li>

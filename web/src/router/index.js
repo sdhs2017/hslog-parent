@@ -294,7 +294,7 @@ export default new Router({
                     path: '/controlCenter',
                     name:'controlCenter',
                     component: resolve => require(['../components/platformManage/controlCenter.vue'], resolve),
-                    meta: { title: '控制中心' }
+                    meta: { title: '控制中心1' }
                 },
                 {
                     path: '/controlCenter2',
@@ -498,6 +498,12 @@ export default new Router({
                     name:'dashboardList',
                     component: resolve => require(['../components/dashboard/dashboardList.vue'], resolve),
                     meta: { title: '仪表盘' }
+                },
+                {
+                    path: '/controlCenter_n',
+                    name:'controlCenter_n',
+                    component: resolve => require(['../components/platformManage/controlCenter_n.vue'], resolve),
+                    meta: { title: '控制中心' }
                 },
                 /*{
                     // 富文本编辑器组件

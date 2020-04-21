@@ -56,13 +56,13 @@
                         this.setTags(this.$route);
                     }
                 }else{
-                    this.$router.push('/index');
+                    this.$router.push('/index_n');
                 }
             },
             // 关闭全部标签
             closeAll(){
                 this.tagsList = [];
-                this.$router.push('/index');
+                this.$router.push('/index_n');
             },
             // 关闭其他标签
             closeOther(){

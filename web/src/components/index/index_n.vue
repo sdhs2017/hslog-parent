@@ -98,7 +98,8 @@
                 <div class="grid-content bg-purple wapper-content"  style="height: 400px;">
                     <p class="content-title">异常检索</p>
                     <div class="content-infom" style="height: 350px;">
-                        <ul class="errorLogsList" ref="errorLogsList" :style="{top}" @mouseenter="stopLogsInterval()" @mouseleave="startLogsInterval()">
+                        <p v-if="errorLogsData.length == 0" style="padding: 19px;color: #7593bc;">暂无异常</p>
+                        <ul v-else class="errorLogsList" ref="errorLogsList" :style="{top}" @mouseenter="stopLogsInterval()" @mouseleave="startLogsInterval()">
                             <li class="error-logs-item" v-for="(item,index) in errorLogsData" :key="index" title="点击查看详情" @click="errorLogsClick(item)">
                                 <p class="index-list-top">
                                     <span class="index-log-level">#{{item.log.level}}#</span>
@@ -218,7 +219,7 @@
                         yAxisArr:[]
                     }
                 },
-                errorLogsData:{},//错误日志列表数据
+                errorLogsData:[],//错误日志列表数据
                 interval:'',//定时器
                 activeIndex:0,//当前日志列表索引，用于日志滚动计数
                 baseConfig:{

@@ -124,7 +124,7 @@ public class EcsWinlogController {
             querymap.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
         }
         // winlog可能涉及全文检索的字段
-        String [] mutlifields = {"agent.type","winlog.keywords","log.level","message","fields.ip.raw","winlog.channel"};
+        String [] mutlifields = {"agent.type","winlog.keywords","log.level","message","fields.ip.raw","winlog.channel","fields.equipmentname"};
         Map<String, Object> map = new HashMap<>();
         try {
             list = ecsService.getListByContent(starttime,endtime,keyWords,mutlifields,querymap,page,size,configProperty.getEs_index());

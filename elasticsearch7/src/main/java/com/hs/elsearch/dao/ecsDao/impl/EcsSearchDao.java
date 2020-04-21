@@ -166,7 +166,6 @@ public class EcsSearchDao implements IEcsSearchDao {
          * 其他查询条件构建
          */
         BoolQueryBuilder otherQueryBuilder = QueryBuilders.boolQuery();
-        ;
         for (Map.Entry<String, String> entry : map.entrySet()) {
             otherQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
         }
@@ -206,13 +205,15 @@ public class EcsSearchDao implements IEcsSearchDao {
                 //模糊查询体构建
                 wildcardQuery.must(otherQueryBuilder);
                 wildcardQuery.must(dateQueryBuilder);
-                content = "*" + content.toLowerCase() + "*";
+                content = "*" + content + "*";
+                BoolQueryBuilder tmpQuery = QueryBuilders.boolQuery();
                 // 对多个关键字段模糊匹配
                 for (String fieldname : multiQueryField) {
                     // 模糊查询
                     WildcardQueryBuilder wildcardqueryBuilder = QueryBuilders.wildcardQuery(fieldname, content);
-                    wildcardQuery.should(wildcardqueryBuilder);
+                    tmpQuery.should(wildcardqueryBuilder);
                 }
+                wildcardQuery.must(tmpQuery);
                 count = searchTemplate.getCountByQuery(wildcardQuery, indices);
                 list = searchTemplate.getListByBuilder(wildcardQuery, sortBuilder, highlightBuilder, page, size, indices);
             } else if (matchCount > 0) {

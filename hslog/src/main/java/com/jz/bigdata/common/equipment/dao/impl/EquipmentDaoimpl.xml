@@ -354,7 +354,7 @@
 			and logType = #{logType,jdbcType=VARCHAR}
 		</if>
 		<if test="type != null and type !='' ">
-			and type = #{type,jdbcType=VARCHAR}
+			and `type` LIKE CONCAT(#{type}, '%')
 		</if>
 		<if test='role=="2"'>
 			and equipment.userId=#{userId,jdbcType=VARCHAR}
@@ -381,7 +381,7 @@
 			and logType = #{logType,jdbcType=VARCHAR}
 		</if>
 		<if test="type != null and type !='' ">
-			and type = #{type,jdbcType=VARCHAR}
+			and `type` LIKE CONCAT(#{type}, '%')
 		</if>
 		<if test='role=="2"'>
 			and equipment.userId=#{userId,jdbcType=VARCHAR}

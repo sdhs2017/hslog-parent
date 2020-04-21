@@ -208,7 +208,6 @@
             /*检测检索条件的变化 重新获取数据*/
             searchConditions:{
                 handler(val, oldVal){
-                    console.log(val)
                     //if (this.searchConditions['fields.equipmentid'] !== '' )
                     this.getLogsData(this.searchConditions,1);
                     this.firstSearch=true;
@@ -456,15 +455,16 @@
                 }, (index)=>{
                     layer.load(1);
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/ecs/deleteById.do', this.$qs.stringify({
+                        this.$axios.post(this.$baseUrl+'/ecsWinlog/deleteById.do', this.$qs.stringify({
                            hsData : JSON.stringify(arr)
                         }))
                             .then((res)=>{
                                 layer.closeAll('loading');
                                 if(res.data == "删除成功"){
                                     layer.msg('删除成功',{icon: 1});
-                                    this.$store.commit('updateCloseState',true)
-
+                                    setTimeout(()=>{
+                                        this.$store.commit('updateCloseState',true)
+                                    },1000)
                                 }else{
                                     layer.msg('删除失败',{icon: 5});
                                 }

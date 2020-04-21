@@ -10,6 +10,7 @@
                     size="mini"
                     start-placeholder="开始日期"
                     value-format="yyyy-MM-dd HH:mm:ss"
+                    :default-time="['00:00:00', '23:59:59']"
                     end-placeholder="结束日期">
                 </el-date-picker>
             </div>
@@ -239,15 +240,12 @@
             },
             //日志类型改变
             logTypeChange(type){
-                bus.$emit('logTypeChange',type);
-               /* $('.el-select__tags').html('');*/
-
-                for(let i =0;i<this.formList.selectArr;i++){
+                for(let i =0;i<this.formList.selectArr.length;i++){
                     if(this.formList.selectArr[i].label == '日志级别'){
-                        this.formList.selectArr[1].model.model=[];
+                        this.formList.selectArr[i].model.model=[];
                     }
                 }
-
+                bus.$emit('logTypeChange',type);
             }
         }
     }

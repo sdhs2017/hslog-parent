@@ -182,7 +182,6 @@
             ]
             //检测搜索条件
             bus.$on(this.busName,(params)=>{
-                console.log(params)
                 this.searchConditions = params;
             })
             //检测日志类型改变

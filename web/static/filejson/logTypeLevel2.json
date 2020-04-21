@@ -1,7 +1,7 @@
 [
     {
         "type":"syslog",
-        "level":["emergency","alert","critical","error","warn","notice","info","debug"]
+        "level":["emergency","alert","critical","error","warning","notice","information","debug"]
     },
     {
         "type":"winlogbeat",

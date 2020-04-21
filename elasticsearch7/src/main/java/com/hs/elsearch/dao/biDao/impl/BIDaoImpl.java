@@ -150,14 +150,9 @@ public class BIDaoImpl implements IBIDao {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         //存在时间类型字段，需要添加时间范围参数查询
         if(dateField!=null&&!"".equals(dateField)){
-            //时间范围
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            //时间范围，起始时间和截止时间都不允许为空
             if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
                 boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
-            } else if (starttime != null && !starttime.equals("")) {
-                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
-            } else if (endtime != null && !endtime.equals("")) {
-                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
             }
         }
         return boolQueryBuilder;

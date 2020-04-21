@@ -156,7 +156,13 @@
                             color:'#5bc0de'
                         }
                     },
-                    tooltip: {},
+                    tooltip: {
+                        show:true,
+                        trigger:'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        },
+                    },
                     xAxis: {
                         name:this.echartData.baseConfig.xAxisName,
                         nameTextStyle:{

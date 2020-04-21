@@ -305,7 +305,10 @@
             },
             //跳转页面 path:'/equipment',query: {name: 1}
             goToSearchLogs(){
-                this.$router.push({name:'fulltextRetrieval',params:{words: 'error'}})
+                if(this.errorLogsTotle != 0){
+                    this.$router.push({name:'fulltextRetrieval',params:{words: 'error'}})
+                }
+
             },
             //创建时间
             setDate(){

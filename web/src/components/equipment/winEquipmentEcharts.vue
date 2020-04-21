@@ -14,7 +14,7 @@
             <el-row :gutter="10" class="wapper-row">
                 <el-col :span="8">
                     <div class="grid-content con-wapper msg">
-                        <h2 class="con-tit">名称：{{equipmentInfo.host.name}}</h2>
+                        <h2 class="con-tit">资产信息</h2>
                         <div class="con">
                             <h3>一般信息</h3>
 <!--                            <p><span class="p-t">启动时间：</span><span class="p-c">2019-06-12 10:10:10</span></p>-->

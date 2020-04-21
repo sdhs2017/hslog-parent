@@ -103,7 +103,7 @@
                                 <p class="index-list-top">
                                     <span class="index-log-level">#{{item.log.level}}#</span>
                                     <span class="index-log-ip">#{{item.fields.ip}}#</span>
-                                    <span class="index-log-eqname">#{{item.host.hostname}}#</span>
+                                    <span class="index-log-eqname">#{{item.fields.equipmentname}}#</span>
                                 </p>
                                 <p class="index-list-content">{{item.message}}</p>
                                 <p class="index-list-time">

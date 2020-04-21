@@ -145,7 +145,7 @@
             {"@timestamp":"时间"},
             {"log.level":"级别"},
             {"agent.type":"日志类型"},
-            {"host.hostname":"资产名称"},
+            {"fields.equipmentname":"资产名称"},
             {"fields.ip":"IP"},
             {"message":"日志内容"}
         ]
@@ -599,7 +599,7 @@
             {"event.action":"事件名称"},
             {"event.type":"事件类型"},
             {"fields.ip":"IP地址"},
-            {"host.hostname":"资产名称"},
+            {"fields.equipmentname":"资产名称"},
             {"winlog":"事件原因"},
             {"message":"日志内容"}
         ]

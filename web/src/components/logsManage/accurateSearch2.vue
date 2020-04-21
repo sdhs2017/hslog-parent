@@ -124,7 +124,7 @@
                 'agent.type': "",
                 endtime: endTime,
                 'fields.ip': "",
-                'host.hostname': "",
+                'fields.equipmentname': "",
                 'log.level': "",
                 starttime: startTime
             },
@@ -171,7 +171,7 @@
                 },
                 {
                     label:'资产名称',
-                    paramName:'host.hostname',
+                    paramName:'fields.equipmentname',
                     model:{
                         model:''
                     },

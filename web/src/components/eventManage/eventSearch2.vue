@@ -81,7 +81,7 @@
                     },
                     {
                         label:'资产名称',
-                        paramName:'host.hostname',
+                        paramName:'fields.equipmentname',
                         itemType:'',
                         model:{
                             model:''
@@ -192,7 +192,7 @@
             this.dateVal= [startTime,endTime];
             this.eventSearchCondition={
                 'fields.ip':'',
-                'host.hostname':'',
+                'fields.equipmentname':'',
                 'event.action':'',
                 endtime: endTime,
                 starttime: startTime

@@ -431,7 +431,7 @@ export default new Router({
                     path: '/dashboard',
                     name:'dashboard',
                     component: resolve => require(['../components/dashboard/dashboard.vue'], resolve),
-                    meta: { title: '仪表盘' }
+                    meta: { title: '新建仪表盘' }
                 },
                 {
                     path: '/chartsList',

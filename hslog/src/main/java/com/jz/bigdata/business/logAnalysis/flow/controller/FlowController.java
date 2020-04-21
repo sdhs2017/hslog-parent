@@ -516,7 +516,7 @@ public class FlowController {
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
         try {
             logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
-            linkslist = logService.groupBy(index,types,groupbys,1000,starttime,endtime,searchmap);
+            linkslist = flowService.groupBys(index,types,groupbys,1000,starttime,endtime,searchmap);
             logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
         } catch (Exception e) {
             e.printStackTrace();

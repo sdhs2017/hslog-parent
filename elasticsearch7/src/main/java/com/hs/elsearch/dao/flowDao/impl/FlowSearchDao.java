@@ -161,6 +161,80 @@ public class FlowSearchDao implements IFlowSearchDao {
     }
 
     @Override
+    public List<Map<String, Object>> getListByAggregations(String[] types, String starttime, String endtime, String[] groupByFields, int size, Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+
+        // 时间段查询条件处理
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+        }else if (starttime!=null&&!starttime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+        }else if (endtime!=null&&!endtime.equals("")) {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+        }else {
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+        }
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                if (entry.getKey().equals("logdate")) {
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                }else if (entry.getKey().equals("domain_url")||entry.getKey().equals("complete_url")) {
+                    // 短语匹配
+                    boolQueryBuilder.must(QueryBuilders.matchPhraseQuery(entry.getKey(), entry.getValue()));
+                }else if (entry.getKey().equals("event_type")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }/*else if (entry.getKey().equals("application_layer_protocol")) {
+					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
+				}*/else {
+                    boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+                }
+            }
+        }
+
+        AggregationBuilder aggregationBuilder = null;
+
+        for (String groupByField : groupByFields){
+            // 聚合条件处理
+            String count = groupByField+"_count";
+            // 聚合查询group by
+            if (aggregationBuilder==null){
+                aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size);
+            }else {
+                aggregationBuilder.subAggregation(AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size));
+            }
+
+        }
+
+
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
+
+        Terms terms  = aggregations.get(groupByFields[0]+"_count");
+
+        List<Map<String, Object>> list = new LinkedList<Map<String,Object>>();
+
+        /*Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();*/
+
+        for(Terms.Bucket bucket:terms.getBuckets()) {
+
+            Terms terms1 = (Terms) bucket.getAggregations().asMap().get(groupByFields[1]+"_count");
+            for(Terms.Bucket bucket2 : terms1.getBuckets()) {
+                Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
+                bucketmap.put("source", bucket.getKeyAsString());
+                bucketmap.put("target",bucket2.getKeyAsString());
+                bucketmap.put("count", bucket2.getDocCount());
+                list.add(bucketmap);
+            }
+
+        }
+
+        return list;
+    }
+
+    @Override
     public List<List<Map<String, Object>>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 

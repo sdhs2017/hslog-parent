@@ -37,6 +37,11 @@ public class FlowServiceImpl implements IflowService {
     }
 
     @Override
+    public List<Map<String, Object>> groupBys(String index, String[] types, String[] groupByField, int size, String starttime, String endtime, Map<String, String> map) throws Exception {
+        return flowSearchDao.getListByAggregations(types,starttime,endtime,groupByField,size,map,index);
+    }
+
+    @Override
     public List<List<Map<String, Object>>> groupBy(String index, String[] types, String[] groupByFields, int size, String starttime, String endtime, Map<String, String> map) throws Exception {
         return flowSearchDao.getListByAggregation(types,starttime,endtime,groupByFields,size,map,index);
     }

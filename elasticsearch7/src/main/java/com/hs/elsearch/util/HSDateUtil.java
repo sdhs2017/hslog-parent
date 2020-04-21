@@ -60,7 +60,7 @@ public class HSDateUtil {
                 // 根据日历的规则，为给定的日历字段添加或减去指定的时间量
                 calBegin.add(Calendar.DAY_OF_MONTH, 1);
                 lDate.add(prefix.replace("*",sd_date.format(calBegin.getTime())+"*"));
-                System.out.println(prefix.replace("*",sd_date.format(calBegin.getTime())+"*"));
+                //System.out.println(prefix.replace("*",sd_date.format(calBegin.getTime())+"*"));
             }
         }
         return lDate.toArray(new String[lDate.size()]);

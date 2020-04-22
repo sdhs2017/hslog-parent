@@ -314,7 +314,18 @@ public class LogController extends BaseController{
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
 			//初始化BI图表及dashboard存储template
-			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap,new HSData().toMapping());
+			Map<String, Object> settingmap4Hsdata = new HashMap<>();
+			// 索引最大查询条数
+			settingmap4Hsdata.put("index.max_result_window", configProperty.getEs_max_result_window());
+			// 索引分片数，已经创建的索引不能更改，适用于新的索引
+			settingmap4Hsdata.put("index.number_of_shards", configProperty.getEs_number_of_shards());
+			// 索引副本数，副本数有助于提高查询效率，前提是有相对应的elasticsearch节点
+			settingmap4Hsdata.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+			// 索引的生命周期管理 hsdata数据不删
+			//settingmap4Hsdata.put("index.lifecycle.name", "hs_policy");
+			// 默认1000，数据字段过多，需要调整配置
+			settingmap4Hsdata.put("mapping.total_fields.limit", "5000");
+			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap4Hsdata,new HSData().toMapping());
 			//初始化beat template
 
 			logService.initOfElasticsearch("auditbeat-","auditbeat-*",null,settingmap,beatTemplate.getAuditBeatTemplate());

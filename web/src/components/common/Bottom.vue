@@ -4,8 +4,8 @@
         <div class="b-right">
             <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（阈值设置）</span> </div>
             <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span @click="changIp"></span></div>
-<!--            <div class="company"> 版权所有  © 2018-2019  山东九州信泰信息科技股份有限公司  </div>-->
-            <div class="company"> 版权所有  © 2018-2019  山东汇数信息科技有限公司  </div>
+            <div class="company"> 版权所有  © 2019-2020  山东九州信泰信息科技股份有限公司  </div>
+<!--            <div class="company"> 版权所有  © 2018-2019  山东汇数信息科技有限公司  </div>-->
         </div>
         <el-dialog title="阈值告警数值大小选择" :visible.sync="diskUsedState" width="440px">
             <el-form>

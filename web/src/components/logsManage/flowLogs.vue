@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg http-content">
         <div class="top-title">{{htmlTitle}} 日志</div>
-        <div class="search-wapper">
+        <div class="search-wapper" style="height: 61px;">
             <el-form :inline="true" onsubmit="return false" class="demo-form-inline http-conditions-wapper">
                 <div class="condition-top">
                     <div style="width: 384px;">
@@ -70,7 +70,6 @@
 </template>
 
 <script>
-    import vSearchForm from '../common/BaseSearchForm';
     import vLogscontent from '@/components/logsManage/logsContent';
     import {savePath,dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
@@ -261,8 +260,7 @@
 
         },
         components:{
-            vLogscontent,
-            vSearchForm
+            vLogscontent
         }
     }
 </script>

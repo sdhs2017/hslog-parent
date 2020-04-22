@@ -8,9 +8,9 @@
                         <div class="department-top">
                             <h5>机构列表</h5>
                             <div class="department-btns">
-                                <el-button type="primary" size="mini" plain title="添加组织机构" @click="addBtn" v-if="this.$is_has('userManage_addDepartment')"><i class="el-icon-plus"></i></el-button>
-                                <el-button type="success" size="mini" plain title="修改组织机构" @click="editBtn" v-if="this.$is_has('userManage_reviseDepartment')"><i class="el-icon-edit"></i></el-button>
-                                <el-button type="danger" size="mini" plain title="删除组织机构" @click="removeTree" v-if="this.$is_has('userManage_deleteDepartment')"><i class="el-icon-close"></i></el-button>
+                                <el-button type="primary" size="mini" plain title="添加组织机构" @click="addBtn" ><i class="el-icon-plus"></i></el-button>
+                                <el-button type="success" size="mini" plain title="修改组织机构" @click="editBtn" ><i class="el-icon-edit"></i></el-button>
+                                <el-button type="danger" size="mini" plain title="删除组织机构" @click="removeTree" ><i class="el-icon-close"></i></el-button>
                             </div>
                         </div>
                         <div class="department-content treeBox">

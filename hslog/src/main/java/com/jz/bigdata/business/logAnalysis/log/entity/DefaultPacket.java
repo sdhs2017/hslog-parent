@@ -634,7 +634,7 @@ public class DefaultPacket {
 			this.protocol="6";
 			this.protocol_name="TCP";
 			if (tcppacket.getPayload()!=null) {
-				this.payload = packet.toString();
+				//this.payload = packet.toString();
 			}
 			
 			String hexstring = tcppacket.toHexString().replaceAll(" ", "");
@@ -655,14 +655,14 @@ public class DefaultPacket {
 				this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
 				this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
 				if (udpPacket.getPayload()!=null){
-					this.payload = udpPacket.getPayload().toString();
+					//this.payload = udpPacket.getPayload().toString();
 				}
 			}catch (ArrayIndexOutOfBoundsException arraye){
-                this.payload = packet.toString();
+                //this.payload = packet.toString();
                 this.operation_des = "ArrayIndexOutOfBoundsException";
                 arraye.printStackTrace();
             }catch (Exception e){
-				this.payload = packet.toString();
+				//this.payload = packet.toString();
 				this.operation_des = "异常udp";
 				e.printStackTrace();
 			}

@@ -220,9 +220,15 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
     public String createSnapshotByIndices() {
 
-        Map<String, String> MessageResult=doshell("curl -X GET http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot", configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
+        String user = null;
+        // 判断配置文件中是否配置elasticsearch的用户名和密码信息，如果配置拼接curl的用户设置
+        if ((configProperty.getEs_user()!=null&&!configProperty.getEs_user().equals(""))&&(configProperty.getEs_password()!=null&&!configProperty.getEs_password().equals(""))){
+            user = " --user "+configProperty.getEs_user()+":"+configProperty.getEs_password();
+        }
 
-        String resultSuccess=Pattern_Matcher.getMatchedContentByParentheses(MessageResult.get("curl -X GET http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot"), "\"state\":\"(.*?)\"");
+        Map<String, String> MessageResult=doshell("curl "+(user!=null?user:"")+" -X GET http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot", configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
+
+        String resultSuccess=Pattern_Matcher.getMatchedContentByParentheses(MessageResult.get("curl "+(user!=null?user:"")+" -X GET http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot"), "\"state\":\"(.*?)\"");
         Map<String, Object> map= new HashMap<>();
         if(resultSuccess.equals("SUCCESS")){
             // 创建备份仓库
@@ -230,10 +236,10 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
             //String url = "curl -XPUT http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup -d '{\"type\":\"fs\",\"settings\":{\"location\":\"/mnt/disk1/elsearch/es_backups/\"}}'";
             //doshell(url,configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
             // 删除快照
-            String deleteUrl = "curl -XDELETE http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot";
+            String deleteUrl = "curl "+(user!=null?user:"")+" -XDELETE http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot";
             doshell(deleteUrl,configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
             // 创建快照并指定索引
-            String snapshotUrlByIndices = "curl -XPUT http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot -d \'{\"indices\":\""+configProperty.getEs_index()+"\",\"wait_for_completion\":true}\'";
+            String snapshotUrlByIndices = "curl "+(user!=null?user:"")+" -XPUT http://"+configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot -H 'Content-Type:application/json' -d \'{\"indices\":\""+configProperty.getEs_index()+"\",\"wait_for_completion\":true}\'";
             doshell(snapshotUrlByIndices,configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
 
             //System.out.println("自动备份成功！----时间----:"+format.format(new Date()));

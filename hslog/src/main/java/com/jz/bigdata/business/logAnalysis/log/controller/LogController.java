@@ -311,8 +311,8 @@ public class LogController extends BaseController{
 			// 默认1000，数据字段过多，需要调整配置
 			settingmap.put("mapping.total_fields.limit", "5000");
 			// elasticsearch7 版本初始化template
-			//logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
-			//logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
+			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
+			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
 			//初始化BI图表及dashboard存储template
 			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap,new HSData().toMapping());
 			//初始化beat template
@@ -325,7 +325,7 @@ public class LogController extends BaseController{
 			/**
 			 * 初始化工作二：在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
 			 */
-			/*try {
+			try {
 				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
 				List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
 
@@ -350,7 +350,7 @@ public class LogController extends BaseController{
 					logger.info("初始化：备份仓库创建完成！！！");
 				}
 
-			}*/
+			}
 
 			/**
 			 * 初始化工作三：在初始化过程中创建index的生命周期

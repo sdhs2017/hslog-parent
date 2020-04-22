@@ -31,6 +31,12 @@ public class ConfigProperty {
     
     @Value("#{prop.es_port}")
     private String es_port;
+
+	@Value("#{prop.es_user}")
+	private String es_user;
+
+	@Value("#{prop.es_password}")
+	private String es_password;
     
     @Value("#{prop.es_path}")
     private String es_path;
@@ -151,6 +157,22 @@ public class ConfigProperty {
 
 	public void setEs_port(String es_port) {
 		this.es_port = es_port;
+	}
+
+	public String getEs_user() {
+		return es_user;
+	}
+
+	public void setEs_user(String es_user) {
+		this.es_user = es_user;
+	}
+
+	public String getEs_password() {
+		return es_password;
+	}
+
+	public void setEs_password(String es_password) {
+		this.es_password = es_password;
 	}
 
 	public String getEs_path() {

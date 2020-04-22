@@ -64,17 +64,24 @@ public class ManageController {
 	@DescribeLog(describe = "创建快照")
 	public String createSnapshotByIndices() {
 
+
+		String user = null;
+		// 判断配置文件中是否配置elasticsearch的用户名和密码信息，如果配置拼接curl的用户设置
+		if ((configProperty.getEs_user()!=null&&!configProperty.getEs_user().equals(""))&&(configProperty.getEs_password()!=null&&!configProperty.getEs_password().equals(""))){
+			user = " --user "+configProperty.getEs_user()+":"+configProperty.getEs_password();
+		}
+
 		Map<String, String> MessageResult = iManageService.doshell(
-				"curl -X GET http://" + configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot",
+				"curl "+(user!=null?user:"")+" -X GET http://" + configProperty.getEs_path_snapshot()+"/_snapshot/EsBackup/snapshot",
 				configProperty.getHost_user(), configProperty.getHost_passwd(), configProperty.getHost_ip());
 
 		String resultSuccess = Pattern_Matcher.getMatchedContentByParentheses(
 				MessageResult
-						.get("curl -X GET http://" + configProperty.getEs_path_snapshot() + "/_snapshot/EsBackup/snapshot"),
+						.get("curl "+(user!=null?user:"")+" -X GET http://" + configProperty.getEs_path_snapshot() + "/_snapshot/EsBackup/snapshot"),
 				"\"state\":\"(.*?)\"");
 		String resultMissing = Pattern_Matcher.getMatchedContent(
 				MessageResult
-						.get("curl -X GET http://" + configProperty.getEs_path_snapshot() + "/_snapshot/EsBackup/snapshot"),
+						.get("curl "+(user!=null?user:"")+" -X GET http://" + configProperty.getEs_path_snapshot() + "/_snapshot/EsBackup/snapshot"),
 				"\"type\":\"snapshot_missing_exception\"");
 
 		Map<String, Object> map = new HashMap<>();
@@ -82,14 +89,14 @@ public class ManageController {
 		// 判断备份快照状态，成功
 		if (resultSuccess.equals("SUCCESS")) {
 			// 删除快照
-			String deleteUrl = "curl -XDELETE http://" + configProperty.getEs_path_snapshot()
+			String deleteUrl = "curl "+(user!=null?user:"")+" -XDELETE http://" + configProperty.getEs_path_snapshot()
 					+ "/_snapshot/EsBackup/snapshot";
 			// iManageService.doCutl("-XDELETE ", deleteUrl);
 			iManageService.doshell(deleteUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),
 					configProperty.getHost_ip());
 			// 创建快照并指定索引
-			String snapshotUrlByIndices = "curl -XPUT http://" + configProperty.getEs_path_snapshot()
-					+ "/_snapshot/EsBackup/snapshot -d \'{\"indices\":\"" + configProperty.getEs_index()
+			String snapshotUrlByIndices = "curl "+(user!=null?user:"")+" -XPUT http://" + configProperty.getEs_path_snapshot()
+					+ "/_snapshot/EsBackup/snapshot -H 'Content-Type:application/json' -d \'{\"indices\":\"" + configProperty.getEs_index()
 					+ "\",\"wait_for_completion\":true}\'";
 			// iManageService.doCutl("-XPUT", snapshotUrlByIndices);
 			Map<String, String> result = iManageService.doshell(snapshotUrlByIndices, configProperty.getHost_user(),
@@ -101,13 +108,13 @@ public class ManageController {
 		} else if(resultMissing.contains("missing")){
 			// 初次创建快照
 			// 删除快照
-			String deleteUrl = "curl -XDELETE http://" + configProperty.getEs_path_snapshot()
+			String deleteUrl = "curl "+(user!=null?user:"")+" -XDELETE http://" + configProperty.getEs_path_snapshot()
 					+ "/_snapshot/EsBackup/snapshot";
 			iManageService.doshell(deleteUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),
 					configProperty.getHost_ip());
 			// 创建快照并指定索引
-			String snapshotUrlByIndices = "curl -XPUT http://" + configProperty.getEs_path_snapshot()
-					+ "/_snapshot/EsBackup/snapshot -d \'{\"indices\":\"" + configProperty.getEs_index()
+			String snapshotUrlByIndices = "curl "+(user!=null?user:"")+" -XPUT http://" + configProperty.getEs_path_snapshot()
+					+ "/_snapshot/EsBackup/snapshot -H 'Content-Type:application/json' -d \'{\"indices\":\"" + configProperty.getEs_index()
 					+ "\",\"wait_for_completion\":true}\'";
 			// iManageService.doCutl("-XPUT", snapshotUrlByIndices);
 			Map<String, String> result = iManageService.doshell(snapshotUrlByIndices, configProperty.getHost_user(),
@@ -121,13 +128,13 @@ public class ManageController {
 			return JSONArray.fromObject(map).toString();
 		} else if (resultSuccess.equals("FAILED")) {
 			// 删除失败快照
-			String deleteUrl = "curl -XDELETE http://" + configProperty.getEs_path_snapshot()
+			String deleteUrl = "curl "+(user!=null?user:"")+" -XDELETE http://" + configProperty.getEs_path_snapshot()
 					+ "/_snapshot/EsBackup/snapshot";
 			iManageService.doshell(deleteUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),
 					configProperty.getHost_ip());
 			// 创建快照并指定索引
-			String snapshotUrlByIndices = "curl -XPUT http://" + configProperty.getEs_path_snapshot()
-					+ "/_snapshot/EsBackup/snapshot -d \'{\"indices\":\"" + configProperty.getEs_index()
+			String snapshotUrlByIndices = "curl "+(user!=null?user:"")+" -XPUT http://" + configProperty.getEs_path_snapshot()
+					+ "/_snapshot/EsBackup/snapshot -H 'Content-Type:application/json' -d \'{\"indices\":\"" + configProperty.getEs_index()
 					+ "\",\"wait_for_completion\":true}\'";
 			// iManageService.doCutl("-XPUT", snapshotUrlByIndices);
 			Map<String, String> result = iManageService.doshell(snapshotUrlByIndices, configProperty.getHost_user(),
@@ -138,13 +145,13 @@ public class ManageController {
 		}else {
 			// 其他任何异常情况
 			// 删除快照
-			String deleteUrl = "curl -XDELETE http://" + configProperty.getEs_path_snapshot()
+			String deleteUrl = "curl "+(user!=null?user:"")+" -XDELETE http://" + configProperty.getEs_path_snapshot()
 					+ "/_snapshot/EsBackup/snapshot";
 			iManageService.doshell(deleteUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),
 					configProperty.getHost_ip());
 			// 创建快照并指定索引
-			String snapshotUrlByIndices = "curl -XPUT http://" + configProperty.getEs_path_snapshot()
-					+ "/_snapshot/EsBackup/snapshot -d \'{\"indices\":\"" + configProperty.getEs_index()
+			String snapshotUrlByIndices = "curl "+(user!=null?user:"")+" -XPUT http://" + configProperty.getEs_path_snapshot()
+					+ "/_snapshot/EsBackup/snapshot -H 'Content-Type:application/json' -d \'{\"indices\":\"" + configProperty.getEs_index()
 					+ "\",\"wait_for_completion\":true}\'";
 			// iManageService.doCutl("-XPUT", snapshotUrlByIndices);
 			Map<String, String> result = iManageService.doshell(snapshotUrlByIndices, configProperty.getHost_user(),
@@ -161,20 +168,26 @@ public class ManageController {
 	@DescribeLog(describe = "恢复索引")
 	public String restore() {
 
+		String user = null;
+		// 判断配置文件中是否配置elasticsearch的用户名和密码信息，如果配置拼接curl的用户设置
+		if ((configProperty.getEs_user()!=null&&!configProperty.getEs_user().equals(""))&&(configProperty.getEs_password()!=null&&!configProperty.getEs_password().equals(""))){
+			user = " --user "+configProperty.getEs_user()+":"+configProperty.getEs_password();
+		}
+
 		// 首先关闭需要恢复的索引
-		String closeUrl = "curl -XPOST http://" + configProperty.getEs_path_snapshot() + "/"
+		String closeUrl = "curl "+(user!=null?user:"")+" -XPOST http://" + configProperty.getEs_path_snapshot() + "/"
 				+ configProperty.getEs_index() + "/_close";
 		// iManageService.doCutl("-XPOST", closeUrl);
 		iManageService.doshell(closeUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),
 				configProperty.getHost_ip());
 		// 回复快照
-		String restoreUrl = "curl -XPOST http://" + configProperty.getEs_path_snapshot()
+		String restoreUrl = "curl "+(user!=null?user:"")+" -XPOST http://" + configProperty.getEs_path_snapshot()
 				+ "/_snapshot/EsBackup/snapshot/_restore";
 		// iManageService.doCutl("-XPOST", restoreUrl);
 		iManageService.doshell(restoreUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),
 				configProperty.getHost_ip());
 		// 恢复完成之后打开索引
-		String openUrl = "curl -XPOST http://" + configProperty.getEs_path_snapshot() + "/"
+		String openUrl = "curl "+(user!=null?user:"")+" -XPOST http://" + configProperty.getEs_path_snapshot() + "/"
 				+ configProperty.getEs_index() + "/_open";
 		// iManageService.doCutl("-XPOST", openUrl);
 		iManageService.doshell(openUrl, configProperty.getHost_user(), configProperty.getHost_passwd(),

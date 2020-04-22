@@ -49,7 +49,7 @@
 		select event.id, event.name, event.userId,event_classify,
 		event.state,message,enabled,dangerous_level,time,safeStrategyName,time_interval, a.`name` AS userName FROM
 		event
-		LEFT JOIN user AS a
+		LEFT JOIN HS_User AS a
 		on event.userId=a.id
 		where 1=1 and deleteState=1
 		<if test='role=="2"'>
@@ -167,7 +167,7 @@
 		FROM action_event
 		LEFT JOIN event ON
 		action_event.eventId=event.id
-		LEFT JOIN user AS a on event.userId=a.id
+		LEFT JOIN HS_User AS a on event.userId=a.id
 		WHERE action_event.actionId=#{id,jdbcType=VARCHAR}
 	</select>
 

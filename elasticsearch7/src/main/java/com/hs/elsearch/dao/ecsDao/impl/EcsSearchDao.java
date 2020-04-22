@@ -82,10 +82,14 @@ public class EcsSearchDao implements IEcsSearchDao {
         if (map != null && !map.isEmpty()) {
             // 遍历map中查询条件
             for (Map.Entry<String, String> entry : map.entrySet()) {
-               if (entry.getKey().equals("log.level")) {
+               if(entry.getKey().equals("log.level")) {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery(entry.getKey(), level));
+                }else if (entry.getKey().equals("agent.type")) {
+                    // 针对多类似为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
+                    String [] log_types = entry.getValue().split(",");
+                    boolQueryBuilder.must(QueryBuilders.termsQuery(entry.getKey(), log_types));
                 }else if (entry.getKey().equals("exists")){
                     // 针对事件查询的保证事件类型不为空
                     String [] fields = entry.getValue().split(",");
@@ -159,7 +163,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         SortBuilder sortBuilder = SortBuilders.fieldSort(ECS_DATE_FIELD).order(desc);
         // 构建高亮体，指定包含查询条件的所有列都高亮
         HighlightBuilder highlightBuilder = new HighlightBuilder().field("*").requireFieldMatch(false);
-        highlightBuilder.preTags("<span style=\"color:red\">");
+        //highlightBuilder.preTags("<span style=\"color:red\">");
+        highlightBuilder.preTags("<span style=\"background: #dea081;padding: 2px;\">");
         highlightBuilder.postTags("</span>");
         highlightBuilder.fragmentSize(500);
         /**
@@ -273,6 +278,10 @@ public class EcsSearchDao implements IEcsSearchDao {
                     // 针对日志级别为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
                     String [] level = entry.getValue().split(",");
                     boolQueryBuilder.must(QueryBuilders.termsQuery("log.level", level));
+                }else if (entry.getKey().equals("agent.type")) {
+                    // 针对多类似为复选框，传入的参数是以逗号分隔的String，将日志级别转为数组用terms查询
+                    String [] log_types = entry.getValue().split(",");
+                    boolQueryBuilder.must(QueryBuilders.termsQuery(entry.getKey(), log_types));
                 }else if (entry.getKey().equals("exists")){
                     // 针对事件查询的保证事件类型不为空
                     String [] fields = entry.getValue().split(",");

@@ -86,7 +86,7 @@
                         <p class="btnDescribe">停止收集各个资产发送过来的日志数据</p>
                     </div>-->
                     <div class="serviceBtn" id="initialize" title="点击初始化" @click="initialize">
-                        <i class="el-icon-lx-refresh"></i>
+                        <i class="el-icon-refresh-right"></i>
                         <p class="btnTitle">初始化</p>
                         <p class="btnDescribe">对集群的数据结构进行初始化，保证日志数据正常采集到数据中心</p>
                     </div>
@@ -201,7 +201,7 @@
             /*停止beats服务*/
             stopBeats(){
                 //询问框
-                layer.confirm('是否beats采集服务？', {
+                layer.confirm('是否关闭beats采集服务？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
@@ -259,7 +259,7 @@
             /*停止syslog服务*/
             stopSyslog(){
                 //询问框
-                layer.confirm('是否beats采集服务？', {
+                layer.confirm('是否关闭syslog采集服务？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);

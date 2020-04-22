@@ -479,13 +479,13 @@ export default new Router({
                     path: '/accurateSearch2',
                     name:'accurateSearch2',
                     component: resolve => require(['../components/logsManage/accurateSearch2.vue'], resolve),
-                    meta: { title: '精确查询2' }
+                    meta: { title: '精确查询' }
                 },
                 {
                     path: '/eventSearch2',
                     name:'eventSearch2',
                     component: resolve => require(['../components/eventManage/eventSearch2.vue'], resolve),
-                    meta: { title: '事件检索2' }
+                    meta: { title: '事件检索' }
                 },
                 {
                     path: '/addEquipment2',

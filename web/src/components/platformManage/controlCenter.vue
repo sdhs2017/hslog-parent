@@ -9,7 +9,7 @@
             <div class="btnConBox">
                 <div class="btnConBoxTop">
                     <div class="serviceBtn" id="initialize" title="点击初始化" @click="initialize">
-                        <i class="el-icon-lx-refresh"></i>
+                        <i class="el-icon-refresh-right"></i>
                         <p class="btnTitle">初始化</p>
                         <p class="btnDescribe">对集群的数据结构进行初始化，保证日志数据正常采集到数据中心</p>
                     </div>

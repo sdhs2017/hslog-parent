@@ -634,6 +634,7 @@ public class DefaultPacket {
 			this.protocol="6";
 			this.protocol_name="TCP";
 			if (tcppacket.getPayload()!=null) {
+				//TODO 非http暂时取消存储payload数据
 				//this.payload = packet.toString();
 			}
 			

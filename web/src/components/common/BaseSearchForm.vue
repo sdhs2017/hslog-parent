@@ -23,7 +23,7 @@
             <div v-if="formList.selectArr.length > 0" >
                 <div v-for="(item,index) in formList.selectArr" :key="index">
                     <span class="input-lable">{{item.label}}</span>
-                    <el-select v-if="item.itemType === 'multiple'" class="multiple-width" multiple collapse-tags v-model="item.model.model" placeholder="请选择"  size="mini">
+                    <el-select v-if="item.itemType === 'multiple'"  @change="logTypeChange(item.model.model,item.paramName)" class="multiple-width" multiple collapse-tags v-model="item.model.model" placeholder="请选择"  size="mini">
                         <el-option
                             v-for="op in item.options"
                             :key="op.value"
@@ -31,7 +31,7 @@
                             :value="op.value">
                         </el-option>
                     </el-select>
-                    <el-select v-else v-model="item.model.model" @change="logTypeChange"  placeholder="请选择"  size="mini">
+                    <el-select v-else v-model="item.model.model"  placeholder="请选择"  size="mini">
                         <el-option
                             v-for="op in item.options"
                             :key="op.value"
@@ -239,13 +239,16 @@
 
             },
             //日志类型改变
-            logTypeChange(type){
-                for(let i =0;i<this.formList.selectArr.length;i++){
-                    if(this.formList.selectArr[i].label == '日志级别'){
-                        this.formList.selectArr[i].model.model=[];
+            logTypeChange(val,type){
+                if(type === 'agent.type'){//日志类型
+                    for(let i =0;i<this.formList.selectArr.length;i++){
+                        if(this.formList.selectArr[i].label == '日志级别'){
+                            this.formList.selectArr[i].model.model=[];
+                        }
                     }
+                    bus.$emit('logTypeChange',val);
                 }
-                bus.$emit('logTypeChange',type);
+
             }
         }
     }

@@ -144,7 +144,7 @@
                     label:'日志类型',
                     paramName:'agent.type',
                     type:'select',
-                    itemType:'',
+                    itemType:'multiple',
                     model:{
                         model:''
                     },
@@ -180,25 +180,29 @@
                 }
 
             ]
+            //判断是否是初始有条件查询 （首页跳转查询） 设置日志级别
+            if (this.$route.params.logLevel) {
+                this.formConditionsArr[2].model.model=[this.$route.params.logLevel];
+                this.searchConditions['log.level']=this.$route.params.logLevel;
+                //清空日志类型
+                this.formConditionsArr[1].model.model = ''
+                this.searchConditions['agent.type'] = ''
+            }
             //检测搜索条件
             bus.$on(this.busName,(params)=>{
                 this.searchConditions = params;
             })
             //检测日志类型改变
             bus.$on('logTypeChange',(params)=>{
-                this.logLevel.length = 0;
-                this.levelVal = '';
-                for(let i =0;i<this.logBaseJson.length;i++){
-                    if(this.logBaseJson[i].type == params){
-                       for(let j=0;j< this.logBaseJson[i].level.length;j++){
-                           let obj = {
-                               value:this.logBaseJson[i].level[j],
-                               label:this.logBaseJson[i].level[j]
-                           };
-                           this.logLevel.push(obj);
-                       }
-                    }
+                //默认多选或者不选 显示syslog的日志级别
+                let type ='syslog';
+                //判断选中是否只是一个
+                if(params.length === 1){
+                   type = params[0]
                 }
+                //设置日志级别
+                this.setLogLevel(type)
+
             })
             //获取本地是否有导出任务
             //有
@@ -223,9 +227,14 @@
                 localStorage.removeItem('exportLogs');
             })
         },
-        watch:{
-            '$route' (to, from) {
-               // console.log(to)
+        watch: {
+            '$route' (to, from) { //监听路由是否变化
+                if (this.$route.params.logLevel) {
+                    this.formConditionsArr[2].model.model=[this.$route.params.logLevel];
+                    this.searchConditions['log.level']=this.$route.params.logLevel;
+                    this.formConditionsArr[1].model.model = ''
+                    this.searchConditions['agent.type'] = ''
+                }
             }
         },
         methods:{
@@ -235,7 +244,7 @@
                     this.$axios.get('static/filejson/logTypeLevel2.json',{})
                         .then((res)=>{
                             this.logBaseJson = res.data;
-                            this.logType.push({value:'',label:'全部'});
+                            // this.logType.push({value:'',label:'全部'});
                             for(let i=0;i<res.data.length; i++){
                                 let obj = {
                                     value:res.data[i].type,
@@ -244,11 +253,29 @@
                                 this.logType.push(obj);
 
                             }
+                            //设置日志级别  默认显示syslog日志级别
+                            this.setLogLevel('syslog')
                         })
                         .catch((err)=>{
                             console.log(err)
                         })
                 })
+            },
+            /*改变日志级别*/
+            setLogLevel(logType){
+                this.logLevel.length = 0;
+                this.levelVal = '';
+                for(let i =0;i<this.logBaseJson.length;i++){
+                    if(this.logBaseJson[i].type == logType){
+                        for(let j=0;j< this.logBaseJson[i].level.length;j++){
+                            let obj = {
+                                value:this.logBaseJson[i].level[j],
+                                label:this.logBaseJson[i].level[j]
+                            };
+                            this.logLevel.push(obj);
+                        }
+                    }
+                }
             },
             /*获取导出日志进度*/
             updataProgressValue(){

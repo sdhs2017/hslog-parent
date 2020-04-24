@@ -346,18 +346,19 @@ public class KafkaCollector implements Runnable {
 									logstashSyslog.setEquipmentname(equipment.getName());
 									logstashSyslog.setEquipmentid(equipment.getId());
 									logstashSyslog.setIp(equipment.getIp());
+								}else{
+									logstashSyslog.setUserid(LogType.LOGTYPE_UNKNOWN);
+									logstashSyslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
+									logstashSyslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+									logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+									logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN);
 								}
-							}else{
-								logstashSyslog.setUserid(LogType.LOGTYPE_UNKNOWN);
-								logstashSyslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
-								logstashSyslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-								logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-								logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN);
+								json = new Logstash2ECS().toJson(logstashSyslog);
+								dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
+								logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
+								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName,null,null), LogType.LOGTYPE_SYSLOG, json));
 							}
-							json = new Logstash2ECS().toJson(logstashSyslog);
-							dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
-							logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
-							newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName,null,null), LogType.LOGTYPE_SYSLOG, json));
+
 						}catch (Exception e){
 							e.printStackTrace();
 							logger.error("范式化失败 ，日志内容："+builder.toString());

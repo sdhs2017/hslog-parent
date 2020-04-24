@@ -1,7 +1,7 @@
 {
     "log": {
         "syslog":{
-            "level":["error","warning","information"],
+            "level":["emergency","alert","critical","error","warning","notice","information","debug"],
             "searchFrom":{},
             "tableHead":[
                 {

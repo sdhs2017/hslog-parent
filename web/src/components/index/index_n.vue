@@ -302,12 +302,12 @@
         },
         methods:{
             clickss(params){
-                this.$router.push({name:'fulltextRetrieval',params:{words: params.name}})
+                this.$router.push({name:'accurateSearch2',params:{logLevel: params.name}})
             },
             //跳转页面 path:'/equipment',query: {name: 1}
             goToSearchLogs(){
                 if(this.errorLogsTotle != 0){
-                    this.$router.push({name:'fulltextRetrieval',params:{words: 'error'}})
+                    this.$router.push({name:'accurateSearch2',params:{logLevel: 'error'}})
                 }
 
             },

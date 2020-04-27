@@ -42,7 +42,7 @@
                 formConditionsArr:[],//查询数组
                 searchConditions:{//查询条件
                     name:'',
-                    hostname:'',
+                    hostName:'',
                     ip:'',
                     logType:'',
                     type:''
@@ -212,7 +212,7 @@
                 },
                 {
                     label:'主机名',
-                    paramName:'hostname',
+                    paramName:'hostName',
                     model:{
                         model:''
                     },

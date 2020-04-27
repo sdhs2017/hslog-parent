@@ -1,11 +1,19 @@
 [
     {
         "type":"syslog",
-        "level":["emergency","alert","critical","error","warn","notice","info","debug"]
+        "level":["emergency","alert","critical","error","warning","notice","information","debug"]
     },
     {
         "type":"winlog",
-        "level":["emergency","alert","critical","error","warn","notice","info","debug"]
+        "level":["error","warning","information"]
+    },
+    {
+        "type":"packet",
+        "level":[]
+    },
+    {
+        "type":"metric",
+        "level":[]
     },
     {
         "type":"snmp",

@@ -66,11 +66,14 @@
                     <div class="grid-content bg-purple-light">
                         <span class="mustWrite">*</span>
                         <el-form-item label="资产类型:">
-                            <el-cascader
-                                :options="typeArr"
-                                v-model="form.type"
-                                style="width: 100%;">
-                            </el-cascader>
+                            <el-select v-model="form.type" placeholder="请选择" style="width: 100%">
+                                <el-option
+                                    v-for="item in typeArr"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
                         </el-form-item>
                     </div>
                 </el-col>
@@ -203,7 +206,7 @@
 <script>
     import bus from '../common/bus';
     export default {
-        name: "equipmentForm",
+        name: "logicAssetsForm",
         props:{
             //表单数据
             formData:{
@@ -244,13 +247,26 @@
                 },
                 defaultForm:'',
                 logTypeArr:[],//日志类型数据
-                typeArr:[], //资产类型
+                typeArr:[
+                    {
+                        label:'实体机',
+                        value:'01'
+                    },
+                    {
+                        label:'虚拟机',
+                        value:'02'
+                    },
+                    {
+                        label:'微服务(类Docker)',
+                        value:'03'
+                    }
+                ], //资产类型
                 equipmentData:{}
             }
         },
         created(){
             this.getLogType();
-            this.getEquipmentType();
+           // this.getEquipmentType();
             this.defaultForm = JSON.stringify(this.form);
         },
         mounted(){
@@ -267,19 +283,10 @@
                       return s && s.trim();
                   });
               }
-
-              //资产类型
-              const type = this.equipmentData.type;
-              this.equipmentData.type = [];
-              if(type){
-                  this.equipmentData.type.push(type.substring(0,2))
-                  this.equipmentData.type.push(type);
-              }
               //赋值
               for(let i in this.form){
                   this.form[i] = this.equipmentData[i]
               }
-              //this.form = this.equipmentData;
           }
         },
         methods:{
@@ -303,18 +310,6 @@
                         })
                 })
             },
-            /*获得资产类型数据*/
-            getEquipmentType(){
-                this.$nextTick(()=>{
-                    this.$axios.get('static/filejson/equiptype.json',{})
-                        .then((res)=>{
-                            this.typeArr = res.data
-                        })
-                        .catch((err)=>{
-                            console.log(err)
-                        })
-                })
-            },
             /*保存资产数据*/
             saveEquipment(){
                 //判断合法性
@@ -328,7 +323,7 @@
                     layer.msg("日志级别不能为空",{icon:5});
                 }else if(this.form.logType.length == 0){
                     layer.msg("日志类型不能为空",{icon:5});
-                }else if(this.form.type.length == 0){
+                }else if(this.form.type == ''){
                     layer.msg("资产类型不能为空",{icon:5});
                 }else{
                     let formData2 = Object.assign({}, this.form);
@@ -339,9 +334,6 @@
                         str += formData2.log_level[i]+',';
                     }
                     formData2.log_level = str;
-                    console.log(formData2.log_level)
-                    //处理资产类型
-                    formData2.type = formData2.type[1]
                     bus.$emit(this.busName,formData2)
                 }
 

@@ -123,12 +123,6 @@ export default new Router({
                     meta: { title: '设备日志' }
                 },
                 {
-                    path: '/allEcharts',
-                    name:'allEcharts',
-                    component: resolve => require(['../components/equipment/allEcharts.vue'], resolve),
-                    meta: { title: '全部资产报表' }
-                },
-                {
                     path: '/equipmentMonitor',
                     name:'equipmentMonitor',
                     component: resolve => require(['../components/equipment/equipmentMonitor.vue'], resolve),
@@ -504,6 +498,18 @@ export default new Router({
                     name:'controlCenter_n',
                     component: resolve => require(['../components/platformManage/controlCenter_n.vue'], resolve),
                     meta: { title: '控制中心' }
+                },
+                {
+                    path: '/logicAssetsList',
+                    name:'logicAssetsList',
+                    component: resolve => require(['../components/equipment/logicAssetsList.vue'], resolve),
+                    meta: { title: '逻辑资产' }
+                },
+                {
+                    path: '/addLogicAssets',
+                    name:'addLogicAssets',
+                    component: resolve => require(['../components/equipment/addLogicAssets.vue'], resolve),
+                    meta: { title: '添加逻辑资产' }
                 },
                 /*{
                     // 富文本编辑器组件

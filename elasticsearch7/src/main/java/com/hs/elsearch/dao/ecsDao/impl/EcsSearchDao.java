@@ -342,7 +342,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         AggregationBuilder aggregationBuilder = AggregationBuilders
                 .terms("agg")
                 .field(groupByField)
-                .order(BucketOrder.count(false)).size(size);
+                .order(BucketOrder.count(false))
+                .size(size);
 
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
@@ -383,7 +384,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         if (map!=null&&!map.isEmpty()) {
             for (Map.Entry<String,String> entry : map.entrySet()){
                 if (entry.getKey().equals(ECS_DATE_FIELD)) {
-                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.rangeQuery(entry.getKey()).format("yyyy-MM-dd").gte(entry.getValue()).lte(entry.getValue()));
                 }else if (entry.getKey().equals("exists")){
                     // 针对事件查询的保证事件类型不为空
                     String [] fields = entry.getValue().split(",");
@@ -429,6 +430,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                         .field(dateHistogramField)
                         // 聚合的方式，小时
                         .calendarInterval(DateHistogramInterval.HOUR)
+
                         // 为空的话则填充0
                         .minDocCount(0)
                         // 需要填充0的范围

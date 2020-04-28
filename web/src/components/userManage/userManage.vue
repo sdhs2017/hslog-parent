@@ -59,7 +59,7 @@
         <!--添加与修改组织机构弹窗-->
         <el-dialog :title="treeBtnType === 'add' ? '添加组织机构':'修改组织机构'" :visible.sync="treeForm" width="440px">
             <el-form label-width="80px">
-                <el-form-item label="父级目录:" v-if="treeBtnType === 'add'">
+                <el-form-item label="父级目录:" v-if="treeBtnType === 'add' && JSON.stringify(selectedTreeNode) != '{}'">
                     <el-input v-model="fatherName" placeholder="" disabled class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="名称:" >
@@ -477,10 +477,18 @@
                 this.treeBtnType = 'add';
                 //出现弹窗
                 this.treeForm = true;
-                this.departmentParams =  Object.assign({}, this.selectedTreeNode);
-                //初始化参数
-                this.departmentParams.name = '';
-                this.departmentParams.comment = '';
+                this.departmentParams = {
+                    name:'',
+                    comment:'',
+                    level:'1'
+                };
+                if (JSON.stringify(this.selectedTreeNode) !== '{}'){
+                    this.departmentParams =  Object.assign({}, this.selectedTreeNode);
+                    //初始化参数
+                    this.departmentParams.name = '';
+                    this.departmentParams.comment = '';
+                }
+                console.log(this.departmentParams)
             },
             /*添加组织机构*/
             addTree(){
@@ -579,14 +587,11 @@
             },
             /*清楚选中的树节点*/
             removeClass(ev){
-
                 if($(ev.target)[0].className === 'department-wapper'){
                     //初始化选中节点
                     this.selectedTreeNode = {};
                     $('.el-tree--highlight-current').removeClass('el-tree--highlight-current')
                 }
-
-               // console.log(this.selectedTreeNode.id)
             },
             /*机构树查询用户*/
             selectTreeUser(id){

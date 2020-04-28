@@ -19,7 +19,7 @@
                 <li v-for="(i,index) in equipmentList"  :key="index"  class="eq-li" @mouseenter="liMouseenter($event)" @mouseleave="liMouseleave($event)" @>
                     <div class="eq-tools-01">
                         <i class="el-icon-edit " title="修改资产" @click="reviseEquipment(i)"></i>
-                        <b>今日：{{i.log_count}}</b>
+                        <b title="今日入库数">{{i.log_count}}</b>
                         <el-checkbox :label="i.id"></el-checkbox>
                     </div>
                     <div class="eq-name">{{i.name}}</div>
@@ -78,22 +78,8 @@
                         <i class="el-icon-share" title="查看资产报表" @click="equipmentEcharts(i)"></i>
                         <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
                         <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
-                        <i class="el-icon-view" title="潜在威胁分析" @click="theartAnalyse(i)"></i>
+                        <i class="el-icon-view" title="潜在威胁分析" :style="{color:i.high_risk !== 0 ? '#f55446' : i.moderate_risk !== 0 ? '#f1ae09' : '#4995bb'}" @click="theartAnalyse(i)"></i>
                     </div>
-
-<!--                    <div class="eq-tools">-->
-<!--                        <a href="javascript:void(0)" class="tools-more">-->
-<!--                            <i class="el-icon-arrow-down "></i>-->
-<!--                        </a>-->
-<!--                    </div>-->
-<!--                    <ul class="tools-ul" data-angle="[0,215]" @mouseenter="zzIndex = 2" @mouseleave="zzIndex = -2">-->
-<!--                        <li class="item" title="修改资产" @click="reviseEquipment(i)"><i class="el-icon-edit "></i></li>-->
-<!--                        <li class="item" title="查看资产日志" @click="equipmentLogs(i)"><i class="el-icon-tickets"></i></li>-->
-<!--                        <li class="item" title="查看资产报表" @click="equipmentEcharts(i)"><i class="el-icon-share"></i></li>-->
-<!--                        <li class="item" title="查看资产事件" @click="equipmentEvents(i)"><i class="el-icon-date"></i></li>-->
-<!--                        <li class="item" title="设置安全策略" @click="setSafe(i)"><i class="el-icon-bell"></i></li>-->
-<!--                        <li class="item" title="潜在威胁分析" @click="theartAnalyse(i)"><i class="el-icon-view"></i></li>-->
-<!--                    </ul>-->
                 </li>
             </ul>
             </el-checkbox-group>
@@ -542,7 +528,9 @@
         line-height: 20px;
     }
     .eq-tools-01 b{
-        color: #4995ba;
+        color: #409eff;
+        border: 1px solid #409eff;
+        padding: 0 3px;
     }
     .eq-tools-01 i{
         float: left;
@@ -565,7 +553,7 @@
         font-size: 18px;
         font-weight: 600;
         height: 56px;
-        line-height: 70px;
+        line-height: 76px;
         border-bottom: 1px dashed #5bc0de;
         transition: all 0.2s linear;
         overflow: hidden;

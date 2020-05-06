@@ -136,6 +136,7 @@
     import vEcharts from '../common/echarts'
     import vListdetails from '../common/Listdetails'
     import bus from '../common/bus';
+    import {dateFormat} from "../../../static/js/common";
 
     const MONTHNAME = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ];
     const DAYNAME = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
@@ -248,25 +249,8 @@
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
             this.dateVal1=[start,end];
             this.dateVal2=[start,end];
-            //获取当前日期
-            //拼接昨天日期格式 yy-mm-dd
-            var mon = end.getMonth()+1;
-            var da = end.getDate();
-            if( mon < 10){
-                mon = "0"+(end.getMonth()+1);
-            }
-            if(da < 10){
-                da = "0"+ (end.getDate());
-            }
-            this.todayDate = end.getFullYear()+"-" + mon + "-" + da;
-            //定义七天前时间
-            var date2 = new Date(end);
-            date2.setDate(end.getDate()-7);
-            let sd = date2.getDate();
-            if(sd < 10){
-                sd = "0"+ sd;
-            }
-            this.starttime = date2.getFullYear()+"-"+(date2.getMonth()+1)+"-"+sd;
+            this.todayDate = dateFormat('yyyy-mm-dd',end)
+            this.starttime = dateFormat('yyyy-mm-dd',start)
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
             //获取日志条数方法

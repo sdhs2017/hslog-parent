@@ -1,15 +1,16 @@
 <template>
     <div class="content-bg">
         <div class="top-title">
+            <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'">当前仅能查看</div>
             <div class="choose-wapper">
-                <choose-index :busName="this.busIndexName" :indexVal = "indexVal"></choose-index>
+                <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
             </div>
             <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true">保存</el-button>
             <div class="date-wapper"><date-layout  :busName="busName"></date-layout></div>
         </div>
         <div class="chart-wapper">
             <div class="config-wapper">
-                <el-button class="creatBtn" type="primary" @click="getData" :disabled="isCanCreate">生成</el-button>
+                <el-button class="creatBtn" type="primary" @click="getData" :disabled="isCanCreate || this.htmlTitle.substr(0,2) == '查看'">生成</el-button>
                 <el-tabs v-model="activeName" style="height: 100%;" type="border-card">
                     <el-tab-pane label="数据" name="first">
                         <el-collapse>
@@ -288,13 +289,16 @@
                 busName:'createPieChart',
                 busIndexName:'pieIndexName',
                 //默认数据源索引
-                indexVal:'',
+                indexVal:[],
                 configOpened:['1','2','3','4','5','6','7'],
                 //图表基本配置
                 chartsConfig:{
-                    //数据源
-                    indexName:'',
+                    //templateName
                     templateName:'',
+                    //index前名
+                    preIndexName:'',
+                    //index后时间
+                    suffixIndexName:'',
                     //标题
                     title:{
                         text:''
@@ -427,10 +431,9 @@
                 //还原配置
                 this.initialize()
                 //设置数据源
-                this.chartsConfig.indexName = arr[1];
+                this.chartsConfig.suffixIndexName = arr[2];
+                this.chartsConfig.preIndexName = arr[1];
                 this.chartsConfig.templateName = arr[0];
-
-
             })
         },
         computed:{
@@ -486,7 +489,7 @@
             },
             /*y轴聚合类型改变*/
             yAggregationChange($event,index){
-                if (this.chartsConfig.indexName === ''){
+                if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
                     layer.msg('请选择数据源',{icon:'5'});
                     return;
                 }
@@ -499,7 +502,8 @@
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
                             agg:$event,
-                            indexName:this.chartsConfig.indexName,
+                            preIndexName:this.chartsConfig.preIndexName,
+                            suffixIndexName:this.chartsConfig.suffixIndexName,
                             templateName:this.chartsConfig.templateName
                         }
                     ))
@@ -522,7 +526,7 @@
             },
             /*x轴聚合类型改变*/
             xAggregationChange(){
-                if (this.chartsConfig.indexName === ''){
+                if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
                     layer.msg('请选择数据源',{icon:'5'});
                     return;
                 }
@@ -533,7 +537,8 @@
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
                         agg:this.chartsConfig.xAxisArr[0].aggregationType,
-                        indexName:this.chartsConfig.indexName,
+                        preIndexName:this.chartsConfig.preIndexName,
+                        suffixIndexName:this.chartsConfig.suffixIndexName,
                         templateName:this.chartsConfig.templateName
                     }))
                         .then(res=>{
@@ -561,7 +566,9 @@
                     x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//拆分参数
                     y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//聚合参数
                     y_agg:this.chartsConfig.yAxisArr[0].aggregationType,//聚合参数类型
-                    indexName:this.chartsConfig.indexName,//数据源
+                    preIndexName:this.chartsConfig.preIndexName,
+                    suffixIndexName:this.chartsConfig.suffixIndexName,
+                    templateName:this.chartsConfig.templateName,
                     size:this.chartsConfig.xAxisArr[0].topSum,//展示数据的个数
                     sort:this.chartsConfig.xAxisArr[0].orderType,
                     intervalType:'',
@@ -732,7 +739,9 @@
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
                     type:'pie',
-                    indexName:this.chartsConfig.indexName,
+                    preIndexName:this.chartsConfig.preIndexName,
+                    suffixIndexName:this.chartsConfig.suffixIndexName,
+                    templateName:this.chartsConfig.templateName,
                     option:JSON.stringify(optStr),
                     params:this.chartParams.searchParam,
                     isSaveAs:true
@@ -779,7 +788,7 @@
                                 if (obj.success == 'true'){
                                     let option = JSON.parse(obj.data.option);
                                     this.chartsConfig = option.config;
-                                    this.indexVal = obj.data.indexName;
+                                    this.indexVal = [obj.data.templateName,obj.data.preIndexName,obj.data.suffixIndexName]
                                     //x轴聚合参数
                                     let xap = this.chartsConfig.xAxisArr[0].aggregationParam;
                                     this.xAggregationChange();
@@ -825,10 +834,10 @@
         beforeRouteEnter(to, from, next) {
             next (vm => {
                 //判断是否有参数  有参数说明是修改功能页面
-                if(JSON.stringify(to.query) !== "{}"){
+                if(JSON.stringify(to.query) !== "{}"  && to.query.type === 'edit'){
                     // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                     //修改此组件的name值
-                    vm.$options.name = 'pieChart'+ to.query.id;
+                    vm.$options.name = 'editPieChart'+ to.query.id;
                     //修改data参数
                     vm.htmlTitle = `修改 ${to.query.name}`;
                     vm.busName = 'resivePieChart'+to.query.id;
@@ -842,16 +851,44 @@
                         //还原配置
                         vm.initialize()
                         //设置数据源
-                        vm.chartsConfig.indexName = arr[1];
+                        //设置数据源
+                        vm.chartsConfig.suffixIndexName = arr[2];
+                        vm.chartsConfig.preIndexName = arr[1];
                         vm.chartsConfig.templateName = arr[0];
                     })
                     //将路由存放在本地 用来刷新页面时添加路由
                     let obj = {
-                        path:'pieChart'+to.query.id,
+                        path:'editPieChart'+to.query.id,
                         component:'dashboard/pieChart.vue',
                         title:'修改'
                     }
-                    sessionStorage.setItem('/pieChart'+to.query.id,JSON.stringify(obj))
+                    sessionStorage.setItem('/editPieChart'+to.query.id,JSON.stringify(obj))
+                    if(vm.chartId === '' || vm.chartId !== to.query.id){
+                        vm.chartId = to.query.id;
+                    }
+                }else if(to.query.type === 'see'){//查看
+                    //修改此组件的name值
+                    vm.$options.name = 'seePieChart'+ to.query.id;
+                    //修改data参数
+                    vm.htmlTitle = `查看 ${to.query.name}`;
+                    //数据源监听
+                    bus.$on(vm.busIndexName,(arr)=>{
+                        //还原配置
+                        vm.initialize();
+                        //设置数据源
+                        //设置数据源
+                        vm.chartsConfig.suffixIndexName = arr[2];
+                        vm.chartsConfig.preIndexName = arr[1];
+                        vm.chartsConfig.templateName = arr[0];
+                    })
+                    bus.$off(vm.busIndexName)
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'seePieChart'+to.query.id,
+                        component:'dashboard/pieChart.vue',
+                        title:'查看'
+                    }
+                    sessionStorage.setItem('/seePieChart'+to.query.id,JSON.stringify(obj))
                     if(vm.chartId === '' || vm.chartId !== to.query.id){
                         vm.chartId = to.query.id;
                     }
@@ -870,6 +907,17 @@
 </script>
 
 <style scoped>
+    .top-zz{
+        text-align: center;
+        width: 100%;
+        height: 50px;
+        position: absolute;
+        /*background: #;*/
+        z-index: 100;
+        cursor: no-drop;
+        text-shadow: none;
+        color: #455b75;
+    }
     .choose-wapper{
         height: 50px;
         display: flex;

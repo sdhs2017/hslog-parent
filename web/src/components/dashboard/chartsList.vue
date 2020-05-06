@@ -85,8 +85,15 @@
                         width: '',
                         btns: [
                             {
+                                icon: 'el-icon-view',
+                                text: '查看',
+                                clickFun: (row, index) => {
+                                    this.seeChart(row,index)
+                                }
+                            },
+                            {
                                 icon: 'el-icon-edit',
-                                text: '修改',
+                                text: '编辑',
                                 clickFun: (row, index) => {
                                     this.reviseChart(row,index)
                                 }
@@ -148,18 +155,31 @@
                         break;
                 }
             },
-            /*修改按钮*/
-            reviseChart(rowData,index){
-                console.log(rowData)
+            /*查看图表*/
+            seeChart(rowData,index){
                 switch (rowData.type) {
                     case 'bar':
-                        jumpHtml('barChart'+rowData.id,'dashboard/barChart.vue',{name:rowData.title,id:rowData.id},' 修改');
+                        jumpHtml('seeBarChart'+rowData.id,'dashboard/barChart.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
                         break;
                     case 'pie':
-                        jumpHtml('pieChart'+rowData.id,'dashboard/pieChart.vue',{name:rowData.title,id:rowData.id},' 修改');
+                        jumpHtml('seePieChart'+rowData.id,'dashboard/pieChart.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
                         break;
                     case 'line':
-                        jumpHtml('lineChart'+rowData.id,'dashboard/lineChart.vue',{name:rowData.title,id:rowData.id},' 修改');
+                        jumpHtml('seeLineChart'+rowData.id,'dashboard/lineChart.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
+                        break;
+                }
+            },
+            /*修改按钮*/
+            reviseChart(rowData,index){
+                switch (rowData.type) {
+                    case 'bar':
+                        jumpHtml('editBarChart'+rowData.id,'dashboard/barChart.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
+                        break;
+                    case 'pie':
+                        jumpHtml('editPieChart'+rowData.id,'dashboard/pieChart.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
+                        break;
+                    case 'line':
+                        jumpHtml('editLineChart'+rowData.id,'dashboard/lineChart.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
                         break;
                 }
             },

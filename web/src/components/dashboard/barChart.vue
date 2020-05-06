@@ -1,8 +1,9 @@
 <template>
     <div class="content-bg">
         <div class="top-title"><!--{{htmlTitle}}-->
+            <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'">当前仅能查看</div>
             <div class="choose-wapper">
-                <choose-index :busName="this.busIndexName" :indexVal = "indexVal"></choose-index>
+                <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
             </div>
             <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true"  size="mini">保存</el-button>
             <div class="date-wapper"><date-layout  :busName="busName"></date-layout></div>
@@ -11,7 +12,7 @@
             <div class="config-wapper">
 <!--                <el-button class="creatBtn prevBtn" :disabled="this.chartsConfigArr.length <= 1 ? 'disabled' : false" type="primary" @click="prevCreate" title="上一步"><i class="el-icon-back"></i></el-button>-->
 <!--                <el-button class="creatBtn nextBtn" :disabled="this.chartsConfigArr.length <= 1 ? 'disabled' : false" type="primary" @click="prevCreate" title="下一步"><i class="el-icon-right"></i></el-button>-->
-                <el-button class="creatBtn" type="primary" @click="getData" :disabled="isCanCreate">生成</el-button>
+                <el-button class="creatBtn" type="primary" @click="getData" :disabled="isCanCreate || this.htmlTitle.substr(0,2) == '查看'">生成</el-button>
                 <el-tabs v-model="activeName" style="height: 100%;" type="border-card">
                     <el-tab-pane label="数据" name="first">
                         <el-collapse>
@@ -327,15 +328,17 @@
                 busName:'createBarChart',
                 busIndexName:'barIndexName',
                 //默认数据源索引
-                indexVal:'',
+                indexVal:[],
                 //展开的选项卡
                 configOpened:['1','2','3','4','5','6'],
                 //图表基本配置
                 chartsConfig:{
                     //templateName
                     templateName:'',
-                    //数据源
-                    indexName:'',
+                    //index前名
+                    preIndexName:'',
+                    //index后时间
+                    suffixIndexName:'',
                     //标题
                     title:{
                         text:''
@@ -510,7 +513,8 @@
                 //还原配置
                 this.initialize();
                 //设置数据源
-                this.chartsConfig.indexName = arr[1];
+                this.chartsConfig.suffixIndexName = arr[2];
+                this.chartsConfig.preIndexName = arr[1];
                 this.chartsConfig.templateName = arr[0];
             })
         },
@@ -573,7 +577,7 @@
             },
             /*y轴聚合类型改变*/
             yAggregationChange($event,index){
-                if (this.chartsConfig.indexName === ''){
+                if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
                     layer.msg('请选择数据源',{icon:'5'});
                     return;
                 }
@@ -586,7 +590,8 @@
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
                             agg:$event,
-                            indexName:this.chartsConfig.indexName,
+                            preIndexName:this.chartsConfig.preIndexName,
+                            suffixIndexName:this.chartsConfig.suffixIndexName,
                             templateName:this.chartsConfig.templateName
                         }
                     ))
@@ -609,7 +614,7 @@
             },
             /*x轴聚合类型改变*/
             xAggregationChange(){
-                if (this.chartsConfig.indexName === ''){
+                if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
                     layer.msg('请选择数据源',{icon:'5'});
                     return;
                 }
@@ -620,7 +625,8 @@
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
                         agg:this.chartsConfig.xAxisArr[0].aggregationType,
-                        indexName:this.chartsConfig.indexName,
+                        preIndexName:this.chartsConfig.preIndexName,
+                        suffixIndexName:this.chartsConfig.suffixIndexName,
                         templateName:this.chartsConfig.templateName
                     }))
                         .then(res=>{
@@ -648,7 +654,9 @@
                     x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//x轴参数
                     y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//y轴参数
                     y_agg:this.chartsConfig.yAxisArr[0].aggregationType,//y轴参数类型
-                    indexName:this.chartsConfig.indexName,//数据源
+                    preIndexName:this.chartsConfig.preIndexName,
+                    suffixIndexName:this.chartsConfig.suffixIndexName,
+                    templateName:this.chartsConfig.templateName,
                     size:this.chartsConfig.xAxisArr[0].topSum,//展示的列个数
                     sort:this.chartsConfig.xAxisArr[0].orderType,//排序方式
                     intervalType:this.chartsConfig.xAxisArr[0].timeType,//x轴参数类型为date时 时间间隔类型
@@ -863,7 +871,9 @@
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
                     type:'bar',
-                    indexName:this.chartsConfig.indexName,
+                    preIndexName:this.chartsConfig.preIndexName,
+                    suffixIndexName:this.chartsConfig.suffixIndexName,
+                    templateName:this.chartsConfig.templateName,
                     option:JSON.stringify(optStr),
                     params:this.chartParams.searchParam,
                     isSaveAs:true
@@ -917,7 +927,7 @@
                                 if (obj.success == 'true'){
                                     //赋值
                                     let option = JSON.parse(obj.data.option);
-                                    this.indexVal = obj.data.indexName;
+                                    this.indexVal = [obj.data.templateName,obj.data.preIndexName,obj.data.suffixIndexName]
                                     this.chartsConfig = option.config;
                                     //x轴聚合参数
                                     let xap = this.chartsConfig.xAxisArr[0].aggregationParam;
@@ -954,13 +964,13 @@
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {
-                //判断是否有参数  有参数说明是修改功能页面
-                if(JSON.stringify(to.query) !== "{}"){
+                //判断是否有参数  有参数说明是修改/查看功能页面
+                if(JSON.stringify(to.query) !== "{}" && to.query.type === 'edit'){//修改
                     // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                     //修改此组件的name值
-                    vm.$options.name = 'barChart'+ to.query.id;
+                    vm.$options.name = 'editBarChart'+ to.query.id;
                     //修改data参数
-                    vm.htmlTitle = `修改 ${to.query.name}`;
+                    vm.htmlTitle = `编辑 ${to.query.name}`;
                     vm.busName = 'resiveBarChart'+to.query.id;
                     vm.busIndexName = 'barIndexName' +to.query.id;
                     //时间范围监听事件
@@ -972,16 +982,43 @@
                         //还原配置
                         vm.initialize();
                         //设置数据源
-                        vm.chartsConfig.indexName = arr[1];
+                        //设置数据源
+                        vm.chartsConfig.suffixIndexName = arr[2];
+                        vm.chartsConfig.preIndexName = arr[1];
                         vm.chartsConfig.templateName = arr[0];
                     })
                     //将路由存放在本地 用来刷新页面时添加路由
                     let obj = {
-                        path:'barChart'+to.query.id,
+                        path:'editBarChart'+to.query.id,
                         component:'dashboard/barChart.vue',
-                        title:'修改'
+                        title:'编辑'
                     }
-                    sessionStorage.setItem('/barChart'+to.query.id,JSON.stringify(obj))
+                    sessionStorage.setItem('/editBarChart'+to.query.id,JSON.stringify(obj))
+                    if(vm.chartId === '' || vm.chartId !== to.query.id){
+                        vm.chartId = to.query.id;
+                    }
+                }else if(to.query.type === 'see'){//查看
+                    //修改此组件的name值
+                    vm.$options.name = 'seeBarChart'+ to.query.id;
+                    //修改data参数
+                    vm.htmlTitle = `查看 ${to.query.name}`;
+                    //数据源监听
+                    bus.$on(vm.busIndexName,(arr)=>{
+                        //还原配置
+                        vm.initialize();
+                        //设置数据源
+                        vm.chartsConfig.suffixIndexName = arr[2];
+                        vm.chartsConfig.preIndexName = arr[1];
+                        vm.chartsConfig.templateName = arr[0];
+                    })
+                    bus.$off(vm.busIndexName)
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'seeBarChart'+to.query.id,
+                        component:'dashboard/barChart.vue',
+                        title:'查看'
+                    }
+                    sessionStorage.setItem('/seeBarChart'+to.query.id,JSON.stringify(obj))
                     if(vm.chartId === '' || vm.chartId !== to.query.id){
                         vm.chartId = to.query.id;
                     }
@@ -1000,6 +1037,17 @@
 </script>
 
 <style scoped>
+    .top-zz{
+        text-align: center;
+        width: 100%;
+        height: 50px;
+        position: absolute;
+        /*background: #;*/
+        z-index: 100;
+        cursor: no-drop;
+        text-shadow: none;
+        color: #455b75;
+    }
     .choose-wapper{
         height: 50px;
         display: flex;

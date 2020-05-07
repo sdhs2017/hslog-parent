@@ -5,7 +5,7 @@
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;">刷新</el-button>
-            <div class="date-wapper"><date-layout  :busName="busName"></date-layout></div>
+            <div class="date-wapper"><date-layout  :busName="busName" :refresh="refresh"></date-layout></div>
         </div>
         <!--dashboard-->
         <div>
@@ -196,6 +196,7 @@
         name: "dashboard",
         data() {
             return {
+                refresh:0,
                 dateArr:[],
                 dashboardId:'',
                 //保存图表的弹窗状态
@@ -349,13 +350,13 @@
             editChartBtn(i){
                 switch (this.layout[i].chartType) {
                     case 'bar':
-                        jumpHtml('barChart'+this.layout[i].eId,'dashboard/barChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId},' 修改');
+                        jumpHtml('barChart'+this.layout[i].eId,'dashboard/barChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'pie':
-                        jumpHtml('pieChart'+this.layout[i].eId,'dashboard/pieChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId},' 修改');
+                        jumpHtml('pieChart'+this.layout[i].eId,'dashboard/pieChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'line':
-                        jumpHtml('lineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId},' 修改');
+                        jumpHtml('lineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                 }
             },
@@ -433,27 +434,14 @@
             },
             /*刷新dashboard*/
             refreshDashboard(){
-                if (this.dashboardId !== ''){
+                this.refresh++;
+               /* if (this.dashboardId !== ''){
                     this.getDashboardData()
                 } else {
-                    //获取echart结构数据
-                    for(let i in this.layout){
-                        this.chartsCount += 1;
-                        //判断是否是文字块  不是则是图表类型 需要获取图表结构
-                        if(this.layout[i].chartType !== 'text'){
-                            this.getEchartsConstruction(this.layout[i])
-                                .then((res)=>{
-                                    //获取图例数据
-                                    return this.getEchartsData(res)
-                                })
-                                .then((res)=>{
-                                    //加载图例
-                                    return this.creatEcharts(res)
-                                })
-                        }
 
-                    }
-                }
+                    /!*!//获取echart结构数据
+                    *!/
+                }*/
 
             },
             /*删除图例*/
@@ -696,7 +684,22 @@
             //时间范围改变
             'dateArr'(nv,ov){
                 //获取数据
-                this.refreshDashboard()
+                for(let i in this.layout){
+                    this.chartsCount += 1;
+                    //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                    if(this.layout[i].chartType !== 'text'){
+                        this.getEchartsConstruction(this.layout[i])
+                            .then((res)=>{
+                                //获取图例数据
+                                return this.getEchartsData(res)
+                            })
+                            .then((res)=>{
+                                //加载图例
+                                return this.creatEcharts(res)
+                            })
+                    }
+
+                }
             }
         },
         /*beforeRouteEnter(to, from, next) {

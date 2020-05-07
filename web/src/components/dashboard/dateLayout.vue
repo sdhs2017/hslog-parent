@@ -85,6 +85,9 @@
             busName:{
                 type:String
             },
+            refresh:{
+                type:Number
+            },
             defaultVal:{
                 type:Object
             }
@@ -92,6 +95,7 @@
         data() {
             return {
                 dateViewVal:'',
+                dateObj:'',
                 visible:false,
                 //选择的日期类型
                 dateType:'最近',
@@ -148,16 +152,19 @@
                     bus.$emit(this.busName,this.dateArr);
                 },
                 deep: true
+            },
+            'refresh'(){
+                this.commonlyClick(this.dateObj)
             }
         },
         created(){
             //默认15分钟
-            this.dateViewVal = '最近15分钟'
-            this.dateArr = this.computeDate('15','min')
+            this.commonlyClick({value:'15-min',label:'最近15分钟'})
         },
         methods:{
             /*常用快捷键  点击*/
             commonlyClick(item){
+                this.dateObj = item;
                 this.dateViewVal = item.label;
                 this.dateArr = this.computeDate(item.value.split('-')[0],item.value.split('-')[1]);
                 this.visible = false;

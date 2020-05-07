@@ -660,9 +660,9 @@
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
                             agg:$event,
-                            preIndexName:this.chartsConfig.preIndexName,
-                            suffixIndexName:this.chartsConfig.suffixIndexName,
-                            templateName:this.chartsConfig.templateName
+                            pre_index_name:this.chartsConfig.preIndexName,
+                            suffix_index_name:this.chartsConfig.suffixIndexName,
+                            template_name:this.chartsConfig.templateName
                         }
                     ))
                         .then(res=>{
@@ -695,9 +695,9 @@
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
                         agg:'Date',
-                        preIndexName:this.chartsConfig.preIndexName,
-                        suffixIndexName:this.chartsConfig.suffixIndexName,
-                        templateName:this.chartsConfig.templateName
+                        pre_index_name:this.chartsConfig.preIndexName,
+                        suffix_index_name:this.chartsConfig.suffixIndexName,
+                        template_name:this.chartsConfig.templateName
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -724,9 +724,9 @@
                     x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//x轴参数
                     y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//y轴参数
                     y_agg:this.chartsConfig.yAxisArr[0].aggregationType,//y轴参数类型
-                    preIndexName:this.chartsConfig.preIndexName,
-                    suffixIndexName:this.chartsConfig.suffixIndexName,
-                    templateName:this.chartsConfig.templateName,
+                    pre_index_name:this.chartsConfig.preIndexName,
+                    suffix_index_name:this.chartsConfig.suffixIndexName,
+                    template_name:this.chartsConfig.templateName,
                     size:'',
                     sort:'',
                     intervalType:this.chartsConfig.xAxisArr[0].timeType,//时间间隔类型
@@ -957,9 +957,9 @@
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
                     type:'line',
-                    preIndexName:this.chartsConfig.preIndexName,
-                    suffixIndexName:this.chartsConfig.suffixIndexName,
-                    templateName:this.chartsConfig.templateName,
+                    pre_index_name:this.chartsConfig.preIndexName,
+                    suffix_index_name:this.chartsConfig.suffixIndexName,
+                    template_name:this.chartsConfig.templateName,
                     option:JSON.stringify(optStr),
                     params:this.chartParams.searchParam,
                     isSaveAs:true
@@ -1012,7 +1012,7 @@
                                 if (obj.success == 'true'){
                                     let option = JSON.parse(obj.data.option);
                                     this.chartsConfig = option.config;
-                                    this.indexVal = [obj.data.templateName,obj.data.preIndexName,obj.data.suffixIndexName]
+                                    this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name]
                                     //x轴聚合参数
                                     let xap = this.chartsConfig.xAxisArr[0].aggregationParam;
                                     this.xAggregationChange();

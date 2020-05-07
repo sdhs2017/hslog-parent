@@ -222,7 +222,6 @@
             },
             /*indexFirst改变事件*/
             indexFirstValChange(val){
-                console.log('ff')
                 //清空时间后缀
                 this.indexSecondVal='',
                 this.indexSecondOpt=[]
@@ -237,7 +236,6 @@
             },
             /*indexSecond改变事件*/
             indexSecondValChange(val){
-                console.log('ss')
                 let arr = [this.templateVal,this.indexFirstVal,val]
                 //绑定事件
                 bus.$emit(this.busName,arr);

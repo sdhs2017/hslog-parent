@@ -154,7 +154,9 @@
                 deep: true
             },
             'refresh'(){
-                this.commonlyClick(this.dateObj)
+                if (JSON.stringify(this.dateObj) !== '{}'){
+                    this.commonlyClick(this.dateObj)
+                }
             }
         },
         created(){
@@ -185,6 +187,7 @@
                         this.dateViewVal = this.starttime +' - ' + this.endtime;
                     }
                     this.dateArr = [this.starttime,this.endtime]
+                    this.dateObj={}
                 }else {//非固定日期
                     this.dateArr = this.computeDate(this.dateCount,this.dateUnit);
                     let unit = '';
@@ -195,6 +198,10 @@
                         }
                     }
                     this.dateViewVal = '最近'+this.dateCount+unit;
+                    this.dateObj = {
+                        value:`${this.dateCount}-${this.dateUnit}`,
+                        label:this.dateViewVal
+                    }
                     this.visible = false;
                 }
 

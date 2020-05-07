@@ -314,7 +314,8 @@
                 },
                 //echarts结构
                 opt:{},
-
+                //时间范围
+                dateArr:[],
                 //返回的源数据
                 sourceData:'',
                 //数据为空时提示状态
@@ -501,22 +502,98 @@
             }
         },
         created(){
-
             //保存配置
             this.defaultConfig = JSON.stringify(this.chartsConfig)
-            //时间范围监听事件
-            bus.$on(this.busName,(arr)=>{
-                console.log(arr)
-            })
-            //数据源监听
-            bus.$on(this.busIndexName,(arr)=>{
-                //还原配置
-                this.initialize();
-                //设置数据源
-                this.chartsConfig.suffixIndexName = arr[2];
-                this.chartsConfig.preIndexName = arr[1];
-                this.chartsConfig.templateName = arr[0];
-            })
+            //判断操作性质
+            if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === 'edit'){//修改
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                //this.$options.name = 'editBarChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `编辑 ${this.$route.query.name}`;
+                this.busName = 'resiveBarChart'+this.$route.query.id;
+                this.busIndexName = 'barIndexName' +this.$route.query.id;
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                })
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'editBarChart'+this.$route.query.id,
+                    component:'dashboard/barChart.vue',
+                    title:'编辑'
+                }
+                sessionStorage.setItem('/editBarChart'+this.$route.query.id,JSON.stringify(obj))
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+            }else if(this.$route.query.type === 'see'){//查看
+                //修改此组件的name值
+                //this.$options.name = 'seeBarChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
+                this.busName = 'seeBarChart'+this.$route.query.id;
+                this.busIndexName = 'seeBarIndexName' +this.$route.query.id;
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                })
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'seeBarChart'+this.$route.query.id,
+                    component:'dashboard/barChart.vue',
+                    title:'查看'
+                }
+                sessionStorage.setItem('/seeBarChart'+this.$route.query.id,JSON.stringify(obj))
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+            }else{//添加
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                })
+            }
+        },
+        beforeCreate(){
+            //判断操作性质
+            if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === 'edit'){//修改
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'editBarChart'+ this.$route.query.id;
+
+            }else if(this.$route.query.type === 'see'){//查看
+                //修改此组件的name值
+                this.$options.name = 'seeBarChart'+ this.$route.query.id;
+            }
+
         },
         beforeDestroy(){
             //在组件销毁前移除监听事件
@@ -650,6 +727,8 @@
             /*获取数据*/
             getData(){
                 let param = {
+                    startTime:this.dateArr[0],//起始时间
+                    endTime:this.dateArr[1],//结束时间
                     x_agg:this.chartsConfig.xAxisArr[0].aggregationType,//x轴参数类型
                     x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//x轴参数
                     y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//y轴参数
@@ -944,13 +1023,13 @@
                                     this.chartParams.chartDes = obj.data.description;
                                     this.chartParams.searchParam = obj.data.params;
                                     //后台直接返回数据
-                                    let xD = JSON.parse(obj.data.data)[0].name;
+                                    /*let xD = JSON.parse(obj.data.data)[0].name;
                                     let yD = JSON.parse(obj.data.data)[0].data;
                                     this.createChart(xD,yD);
                                     this.emptyTipState = false;
-                                    this.sourceData = JSON.parse(obj.data.data);
+                                    this.sourceData = JSON.parse(obj.data.data);*/
                                     //前台自己获取数据
-                                    //this.getData()
+                                    this.getData()
                                 }else{
                                     layer.msg(res.data.message,{icon:5})
                                 }
@@ -961,8 +1040,16 @@
                     })
                 }
             },
+            //时间范围改变
+            'dateArr'(nv,ov){
+                //判断是否具备生成图表的条件
+                if(this.isCanCreate !== 'disabled'){
+                    //获取数据
+                    this.getData()
+                }
+            }
         },
-        beforeRouteEnter(to, from, next) {
+      /*  beforeRouteEnter(to, from, next) {
             next (vm => {
                 //判断是否有参数  有参数说明是修改/查看功能页面
                 if(JSON.stringify(to.query) !== "{}" && to.query.type === 'edit'){//修改
@@ -973,9 +1060,11 @@
                     vm.htmlTitle = `编辑 ${to.query.name}`;
                     vm.busName = 'resiveBarChart'+to.query.id;
                     vm.busIndexName = 'barIndexName' +to.query.id;
+                    console.log('bbb')
                     //时间范围监听事件
                     bus.$on(vm.busName,(arr)=>{
                         console.log(arr)
+                        vm.dateArr = arr;
                     })
                     //数据源监听
                     bus.$on(vm.busIndexName,(arr)=>{
@@ -1022,12 +1111,26 @@
                     if(vm.chartId === '' || vm.chartId !== to.query.id){
                         vm.chartId = to.query.id;
                     }
+                }else{//添加
+                    //时间范围监听事件
+                    bus.$on('createBarChart',(arr)=>{
+                        vm.dateArr = arr;
+                    })
+                    //数据源监听
+                    bus.$on('barIndexName',(arr)=>{
+                        //还原配置
+                        vm.initialize();
+                        //设置数据源
+                        vm.chartsConfig.suffixIndexName = arr[2];
+                        vm.chartsConfig.preIndexName = arr[1];
+                        vm.chartsConfig.templateName = arr[0];
+                    })
                 }
 
 
             })
 
-        },
+        },*/
         components:{
             dateLayout,
             chooseIndex,

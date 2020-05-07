@@ -196,6 +196,7 @@
         name: "dashboard",
         data() {
             return {
+                dateArr:[],
                 dashboardId:'',
                 //保存图表的弹窗状态
                 dialogFormVisible:false,
@@ -260,7 +261,26 @@
             }
         },
         created(){
-           // console.log(dateFormat('yyyy-mm-dd HH:MM:SS',new Date()).replace(/\s*/g,""));
+            //判断是否有参数  有参数说明是修改功能页面
+            if(JSON.stringify(this.$route.query) !== "{}"){
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'dashboard'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `修改 ${this.$route.query.name}`;
+                this.busName = 'resiveDashboard'+this.$route.query.id;
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'dashboard'+this.$route.query.id,
+                    component:'dashboard/dashboard.vue',
+                    title:'修改'
+                }
+                sessionStorage.setItem('/dashboard'+this.$route.query.id,JSON.stringify(obj))
+                if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
+                    this.dashboardId = this.$route.query.id;
+                }
+            }
+
         },
         mounted(){
             //获取dashboard数据
@@ -268,7 +288,7 @@
             this.getChartsList()
             //监听时间改变事件
             bus.$on(this.busName,(arr)=>{
-                console.log(arr);
+                this.dateArr = arr;
             })
         },
         watch:{
@@ -307,7 +327,6 @@
             },
             /*文字弹框确定按钮*/
             wordsOkBtn(){
-                console.log(JSON.stringify(this.content))
                 //判断当前文本弹窗类型  add-添加   修改
                 if (this.wordType === 'add'){
                     this.chartsCount = Number(this.chartsCount)+1;
@@ -359,10 +378,10 @@
                                    //获取echarts结构数据
                                    return this.getEchartsConstruction(res)
                                })
-                             /*  .then((res)=>{
+                              .then((res)=>{
                                    //获取图例数据
                                    return this.getEchartsData(res)
-                               })*/
+                               })
                                .then((res)=>{
                                    //加载图例
                                    return this.creatEcharts(res)
@@ -424,6 +443,10 @@
                         if(this.layout[i].chartType !== 'text'){
                             this.getEchartsConstruction(this.layout[i])
                                 .then((res)=>{
+                                    //获取图例数据
+                                    return this.getEchartsData(res)
+                                })
+                                .then((res)=>{
                                     //加载图例
                                     return this.creatEcharts(res)
                                 })
@@ -475,6 +498,10 @@
                                         if(this.layout[i].chartType !== 'text'){
                                             this.getEchartsConstruction(this.layout[i])
                                                 .then((res)=>{
+                                                    //获取图例数据
+                                                    return this.getEchartsData(res)
+                                                })
+                                                .then((res)=>{
                                                     //加载图例
                                                     return this.creatEcharts(res)
                                                 })
@@ -510,29 +537,18 @@
                                         resolve(obj);
                                     }
                                     let option = JSON.parse(data.data.option).opt;
+                                    let param = JSON.parse(data.data.params)
                                     //console.log(option)
                                     //填充ecahrt数据
                                     option.title.show = false;
-                                    let xD = JSON.parse(data.data.data)[0].name;
-                                    let yD = JSON.parse(data.data.data)[0].data;
-                                    //判断图表类型
-                                    if(obj.chartType === 'line' || obj.chartType === 'bar'){
-                                        option.xAxis.data = xD;
-                                        option.series[0].data = yD;
-                                    }else if(obj.chartType === 'pie'){
-                                        let pieData = [];
-                                        for (let i in xD) {
-                                            pieData.push({
-                                                name:xD[i],
-                                                value:yD[i],
-                                                itemStyle: {color:this.color[i]}
-                                            })
-                                        }
-                                        option.series[0].data = pieData;
-                                    }
+
                                     obj.tit = data.data.title;
                                     obj.opt = option;
-                                    resolve(obj);
+                                    let resObj = {
+                                        obj:obj,
+                                        param:param
+                                    }
+                                    resolve(resObj);
                                 }else{
                                     layer.msg('获取数据失败',{icon:5})
                                 }
@@ -545,36 +561,42 @@
                                 layer.closeAll('loading');
                             })
                     })
-
                 })
             },
             /*获取echarts数据*/
-            getEchartsData(obj){
+            getEchartsData(resObj){
+                let obj = resObj.obj;
+                let param = resObj.param;
+                param.startTime = this.dateArr[0];
+                param.endTime = this.dateArr[1]
                 return new Promise((resolve,reject)=>{
                     this.$nextTick(()=>{
                         layer.load(1);
-                        this.$axios.get('static/filejson/data.json','')
+                        this.$axios.post(this.$baseUrl+'/BI/getDataByChartParams.do',this.$qs.stringify(param))
                             .then(res=>{
                                 layer.closeAll('loading');
-                                //合并结构与数据
-                                /*let eData = res.data;
-                                if(obj.chartType === 'bar' || obj.chartType === 'line'){//柱状图、折线图
-                                    obj.opt.xAxis.data = eData.xAxisArr;
-                                    for(let i=0;i < eData.yAxisArr.length;i++){
-                                        obj.opt.series[i].data = eData.yAxisArr[i];
+                                let xD = res.data.data[0].name;
+                                let yD = res.data.data[0].data;
+                                //判断图表类型
+                                if(obj.chartType === 'line' || obj.chartType === 'bar'){
+                                    obj.opt.xAxis.data = xD;
+                                    obj.opt.series[0].data = yD;
+                                }else if(obj.chartType === 'pie'){
+                                    let pieData = [];
+                                    for (let i in xD) {
+                                        pieData.push({
+                                            name:xD[i],
+                                            value:yD[i],
+                                            itemStyle: {color:this.color[i]}
+                                        })
                                     }
-
-                                }else if(obj.chartType === 'pie'){//饼图
-                                    let pieDate = obj.opt.series[0].data;
-                                    for(let i=0;i < pieDate.length;i++){
-                                        pieDate[i].value = eData.xAxisArr[i]
-                                        pieDate[i].name = eData.yAxisArr[0][i]
-                                    }
-                                }*/
-                                resolve(obj)
+                                    obj.opt.series[0].data = pieData;
+                                }
+                                resolve(obj);
                             })
                             .catch(err=>{
                                 layer.closeAll('loading');
+
                             })
                     })
                 })
@@ -670,38 +692,20 @@
                 if (newV !== '') {
                     this.getDashboardData()
                 }
+            },
+            //时间范围改变
+            'dateArr'(nv,ov){
+                //获取数据
+                this.refreshDashboard()
             }
         },
-        beforeRouteEnter(to, from, next) {
+        /*beforeRouteEnter(to, from, next) {
             next (vm => {
-                //判断是否有参数  有参数说明是修改功能页面
-                if(JSON.stringify(to.query) !== "{}"){
-                    // 这里通过 vm 来访问组件实例解决了没有 this 的问题
-                    //修改此组件的name值
-                    vm.$options.name = 'dashboard'+ to.query.id;
-                    //修改data参数
-                    vm.htmlTitle = `修改 ${to.query.name}`;
-                    vm.busName = 'resiveDashboard'+to.query.id;
-                    //时间范围监听事件
-                    bus.$on(vm.busName,(arr)=>{
-                        console.log(arr)
-                    })
-                    //将路由存放在本地 用来刷新页面时添加路由
-                    let obj = {
-                        path:'dashboard'+to.query.id,
-                        component:'dashboard/dashboard.vue',
-                        title:'修改'
-                    }
-                    sessionStorage.setItem('/dashboard'+to.query.id,JSON.stringify(obj))
-                    if(vm.dashboardId === '' || vm.dashboardId !== to.query.id){
-                        vm.dashboardId = to.query.id;
-                    }
-                }
 
 
             })
 
-        },
+        },*/
         components:{
             vEcharts,
             dateLayout,

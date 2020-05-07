@@ -308,6 +308,8 @@
                     //另存
                     otherSave:false
                 },
+                //时间范围
+                dateArr:[],
                 sourceData:'',
                 //数据为空时提示状态
                 emptyTipState:true,
@@ -483,27 +485,107 @@
             }
         },
         created(){
-            this.defaultConfig = JSON.stringify(this.chartsConfig)
-            //时间范围监听事件
-            bus.$on(this.busName,(arr)=>{
-                console.log(arr)
-            })
-            //数据源监听事件
-            bus.$on(this.busIndexName,(arr)=>{
-                //还原配置
-                this.initialize();
-                //设置数据源
-                this.chartsConfig.suffixIndexName = arr[2];
-                this.chartsConfig.preIndexName = arr[1];
-                this.chartsConfig.templateName = arr[0];
-                for(let i in arr){
-                    if(arr[i] == ''){
-                        return
-                    }
+            this.defaultConfig = JSON.stringify(this.chartsConfig);
+            //判断是否有参数  有参数说明是修改功能页面
+            if(JSON.stringify(this.$route.query) !== "{}"  && this.$route.query.type === 'edit'){
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'editLineChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `修改 ${this.$route.query.name}`;
+                this.busName = 'resiveLineChart'+this.$route.query.id;
+                this.busIndexName = 'lineIndexName' +this.$route.query.id;
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'editLineChart'+this.$route.query.id,
+                    component:'dashboard/lineChart.vue',
+                    title:'修改'
                 }
-                //获取时间字段
-                this.xAggregationChange();
-            })
+                sessionStorage.setItem('/editLineChart'+this.$route.query.id,JSON.stringify(obj))
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+                //数据源监听事件
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                    for(let i in arr){
+                        if(arr[i] == ''){
+                            return
+                        }
+                    }
+                    //获取时间字段
+                    this.xAggregationChange();
+                })
+            }else if(this.$route.query.type === 'see'){//查看
+                //修改此组件的name值
+                this.$options.name = 'seeLineChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
+                this.busName = 'seeLineChart'+this.$route.query.id;
+                this.busIndexName = 'seeLineIndexName' +this.$route.query.id;
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'seeLineChart'+this.$route.query.id,
+                    component:'dashboard/lineChart.vue',
+                    title:'查看'
+                }
+                sessionStorage.setItem('/seeLineChart'+this.$route.query.id,JSON.stringify(obj))
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听事件
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                    for(let i in arr){
+                        if(arr[i] == ''){
+                            return
+                        }
+                    }
+                    //获取时间字段
+                    this.xAggregationChange();
+                })
+            }else{
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听事件
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                    for(let i in arr){
+                        if(arr[i] == ''){
+                            return
+                        }
+                    }
+                    //获取时间字段
+                    this.xAggregationChange();
+                })
+            }
+
         },
         computed:{
             'isCanCreate'(){
@@ -636,6 +718,8 @@
             /*获取数据*/
             getData(){
                 let param = {
+                    startTime:this.dateArr[0],//起始时间
+                    endTime:this.dateArr[1],//结束时间
                     x_agg:this.chartsConfig.xAxisArr[0].aggregationType,//x轴参数类型
                     x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//x轴参数
                     y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//y轴参数
@@ -943,13 +1027,13 @@
                                     this.chartParams.chartDes = obj.data.description;
                                     this.chartParams.searchParam = obj.data.params;
                                     //后台直接返回数据
-                                    let xD = JSON.parse(obj.data.data)[0].name;
+                                   /* let xD = JSON.parse(obj.data.data)[0].name;
                                     let yD = JSON.parse(obj.data.data)[0].data;
                                     this.createChart(xD,yD);
                                     this.emptyTipState = false;
-                                    this.sourceData = JSON.parse(obj.data.data);
+                                    this.sourceData = JSON.parse(obj.data.data);*/
                                     //前台自己获取数据
-                                    //this.getData()
+                                    this.getData()
                                 }else{
                                     layer.msg('获取数据失败',{icon:5})
                                 }
@@ -961,88 +1045,23 @@
                     })
                 }
             },
-        },
-        beforeRouteEnter(to, from, next) {
-            next (vm => {
-                //判断是否有参数  有参数说明是修改功能页面
-                if(JSON.stringify(to.query) !== "{}"  && to.query.type === 'edit'){
-                    // 这里通过 vm 来访问组件实例解决了没有 this 的问题
-                    //修改此组件的name值
-                    vm.$options.name = 'editLineChart'+ to.query.id;
-                    //修改data参数
-                    vm.htmlTitle = `修改 ${to.query.name}`;
-                    vm.busName = 'resiveLineChart'+to.query.id;
-                    vm.busIndexName = 'lineIndexName' +to.query.id;
-                    //时间范围监听事件
-                    bus.$on(vm.busName,(arr)=>{
-                        console.log(arr)
-                    })
-                    //将路由存放在本地 用来刷新页面时添加路由
-                    let obj = {
-                        path:'editLineChart'+to.query.id,
-                        component:'dashboard/lineChart.vue',
-                        title:'修改'
-                    }
-                    sessionStorage.setItem('/editLineChart'+to.query.id,JSON.stringify(obj))
-                    if(vm.chartId === '' || vm.chartId !== to.query.id){
-                        vm.chartId = to.query.id;
-                    }
-                    //数据源监听事件
-                    bus.$on(vm.busIndexName,(arr)=>{
-                        //还原配置
-                        vm.initialize();
-                        //设置数据源
-                        //设置数据源
-                        vm.chartsConfig.suffixIndexName = arr[2];
-                        vm.chartsConfig.preIndexName = arr[1];
-                        vm.chartsConfig.templateName = arr[0];
-                        for(let i in arr){
-                            if(arr[i] == ''){
-                                return
-                            }
-                        }
-                        //获取时间字段
-                        vm.xAggregationChange();
-                    })
-                }else if(to.query.type === 'see'){//查看
-                    //修改此组件的name值
-                    vm.$options.name = 'seeLineChart'+ to.query.id;
-                    //修改data参数
-                    vm.htmlTitle = `查看 ${to.query.name}`;
-                    //将路由存放在本地 用来刷新页面时添加路由
-                    let obj = {
-                        path:'seeLineChart'+to.query.id,
-                        component:'dashboard/lineChart.vue',
-                        title:'查看'
-                    }
-                    sessionStorage.setItem('/seeLineChart'+to.query.id,JSON.stringify(obj))
-                    if(vm.chartId === '' || vm.chartId !== to.query.id){
-                        vm.chartId = to.query.id;
-                    }
-                    //数据源监听事件
-                    bus.$on(vm.busIndexName,(arr)=>{
-                        //还原配置
-                        vm.initialize();
-                        //设置数据源
-                        //设置数据源
-                        vm.chartsConfig.suffixIndexName = arr[2];
-                        vm.chartsConfig.preIndexName = arr[1];
-                        vm.chartsConfig.templateName = arr[0];
-                        for(let i in arr){
-                            if(arr[i] == ''){
-                                return
-                            }
-                        }
-                        //获取时间字段
-                        vm.xAggregationChange();
-                    })
-                    bus.$off(vm.busIndexName)
+            //时间范围改变
+            'dateArr'(nv,ov){
+                //判断是否具备生成图表的条件
+                if(this.isCanCreate !== 'disabled'){
+                    //获取数据
+                    this.getData()
                 }
+            }
+        },
+     /*   beforeRouteEnter(to, from, next) {
+            next (vm => {
+
 
 
             })
 
-        },
+        },*/
         components:{
             dateLayout,
             chooseIndex,

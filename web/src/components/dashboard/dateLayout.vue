@@ -143,9 +143,17 @@
             }
         },
         watch:{
-            'dateArr'(){
-                bus.$emit(this.busName,this.dateArr);
+            dateArr:{
+                handler() {
+                    bus.$emit(this.busName,this.dateArr);
+                },
+                deep: true
             }
+        },
+        created(){
+            //默认15分钟
+            this.dateViewVal = '最近15分钟'
+            this.dateArr = this.computeDate('15','min')
         },
         methods:{
             /*常用快捷键  点击*/

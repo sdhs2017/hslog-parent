@@ -85,9 +85,9 @@
             arr:{
                 handler() {
                     //获取数据集合
-                    this.getTemplateVal();
-                    this.templateValChange(arr[0]);
-                    this.indexFirstValChange(arr[1]);
+                    //this.getTemplateVal();
+                    this.getIndexFirstOpt(this.arr[0]);
+                    this.getIndexSecondOpt(this.arr[1]);
                     //赋值
                     this.$nextTick( ()=> {
                         this.templateVal = this.arr[0];
@@ -99,7 +99,7 @@
             }
         },
         methods:{
-            //获取index
+/*            //获取index
             getIndex(){
                 this.$nextTick(()=>{
                     layer.load(1);
@@ -134,11 +134,11 @@
                 //绑定事件
                 bus.$emit(this.busName,this.index);
             },
-            /*下拉框获得焦点事件*/
+            /!*下拉框获得焦点事件*!/
             cascaderFocus(){
                 $(".index-sel input").val(this.inputVal);
                 this.inputVal = ''
-            },
+            },*/
 
             /*获取template*/
             getTemplateVal(){
@@ -155,14 +155,8 @@
                         })
                 })
             },
-            /*template改变事件*/
-            templateValChange(val){
-                //清空index的值
-                this.indexFirstVal='',
-                this.indexFirstOpt=[],
-                this.indexSecondVal='',
-                this.indexSecondOpt=[]
-                //获取indexfirst值集合
+            /*获取indexFirstOpt*/
+            getIndexFirstOpt(val){
                 this.$nextTick(()=>{
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/metadata/getPreIndexByTemplate.do',this.$qs.stringify({
@@ -172,14 +166,12 @@
                             layer.closeAll('loading');
                             //设置index前缀名组
                             this.indexFirstOpt = res.data;
-                            //判断数组长度是否为1  是 则直接赋值下一级
+                         /*   //判断数组长度是否为1  是 则直接赋值下一级
                             if(this.indexFirstOpt.length === 1){
                                 this.indexFirstVal = res.data[0].value;
                                 this.indexFirstValChange(this.indexFirstVal)
-                            }
-                            //绑定事件
-                            let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal]
-                            bus.$emit(this.busName,arr);
+                            }*/
+
                         })
                         .catch(err=>{
                             layer.closeAll('loading');
@@ -187,12 +179,8 @@
                         })
                 })
             },
-            /*indexFirst改变事件*/
-            indexFirstValChange(val){
-                //清空时间后缀
-                this.indexSecondVal='',
-                this.indexSecondOpt=[]
-                //获取时间后缀
+            /*获取indexSecondOpt*/
+            getIndexSecondOpt(val){
                 this.$nextTick(()=>{
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/metadata/getSuffixIndexByPre.do',this.$qs.stringify({
@@ -203,15 +191,12 @@
                             layer.closeAll('loading');
                             //设置index后缀时间组
                             this.indexSecondOpt = res.data;
-                            //判断数组长度是否为1  是 则直接赋值下一级
+                          /*  //判断数组长度是否为1  是 则直接赋值下一级
                             if(this.indexSecondOpt.length === 1){
                                 this.indexSecondVal = res.data[0].value;
                                 this.indexSecondValChange(this.indexSecondVal)
                             }
-
-                            //绑定事件
-                            let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal]
-                            bus.$emit(this.busName,arr);
+*/
                         })
                         .catch(err=>{
                             layer.closeAll('loading');
@@ -219,8 +204,40 @@
                         })
                 })
             },
+            /*template改变事件*/
+            templateValChange(val){
+                //清空index的值
+                this.indexFirstVal='',
+                this.indexFirstOpt=[],
+                this.indexSecondVal='',
+                this.indexSecondOpt=[]
+                //获取indexfirst值集合
+                this.getIndexFirstOpt(val);
+                this.$nextTick(()=>{
+                    //绑定事件
+                    let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal]
+                    bus.$emit(this.busName,arr);
+                })
+
+            },
+            /*indexFirst改变事件*/
+            indexFirstValChange(val){
+                console.log('ff')
+                //清空时间后缀
+                this.indexSecondVal='',
+                this.indexSecondOpt=[]
+                //获取时间后缀
+                this.getIndexSecondOpt(val);
+                this.$nextTick(()=>{
+                    //绑定事件
+                    let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal]
+                    bus.$emit(this.busName,arr);
+                })
+
+            },
             /*indexSecond改变事件*/
             indexSecondValChange(val){
+                console.log('ss')
                 let arr = [this.templateVal,this.indexFirstVal,val]
                 //绑定事件
                 bus.$emit(this.busName,arr);

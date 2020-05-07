@@ -277,6 +277,8 @@
                     //另存
                     otherSave:false
                 },
+                //时间范围
+                dateArr:[],
                 sourceData:'',
                 //数据为空时提示状态
                 emptyTipState:true,
@@ -422,19 +424,89 @@
         created(){
             //原始配置
             this.defaultConfig = JSON.stringify(this.chartsConfig)
-            //时间监听
-            bus.$on(this.busName,(arr)=>{
-                console.log(arr)
-            })
-            //数据源监听
-            bus.$on(this.busIndexName,(arr)=>{
-                //还原配置
-                this.initialize()
-                //设置数据源
-                this.chartsConfig.suffixIndexName = arr[2];
-                this.chartsConfig.preIndexName = arr[1];
-                this.chartsConfig.templateName = arr[0];
-            })
+            //判断是否有参数  有参数说明是修改功能页面
+            if(JSON.stringify(this.$route.query) !== "{}"  && this.$route.query.type === 'edit'){
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'editPieChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `修改 ${this.$route.query.name}`;
+                this.busName = 'resivePieChart'+this.$route.query.id;
+                this.busIndexName = 'pieIndexName' +this.$route.query.id;
+                //时间监听
+                bus.$on(this.busName,(arr)=>{
+                   this.dateArr = arr;
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize()
+                    //设置数据源
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                })
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'editPieChart'+this.$route.query.id,
+                    component:'dashboard/pieChart.vue',
+                    title:'修改'
+                }
+                sessionStorage.setItem('/editPieChart'+this.$route.query.id,JSON.stringify(obj))
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+            }else if(this.$route.query.type === 'see'){//查看
+                //修改此组件的name值
+                this.$options.name = 'seePieChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
+                this.busName = 'seePieChart'+this.$route.query.id;
+                this.busIndexName = 'seePieIndexName' +this.$route.query.id;
+                //时间范围监听事件
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                })
+                /*bus.$off(this.busIndexName)
+                bus.$off(this.busName)*/
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'seePieChart'+this.$route.query.id,
+                    component:'dashboard/pieChart.vue',
+                    title:'查看'
+                }
+                sessionStorage.setItem('/seePieChart'+this.$route.query.id,JSON.stringify(obj))
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+            }else{
+                //时间监听
+                bus.$on(this.busName,(arr)=>{
+                    this.dateArr = arr;
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize()
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                })
+            }
+
+
         },
         computed:{
             'isCanCreate'(){
@@ -562,6 +634,8 @@
             /*获取数据*/
             getData(){
                 let param = {
+                    startTime:this.dateArr[0],//起始时间
+                    endTime:this.dateArr[1],//结束时间
                     x_agg:this.chartsConfig.xAxisArr[0].aggregationType, //拆分参数类型
                     x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//拆分参数
                     y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//聚合参数
@@ -804,7 +878,7 @@
                                     this.chartParams.searchParam = obj.data.params;
 
                                     //后台直接返回数据
-                                    let xD = JSON.parse(obj.data.data)[0].name;
+                                    /*let xD = JSON.parse(obj.data.data)[0].name;
                                     let yD = JSON.parse(obj.data.data)[0].data;
                                     this.pieData = [];
                                     for (let i in xD) {
@@ -816,9 +890,9 @@
                                     }
                                     this.createChart(this.pieData)
                                     this.emptyTipState = false;
-                                    this.sourceData = JSON.parse(obj.data.data);
+                                    this.sourceData = JSON.parse(obj.data.data);*/
                                     //前台自己获取数据
-                                    //this.getData()
+                                    this.getData()
                                 }else{
                                     layer.msg('获取数据失败',{icon:5})
                                 }
@@ -830,74 +904,20 @@
                     })
                 }
             },
-        },
-        beforeRouteEnter(to, from, next) {
-            next (vm => {
-                //判断是否有参数  有参数说明是修改功能页面
-                if(JSON.stringify(to.query) !== "{}"  && to.query.type === 'edit'){
-                    // 这里通过 vm 来访问组件实例解决了没有 this 的问题
-                    //修改此组件的name值
-                    vm.$options.name = 'editPieChart'+ to.query.id;
-                    //修改data参数
-                    vm.htmlTitle = `修改 ${to.query.name}`;
-                    vm.busName = 'resivePieChart'+to.query.id;
-                    vm.busIndexName = 'pieIndexName' +to.query.id;
-                    //时间监听
-                    bus.$on(vm.busName,(arr)=>{
-                        console.log(arr)
-                    })
-                    //数据源监听
-                    bus.$on(vm.busIndexName,(arr)=>{
-                        //还原配置
-                        vm.initialize()
-                        //设置数据源
-                        //设置数据源
-                        vm.chartsConfig.suffixIndexName = arr[2];
-                        vm.chartsConfig.preIndexName = arr[1];
-                        vm.chartsConfig.templateName = arr[0];
-                    })
-                    //将路由存放在本地 用来刷新页面时添加路由
-                    let obj = {
-                        path:'editPieChart'+to.query.id,
-                        component:'dashboard/pieChart.vue',
-                        title:'修改'
-                    }
-                    sessionStorage.setItem('/editPieChart'+to.query.id,JSON.stringify(obj))
-                    if(vm.chartId === '' || vm.chartId !== to.query.id){
-                        vm.chartId = to.query.id;
-                    }
-                }else if(to.query.type === 'see'){//查看
-                    //修改此组件的name值
-                    vm.$options.name = 'seePieChart'+ to.query.id;
-                    //修改data参数
-                    vm.htmlTitle = `查看 ${to.query.name}`;
-                    //数据源监听
-                    bus.$on(vm.busIndexName,(arr)=>{
-                        //还原配置
-                        vm.initialize();
-                        //设置数据源
-                        //设置数据源
-                        vm.chartsConfig.suffixIndexName = arr[2];
-                        vm.chartsConfig.preIndexName = arr[1];
-                        vm.chartsConfig.templateName = arr[0];
-                    })
-                    bus.$off(vm.busIndexName)
-                    //将路由存放在本地 用来刷新页面时添加路由
-                    let obj = {
-                        path:'seePieChart'+to.query.id,
-                        component:'dashboard/pieChart.vue',
-                        title:'查看'
-                    }
-                    sessionStorage.setItem('/seePieChart'+to.query.id,JSON.stringify(obj))
-                    if(vm.chartId === '' || vm.chartId !== to.query.id){
-                        vm.chartId = to.query.id;
-                    }
+            //时间范围改变
+            'dateArr'(nv,ov){
+                //判断是否具备生成图表的条件
+                if(this.isCanCreate !== 'disabled'){
+                    //获取数据
+                    this.getData()
                 }
-
-
+            }
+        },
+        /*beforeRouteEnter(to, from, next) {
+            next (vm => {
             })
 
-        },
+        },*/
         components:{
             dateLayout,
             chooseIndex,

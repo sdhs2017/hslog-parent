@@ -181,6 +181,10 @@
                 this.c_page = 1;
             })
         },
+        beforeDestroy(){
+            //销毁
+            bus.$off(this.busName)
+        },
         mounted(){
 
         },
@@ -422,13 +426,13 @@
             }
         },
         watch: {
-            '$route' (to, from) {
+            /*'$route' (to, from) {
                 if(from.name === 'addEquipment2'|| from.name.indexOf('reviseEquipment2') !== -1){
                     this.getEquipmentType();
                     this.getData(this.searchConditions,1);
                     this.c_page = 1;
                 }
-            }
+            }*/
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {

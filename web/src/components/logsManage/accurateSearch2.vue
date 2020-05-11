@@ -227,6 +227,12 @@
                 localStorage.removeItem('exportLogs');
             })
         },
+        beforeDestroy(){
+            bus.$off(this.busName);
+            bus.$off('logTypeChange');
+            bus.$off('exportStart');
+            bus.$off('exportFail');
+        },
         watch: {
             '$route' (to, from) { //监听路由是否变化
                 if (this.$route.params.logLevel) {

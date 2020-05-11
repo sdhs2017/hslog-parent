@@ -25,6 +25,9 @@
         created(){
 
         },
+        beforeDestroy(){
+            bus.$off(this.busName)
+        },
         methods:{
             //添加资产
             updateEquipment(params){

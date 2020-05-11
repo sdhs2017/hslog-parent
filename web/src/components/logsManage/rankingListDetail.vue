@@ -132,7 +132,7 @@
             getData(){
                 layer.load(1);
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/log/getIPAndPortTop.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip}))
+                    this.$axios.post(this.$baseUrl+'/flow/getIPAndPortTop.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip}))
                         .then(res =>{
                             layer.closeAll();
                             this.startIpArr = res.data[0].ipv4_src_addr;

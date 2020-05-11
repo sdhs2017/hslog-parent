@@ -90,7 +90,7 @@
                 var LINE_SIZE = 10; //线大小
                 layer.load(1);
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/log/getTopologicalData.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip,count:this.count}))
+                    this.$axios.post(this.$baseUrl+'/flow/getTopologicalData.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip,count:this.count}))
                         .then(res =>{
                             layer.closeAll();
                             let data = res.data;

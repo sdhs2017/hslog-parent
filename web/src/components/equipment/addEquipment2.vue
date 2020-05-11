@@ -51,6 +51,9 @@
               })
           }
         },
+        beforeDestroy(){
+            bus.$off('addEquipment2')
+        },
         components:{
             vEquipmentForm
         }

@@ -95,7 +95,7 @@
                         ]
                     }
                 ],
-                searchUrl:'log/getLogListByBlend.do'
+                searchUrl:'flow/getFlowListByBlend.do'
             }
         },
         computed:{

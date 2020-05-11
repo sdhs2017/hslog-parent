@@ -25,6 +25,9 @@
         created(){
 
         },
+        beforeDestroy(){
+            bus.$off(this.busName)
+        },
         methods:{
             //修改资产
             reviseEquipment(params){

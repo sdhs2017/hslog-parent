@@ -263,6 +263,10 @@
                 //console.log(this.delectEquipmentIds)
             })
         },
+        beforeDestroy(){
+            //销毁
+            bus.$off(this.busName)
+        },
         mounted(){
             //获取资产列表数据
             //this.getEquipmentList(this.searchConditions,1)
@@ -471,12 +475,12 @@
             }
         },
         watch: {
-            '$route' (to, from) {
+            /*'$route' (to, from) {
                 if(from.name === 'addEquipment'|| from.name.indexOf('reviseEquipment') !== -1){
                     this.getEquipmentList(this.searchConditions,1);
                     this.c_page = 1;
                 }
-            }
+            }*/
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {

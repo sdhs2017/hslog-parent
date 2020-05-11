@@ -41,6 +41,19 @@
                 logType:[],//日志类型
                 logLevel:[],//日志级别
                 levelVal:'',//级别内容
+                normalizationVal:'true',//完整范式化
+                normalizationOpt:[
+                    {
+                        label:'全部',
+                        value:''
+                    },{
+                        label:'是',
+                        value:'true'
+                    },{
+                        label:'否',
+                        value:'false'
+                    }
+                ],
                 progressRight:'right:-90px;',//导出日志进度框右偏移量
                 progressTitle:'导出中<br/><i class="el-icon-loading"></i>',
                 progressVal:'',
@@ -121,6 +134,7 @@
             startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
             startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
             this.searchConditions = {
+                normalization:'true',
                 'agent.type': "",
                 endtime: endTime,
                 'fields.ip': "",
@@ -159,6 +173,17 @@
                         model:this.levelVal
                     },
                     options:this.logLevel
+                },
+                {
+                    label:'是否完整范式化',
+                    paramName:'normalization',
+                    width:'70',
+                    type:'select',
+                    itemType:'',
+                    model:{
+                        model:this.normalizationVal
+                    },
+                    options:this.normalizationOpt
                 },
                 {
                     label:'IP地址',

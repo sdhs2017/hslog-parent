@@ -31,7 +31,7 @@
                             :value="op.value">
                         </el-option>
                     </el-select>
-                    <el-select v-else v-model="item.model.model"  placeholder="请选择"  size="mini">
+                    <el-select v-else v-model="item.model.model" class="select-width" placeholder="请选择" :style="{width:item.width ? `${item.width}px` : ''}"  size="mini">
                         <el-option
                             v-for="op in item.options"
                             :key="op.value"
@@ -274,6 +274,9 @@
     }
     .multiple-width{
         width: 127px;
+    }
+    .select-width{
+        min-width: 59px;
     }
     .multiple-width input{
         width: 127px!important;

@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">资产管理</div>
+        <div class="top-title">虚拟资产管理</div>
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
@@ -52,7 +52,7 @@
                     {
                         prop:'name',
                         label:'资产名称',
-                        width:'',
+                        width:'200',
                         formatData:(val,obj)=>{
                             return `${val} <b title="今日入库日志数 " class="inNum" style="border: 1px solid #e4956d;color: #e4956d;padding: 0 5px;">${obj.log_count}</b>`;
                         }

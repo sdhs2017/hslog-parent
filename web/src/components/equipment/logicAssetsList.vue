@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">逻辑资产</div>
+        <div class="top-title">逻辑资产管理</div>
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>

@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">资产概览
+        <div class="top-title">虚拟资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>

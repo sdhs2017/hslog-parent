@@ -1,6 +1,5 @@
 <template>
     <div class="content-bg">
-        <div id="dvCompute" style="position:absolute;visibility: hidden"></div>
         <div class="top-title">逻辑资产管理</div>
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
@@ -45,7 +44,6 @@
                     name:'',
                     hostName:'',
                     ip:'',
-                    logType:'',
                     type:''
                 },
                 saveCondition:'',//保存查询条件 用于分页
@@ -54,13 +52,6 @@
                         prop:'name',
                         label:'资产名称',
                         width:'',
-                        formatData:(val,obj)=>{
-                            let d = document.getElementById('dvCompute');
-                            d.innerHTML = obj.log_count + 15;
-                            let w = d.offsetWidth;
-                            return `<span title="${val}" style="display: inline-block;float:left;margin-right: 5px;max-width: calc(100% - ${w}px);overflow: hidden;text-overflow: ellipsis; ">${val}</span>
-                                    <b title="今日入库日志数 " class="inNum" style="float:left;border: 1px solid #e4956d;color: #e4956d;padding: 0 5px;height: 18px;line-height: 18px;">${obj.log_count}</b>`;
-                        }
                     },
                     {
                         prop:'hostName',
@@ -84,24 +75,9 @@
 
                     },
                     {
-                        prop:'logType',
-                        label:'日志类型',
-                        width:''
-                    },
-                    {
                         prop:'ip',
                         label:'IP地址',
                         width:'125'
-                    },
-                    {
-                        prop:'domain',
-                        label:'根域名',
-                        width:''
-                    },
-                    {
-                        prop:'端口',
-                        label:'port',
-                        width:''
                     },
                     {
                         prop:'startUp',
@@ -223,16 +199,6 @@
                     },
                     itemType:'',
                     type:'input'
-                },
-                {
-                    label:'日志类型',
-                    paramName:'logType',
-                    type:'select',
-                    itemType:'',
-                    model:{
-                        model:''
-                    },
-                    options:this.logType
                 },
                 {
                     label:'资产类型',

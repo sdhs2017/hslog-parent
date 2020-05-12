@@ -35,7 +35,7 @@
                     'fields.equipmentid':'',
                     starttime:'',
                     endtime:'',
-                    operation_level:''
+                    'log.level':''
                 },
                 searchUrl:'ecsCommon/getLogListByEquipment.do',//数据地址
                 formConditionsArr:[],//查询条件
@@ -147,7 +147,7 @@
                 },
                 {
                     label:'日志级别',
-                    paramName:'operation_level',
+                    paramName:'log.level',
                     type:'select',
                     itemType:'multiple',
                     model:{
@@ -251,7 +251,7 @@
                     this.searchConditions={
                         starttime:params.starttime,
                         endtime:params.endtime,
-                        operation_level:params.operation_level,
+                        'log.level':params['log.level'],
                         'fields.equipmentid':this.equipmentId
                     }
                 })

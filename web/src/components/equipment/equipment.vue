@@ -1,5 +1,6 @@
 <template>
     <div class="content-bg">
+        <div id="dvCompute" style="position:absolute;visibility: hidden"></div>
         <div class="top-title">虚拟资产管理</div>
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
@@ -54,7 +55,11 @@
                         label:'资产名称',
                         width:'200',
                         formatData:(val,obj)=>{
-                            return `${val} <b title="今日入库日志数 " class="inNum" style="border: 1px solid #e4956d;color: #e4956d;padding: 0 5px;">${obj.log_count}</b>`;
+                            let d = document.getElementById('dvCompute');
+                            d.innerHTML = obj.log_count + 15;
+                            let w = d.offsetWidth;
+                            return `<span title="${val}" style="display: inline-block;float:left;margin-right: 5px;max-width: calc(100% - ${w}px);overflow: hidden;text-overflow: ellipsis; ">${val}</span>
+                                    <b title="今日入库日志数 " class="inNum" style="float:left;border: 1px solid #e4956d;color: #e4956d;padding: 0 5px;height: 18px;line-height: 18px;">${obj.log_count}</b>`;
                         }
                     },
                     {

@@ -465,7 +465,7 @@
 	<bean id="assetsSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="logDataSource"/>
 		<!-- 自动扫描mapping.xml文件 -->
-		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/assets/**/*.xml"></property>
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/assets_old/**/*.xml"></property>
 
 		<property name="plugins">
 			<array>
@@ -473,7 +473,17 @@
 			</array>
 		</property>
 	</bean>
+	<bean id="assetSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/asset/**/*.xml"></property>
 
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- url业务mapper -->
 	<bean id="urlSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="logDataSource"/>
@@ -605,8 +615,13 @@
 	</bean>
 	<!--扫描ip表配置 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
-		<property name="basePackage" value="com.jz.bigdata.common.assets"/>
+		<property name="basePackage" value="com.jz.bigdata.common.assets_old"/>
 		<property name="sqlSessionFactoryBeanName" value="assetsSqlSessionFactory"></property>
+	</bean>
+	<!--asset表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.asset"/>
+		<property name="sqlSessionFactoryBeanName" value="assetSqlSessionFactory"></property>
 	</bean>
 	<!--url表配置 -->
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">

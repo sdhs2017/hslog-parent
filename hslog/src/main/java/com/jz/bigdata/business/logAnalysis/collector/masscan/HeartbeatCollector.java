@@ -15,11 +15,10 @@ import java.util.concurrent.Semaphore;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.jz.bigdata.common.assets.entity.Assets;
-import com.jz.bigdata.common.assets.service.IAssetsService;
+import com.jz.bigdata.common.assets_old.entity.Assets;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.ExecuteCmd;
-import com.jz.bigdata.util.Uuid;
 
 public class HeartbeatCollector implements Runnable {
 

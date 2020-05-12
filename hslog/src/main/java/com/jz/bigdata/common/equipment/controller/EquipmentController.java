@@ -52,9 +52,11 @@ public class EquipmentController {
 		// 结果一般命名为result
 		int	result = this.equipmentService.insert(equipment,session);
 		if(result==0){
-			return Constant.equipmentMaxInsertMessage();
+			//return Constant.equipmentMaxInsertMessage();
+			return Constant.failureMessage(2,"资产达到上限，无法添加！");
 		}else if(result==1){
-			return Constant.equipmentNameIpInsertMessage();
+			//return Constant.equipmentNameIpInsertMessage();
+			return Constant.failureMessage(2,"资产名,ip重复,无法添加！");
 		}else{
 			return Constant.successMessage();
 		}

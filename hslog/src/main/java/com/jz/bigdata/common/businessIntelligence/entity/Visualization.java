@@ -12,10 +12,45 @@ public class Visualization {
     private String title;//标题
     private String description;//描述
     private String type;//图表类型 //TODO 使用枚举类定义图表类型
-    private String indexName;//数据查询的索引名称
+    private String index_name;//数据查询的索引名称
+    private String template_name;//template名称
+    private String pre_index_name;//index名称前缀
+    private String suffix_index_name;//index名称后缀
     private String option;//图表结构
     private String params;//查询参数
     private String data;//查询结果
+
+    public String getIndex_name() {
+        return index_name;
+    }
+
+    public void setIndex_name(String index_name) {
+        this.index_name = index_name;
+    }
+
+    public String getTemplate_name() {
+        return template_name;
+    }
+
+    public void setTemplate_name(String template_name) {
+        this.template_name = template_name;
+    }
+
+    public String getPre_index_name() {
+        return pre_index_name;
+    }
+
+    public void setPre_index_name(String pre_index_name) {
+        this.pre_index_name = pre_index_name;
+    }
+
+    public String getSuffix_index_name() {
+        return suffix_index_name;
+    }
+
+    public void setSuffix_index_name(String suffix_index_name) {
+        this.suffix_index_name = suffix_index_name;
+    }
 
     public String getData() {
         return data;
@@ -55,14 +90,6 @@ public class Visualization {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public String getIndexName() {
-        return indexName;
-    }
-
-    public void setIndexName(String indexName) {
-        this.indexName = indexName;
     }
 
     public String getOption() {

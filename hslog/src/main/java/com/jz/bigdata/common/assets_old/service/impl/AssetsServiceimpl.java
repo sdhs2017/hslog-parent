@@ -1,4 +1,4 @@
-package com.jz.bigdata.common.assets.service.impl;
+package com.jz.bigdata.common.assets_old.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,9 +11,9 @@ import javax.annotation.Resource;
 
 import org.springframework.stereotype.Service;
 
-import com.jz.bigdata.common.assets.dao.IAssetsDao;
-import com.jz.bigdata.common.assets.entity.Assets;
-import com.jz.bigdata.common.assets.service.IAssetsService;
+import com.jz.bigdata.common.assets_old.dao.IAssetsDao;
+import com.jz.bigdata.common.assets_old.entity.Assets;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import net.sf.json.JSONArray;
 
 
@@ -79,11 +79,11 @@ public class AssetsServiceimpl implements IAssetsService{
 	 * 分页查询
 	 */
 	@Override
-	public String selectAllByPage(int pageIndex, int pageSize) {
+	public String selectAllByPage(int pageIndex, int pageSize,Assets assets) {
 		// 获取起始数
 		int startRecord = (pageSize * (pageIndex - 1));
 		// 获取总数
-		List count = assetsDao.count();
+		List count = assetsDao.count(assets);
 		List listCount = new ArrayList<>();
 		// 获取总数集合
 		listCount = (List) count.get(0);
@@ -92,17 +92,14 @@ public class AssetsServiceimpl implements IAssetsService{
 		// 总数添加到map
 		map.put("count", (listCount.get(0)));
 		// 查询所有数据
-		List<Assets> listAssets = assetsDao.selectAllByPage(startRecord,pageSize);
+		List<Assets> listAssets = assetsDao.selectAllByPage(startRecord,pageSize,assets);
 		// System.err.println(listEquipment.get(0).getCreateTime());
 		// 数据添加到map
 		map.put("assets", listAssets);
 		return JSONArray.fromObject(map).toString();
 	}
 
-	@Override
-	public List<String> count() {
-		return assetsDao.count();
-	}
+
 
 	/**
 	 * @param assets

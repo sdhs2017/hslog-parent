@@ -16,9 +16,13 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 @Service(value="BIService")
@@ -46,35 +50,35 @@ public class BIServiceImpl implements IBIService {
     public String groupByThenSum(VisualParam params) throws Exception {
         List<Map<String, Object>> list = ibiDao.getListBySumOfAggregation(params);
         //处理数据
-        return this.dataFormat(list);
+        return this.dataFormat(list,params);
     }
 
     @Override
     public String groupByThenCount(VisualParam params) throws Exception {
         List<Map<String, Object>> list = ibiDao.getListByCountOfAggregation(params);
         //处理数据
-        return this.dataFormat(list);
+        return this.dataFormat(list,params);
     }
 
     @Override
     public String groupByThenAvg(VisualParam params) throws Exception {
         List<Map<String, Object>> list = ibiDao.getListByAvgOfAggregation(params);
         //处理数据
-        return this.dataFormat(list);
+        return this.dataFormat(list,params);
     }
 
     @Override
     public String groupByThenMax(VisualParam params) throws Exception {
         List<Map<String, Object>> list = ibiDao.getListByMaxOfAggregation(params);
         //处理数据
-        return this.dataFormat(list);
+        return this.dataFormat(list,params);
     }
 
     @Override
     public String groupByThenMin(VisualParam params) throws Exception {
         List<Map<String, Object>> list = ibiDao.getListByMinOfAggregation(params);
         //处理数据
-        return this.dataFormat(list);
+        return this.dataFormat(list,params);
     }
 
     @Override
@@ -112,7 +116,7 @@ public class BIServiceImpl implements IBIService {
             visual.setTitle(visualizationInfo.get("title").toString());//标题
             visual.setDescription(visualizationInfo.get("description").toString());//描述
             visual.setType(visualizationInfo.get("type").toString());//图表类型
-            visual.setIndexName(visualizationInfo.get("indexName").toString());//数据查询的数据源（index名称）
+            //visual.setIndexName(visualizationInfo.get("indexName").toString());//数据查询的数据源（index名称）
             result.add(visual);
         }
         return JSONArray.fromObject(result).toString();
@@ -149,7 +153,10 @@ public class BIServiceImpl implements IBIService {
             visual.setType(visualization.get("type").toString());
             visual.setDescription(visualization.get("description").toString());
             visual.setTitle(visualization.get("title").toString());
-            visual.setIndexName(visualization.get("indexName").toString());
+            visual.setIndex_name(visualization.get("pre_index_name").toString()+visualization.get("suffix_index_name").toString());
+            visual.setTemplate_name(visualization.get("template_name").toString());
+            visual.setPre_index_name(visualization.get("pre_index_name").toString());
+            visual.setSuffix_index_name(visualization.get("suffix_index_name").toString());
             visual.setOption(visualization.get("option").toString());
             //处理查询参数
             String params = visualization.get("params").toString();
@@ -159,35 +166,10 @@ public class BIServiceImpl implements IBIService {
             //JsonElement jsonElement = new JsonParser().parse(params);
 
             //JsonObject jsonObject= jsonElement.getAsJsonObject();
+            /*
             HashMap<String,String[]> result = new ObjectMapper().readValue(params, HashMap.class);
             VisualParam vp = new VisualParam();
             vp = vp.mapToBean(result);
-            //VisualParam vp = (VisualParam)JSONObject.toBean(JSONObject.fromObject(params),VisualParam.class);
-            /*
-            //2.根据参数数据调用查询方法
-            //查询索引名称
-            String searchIndexName = jsonObject.get("indexName").getAsString();
-            //聚合方式
-            String x_agg = jsonObject.get("x_agg").getAsString();
-            String y_agg = jsonObject.get("y_agg").getAsString();
-            //聚合的字段
-            String x_field = jsonObject.get("x_field").getAsString();
-            String y_field = jsonObject.get("y_field").getAsString();
-            //查询数据条数
-            String size = jsonObject.get("size").getAsString();
-            //默认为10条记录
-            int sizeInt = 10;
-            if(size!=null&&!"".equals(size)){
-                sizeInt = Integer.parseInt(size);
-            }
-            //排序，Y轴
-            String sort = jsonObject.get("sort").getAsString();
-            //时间间隔类型
-            //String intervalType = jsonObject.get("intervalType").getAsString();
-            //时间间隔数值
-            //String intervalValue = jsonObject.get("intervalValue").getAsString();
-
-             */
             //返回结果
             String searchResult;
             //根据聚合方式调用不同的方法
@@ -212,6 +194,8 @@ public class BIServiceImpl implements IBIService {
                     break;
             }
             visual.setData(searchResult);
+            */
+
         }
         return JSONObject.fromObject(visual).toString();
     }
@@ -269,6 +253,7 @@ public class BIServiceImpl implements IBIService {
         }
     }
 
+
     /**
      * 将ES的聚合结果进行处理返回成前端需要的格式。
      * [{"data":[7.51308144E8,2.49168344E8],"name":["ZHANGYIYANG","jyr-PC"]}]
@@ -278,21 +263,77 @@ public class BIServiceImpl implements IBIService {
      * @param list
      * @return
      */
-    private String dataFormat(List<Map<String, Object>> list){
+    private String dataFormat(List<Map<String, Object>> list,VisualParam param){
+        String x_type = "";
+        String y_type = "";
+        //X轴为时间，处理时间
+        if("Date".equals(param.getX_agg())){
+            x_type="date";
+        }
+        //Y轴为bytes
+        if(param.getY_field().indexOf("bytes")>=0||param.getY_field().indexOf("system.memory.free")>=0){
+            y_type="bytes";
+        }
+        //Y轴为百分比
+        if(param.getY_field().indexOf("pct")>=0){
+            y_type="pct";
+        }
         Map<String, Object> tmplist = new HashMap<String, Object>();
         List<String> name = new ArrayList<>();
         List<Object> data = new ArrayList<>();
         for(Map<String, Object> tMap:list){
             for(Map.Entry<String, Object> key : tMap.entrySet()) {
-                name.add(key.getKey());
-                data.add(key.getValue());
+                if("date".equals(x_type)){
+                    name.add(this.valueFormatter(key.getKey(),x_type));
+                }else{
+                    name.add(key.getKey());
+                }
+
+                //y轴为pct，*100
+                if("pct".equals(y_type)){
+                    data.add(this.valueFormatter(key.getValue(),y_type));
+                }else if ("bytes".equals(y_type)){
+                    data.add(this.valueFormatter(key.getValue(),y_type));
+                }else{
+                    data.add(key.getValue());
+                }
+
             }
         }
         tmplist.put("name",name);
         tmplist.put("data",data);
         return JSONArray.fromObject(tmplist).toString();
     }
+    private String valueFormatter(Object value,String type){
+        String result = null;
+        DecimalFormat decimalFormat=new DecimalFormat(".00");
+        try{
+            switch (type){
+                case "pct":
+                    Float folatValue = Float.parseFloat(value.toString());
+                    folatValue = folatValue*100;
+                    result = decimalFormat.format(folatValue);
+                    break;
+                case "date":
+                    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+                    DateTime dateTime = DateTime.parse(value.toString(), dtf);
+                    result = dateTime.toString("yyyy-MM-dd HH:mm:ss");
+                    break;
+                case "bytes":
+                    Double byteValue = (Double)value;
+                    byteValue = byteValue/1024/1024/1024;//byte -> GB
+                    result = decimalFormat.format(byteValue);
+                    break;
+                default:
+                    result = value.toString();
+                    break;
+            }
+        }catch(Exception e){
+            result = value.toString();
+        }
 
+        return result;
+    }
     /**
      * 根据聚合方式的不同，筛选出符合要求的字段信息
      * @param indexName 索引名称
@@ -300,8 +341,14 @@ public class BIServiceImpl implements IBIService {
      * @return
      */
     private List<MappingField> getMappingFieldByAggType(String templateName, String indexName,String aggType) throws Exception {
-        //通过index获取template信息
+        //通过模糊的indexName 获取index列表
 
+        //获取indices
+        String[] indices = logIndexDao.getIndices(indexName+"*");
+        //排序
+        Arrays.sort(indices);
+        //获取最新的index信息
+        indexName = indices[indices.length-1];
         //获取所有字段信息
         //List<MappingField> list = getMappingFieldByIndex(indexName);
         List<MappingField> result = new ArrayList<>();

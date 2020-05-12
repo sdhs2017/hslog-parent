@@ -2,7 +2,8 @@ package com.jz.bigdata.business.logAnalysis.collector.service;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
-import com.jz.bigdata.common.assets.service.IAssetsService;
+import com.jz.bigdata.common.asset.service.IAssetService;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
@@ -102,11 +103,12 @@ public interface ICollectorService {
 	/**
 	 * 开启kafka of beats 的采集器
 	 * @param equipmentService 资产service
+	 * @param assetService 逻辑资产service
 	 * @param logCurdDao elasticsearch操作index的Dao
 	 * @param configProperty 配置文件bean
 	 * @return
 	 */
-	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty);
+	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty);
 
 	public boolean stopKafkaOfBeatsCollector()throws InterruptedException;
 

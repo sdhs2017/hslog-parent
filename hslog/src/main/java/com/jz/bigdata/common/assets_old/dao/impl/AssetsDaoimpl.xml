@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.jz.bigdata.common.assets.dao.IAssetsDao">
+<mapper namespace="com.jz.bigdata.common.assets_old.dao.IAssetsDao">
 	<!-- 返回结果设置 -->
 	<resultMap id="BaseResultMap"
-		type="com.jz.bigdata.common.assets.entity.Assets">
+		type="com.jz.bigdata.common.assets_old.entity.Assets">
 		<id column="id" jdbcType="VARCHAR" property="id" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="hostName" jdbcType="VARCHAR" property="hostName" />
@@ -42,7 +42,7 @@
 	
 	
 	<resultMap id="BaseResultMapUserName"
-		type="com.jz.bigdata.common.assets.entity.Assets">
+		type="com.jz.bigdata.common.assets_old.entity.Assets">
 		<id column="id" jdbcType="VARCHAR" property="id" />
 		<result column="name" jdbcType="VARCHAR" property="name" />
 		<result column="hostName" jdbcType="VARCHAR" property="hostName" />
@@ -88,7 +88,7 @@
 	</sql>
 
 	<!-- 查询所有数据 -->
-	<select id="selectAll" parameterType="com.jz.bigdata.common.assets.entity.Assets"
+	<select id="selectAll" parameterType="com.jz.bigdata.common.assets_old.entity.Assets"
 		resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
@@ -108,7 +108,7 @@
 
 	
 	<!-- 添加数据 -->
-	<insert id="insert" parameterType="com.jz.bigdata.common.assets.entity.Assets">
+	<insert id="insert" parameterType="com.jz.bigdata.common.assets_old.entity.Assets">
 		insert into assets
 		<!-- 格式化 -->
 		<trim prefix="(" suffix=")" suffixOverrides=",">
@@ -277,7 +277,7 @@
 		</foreach>
 	</delete>
 	<!-- 根据id修改数据 -->
-	<update id="updateById" parameterType="com.jz.bigdata.common.assets.entity.Assets">
+	<update id="updateById" parameterType="com.jz.bigdata.common.assets_old.entity.Assets">
 		update assets set
 		name=#{name},hostName=#{hostName},type=#{type},ip=#{ip},startUp=#{startUp},logType=#{logType},
 		macAdress=#{macAdress},system=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
@@ -311,7 +311,7 @@
 	</update>
  -->
  <!-- 查询单个数据 -->
-	<select id="selectAssets" parameterType="com.jz.bigdata.common.assets.entity.Assets"
+	<select id="selectAssets" parameterType="com.jz.bigdata.common.assets_old.entity.Assets"
 		resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
@@ -322,7 +322,7 @@
 	</select>
 	
  <!-- 查询单个数据 -->
-	<select id="selectOneAssets" parameterType="com.jz.bigdata.common.assets.entity.Assets"
+	<select id="selectOneAssets" parameterType="com.jz.bigdata.common.assets_old.entity.Assets"
 		resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select
@@ -347,7 +347,25 @@
 <!--   <bind name="name" value="'%' + name + '%'" /> -->
 	    select count(*) as count
 	<!--     引用查询字段 -->
-	    from assets 
+	    from assets
+		where 1=1
+		<if test="name != null and name !=''"> and name LIKE CONCAT('%',
+			#{name}, '%') </if>
+		<if test="hostName != null and hostName !=''"> and hostName LIKE
+			CONCAT('%',
+			#{hostName}, '%') </if>
+		<if test="ip != null and ip !=''">
+			and ip = #{ip,jdbcType=VARCHAR}
+		</if>
+		<if test="logType != null and logType !='' ">
+			and logType = #{logType,jdbcType=VARCHAR}
+		</if>
+		<if test="type != null and type !='' ">
+			and `type` LIKE CONCAT(#{type}, '%')
+		</if>
+		<if test='role=="2"'>
+			and userId=#{userId,jdbcType=VARCHAR}
+		</if>
 	</select>
 	
 	
@@ -382,6 +400,4 @@
 	</update>
 	
 
-	
-	
 </mapper>

@@ -229,7 +229,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			 * ECS的资产id改成fields.equipmentid
  			 */
 			esMap.put("fields.equipmentid", equipment.getId());
-			esMap.put("fields.failure","false");
+			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
 			equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
 		}
 		// 数据添加到map

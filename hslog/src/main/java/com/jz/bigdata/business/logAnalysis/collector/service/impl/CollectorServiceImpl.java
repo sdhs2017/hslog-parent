@@ -1,14 +1,11 @@
 package com.jz.bigdata.business.logAnalysis.collector.service.impl;
 
-import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,17 +19,13 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
+import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
-import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
-import org.joda.time.DateTime;
 import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
-import org.pcap4j.packet.Packet;
-import org.pcap4j.util.NifSelector;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -45,8 +38,8 @@ import com.jz.bigdata.business.logAnalysis.collector.pcap4j.Pcap4jCollector;
 import com.jz.bigdata.business.logAnalysis.collector.pcap4j.TcpStream;
 import com.jz.bigdata.business.logAnalysis.collector.service.ICollectorService;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
-import com.jz.bigdata.common.assets.entity.Assets;
-import com.jz.bigdata.common.assets.service.IAssetsService;
+import com.jz.bigdata.common.assets_old.entity.Assets;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
@@ -487,12 +480,12 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 
 
-	public boolean initKafkaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCrudDao, ConfigProperty configProperty){
+	public boolean initKafkaOfBeatsCollector(IEquipmentService equipmentService,IAssetService assetService, ILogCrudDao logCrudDao, ConfigProperty configProperty){
 
 		boolean result = false;
 		try{
 			if(!kafkaOfBeatsFlag){
-				kafakaOfBeatsCollector = new KafakaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+				kafakaOfBeatsCollector = new KafakaOfBeatsCollector(equipmentService,assetService, logCrudDao, configProperty);
 				kafkaOfBeatsFlag = true;
 			}
 			result = true;
@@ -502,10 +495,10 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 
 	@Override
-	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCrudDao, ConfigProperty configProperty) {
+	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCrudDao, ConfigProperty configProperty) {
 		boolean result = false;
 
-		initKafkaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+		initKafkaOfBeatsCollector(equipmentService, assetService,logCrudDao, configProperty);
 
 		/**
 		 * 如果为非开启状态，则新建kafka线程

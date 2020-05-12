@@ -193,9 +193,17 @@ public class EcsWinlogController {
             endtime = map.get("endtime");
             map.remove("endtime");
         }
-
-        // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //参数为  是否完整范式化，false是未完整范式化，对应字段的值为false
+        if(map.get("normalization")!=null&&"false".equals(map.get("normalization"))){
+            // 只有选择范式化失败时，才能查询到范式化失败的数据，否则查询范式化正常的数据
+            map.put("fields.failure","true");
+        }else if(map.get("normalization")!=null&&"true".equals(map.get("normalization"))){
+            map.put("fields.failure","false");
+        }else{
+            //查全部，不需要添加条件
+        }
+        //删除原参数
+        map.remove("normalization");
 
         List<Map<String, Object>> list = null;
         Map<String, Object> allmap = new HashMap<>();

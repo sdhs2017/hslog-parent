@@ -1,7 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.collector.controller;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +11,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.jz.bigdata.business.logAnalysis.collector.service.ICollectorService;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
-import com.jz.bigdata.common.assets.service.IAssetsService;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 
 
@@ -46,6 +46,9 @@ public class CollectorController {
 
 	@Resource(name = "EquipmentService")
 	private IEquipmentService equipmentService;
+
+	@Resource(name = "AssetService")
+	private IAssetService assetService;
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
@@ -442,7 +445,7 @@ public class CollectorController {
 		/**
 		 * 符合上述条件后执行开启kafka采集器
 		 */
-		boolean result = collectorService.startKafkaOfBeatsCollector(equipmentService, logCrudDao, configProperty);
+		boolean result = collectorService.startKafkaOfBeatsCollector(equipmentService,assetService, logCrudDao, configProperty);
 		/**
 		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述
 		 */

@@ -1,4 +1,4 @@
-package com.jz.bigdata.common.assets.controller;
+package com.jz.bigdata.common.assets_old.controller;
 
 import java.util.List;
 
@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jz.bigdata.common.Constant;
-import com.jz.bigdata.common.assets.entity.Assets;
-import com.jz.bigdata.common.assets.service.IAssetsService;
+import com.jz.bigdata.common.assets_old.entity.Assets;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.util.DescribeLog;
 
 @Controller
@@ -35,7 +35,6 @@ public class AssetsController {
 	
 	/**
 	 * @param request
-	 * @param department
 	 * @return 查询信息
 	 */
 	@ResponseBody
@@ -91,19 +90,18 @@ public class AssetsController {
 	
 	/**
 	 * @param request
-	 * @param page
 	 * @return 分页测试
 	 */
 	@ResponseBody
 //	@RequestMapping("/selectPage")
 	@RequestMapping(value="/selectAllByPage", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="分页查询")
-	public String selectPage(HttpServletRequest request) {
+	public String selectPage(HttpServletRequest request,Assets assets) {
 		//页码数
 		int pageIndex=Integer.parseInt(request.getParameter("pageIndex"));
 		//每页显示的数量
 		int pageSize=Integer.parseInt(request.getParameter("pageSize"));
-		return assetsService.selectAllByPage( pageIndex, pageSize);
+		return assetsService.selectAllByPage( pageIndex, pageSize,assets);
 	}
 	
 	/**
@@ -120,8 +118,6 @@ public class AssetsController {
 	
 	
 	/**
-	 * @param request
-	 * @param department
 	 * @return 查询信息
 	 */
 	@ResponseBody

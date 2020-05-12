@@ -317,6 +317,7 @@ public class KafkaCollector implements Runnable {
 					Matcher filebeatmatcher = filebeatpattern.matcher(log);
 					//logstash syslog
 					Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(log);
+					//System.out.println("-----------"+log);
 					//logstash发送的日志信息
 					if(logstashSyslogMatcher.find()){
 						logType = LogType.LOGTYPE_SYSLOG;

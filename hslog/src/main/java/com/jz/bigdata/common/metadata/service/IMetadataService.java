@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.metadata.service;
 
 import com.jz.bigdata.common.metadata.entity.Metadata;
+import com.jz.bigdata.util.ComboxEntity;
 
 import java.util.List;
 
@@ -45,4 +46,27 @@ public interface IMetadataService {
      * @throws Exception
      */
     public String getIndexTree(String es_tempalatePattern)throws Exception;
+    /**
+     * 获取template信息
+     * @param es_tempalatePattern
+     * @return
+     * @throws Exception
+     */
+    public List<ComboxEntity> getTemplates(String es_tempalatePattern) throws Exception;
+
+    /**
+     * 通过template名称获取index的前缀（去掉日期）
+     * @param templateName
+     * @return
+     * @throws Exception
+     */
+    public String getPreIndexByTemplate(String templateName)throws Exception;
+
+    /**
+     * 通过index的前缀名称获取后缀（日期）列表
+     * @param preIndexName index前缀信息
+     * @return
+     * @throws Exception
+     */
+    public String getSuffixIndexByPre(String preIndexName)throws Exception;
 }

@@ -6,7 +6,10 @@ import com.jz.bigdata.common.metadata.entity.TableHeader;
 import com.jz.bigdata.common.metadata.service.IMetadataService;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
 import com.jz.bigdata.roleauthority.menu.util.TreeBuilder;
+import com.jz.bigdata.util.ComboxEntity;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+import net.sf.json.JSONString;
 import org.apache.log4j.Logger;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -14,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service(value="metadataService")
 public class MetadataServiceImpl implements IMetadataService {
@@ -90,7 +95,7 @@ public class MetadataServiceImpl implements IMetadataService {
     }
     @Override
     public String getIndexTree(String es_tempalatePattern) throws Exception {
-       List<Menu> listMenu = new ArrayList<>();
+        List<Menu> listMenu = new ArrayList<>();
         //获取所有template的数据
         List<IndexTemplateMetaData> list = logIndexDao.getTemplateData("*");
         Collections.sort(list,new Comparator<IndexTemplateMetaData>() {
@@ -144,6 +149,83 @@ public class MetadataServiceImpl implements IMetadataService {
         TreeBuilder treeBuilder = new TreeBuilder(listMenu);
         String menuTree=treeBuilder.buildJSONTree();
         return menuTree;
+    }
+
+    @Override
+    public List<ComboxEntity> getTemplates(String es_tempalatePattern) throws Exception {
+        List<ComboxEntity> comboxEntityList = new ArrayList<>();
+        //List<String> listTemplate = new ArrayList<>();
+        //获取所有template的数据
+        List<IndexTemplateMetaData> list = logIndexDao.getTemplateData("*");
+        Collections.sort(list,new Comparator<IndexTemplateMetaData>() {
+            //升序排序
+            public int compare(IndexTemplateMetaData o1,
+                               IndexTemplateMetaData o2) {
+                return o1.name().toLowerCase().compareTo(o2.name().toLowerCase());
+            }
+        });
+        //遍历template
+        for(IndexTemplateMetaData template:list){
+            //将所有的template进行筛选，只选择
+            //TODO 加上beat的筛选，后期需要进行
+            if(template.name().indexOf(es_tempalatePattern.replace("*",""))>=0||template.name().indexOf("beat-")>=0){
+                ComboxEntity ce = new ComboxEntity();
+                ce.setLabel(template.name());
+                ce.setValue(template.name());
+                comboxEntityList.add(ce);
+            }
+        }
+
+        return comboxEntityList;
+    }
+
+    @Override
+    public String getPreIndexByTemplate(String templateName) throws Exception {
+        //获取indices
+        String[] indices = logIndexDao.getIndices(templateName+"*");
+        Set<String> preIndexName = new HashSet<>();
+        //匹配日期的正则
+        //String regex = "((19|20)[0-9]{2}).(0[1-9]|1[012]).(0[1-9]|[12][0-9]|3[01])";
+        String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";
+        for(String index:indices){
+            Matcher m =Pattern.compile(regex).matcher(index);
+            //将匹配的日期替换为空字符串
+            preIndexName.add(m.replaceAll(""));
+        }
+        //组装适用前端数据
+        List<ComboxEntity> comboxEntityList = new ArrayList<>();
+        for(String indexName:preIndexName){
+            ComboxEntity ce = new ComboxEntity();
+            ce.setLabel(indexName);
+            ce.setValue(indexName);
+            comboxEntityList.add(ce);
+        }
+        return JSONArray.fromObject(comboxEntityList).toString();
+    }
+
+    @Override
+    public String getSuffixIndexByPre(String preIndexName) throws Exception {
+        //获取indices
+        String[] indices = logIndexDao.getIndices(preIndexName+"*");
+        TreeSet<String> suffixIndexName = new TreeSet<>(Comparator.reverseOrder());
+        //匹配日期的正则
+        //String regex = "((19|20)[0-9]{2}).(0[1-9]|1[012]).(0[1-9]|[12][0-9]|3[01])";
+        String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";
+        for(String index:indices){
+            Matcher m =Pattern.compile(regex).matcher(index);
+            if(m.find()){
+                //将匹配的日期替换为空字符串
+                suffixIndexName.add(m.group());
+            }
+        }
+        List<ComboxEntity> comboxEntityList = new ArrayList<>();
+        for(String indexName:suffixIndexName){
+            ComboxEntity ce = new ComboxEntity();
+            ce.setLabel(indexName);
+            ce.setValue(indexName);
+            comboxEntityList.add(ce);
+        }
+        return JSONArray.fromObject(comboxEntityList).toString();
     }
 
     /**
@@ -457,7 +539,14 @@ public class MetadataServiceImpl implements IMetadataService {
         return tableHeaders;
     }
     public static void main(String[] args){
-        System.out.println(JSONArray.fromObject(getTableHeader()).toString());
+        //System.out.println(JSONArray.fromObject(getTableHeader()).toString());
+        String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";
+        Matcher m =Pattern.compile(regex).matcher("metricbeat-2019.01.01");
+        if(m.find()){
+            String b = m.group();
+            System.out.println(b);
+        }
 
+        boolean r = m.matches();
     }
 }

@@ -48,7 +48,7 @@
 	    LEFT JOIN department d on d.id=user.departmentId
 		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
 		LEFT JOIN HS_Role HR ON HR.id=HUR.FK_RoleID
-	    where 1=1
+	    where 1=1 and user.state='1'
 	    <!--   判断是否是空数据 -->
 	    <if test="name != null and name !=''" >
 	        and user.name LIKE CONCAT('%', #{name}, '%')
@@ -79,7 +79,7 @@
 		LEFT JOIN department d on d.id=user.departmentId
 		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
 		LEFT JOIN HS_Role HR ON HR.id=HUR.FK_RoleID
-	    where 1=1
+	    where 1=1 and user.state='1'
 	   
 	    <if test="_parameter != null and _parameter !=''" >
 	    	and user.id = #{_parameter,jdbcType=VARCHAR} 
@@ -95,7 +95,7 @@
 		user.id, user.name, phone, password, sex,age,email,departmentId,state
 	   
 	    from HS_User user
-	    where 1=1 
+	    where 1=1 and state='1'
 	   
 	    <if test="phone != null and phone !=''" >
 	        and phone = #{phone,jdbcType=VARCHAR} 
@@ -113,7 +113,7 @@
 	    LEFT JOIN department on 1=1 and department.id=user.departmentId
 		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
 		LEFT JOIN HS_Role HR on HR.id=HUR.FK_RoleID
-	    where 1=1
+	    where 1=1 and state='1'
 	    <if test="name != null and name !=''" >
 	        and user.name LIKE CONCAT('%', #{name}, '%')  
 	    </if>
@@ -133,7 +133,7 @@
 <!--   <bind name="name" value="'%' + name + '%'" /> -->
 	    select count(1) as count
 	    from HS_User 
-	    where 1=1 
+	    where 1=1 and state='1'
 	    <if test="name != null and name !=''" >
 	        and name LIKE CONCAT('%', #{name}, '%')  
 	    </if>
@@ -282,7 +282,7 @@
 		LEFT JOIN department on 1=1 and department.id=user.departmentId
 		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
 		LEFT JOIN HS_Role HR on HR.id=HUR.FK_RoleID
-		where 1=1
+		where 1=1 and state='1'
 		and user.id = #{id}
 		group by user.id, user.name, phone, password, sex,age,email,departmentId,state
 		, department.`name`

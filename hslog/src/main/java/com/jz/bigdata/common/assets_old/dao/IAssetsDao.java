@@ -1,10 +1,10 @@
-package com.jz.bigdata.common.assets.dao;
+package com.jz.bigdata.common.assets_old.dao;
 
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
 
-import com.jz.bigdata.common.assets.entity.Assets;
+import com.jz.bigdata.common.assets_old.entity.Assets;
 
 
 public interface IAssetsDao {
@@ -16,9 +16,9 @@ public interface IAssetsDao {
 
 	int delete(String[] ids);
 	
-	List<Assets> selectAllByPage(@Param("startRecord")int startRecord,@Param("pageSize")int pageSize);
+	List<Assets> selectAllByPage(@Param("startRecord")int startRecord,@Param("pageSize")int pageSize,Assets assets);
 
-	List<String> count();
+	List<String> count(Assets assets);
 	
 	Assets selectOneAssets(Assets assets);
 

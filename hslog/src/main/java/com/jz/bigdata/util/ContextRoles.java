@@ -22,6 +22,8 @@ public class ContextRoles {
      * beats types
      */
     public static final String WINLOGBEAT = "winlogbeat";
+    public static final String PACKETBEAT = "packetbeat";
+    public static final String METRICBEAT = "metricbeat";
 
 
     /**

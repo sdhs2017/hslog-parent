@@ -3,6 +3,7 @@ package com.jz.bigdata.common.metadata.controller;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.metadata.entity.Metadata;
 import com.jz.bigdata.common.metadata.service.IMetadataService;
+import com.jz.bigdata.util.ComboxEntity;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import net.sf.json.JSONArray;
@@ -111,6 +112,47 @@ public class MetadataController {
         }catch(Exception e){
             logger.error("template/index Tree数据获取失败");
             return Constant.failureMessage("数据获取失败");
+        }
+    }
+    @ResponseBody
+    @RequestMapping("/getTemplates")
+    @DescribeLog(describe = "获取template信息")
+    public List<ComboxEntity> getTemplates(HttpServletRequest request){
+        try{
+            //根据查询条件对template进行筛选
+            //String templates = request.getParameter("templates");
+            //读取配置文件.获取Es_tempalatePattern属性值
+            String es_tempalatePattern = configProperty.getEs_tempalatePattern();
+            return iMetadataService.getTemplates(es_tempalatePattern);
+        }catch(Exception e){
+            logger.error("template数据获取失败");
+            return null;
+        }
+    }
+    @ResponseBody
+    @RequestMapping("/getPreIndexByTemplate")
+    @DescribeLog(describe = "获取index前缀列表信息")
+    public String getPreIndexByTemplate(HttpServletRequest request){
+        try{
+            //根据查询条件对template进行筛选
+            String templateName = request.getParameter("templateName");
+            return iMetadataService.getPreIndexByTemplate(templateName);
+        }catch(Exception e){
+            logger.error("template数据获取失败");
+            return null;
+        }
+    }
+    @ResponseBody
+    @RequestMapping("/getSuffixIndexByPre")
+    @DescribeLog(describe = "获取index后缀列表信息")
+    public String getSuffixIndexByPre(HttpServletRequest request){
+        try{
+            //根据查询条件对template进行筛选
+            String preIndexName = request.getParameter("preIndexName");
+            return iMetadataService.getSuffixIndexByPre(preIndexName);
+        }catch(Exception e){
+            logger.error("template数据获取失败");
+            return null;
         }
     }
 }

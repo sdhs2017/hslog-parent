@@ -42,11 +42,15 @@ public class BIController {
             //聚合方式  支持count/max/min/sum/avg
             String agg = request.getParameter("agg");
             //索引名称
-            String indexName = request.getParameter("indexName");
+            //String indexName = request.getParameter("indexName");
             //template名称
-            String templateName = request.getParameter("templateName");
+            String templateName = request.getParameter("template_name");
+            //索引前缀
+            String preIndexName = request.getParameter("pre_index_name");
+            //索引后缀
+            String suffixIndexName = request.getParameter("suffix_index_name");
             //
-            List<MappingField> result = iBIService.getFieldByXAxisAggregation(templateName,indexName,agg);
+            List<MappingField> result = iBIService.getFieldByXAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
             logger.error("通过X轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
@@ -66,10 +70,14 @@ public class BIController {
             //聚合方式  支持count/max/min/sum/avg
             String agg = request.getParameter("agg");
             //索引名称
-            String indexName = request.getParameter("indexName");
+            //String indexName = request.getParameter("indexName");
             //template名称
-            String templateName = request.getParameter("templateName");
-            List<MappingField> result = iBIService.getFieldByYAxisAggregation(templateName,indexName,agg);
+            String templateName = request.getParameter("template_name");
+            //索引前缀
+            String preIndexName = request.getParameter("pre_index_name");
+            //索引后缀
+            String suffixIndexName = request.getParameter("suffix_index_name");
+            List<MappingField> result = iBIService.getFieldByYAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
             logger.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
@@ -117,6 +125,10 @@ public class BIController {
             VisualParam vp = new VisualParam();
             Map<String, String[]> params = request.getParameterMap();
             vp.mapToBean(params);
+            //组装要检索的index的名称： 前缀+后缀
+            vp.setIndex_name(vp.getPre_index_name()+vp.getSuffix_index_name());
+            //日期字段
+            vp.setDateField("@timestamp");
             //返回结果
             String result;
             //根据聚合方式调用不同的方法
@@ -296,4 +308,5 @@ public class BIController {
             return Constant.failureMessage("删除仪表盘失败");
         }
     }
+
 }

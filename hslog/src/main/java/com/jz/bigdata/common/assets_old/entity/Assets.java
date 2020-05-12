@@ -1,4 +1,4 @@
-package com.jz.bigdata.common.assets.entity;
+package com.jz.bigdata.common.assets_old.entity;
 
 import com.jz.bigdata.roleauthority.user.entity.User;
 

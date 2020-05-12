@@ -4,7 +4,10 @@ import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
-import com.jz.bigdata.common.alarm.service.IAlarmService;
+import com.jz.bigdata.common.asset.entity.Asset;
+import com.jz.bigdata.common.asset.service.IAssetService;
+import com.jz.bigdata.common.assets_old.entity.Assets;
+import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
@@ -71,12 +74,16 @@ public class KafakaOfBeatsCollector implements Runnable {
 
 
     /**
-     * 资产列表
+     * 资产列表（虚拟资产）
      */
     Map<String, Equipment> equipmentMap;
     Set<String> ipadressSet;
     Map<String, String> equipmentLogLevel;
-
+    /**
+     * 逻辑资产
+     */
+    Map<String, Asset> assetMap;
+    Set<String> assetIpAddressSet;
     /**
      *
      * @param equipmentService
@@ -84,7 +91,7 @@ public class KafakaOfBeatsCollector implements Runnable {
      * @param configProperty
      */
     //public KafakaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService) {
-    public KafakaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty) {
+    public KafakaOfBeatsCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty) {
         /**
          * kafka 消费者属性配置
          */
@@ -133,6 +140,9 @@ public class KafakaOfBeatsCollector implements Runnable {
         ipadressSet = equipmentService.selectAllIPAdress();
 
         equipmentLogLevel = equipmentService.selectLog_level();
+        //初始化逻辑资产
+        assetMap = assetService.selectAllAsset();
+        assetIpAddressSet = assetService.selectAllIPAdress();
 
     }
 
@@ -171,6 +181,7 @@ public class KafakaOfBeatsCollector implements Runnable {
              */
             Equipment equipment;
             String ipadress;
+            Asset asset;//逻辑资产
 
             List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
             /**
@@ -190,8 +201,14 @@ public class KafakaOfBeatsCollector implements Runnable {
                      */
                     String beat_type = jsonObject.getAsJsonObject("agent").get("type").getAsString().replaceAll("\"","");
                     if(beat_type.equals(ContextRoles.WINLOGBEAT)){
-                        //判断是否在资产ip地址池里
+                        //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        //如果IP在逻辑资产列表中，加上逻辑资产标签
+                        asset = assetMap.get(ipadress);
+                        if(asset!=null){
+                            jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                        }
+                        //判断是否在资产ip地址池里
                         if (ipadressSet.contains(ipadress)) {
                             //判断是否在已识别资产里————日志类型可识别
                             equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_WINLOG);
@@ -280,6 +297,128 @@ public class KafakaOfBeatsCollector implements Runnable {
                             // 不在资产池中的日志数据不处理
                         }
 
+                    }else if(beat_type.equals(ContextRoles.PACKETBEAT)){
+                        //获取数据IP
+                        ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        //如果IP在逻辑资产列表中，加上逻辑资产标签
+                        asset = assetMap.get(ipadress);
+                        if(asset!=null){
+                            jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                        }
+                        //判断是否在资产ip地址池里
+                        if (ipadressSet.contains(ipadress)) {
+                            //判断是否在已识别资产里————日志类型可识别
+                            equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_PACKET);
+                            if (null != equipment) {
+                                // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
+                                //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
+                                // 补全资产信息
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
+                            }else {
+                                // TODO 之前版本对IP地址匹配但是资产未匹配的数据设置为unknow
+                                /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());*/
+                            }
+
+                            /**
+                             * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                             */
+                            jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+                            /**
+                             * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                             */
+                            String beatdate = jsonObject.get("@timestamp").getAsString();
+
+                            try {
+                                Date date = format.parse(beatdate);
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(date);
+                                cal.add(Calendar.HOUR_OF_DAY, +8);
+                                date = cal.getTime();
+                                jsonObject.addProperty("@timestamp",format.format(date));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            /**
+                             * index名称设置
+                             * 名称不体现版本信息，但是版本数据依然在数据中存储
+                             */
+                            String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                            String index = beat_type+"-"+date;
+                            /**
+                             * 批量入库
+                             */
+                            indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                        }else {
+                            // 不在资产池中的日志数据不处理
+                        }
+                    }else if(beat_type.equals(ContextRoles.METRICBEAT)){
+                        //获取数据IP
+                        ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        //如果IP在逻辑资产列表中，加上逻辑资产标签
+                        asset = assetMap.get(ipadress);
+                        if(asset!=null){
+                            jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                        }
+                        //判断是否在资产ip地址池里
+                        if (ipadressSet.contains(ipadress)) {
+                            //判断是否在已识别资产里————日志类型可识别
+                            equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_PACKET);
+                            if (null != equipment) {
+                                // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
+                                //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
+                                // 补全资产信息
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
+                            }else {
+                                // TODO 之前版本对IP地址匹配但是资产未匹配的数据设置为unknow
+                                /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());*/
+                            }
+
+                            /**
+                             * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                             */
+                            jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+                            /**
+                             * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                             */
+                            String beatdate = jsonObject.get("@timestamp").getAsString();
+
+                            try {
+                                Date date = format.parse(beatdate);
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(date);
+                                cal.add(Calendar.HOUR_OF_DAY, +8);
+                                date = cal.getTime();
+                                jsonObject.addProperty("@timestamp",format.format(date));
+                            } catch (ParseException e) {
+                                e.printStackTrace();
+                            }
+                            /**
+                             * index名称设置
+                             * 名称不体现版本信息，但是版本数据依然在数据中存储
+                             */
+                            String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                            String index = beat_type+"-"+date;
+                            /**
+                             * 批量入库
+                             */
+                            indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                        }else {
+                            // 不在资产池中的日志数据不处理
+                        }
+                    }else{
+                        String a= "1";
                     }
                 }catch (NullPointerException e){
                     e.printStackTrace();

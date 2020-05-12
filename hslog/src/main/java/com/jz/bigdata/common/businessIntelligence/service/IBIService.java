@@ -121,4 +121,6 @@ public interface IBIService {
      * @throws Exception
      */
     public boolean isDashboardExists(String title,String indexName) throws Exception;
+
+
 }

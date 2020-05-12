@@ -172,10 +172,11 @@
 	<select id="selectSystemMenu" resultMap="BaseResultMap" >
 		SELECT menu.id, menu.menuName, CASE WHEN(menu.superiorId IS NULL OR menu.superiorId='') THEN S.id ELSE menu.superiorId END superiorId, menu.childId
 		FROM HS_Menu menu
-		LEFT JOIN HS_System S ON S.id = menu.fk_system_id
+		LEFT JOIN HS_System S ON S.id = menu.fk_system_id where menu.state='1'
 		UNION
 		SELECT ID,sys_name AS menuName,'' as superiorId,0 as childId
 		from HS_System
+
 	</select>
 	<select id="selectSystemMenuByIDs"  resultMap="BaseResultMap" >
 		select *from (

@@ -1,10 +1,8 @@
-package com.jz.bigdata.common.assets.service;
+package com.jz.bigdata.common.assets_old.service;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Param;
-
-import com.jz.bigdata.common.assets.entity.Assets;
+import com.jz.bigdata.common.assets_old.entity.Assets;
 
 
 public interface IAssetsService {
@@ -16,9 +14,7 @@ public interface IAssetsService {
 
 	int delete(String[] ids);
 	
-	String selectAllByPage(int pageIndex,int pageSize);
-
-	List<String> count();
+	String selectAllByPage(int pageIndex,int pageSize,Assets assets);
 	
 	//查询单个数据
 	Assets selectOneAssets(Assets assets);

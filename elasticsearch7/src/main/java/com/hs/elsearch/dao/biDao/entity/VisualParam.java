@@ -18,7 +18,10 @@ public class VisualParam {
     private String sort;//排序，正序/倒序
     private IntervalType intervalType;//间隔类型 enum
     private int intervalValue;//间隔值
-    private String indexName;//数据源：目前是索引，后期可能会调整
+    private String index_name;//数据源：目前是索引，后期可能会调整
+    private String pre_index_name;//索引前缀
+    private String suffix_index_name;//索引后缀
+    private String template_name;//
     private String startTime;
     private String endTime;
     private String dateField;//时间范围查询时对应的字段
@@ -31,6 +34,38 @@ public class VisualParam {
         MONTHLY,//月
         YEARLY,//年
         UNKNOWN;
+    }
+
+    public String getIndex_name() {
+        return index_name;
+    }
+
+    public void setIndex_name(String index_name) {
+        this.index_name = index_name;
+    }
+
+    public String getPre_index_name() {
+        return pre_index_name;
+    }
+
+    public void setPre_index_name(String pre_index_name) {
+        this.pre_index_name = pre_index_name;
+    }
+
+    public String getSuffix_index_name() {
+        return suffix_index_name;
+    }
+
+    public void setSuffix_index_name(String suffix_index_name) {
+        this.suffix_index_name = suffix_index_name;
+    }
+
+    public String getTemplate_name() {
+        return template_name;
+    }
+
+    public void setTemplate_name(String template_name) {
+        this.template_name = template_name;
     }
 
     public String getDateField() {
@@ -79,14 +114,6 @@ public class VisualParam {
 
     public void setIntervalValue(int intervalValue) {
         this.intervalValue = intervalValue;
-    }
-
-    public String getIndexName() {
-        return indexName;
-    }
-
-    public void setIndexName(String indexName) {
-        this.indexName = indexName;
     }
 
     public String getX_agg() {

@@ -143,7 +143,6 @@ public class FlowSearchDao implements IFlowSearchDao {
         String count = "aggs";
         // 聚合查询group by
         AggregationBuilder aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size);
-
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
 

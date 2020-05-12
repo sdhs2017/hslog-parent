@@ -12,6 +12,9 @@ import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInter
 import org.elasticsearch.search.aggregations.bucket.histogram.ExtendedBounds;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.metrics.*;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.SimpleDateFormat;
@@ -27,7 +30,7 @@ public class BIDaoImpl implements IBIDao {
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -50,7 +53,7 @@ public class BIDaoImpl implements IBIDao {
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -73,7 +76,7 @@ public class BIDaoImpl implements IBIDao {
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -98,7 +101,7 @@ public class BIDaoImpl implements IBIDao {
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -121,7 +124,7 @@ public class BIDaoImpl implements IBIDao {
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndexName());
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get("aggs");
 
@@ -248,9 +251,13 @@ public class BIDaoImpl implements IBIDao {
      */
     public List<Map<String, Object>> getListExistsField(String indexName,String fieldName) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //排序
+        //SortBuilder sortBuilder = SortBuilders.fieldSort("visualization.title").order(SortOrder.DESC);
         //查询条件
         boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery(fieldName)));
-        List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder,indexName);
+        //TODO 分页
+        List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder, null, 0, 999, indexName);
+        //List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder,indexName);
         return list;
     }
 

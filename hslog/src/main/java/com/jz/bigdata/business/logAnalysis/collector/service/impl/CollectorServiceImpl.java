@@ -141,12 +141,12 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 	
 	@SuppressWarnings("finally")
-	public boolean initKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService){
+	public boolean initKafkaCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService){
 
 		boolean result = false;
 		try{
 			if(!flag){
-				kc = new KafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
+				kc = new KafkaCollector(equipmentService,assetService,logCurdDao,configProperty,alarmService,usersService);
 				flag = true;
 			}
 			result = true;
@@ -165,11 +165,11 @@ public class CollectorServiceImpl implements ICollectorService{
 	 * @return
 	 */
 	@Override
-	public synchronized boolean startKafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
+	public synchronized boolean startKafkaCollector(IEquipmentService equipmentService,IAssetService assetService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
 		//TODO 后续考虑使用ReentrantLock实现
 		boolean result = false;
 		//如果为true，则表示已经开启，反之，则为未开启，需要进行kafka的初始化
-		initKafkaCollector(equipmentService,logCurdDao,configProperty,alarmService,usersService);
+		initKafkaCollector(equipmentService,assetService,logCurdDao,configProperty,alarmService,usersService);
 		/**
 		 * 如果为非开启状态，则新建kafka线程
 		 */

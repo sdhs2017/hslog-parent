@@ -32,7 +32,7 @@ public interface ICollectorService {
 	 * @param usersService
 	 * @return
 	 */
-	public boolean startKafkaCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService);
+	public boolean startKafkaCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService);
 
 	/**
 	 * 关闭默认kafka采集器

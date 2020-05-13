@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 import com.alibaba.fastjson.JSON;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.common.asset.entity.Asset;
+import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -54,11 +56,18 @@ public class KafkaCollector implements Runnable {
 	public static List<Object> list=new ArrayList<Object>();
 
 	String json;
-	/*
-	 * 	资产、ip地址
+	/**
+	 * 	虚拟资产、ip地址
 	 */
 	Equipment equipment;
 	String ipadress;
+
+	/**
+	 * 逻辑资产
+	 */
+	Map<String, Asset> assetMap;
+	Set<String> assetIpAddressSet;
+
 	// log4j日志信息过滤条件
 	private Pattern facility_pattern = Pattern.compile("local3:");
 	private Pattern pattern = Pattern.compile(DEFAULT_REGEX);
@@ -151,7 +160,7 @@ public class KafkaCollector implements Runnable {
 	 * @param alarmService
 	 * @param usersService
 	 */
-	public KafkaCollector(IEquipmentService equipmentService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService) {
+	public KafkaCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService) {
 		Properties props = new Properties();
 		//zookeeper 配置
 //		props.put("zookeeper.connect", "124.133.246.61:2281");
@@ -189,6 +198,10 @@ public class KafkaCollector implements Runnable {
 		equipmentLogLevel = equipmentService.selectLog_level();
 		
 		eventType = alarmService.selectByEmailState();
+
+		//初始化逻辑资产
+		assetMap = assetService.selectAllAsset();
+		assetIpAddressSet = assetService.selectAllIPAdress();
 		
 		Gson gson = new Gson();
     	

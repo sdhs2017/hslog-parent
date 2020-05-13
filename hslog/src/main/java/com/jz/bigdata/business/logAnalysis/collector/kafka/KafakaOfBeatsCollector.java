@@ -207,6 +207,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                         asset = assetMap.get(ipadress);
                         if(asset!=null){
                             jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                            jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
                         }
                         //判断是否在资产ip地址池里
                         if (ipadressSet.contains(ipadress)) {
@@ -304,6 +305,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                         asset = assetMap.get(ipadress);
                         if(asset!=null){
                             jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                            jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
                         }
                         //判断是否在资产ip地址池里
                         if (ipadressSet.contains(ipadress)) {
@@ -364,6 +366,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                         asset = assetMap.get(ipadress);
                         if(asset!=null){
                             jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                            jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
                         }
                         //判断是否在资产ip地址池里
                         if (ipadressSet.contains(ipadress)) {

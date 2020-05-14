@@ -2,6 +2,7 @@
     <div class="content-bg">
         <div class="top-title">
             <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加图表</el-button>
+<!--            <el-button  type="primary" size="mini" plain @click="addSE">添加系统图表</el-button>-->
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;">刷新</el-button>
@@ -31,7 +32,27 @@
                            drag-allow-from=".vue-draggable-handle"
                            @resized="resizedEvent"
                            @moved="movedEvent">
-                    <div style="height: 100%;" v-if="item.chartType !== 'text'">
+                    <div v-else class="vue-draggable-handle text-box" style="height: 100%;" v-if="item.chartType == 'text'">
+                        <div class="text-wapper" v-html="item.text"></div>
+                        <div class="text-i">
+                            <i class="el-icon-edit" title="修改" @click="editTextBtn(i)"></i>
+                            <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
+                        </div>
+                    </div>
+                    <div style="height: 100%;" v-else-if="item.chartType == 'systemChart'">
+                        <div class="item-tit vue-draggable-handle">
+                            <span>{{item.tit}}</span>
+                            <!--                        <el-input class="tit-input" placeholder="请输入内容"></el-input>-->
+                            <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
+                            <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
+                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
+                        </div>
+                        <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
+                        <div class="item-con">
+                            <component :is="allComps[item.eId]" :params="{starttime:dateArr[0],endtime:dateArr[1]}"> </component>
+                        </div>
+                    </div>
+                    <div style="height: 100%;" v-else>
                         <div class="item-tit vue-draggable-handle">
                             <span>{{item.tit}}</span>
                             <!--                        <el-input class="tit-input" placeholder="请输入内容"></el-input>-->
@@ -41,13 +62,6 @@
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`"></div>
-                    </div>
-                    <div v-else class="vue-draggable-handle text-box" style="height: 100%;">
-                        <div class="text-wapper" v-html="item.text"></div>
-                        <div class="text-i">
-                            <i class="el-icon-edit" title="修改" @click="editTextBtn(i)"></i>
-                            <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
-                        </div>
                     </div>
                 </grid-item>
             </grid-layout>
@@ -67,7 +81,7 @@
                <el-checkbox-group v-model="checkedList" class="drawer-list">
                    <ul>
                        <li v-for="(item,i) in chartsList" :key="i">
-                           <el-checkbox :label="item.id">{{item.title}}</el-checkbox>
+                           <el-checkbox :label="item.id" style="width: 260px;overflow:hidden;">{{item.title}}</el-checkbox>
                            <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : ''}}</span>
                        </li>
                    </ul>
@@ -180,7 +194,9 @@
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat,jumpHtml} from "../../../static/js/common";
+    import allComps from '../charts/index'
     const echarts = require('echarts');
+    import loglevel from '../charts/logLevel_bar'
     //引入font.css
     import '../../assets/font.css'
     // 自定义字体大小
@@ -196,6 +212,7 @@
         name: "dashboard",
         data() {
             return {
+                allComps:allComps,
                 refresh:0,
                 dateArr:[],
                 dashboardId:'',
@@ -262,6 +279,7 @@
             }
         },
         created(){
+            console.log(this.allComps)
             //判断是否有参数  有参数说明是修改功能页面
             if(JSON.stringify(this.$route.query) !== "{}"){
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
@@ -292,19 +310,7 @@
                 this.dateArr = arr;
             })
         },
-        watch:{
-            'wordsState'(){
-                if(this.wordsState){
-                    this.$nextTick(()=>{
-                        //加载提示
-                        addQuillTitle();
-                    })
 
-                }else{
-                    this.content = '';
-                }
-            }
-        },
         methods:{
             /*获取图表列表*/
             getChartsList(){
@@ -360,7 +366,7 @@
                         break;
                 }
             },
-            /*添加图例*/
+            /*添加自建图例*/
             addE(){
                 this.addXLength = 0;
                 //this.layout.push({"x":0,"y":0,"w":12,"h":8,"i":"1","tit":"每小时日志数"})
@@ -394,6 +400,17 @@
                //清空选中
                 this.checkedList = [];
                 this.drawerState = false;
+            },
+            /*添加系统图例*/
+            addSE(){
+                //设置类型为systemChart
+                for(let i in this.allComps){
+                    let obj = {
+                        id:i,
+                        type:'systemChart'
+                    }
+                    this.createConstruction(obj)
+                }
             },
             /*保存dashboart*/
             saveDashBoard(){
@@ -700,6 +717,17 @@
                     }
 
                 }
+            },
+            'wordsState'(){
+                if(this.wordsState){
+                    this.$nextTick(()=>{
+                        //加载提示
+                        addQuillTitle();
+                    })
+
+                }else{
+                    this.content = '';
+                }
             }
         },
         /*beforeRouteEnter(to, from, next) {
@@ -710,6 +738,7 @@
 
         },*/
         components:{
+            //logLevel_bar: resolve => {require(['../charts/logLevel_bar'], resolve)},//懒加载
             vEcharts,
             dateLayout,
             quillEditor,
@@ -799,6 +828,9 @@
         transition: all 0.3s linear;
         top: 0;
     }
+    /deep/ .el-drawer__body{
+        height: 100%;
+    }
     .drawer-wapper{
         /*padding: 10px 20px;*/
         height: 100%;
@@ -819,7 +851,7 @@
     .drawer-list{
         height: calc(100% - 100px);
         padding: 0 10px;
-        /*overflow: auto;*/
+        overflow: auto;
     }
     .drawer-list li{
         height: 40px;

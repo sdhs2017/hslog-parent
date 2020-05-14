@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title"><!--{{htmlTitle}}-->
-            <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'">当前仅能查看</div>
+            <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
             <div class="choose-wapper">
                 <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
             </div>
@@ -1166,6 +1166,8 @@
         float: right;
         margin-right: 10px;
         margin-top: 10px;
+        position: relative;
+        z-index: 101;
     }
     .chart-wapper{
         height: 100%;

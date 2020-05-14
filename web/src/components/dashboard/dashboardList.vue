@@ -43,11 +43,18 @@
                         width: '',
                         btns: [
                             {
+                                icon: 'el-icon-view',
+                                text: '查看',
+                                clickFun: (row, index) => {
+                                    jumpHtml('seeDashboard'+row.id,'dashboard/dashboard.vue',{name:row.title,id:row.id,type:'see'},' 查看');
+                                }
+                            },
+                            {
                                 icon: 'el-icon-edit',
                                 text: '修改',
                                 clickFun: (row, index) => {
                                     //this.reviseChart(row,index)
-                                    jumpHtml('dashboard'+row.id,'dashboard/dashboard.vue',{name:row.title,id:row.id},' 修改');
+                                    jumpHtml('resiveDashboard'+row.id,'dashboard/dashboard.vue',{name:row.title,id:row.id,type:'edit'},' 编辑');
                                 }
                             },
                             {

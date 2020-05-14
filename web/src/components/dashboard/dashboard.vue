@@ -1,11 +1,12 @@
 <template>
     <div class="content-bg">
+        <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
         <div class="top-title">
             <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加图表</el-button>
 <!--            <el-button  type="primary" size="mini" plain @click="addSE">添加系统图表</el-button>-->
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
-            <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;">刷新</el-button>
+            <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
             <div class="date-wapper"><date-layout  :busName="busName" :refresh="refresh"></date-layout></div>
         </div>
         <!--dashboard-->
@@ -32,17 +33,17 @@
                            drag-allow-from=".vue-draggable-handle"
                            @resized="resizedEvent"
                            @moved="movedEvent">
-                    <div v-else class="vue-draggable-handle text-box" style="height: 100%;" v-if="item.chartType == 'text'">
+                    <div class="vue-draggable-handle text-box" style="height: 100%;" v-if="item.chartType == 'text'">
                         <div class="text-wapper" v-html="item.text"></div>
                         <div class="text-i">
                             <i class="el-icon-edit" title="修改" @click="editTextBtn(i)"></i>
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
                         </div>
                     </div>
-                    <div style="height: 100%;" v-else-if="item.chartType == 'systemChart'">
+                    <!--<div style="height: 100%;" v-else-if="item.chartType == 'systemChart'">
                         <div class="item-tit vue-draggable-handle">
                             <span>{{item.tit}}</span>
-                            <!--                        <el-input class="tit-input" placeholder="请输入内容"></el-input>-->
+                            &lt;!&ndash;                        <el-input class="tit-input" placeholder="请输入内容"></el-input>&ndash;&gt;
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
                             <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
@@ -51,7 +52,7 @@
                         <div class="item-con">
                             <component :is="allComps[item.eId]" :params="{starttime:dateArr[0],endtime:dateArr[1]}"> </component>
                         </div>
-                    </div>
+                    </div>-->
                     <div style="height: 100%;" v-else>
                         <div class="item-tit vue-draggable-handle">
                             <span>{{item.tit}}</span>
@@ -180,7 +181,7 @@
             </div>
         </el-dialog>
     </div>
-    
+
 </template>
 
 <script>
@@ -281,20 +282,37 @@
         created(){
             console.log(this.allComps)
             //判断是否有参数  有参数说明是修改功能页面
-            if(JSON.stringify(this.$route.query) !== "{}"){
+            if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "edit"){
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
-                this.$options.name = 'dashboard'+ this.$route.query.id;
+                this.$options.name = 'resiveDashboard'+ this.$route.query.id;
                 //修改data参数
-                this.htmlTitle = `修改 ${this.$route.query.name}`;
+                this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'resiveDashboard'+this.$route.query.id;
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
-                    path:'dashboard'+this.$route.query.id,
+                    path:'resiveDashboard'+this.$route.query.id,
                     component:'dashboard/dashboard.vue',
-                    title:'修改'
+                    title:'编辑'
                 }
-                sessionStorage.setItem('/dashboard'+this.$route.query.id,JSON.stringify(obj))
+                sessionStorage.setItem('/resiveDashboard'+this.$route.query.id,JSON.stringify(obj))
+                if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
+                    this.dashboardId = this.$route.query.id;
+                }
+            }else if(this.$route.query.type === "see"){
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'seeDashboard'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
+                this.busName = 'seeDashboard'+this.$route.query.id;
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'seeDashboard'+this.$route.query.id,
+                    component:'dashboard/dashboard.vue',
+                    title:'查看'
+                }
+                sessionStorage.setItem('/seeDashboard'+this.$route.query.id,JSON.stringify(obj))
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                 }
@@ -750,10 +768,23 @@
 </script>
 
 <style scoped>
+    .top-zz{
+        text-align: center;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        /*background: #;*/
+        z-index: 100;
+        cursor: no-drop;
+        text-shadow: none;
+        color: #455b75;
+    }
     .date-wapper{
         float: right;
         margin-top: 10px;
         margin-right: 10px;
+        position: relative;
+        z-index: 101;
     }
     .item-wapper{
         background: #303e4e;

@@ -59,7 +59,7 @@
                             d.innerHTML = obj.log_count + 15;
                             let w = d.offsetWidth;
                             return `<span title="${val}" style="display: inline-block;float:left;margin-right: 5px;max-width: calc(100% - ${w}px);overflow: hidden;text-overflow: ellipsis; ">${val}</span>
-                                    <b title="今日入库日志数 " class="inNum" style="float:left;border: 1px solid #e4956d;color: #e4956d;padding: 0 5px;height: 18px;line-height: 18px;">${obj.log_count}</b>`;
+                                    <b title="今日日志数 " class="inNum" style="float:left;border: 1px solid #e4956d;color: #e4956d;padding: 0 5px;height: 18px;line-height: 18px;">${obj.log_count}</b>`;
                         }
                     },
                     {
@@ -143,7 +143,7 @@
                                 }
                             },
                             {
-                                icon:'el-icon-share',
+                                icon:'el-icon-s-data',
                                 text:'查看资产图表',
                                 btnType: 'equipmentEcharts',
                                 clickFun:(row,index)=>{

@@ -19,11 +19,16 @@
                 <li v-for="(i,index) in equipmentList"  :key="index"  class="eq-li" @mouseenter="liMouseenter($event)" @mouseleave="liMouseleave($event)" @>
                     <div class="eq-tools-01">
                         <i class="el-icon-edit " title="修改资产" @click="reviseEquipment(i)"></i>
-                        <b title="今日入库数">{{i.log_count}}</b>
+                        <span>
+                            今日: <b title="今日日志数">{{i.log_count}}</b>
+                        </span>
                         <el-checkbox :label="i.id"></el-checkbox>
                     </div>
-                    <div class="eq-name">{{i.name}}</div>
-                    <div class="eq-type">{{i.type}}</div>
+                    <div class="eq-name">
+                        <span class="eq-name-span">{{i.name}}</span>
+                        <span class="eq-t-span">{{i.type}}</span>
+                    </div>
+                    <div class="eq-type"><i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i></div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
                         <span class="eq-ip">{{i.ip}}</span>
@@ -75,7 +80,7 @@
                     </div>
                     <div class="eq-tools-02">
                         <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>
-                        <i class="el-icon-share" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+                        <i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i>
                         <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
                         <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
                         <i class="el-icon-view" title="潜在威胁分析" :style="{color:i.high_risk !== 0 ? '#f55446' : i.moderate_risk !== 0 ? '#f1ae09' : '#4995bb'}" @click="theartAnalyse(i)"></i>
@@ -496,7 +501,7 @@
         margin: 20px 10px;
         position: relative;
         transition: all .2s linear;
-        height: 125px;
+        height: 145px;
         padding: 0 10px;
         background-image: linear-gradient(to right, #2f455c 0%, #386c9a 100%);
         border: 1px solid #365778;
@@ -505,7 +510,7 @@
         content: '';
         position: absolute;
         left: -1px;
-        top: 126px;
+        top: 145px;
         width: 0;
         border: 8px solid;
         transition: all .3s;
@@ -530,6 +535,9 @@
         justify-content: space-between;
         height: 20px;
         line-height: 20px;
+    }
+    .eq-tools-01 span{
+        color: #4995ba;
     }
     .eq-tools-01 b{
         color: #409eff;
@@ -556,8 +564,7 @@
         color: #E4956D;
         font-size: 18px;
         font-weight: 600;
-        height: 56px;
-        line-height: 76px;
+        height: 76px;
         border-bottom: 1px dashed #5bc0de;
         transition: all 0.2s linear;
         overflow: hidden;
@@ -587,6 +594,12 @@
         transform: translateX(calc(20% - 25px)) translateY(10%) rotate(-45deg);
         transition: transform .3s;
     }
+    .eq-name-span{
+        position: absolute;
+        top: 37px;
+        overflow: hidden;
+        white-space: nowrap;
+    }
     .eq-type{
         box-sizing: border-box;
         width: 50px;
@@ -598,12 +611,25 @@
         font-weight: 600;
         right: 22px;
         top: -25px;
-        font-size: 12px;
-        color: #fff;
+   /*     font-size: 12px;
+        color: #fff;*/
         background: #2f455c;
         border: 5px solid #376995;
         overflow: hidden;
+        font-size: 19px;
+        color: #359bd6;
+        cursor: pointer;
         /*z-index: 3;*/
+    }
+    .eq-t-span{
+        color: #fff;
+        font-size: 12px;
+        float: right;
+        line-height: 133px;
+        display: inline-block;
+        height: 77px;
+        position: absolute;
+        right: 3px;
     }
     .eq-inf{
         display: flex;

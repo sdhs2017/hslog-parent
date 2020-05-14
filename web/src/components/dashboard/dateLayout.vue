@@ -63,7 +63,8 @@
                         </div>
                     </div>
                     <div class="btn">
-                        <el-checkbox v-model="dateBlock">固定日期</el-checkbox>
+<!--                        <el-checkbox v-model="dateBlock">固定日期</el-checkbox>-->
+                        <span class="timeType" @click="dateBlock = !dateBlock">{{!this.dateBlock ? '精确日期' : '返回'}}</span>
                         <el-button type="primary" size="mini" @click="confimBtn">确定</el-button>
                     </div>
                 </div>
@@ -352,5 +353,9 @@
     .datetimeBox{
         height: 311px;
         border-bottom: 1px solid #4a729e;
+    }
+    .timeType:hover{
+        cursor: pointer;
+        text-decoration: underline;
     }
 </style>

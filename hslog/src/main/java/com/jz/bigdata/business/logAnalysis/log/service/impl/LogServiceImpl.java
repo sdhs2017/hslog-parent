@@ -19,6 +19,7 @@ import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
@@ -67,7 +68,8 @@ public class LogServiceImpl implements IlogService {
 	@Resource(name = "UserService")
 	private IUserService usersService;
 
-
+	@Resource(name = "AssetService")
+	private IAssetService assetService;
 	// es 排序方式
 	private SortOrder sortOrder;
 
@@ -1508,7 +1510,7 @@ public class LogServiceImpl implements IlogService {
 			System.out.println("删除数据条数："+delete_count);
 			indexForceMergeForDelete(indices);
 
-			boolean startresult = collectorService.startKafkaCollector(equipmentService, logCrudDao, configProperty,
+			boolean startresult = collectorService.startKafkaCollector(equipmentService, assetService, logCrudDao, configProperty,
 					alarmService, usersService);
 
 			if (startresult) {

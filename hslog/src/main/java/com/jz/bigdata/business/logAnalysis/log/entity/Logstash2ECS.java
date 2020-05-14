@@ -198,6 +198,24 @@ public class Logstash2ECS {
         private String userid;
         private String deptid;
         private Boolean failure;
+        private String assetname;
+        private String assetid;
+
+        public String getAssetid() {
+            return assetid;
+        }
+
+        public void setAssetid(String assetid) {
+            this.assetid = assetid;
+        }
+
+        public String getAssetname() {
+            return assetname;
+        }
+
+        public void setAssetname(String assetname) {
+            this.assetname = assetname;
+        }
 
         public String getIp() {
             return ip;
@@ -435,6 +453,8 @@ public class Logstash2ECS {
         fields.setEquipmentname(logstashSyslog.getEquipmentname());
         fields.setUserid(logstashSyslog.getUserid());
         fields.setFailure(logstashSyslog.getFailure());
+        fields.setAssetid(logstashSyslog.getAssetid());
+        fields.setAssetname(logstashSyslog.getAssetname());
         this.setFields(fields);
 
         return JSON.toJSON(this).toString();

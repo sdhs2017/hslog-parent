@@ -67,6 +67,7 @@ public class KafkaCollector implements Runnable {
 	 */
 	Map<String, Asset> assetMap;
 	Set<String> assetIpAddressSet;
+	Asset asset;//逻辑资产
 
 	// log4j日志信息过滤条件
 	private Pattern facility_pattern = Pattern.compile("local3:");
@@ -351,6 +352,14 @@ public class KafkaCollector implements Runnable {
 								logstashSyslog.setFailure(false);
 							}
 							ipadress = logstashSyslog.getHost().toString();
+
+							//如果IP在逻辑资产列表中，加上逻辑资产标签
+							asset = assetMap.get(ipadress);
+							if(asset!=null){
+								logstashSyslog.setAssetname(asset.getName());
+								logstashSyslog.setAssetid(asset.getId());
+							}
+							//IP是否在虚拟资产中
 							if (ipadressSet.contains(ipadress)) {
 								equipment = equipmentMap.get(ipadress+logType);
 								if (equipment!=null) {
@@ -748,6 +757,13 @@ public class KafkaCollector implements Runnable {
 							syslog = new Syslog(log);
 							syslog.setHslog_type(logType);
 							ipadress = syslog.getIp();
+							//如果IP在逻辑资产列表中，加上逻辑资产标签
+							asset = assetMap.get(ipadress);
+							if(asset!=null){
+								logstashSyslog.setAssetname(asset.getName());
+								logstashSyslog.setAssetid(asset.getId());
+							}
+							//IP是否在虚拟资产中
 							//判断是否在资产ip地址池里
 							if(ipadressSet.contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别

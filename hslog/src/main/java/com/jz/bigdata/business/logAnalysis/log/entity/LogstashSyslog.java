@@ -27,6 +27,28 @@ public class LogstashSyslog {
     private String userid;//用户id
     private String deptid;//部门id
     private Boolean failure;// logstash范式化是否失败，失败true，成功false
+    private String assetname;//逻辑资产名称
+    private String assetid;//逻辑资产id
+
+    public String getAssetid() {
+        return assetid;
+    }
+
+    public void setAssetid(String assetid) {
+        this.assetid = assetid;
+    }
+
+    public void setSeverity_label(Object severity_label) {
+        this.severity_label = severity_label;
+    }
+
+    public String getAssetname() {
+        return assetname;
+    }
+
+    public void setAssetname(String assetname) {
+        this.assetname = assetname;
+    }
 
     public String getIp() {
         return ip;
@@ -162,8 +184,6 @@ public class LogstashSyslog {
         //只有一个severity_label的注解，但是因为需要两个字段输出，因此进行两次赋值
         this.severity_label = severity_name;
         this.severity_name = severity_name;
-
-
     }
     @JSONField(name ="syslog.priority")
     public Object getPriority() {

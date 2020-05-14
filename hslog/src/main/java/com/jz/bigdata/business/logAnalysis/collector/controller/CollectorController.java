@@ -100,7 +100,7 @@ public class CollectorController {
 		/**
 		 * 符合上述条件后执行开启kafka采集器
 		 */
-		boolean result = collectorService.startKafkaCollector(equipmentService, logCrudDao, configProperty,
+		boolean result = collectorService.startKafkaCollector(equipmentService,assetService, logCrudDao, configProperty,
 				alarmService, usersService);
 		/**
 		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述

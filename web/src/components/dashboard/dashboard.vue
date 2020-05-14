@@ -195,7 +195,7 @@
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat,jumpHtml} from "../../../static/js/common";
-    import allComps from '../charts/index'
+    // import allComps from '../charts/index'
     const echarts = require('echarts');
     import loglevel from '../charts/logLevel_bar'
     //引入font.css
@@ -213,7 +213,7 @@
         name: "dashboard",
         data() {
             return {
-                allComps:allComps,
+                // allComps:allComps,
                 refresh:0,
                 dateArr:[],
                 dashboardId:'',
@@ -280,7 +280,7 @@
             }
         },
         created(){
-            console.log(this.allComps)
+            // console.log(this.allComps)
             //判断是否有参数  有参数说明是修改功能页面
             if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "edit"){
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
@@ -422,13 +422,13 @@
             /*添加系统图例*/
             addSE(){
                 //设置类型为systemChart
-                for(let i in this.allComps){
+                /*for(let i in this.allComps){
                     let obj = {
                         id:i,
                         type:'systemChart'
                     }
                     this.createConstruction(obj)
-                }
+                }*/
             },
             /*保存dashboart*/
             saveDashBoard(){

@@ -1,7 +1,7 @@
 <template>
-    <div class="content-bg">
-        <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
-        <div class="top-title">
+    <div class="content-bg" >
+        <div class="top-title" style="position: relative;">
+            <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
             <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加图表</el-button>
 <!--            <el-button  type="primary" size="mini" plain @click="addSE">添加系统图表</el-button>-->
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
@@ -34,35 +34,36 @@
                            @resized="resizedEvent"
                            @moved="movedEvent">
                     <div class="vue-draggable-handle text-box" style="height: 100%;" v-if="item.chartType == 'text'">
+                        <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                         <div class="text-wapper" v-html="item.text"></div>
                         <div class="text-i">
                             <i class="el-icon-edit" title="修改" @click="editTextBtn(i)"></i>
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
                         </div>
                     </div>
-                    <!--<div style="height: 100%;" v-else-if="item.chartType == 'systemChart'">
+                    <div style="height: 100%;" v-else-if="item.chartType == 'systemChart'">
                         <div class="item-tit vue-draggable-handle">
+                            <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
-                            &lt;!&ndash;                        <el-input class="tit-input" placeholder="请输入内容"></el-input>&ndash;&gt;
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
                             <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
-                        <div class="item-con">
+                        <div class="item-con" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
                             <component :is="allComps[item.eId]" :params="{starttime:dateArr[0],endtime:dateArr[1]}"> </component>
                         </div>
-                    </div>-->
+                    </div>
                     <div style="height: 100%;" v-else>
                         <div class="item-tit vue-draggable-handle">
+                            <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
-                            <!--                        <el-input class="tit-input" placeholder="请输入内容"></el-input>-->
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
                             <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
-                        <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`"></div>
+                        <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}"></div>
                     </div>
                 </grid-item>
             </grid-layout>
@@ -197,7 +198,6 @@
     import {dateFormat,jumpHtml} from "../../../static/js/common";
     // import allComps from '../charts/index'
     const echarts = require('echarts');
-    import loglevel from '../charts/logLevel_bar'
     //引入font.css
     import '../../assets/font.css'
     // 自定义字体大小
@@ -214,6 +214,7 @@
         data() {
             return {
                 // allComps:allComps,
+                htmlTitle:'新建',
                 refresh:0,
                 dateArr:[],
                 dashboardId:'',
@@ -328,7 +329,9 @@
                 this.dateArr = arr;
             })
         },
-
+        beforeDestroy(){
+            bus.$off(this.busName)
+        },
         methods:{
             /*获取图表列表*/
             getChartsList(){
@@ -422,13 +425,13 @@
             /*添加系统图例*/
             addSE(){
                 //设置类型为systemChart
-                /*for(let i in this.allComps){
+                for(let i in this.allComps){
                     let obj = {
                         id:i,
                         type:'systemChart'
                     }
                     this.createConstruction(obj)
-                }*/
+                }
             },
             /*保存dashboart*/
             saveDashBoard(){
@@ -779,6 +782,14 @@
         text-shadow: none;
         color: #455b75;
     }
+    .tit-zz{
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        z-index: 100;
+        cursor: no-drop;
+        text-shadow: none;
+    }
     .date-wapper{
         float: right;
         margin-top: 10px;
@@ -815,6 +826,7 @@
         padding-left: 20px;
         color: #10d9f2;
         font-weight: 600;
+        position: relative;
     }
     .item-tit .tit-input{
         width: 70%;
@@ -834,6 +846,7 @@
         position: relative;
         height: calc(100% - 50px);
         overflow: hidden;
+        /*z-index: 101;*/
         /*width: 613px;
         height: 260px;*/
     }

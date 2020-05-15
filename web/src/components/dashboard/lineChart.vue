@@ -18,7 +18,8 @@
                                 <template slot="title" class="collapseTit">
                                     Y轴 {{yItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeTab(i,$event)"></i>
                                 </template>
-                                <el-form label-position="top" >
+                                <el-form label-position="top" style="position: relative">
+                                    <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
 <!--                                    <el-form-item label="图例说明">-->
 <!--                                        <el-input v-model="yItem.legendName" size="mini"></el-input>-->
 <!--                                    </el-form-item>-->
@@ -77,7 +78,8 @@
                         </el-collapse>
                         <el-collapse>
                             <el-collapse-item title="X轴" class="tablist" v-for="(xItem,i) in chartsConfig.xAxisArr" :key="i">
-                                <el-form label-position="top" >
+                                <el-form label-position="top" style="position: relative">
+                                    <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                     <el-form-item label="聚合类型">
                                         <el-select v-model="xItem.aggregationType" placeholder="请选择" style="width: 100%;" size="mini">
                                             <el-option
@@ -122,14 +124,16 @@
                         <div class="config-item">
                             <el-collapse v-model="configOpened">
                                 <el-collapse-item title="标题" class="tablist" name="1">
-                                    <el-form label-position="left" label-width="50px">
+                                    <el-form label-position="left" label-width="50px" style="position: relative">
+                                        <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                         <el-form-item label="标题">
                                             <el-input v-model="chartsConfig.title.text" size="mini"></el-input>
                                         </el-form-item>
                                     </el-form>
                                 </el-collapse-item>
                                 <el-collapse-item title="X轴" class="tablist" name="5">
-                                    <el-form label-position="left" label-width="80px">
+                                    <el-form label-position="left" label-width="80px" style="position: relative">
+                                        <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                         <el-form-item label="名称颜色">
                                             <el-color-picker v-model="chartsConfig.xNormal.nameTextStyle.color" size="mini"></el-color-picker>
                                         </el-form-item>
@@ -153,7 +157,8 @@
                                     </el-form>
                                 </el-collapse-item>
                                 <el-collapse-item title="Y轴" class="tablist" name="6">
-                                    <el-form label-position="left" label-width="85px">
+                                    <el-form label-position="left" label-width="85px" style="position: relative">
+                                        <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                         <el-form-item label="名称颜色">
                                             <el-color-picker v-model="chartsConfig.yNormal.nameTextStyle.color" size="mini"></el-color-picker>
                                         </el-form-item>
@@ -186,7 +191,8 @@
                                     </el-form>
                                 </el-collapse-item>
                                 <el-collapse-item title="图例" class="tablist" name="2">
-                                    <el-form label-position="left" label-width="80px">
+                                    <el-form label-position="left" label-width="80px" style="position: relative">
+                                        <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                         <el-form-item label="是否显示">
                                             <el-switch v-model="chartsConfig.legend.show"></el-switch>
                                         </el-form-item>
@@ -203,7 +209,8 @@
                                     </el-form>
                                 </el-collapse-item>
                                 <el-collapse-item title="工具栏" class="tablist" name="3">
-                                    <el-form label-position="left" label-width="80px">
+                                    <el-form label-position="left" label-width="80px" style="position: relative">
+                                        <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                         <el-form-item label="是否显示">
                                             <el-switch v-model="chartsConfig.toolbox.show"></el-switch>
                                         </el-form-item>
@@ -219,7 +226,8 @@
                                     </el-form>
                                 </el-collapse-item>
                                 <el-collapse-item title="边距" class="tablist" name="4">
-                                    <el-form label-position="left" label-width="80px">
+                                    <el-form label-position="left" label-width="80px" style="position: relative">
+                                        <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                                         <el-form-item label="左边距">
                                             <el-input v-model="chartsConfig.grid.left" size="mini"></el-input>
                                         </el-form-item>
@@ -1081,6 +1089,13 @@
         cursor: no-drop;
         text-shadow: none;
         color: #455b75;
+    }
+    .from-zz{
+        width: 242px;
+        height:100%;
+        cursor: no-drop;
+        position: absolute;
+        z-index: 100;
     }
     .choose-wapper{
         height: 50px;

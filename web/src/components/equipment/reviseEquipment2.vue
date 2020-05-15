@@ -33,13 +33,13 @@
             reviseEquipment(params){
                 params.id = this.equipmentId;
                  this.$nextTick(()=>{
-                      this.$axios.post(this.$baseUrl+'/equipment/update.do',this.$qs.stringify(params))
+                      this.$axios.post(this.$baseUrl+'/equipment/upsert.do',this.$qs.stringify(params))
                           .then((res)=>{
                               if(res.data.success == 'true'){
-                                  layer.msg("修改成功",{icon:1});
+                                  layer.msg(res.data.message,{icon:1});
                                   this.$router.push({path:'/equipment2'})
                               }else{
-                                  layer.msg("修改失败",{icon:5});
+                                  layer.msg(res.data.message,{icon:5});
                               }
                           })
                           .catch((err)=>{

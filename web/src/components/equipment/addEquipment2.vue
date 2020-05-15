@@ -36,13 +36,13 @@
           //添加资产
           addEquipment(params){
               this.$nextTick(()=>{
-                  this.$axios.post(this.$baseUrl+'/equipment/insert.do',this.$qs.stringify(params))
+                  this.$axios.post(this.$baseUrl+'/equipment/upsert.do',this.$qs.stringify(params))
                       .then((res)=>{
                           if(res.data.success == 'true'){
-                              layer.msg("添加成功",{icon:1});
+                              layer.msg(res.data.message,{icon:1});
                               this.$router.push({path:'/equipment2'})
                           }else{
-                              layer.msg("添加失败",{icon:1});
+                              layer.msg(res.data.message,{icon:1});
                           }
                       })
                       .catch((err)=>{

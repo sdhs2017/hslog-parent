@@ -4,11 +4,11 @@
         <div class="control-wapper">
             <div class="serviceConBox">
                 <div class="beats-status" style="border-right: 1px dashed #40566d;">
-                    <span>beats采集:</span>
+                    <span>Agent采集:</span>
                     <span class="serviceStatus" :style="beatState==='未开启'?{ color:'#d9534f'}:{ color:'#1ab394'}">{{beatState}}</span>
                 </div>
                 <div class="syslog-status">
-                    <span>syslog采集:</span>
+                    <span>Syslog采集:</span>
                     <span class="serviceStatus" :style="syslogState==='未开启'?{ color:'#d9534f'}:{ color:'#1ab394'}">{{syslogState}}</span>
                 </div>
             </div>
@@ -22,8 +22,8 @@
                                 </div>
                                 <div class="play-t ">
                                     <div>
-                                        <p class="btnTitle">开启beats采集服务</p>
-                                        <p class="btnDescribe">开始收集各个beats发送过来的数据，范式化后入库</p>
+                                        <p class="btnTitle">开启Agent采集服务</p>
+                                        <p class="btnDescribe">开始收集各个Agent发送过来的数据，范式化后入库</p>
                                     </div>
                                 </div>
                             </div>
@@ -33,8 +33,8 @@
                                 </div>
                                 <div class="play-t ">
                                     <div>
-                                        <p class="btnTitle">关闭beats采集服务</p>
-                                        <p class="btnDescribe">停止收集各个beats发送过来的数据</p>
+                                        <p class="btnTitle">关闭Agent采集服务</p>
+                                        <p class="btnDescribe">停止收集各个Agent发送过来的数据</p>
                                     </div>
                                 </div>
                             </div>
@@ -49,7 +49,7 @@
                                 </div>
                                 <div class="play-t ">
                                     <div>
-                                        <p class="btnTitle">开启syslog采集服务</p>
+                                        <p class="btnTitle">开启Syslog采集服务</p>
                                         <p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
                                     </div>
                                 </div>
@@ -60,7 +60,7 @@
                                 </div>
                                 <div class="play-t ">
                                     <div>
-                                        <p class="btnTitle">关闭syslog采集服务</p>
+                                        <p class="btnTitle">关闭Syslog采集服务</p>
                                         <p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
                                     </div>
                                 </div>

@@ -61,7 +61,7 @@
                                 <div class="play-t ">
                                     <div>
                                         <p class="btnTitle">关闭Syslog采集服务</p>
-                                        <p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
+                                        <p class="btnDescribe">停止收集各个资产发送过来的数据</p>
                                     </div>
                                 </div>
                             </div>

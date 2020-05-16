@@ -6,7 +6,7 @@
                     <div class="grid-content bg-purple">
                         <span class="mustWrite">*</span>
                         <el-form-item label="资产名称:">
-                            <el-input v-model="form.name" placeholder="资产名称" @blur="equipmentNameBlur" ></el-input>
+                            <el-input v-model="form.name" placeholder="资产名称" ></el-input>
                         </el-form-item>
                     </div>
                 </el-col>
@@ -14,7 +14,7 @@
                     <div class="grid-content bg-purple-light">
                         <span class="mustWrite">*</span>
                         <el-form-item label="资产ip:">
-                            <el-input v-model="form.ip" placeholder="资产ip"  @blur="ipOrLogtypeBlur"></el-input>
+                            <el-input v-model="form.ip" placeholder="资产ip" ></el-input>
                         </el-form-item>
                     </div>
                 </el-col>
@@ -32,7 +32,7 @@
                     <div class="grid-content bg-purple-light">
                         <span class="mustWrite">*</span>
                         <el-form-item label="日志类型:">
-                            <el-select v-model="form.logType" placeholder="请选择" style="width: 100%;" @change="ipOrLogtypeBlur">
+                            <el-select v-model="form.logType" placeholder="请选择" style="width: 100%;">
                                 <el-option
                                     v-for="item in logTypeArr"
                                     :key="item.value"
@@ -300,16 +300,13 @@
                         this.$axios.post(this.$baseUrl+'/equipment/checkNameUnique.do',this.$qs.stringify(params))
                             .then(res=>{
                                 layer.closeAll('loading');
-                                setInterval(()=>{
-                                    let obj = res.data;
-                                    if(obj.success !== 'true'){
-                                        layer.msg(obj.message,{icon:5})
-                                        this.nameState = false;
-                                    }else{
-                                        this.nameState = true;
-                                    }
-                                },500)
-
+                                let obj = res.data;
+                                if(obj.success !== 'true'){
+                                    layer.msg(obj.message,{icon:5})
+                                    this.nameState = false;
+                                }else{
+                                    this.nameState = true;
+                                }
                             })
                             .catch(err=>{
                                 layer.closeAll('loading');
@@ -331,16 +328,13 @@
                         this.$axios.post(this.$baseUrl+'/equipment/checkIpAndLogTypeUnique.do',this.$qs.stringify(params))
                             .then(res=>{
                                 layer.closeAll('loading');
-                                setTimeout(()=>{
-                                    let obj = res.data;
-                                    if(obj.success !== 'true'){
-                                        layer.msg(obj.message,{icon:5})
-                                        this.ipOrTypeState = false;
-                                    }else{
-                                        this.ipOrTypeState = true;
-                                    }
-                                },500)
-
+                                let obj = res.data;
+                                if(obj.success !== 'true'){
+                                    layer.msg(obj.message,{icon:5})
+                                    this.ipOrTypeState = false;
+                                }else{
+                                    this.ipOrTypeState = true;
+                                }
                             })
                             .catch(err=>{
                                 layer.closeAll('loading');
@@ -383,6 +377,7 @@
             },
             /*保存资产数据*/
             saveEquipment(){
+                this.saveState = true;
                 //判断合法性
                 if(this.form.name === ''){
                     layer.msg("资产名称不能为空",{icon:5});
@@ -397,7 +392,6 @@
                 }else if(this.form.type.length == 0){
                     layer.msg("资产类型不能为空",{icon:5});
                 }else{
-                    this.saveState = true;
                     let formData2 = Object.assign({}, this.form);
                     //处理日志级别参数
                     let length = formData2.log_level.length;
@@ -408,33 +402,11 @@
                     formData2.log_level = str;
                     //处理资产类型
                     formData2.type = formData2.type[1];
-                    //先验证名称 /ip+日志类型合法性
-                    if(this.nameState && this.ipOrTypeState){
-                        bus.$emit(this.busName,formData2);
-                        this.saveState = false;
-                    }
+                    bus.$emit(this.busName,formData2)
 
                 }
 
 
-            },
-            watch:{
-                'nameState'(){
-                    //判断是否是点击的提交按钮与数据合法性
-                    if(this.saveState && this.nameState){
-                       this.saveEquipment();
-                    }else{
-                        this.saveState = false;
-                    }
-                },
-                'ipOrTypeState'(){
-                    //判断是否是点击的提交按钮与数据合法性
-                    if(this.saveState && this.ipOrTypeState){
-                        this.saveEquipment();
-                    }else{
-                        this.saveState = false;
-                    }
-                }
             },
             /*清空数据*/
             emptyData(){

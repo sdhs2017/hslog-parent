@@ -273,8 +273,21 @@
         watch: {
             '$route' (to, from) { //监听路由是否变化
                 if (this.$route.params.logLevel) {
+                    let st = ''
+                    let et = ''
+                    if(this.$route.params.dateArr[0].length){
+                        st = this.$route.params.dateArr[0]+ ' 00:00:00'
+                        et = this.$route.params.dateArr[1]+ ' 23:59:59'
+                    }else{
+                        st = dateFormat('yyyy-mm-dd',this.$route.params.dateArr[0])+ ' 00:00:00'
+                        et = dateFormat('yyyy-mm-dd',this.$route.params.dateArr[1])+ ' 23:59:59'
+                    }
                     this.formConditionsArr[2].model.model=[this.$route.params.logLevel];
+                    this.formConditionsArr[0].model.model=[st,et]
                     this.searchConditions['log.level']=this.$route.params.logLevel;
+                    this.searchConditions.starttime = st;
+                    this.searchConditions.endtime = et;
+                    //清空日志类型
                     this.formConditionsArr[1].model.model = ''
                     this.searchConditions['agent.type'] = ''
                 }

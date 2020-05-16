@@ -84,7 +84,7 @@ export default new Router({
                     path: '/equipment',
                     name:'equipment',
                     component: resolve => require(['../components/equipment/equipment.vue'], resolve),
-                    meta: { title: '资产列表' }
+                    meta: { title: '虚拟资产管理' }
                 },
                 {
                     path: '/equipmentScan',
@@ -96,7 +96,7 @@ export default new Router({
                     path: '/addEquipment',
                     name:'addEquipment',
                     component: resolve => require(['../components/equipment/addEquipment.vue'], resolve),
-                    meta: { title: '添加资产' }
+                    meta: { title: '添加虚拟资产' }
                 },
                 {
                     path: '/reviseEquipment',
@@ -132,7 +132,7 @@ export default new Router({
                     path: '/equipment2',
                     name:'equipment2',
                     component: resolve => require(['../components/equipment/equipment2.vue'], resolve),
-                    meta: { title: '资产概览' }
+                    meta: { title: '虚拟资产概览' }
                 },
                 {
                     path: '/allEquipmentMonitor',
@@ -485,7 +485,7 @@ export default new Router({
                     path: '/addEquipment2',
                     name:'addEquipment2',
                     component: resolve => require(['../components/equipment/addEquipment2.vue'], resolve),
-                    meta: { title: '添加资产' }
+                    meta: { title: '添加虚拟资产' }
                 },
                 {
                     path: '/dashboardList',
@@ -503,7 +503,7 @@ export default new Router({
                     path: '/logicAssetsList',
                     name:'logicAssetsList',
                     component: resolve => require(['../components/equipment/logicAssetsList.vue'], resolve),
-                    meta: { title: '逻辑资产' }
+                    meta: { title: '逻辑资产管理' }
                 },
                 {
                     path: '/addLogicAssets',
@@ -511,6 +511,50 @@ export default new Router({
                     component: resolve => require(['../components/equipment/addLogicAssets.vue'], resolve),
                     meta: { title: '添加逻辑资产' }
                 },
+               /* {
+                    path: '/equipmentDashboardy_qMB3IBmkPMjFRE7O-_',
+                    name:'equipmentDashboardy_qMB3IBmkPMjFRE7O-_',
+                    component: resolve => require(['../components/dashboard/dashboard.vue'], resolve),
+                    meta: { title: '编辑' }
+                },*/
+                /*--------------*/
+                /*{
+                    path: '/noAccessLog',
+                    name:'noAccessLog',
+                    component: resolve => require(['../components/test/noAccessLog.vue'], resolve),
+                    meta: { title: '未接入日志' }
+                },
+                {
+                    path: '/createREG',
+                    name:'createREG',
+                    component: resolve => require(['../components/test/createREG.vue'], resolve),
+                    meta: { title: '日志' }
+                },
+                {
+                    path: '/fullSearch',
+                    name:'fullSearch',
+                    component: resolve => require(['../components/test/fullSearch.vue'], resolve),
+                    meta: { title: '日志' }
+                },
+                {
+                    path: '/flow_n',
+                    name:'flow_n',
+                    component: resolve => require(['../components/test/flow_n.vue'], resolve),
+                    meta: { title: '流量日志' }
+                },
+                {
+                    path: '/el',
+                    name:'el',
+                    component: resolve => require(['../components/test/el.vue'], resolve),
+                    meta: { title: '事件列表' }
+                },
+                {
+                    path: '/device_graph',
+                    name:'device_graph',
+                    component: resolve => require(['../components/test/device_graph.vue'], resolve),
+                    meta: { title: '资产拓扑' }
+                },*/
+                /*--------------*/
                 /*{
                     // 富文本编辑器组件
                     path: '/editVersion',
@@ -588,6 +632,11 @@ export default new Router({
         {
             path: '/flowLogin',
             component: resolve => require(['../components/flowManage/flowLogin.vue'], resolve)
+        },
+        {
+            path: '/bgCanvas',
+            name:'bgCanvas',
+            component: resolve => require(['../components/login/bgCanvas.vue'], resolve),
         },
         /*{
             path: '/resigter',

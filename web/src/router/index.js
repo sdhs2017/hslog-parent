@@ -633,11 +633,11 @@ export default new Router({
             path: '/flowLogin',
             component: resolve => require(['../components/flowManage/flowLogin.vue'], resolve)
         },
-        {
+        /*{
             path: '/bgCanvas',
             name:'bgCanvas',
             component: resolve => require(['../components/login/bgCanvas.vue'], resolve),
-        },
+        },*/
         /*{
             path: '/resigter',
             component: resolve => require(['../components/resigter/resigter.vue'], resolve)

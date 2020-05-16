@@ -42,7 +42,7 @@
                               layer.msg(res.data.message,{icon:1});
                               this.$router.push({path:'/equipment'})
                           }else{
-                              layer.msg(res.data.message,{icon:1});
+                              layer.msg(res.data.message,{icon:5});
                           }
                       })
                       .catch((err)=>{

@@ -6,7 +6,7 @@
                     <div class="grid-content bg-purple">
                         <span class="mustWrite">*</span>
                         <el-form-item label="资产名称:">
-                            <el-input v-model="form.name" placeholder="资产名称"></el-input>
+                            <el-input v-model="form.name" placeholder="资产名称" @blur="equipmentNameBlur" ></el-input>
                         </el-form-item>
                     </div>
                 </el-col>
@@ -14,7 +14,7 @@
                     <div class="grid-content bg-purple-light">
                         <span class="mustWrite">*</span>
                         <el-form-item label="资产ip:">
-                            <el-input v-model="form.ip" placeholder="资产ip"></el-input>
+                            <el-input v-model="form.ip" placeholder="资产ip"  @blur="ipOrLogtypeBlur"></el-input>
                         </el-form-item>
                     </div>
                 </el-col>
@@ -32,7 +32,7 @@
                     <div class="grid-content bg-purple-light">
                         <span class="mustWrite">*</span>
                         <el-form-item label="日志类型:">
-                            <el-select v-model="form.logType" placeholder="请选择" style="width: 100%;">
+                            <el-select v-model="form.logType" placeholder="请选择" style="width: 100%;" @change="ipOrLogtypeBlur">
                                 <el-option
                                     v-for="item in logTypeArr"
                                     :key="item.value"
@@ -283,6 +283,58 @@
           }
         },
         methods:{
+            /*资产名称失去焦点事件*/
+            equipmentNameBlur(){
+                //值不为空验证合法性
+                if(this.form.name != ''){
+                    let params = {};
+                    if (this.formData){
+                        params.id = this.formData.id
+                    }
+                    params.name = this.form.name;
+                    this.$nextTick(()=>{
+                        layer.load(1);
+                        this.$axios.post(this.$baseUrl+'/equipment/checkNameUnique.do',this.$qs.stringify(params))
+                            .then(res=>{
+                                layer.closeAll('loading');
+                                let obj = res.data;
+                                if(obj.success !== 'true'){
+                                    layer.msg(obj.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                layer.closeAll('loading');
+
+                            })
+                    })
+                }
+            },
+            /*资产ip与日志类型失去焦点事件*/
+            ipOrLogtypeBlur(){
+                if(this.form.ip != '' && this.form.logType !=''){
+                    let params = {}
+                    if (this.formData){
+                        params.id = this.formData.id
+                    }
+                    params.ip = this.form.ip;
+                    params.logType = this.form.logType;
+                    this.$nextTick(()=>{
+                        layer.load(1);
+                        this.$axios.post(this.$baseUrl+'/equipment/checkIpAndLogTypeUnique.do',this.$qs.stringify(params))
+                            .then(res=>{
+                                layer.closeAll('loading');
+                                let obj = res.data;
+                                if(obj.success !== 'true'){
+                                    layer.msg(obj.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                layer.closeAll('loading');
+
+                            })
+                    })
+                }
+            },
             /*获得日志类型*/
             getLogType(){
                 this.$nextTick(()=>{

@@ -3,11 +3,12 @@
         <div class="top-title" style="position: relative;">
             <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
             <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加图表</el-button>
-<!--            <el-button  type="primary" size="mini" plain @click="addSE">添加系统图表</el-button>-->
+<!--            <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>-->
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
             <div class="date-wapper"><date-layout  :busName="busName" :refresh="refresh"></date-layout></div>
+            <div class="tit-eq" v-if="this.equipmentId !== ''">{{this.dashboardTit}}</div>
         </div>
         <!--dashboard-->
         <div>
@@ -51,7 +52,7 @@
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="item-con" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
-                            <component :is="allComps[item.eId]" :params="{starttime:dateArr[0],endtime:dateArr[1]}"> </component>
+                            <component :is="allComps[item.eId]" :params="{starttime:dateArr[0],endtime:dateArr[1]}" :baseConProp="{title:''}"> </component>
                         </div>
                     </div>
                     <div style="height: 100%;" v-else>
@@ -68,7 +69,7 @@
                 </grid-item>
             </grid-layout>
         </div>
-        <!-- 图表列表  -->
+        <!-- 自定义图表列表  -->
         <el-drawer
             title="我是标题"
             :visible.sync="drawerState"
@@ -91,6 +92,38 @@
 
                <el-button class="drawer-tools" type="primary" :disabled="this.checkedList.length === 0" @click="addE">确定</el-button>
            </div>
+        </el-drawer>
+        <!--系统预设图表列表-->
+        <el-drawer
+            title="我是标题"
+            :visible.sync="sysDrawerState"
+            size="350"
+            :with-header="false">
+            <div class="drawer-wapper">
+                <div class="drawer-tit">
+                    <i class="close-drawer el-icon-close" @click="sysDrawerState = false"></i>
+                    <span>系统预设图表</span>
+                    <i class="refresh-list el-icon-refresh-right" ></i>
+                </div>
+                <el-checkbox-group v-model="sysCheckedList" class="drawer-list">
+                    <ul>
+                        <!--<li v-for="(item,i) in chartsList" :key="i">
+                            <el-checkbox :label="item.id" style="width: 260px;overflow:hidden;">{{item.title}}</el-checkbox>
+                            <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : ''}}</span>
+                        </li>-->
+                        <li>
+                            <el-checkbox label="logLevel_bar" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="logLevel_pie" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                    </ul>
+                </el-checkbox-group>
+
+                <el-button class="drawer-tools" type="primary" :disabled="this.sysCheckedList.length === 0" @click="addSE">确定</el-button>
+            </div>
         </el-drawer>
         <!-- 全屏 -->
         <div class="zz-e" v-if="fullscreenState">
@@ -214,6 +247,10 @@
         data() {
             return {
                 // allComps:allComps,
+                //资产id
+                equipmentId:'',
+                //标题
+                dashboardTit:'',
                 htmlTitle:'新建',
                 refresh:0,
                 dateArr:[],
@@ -261,10 +298,14 @@
                 echartsArr:{},
                 //当前图表计数
                 chartsCount:0,
+                //系统预设右边栏
+                sysDrawerState:false,
                 //右边栏状态
                 drawerState:false,
-                //选中的图例集合
+                //选中的自定义图例集合
                 checkedList:[],
+                //选中的系统预设图例集合
+                sysCheckedList:[],
                 //图例列表
                 chartsList:[
                    /* {id:0,title:'日志级别数量统计',type:'bar'},
@@ -316,6 +357,25 @@
                 sessionStorage.setItem('/seeDashboard'+this.$route.query.id,JSON.stringify(obj))
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
+                }
+            }else if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "EQedit"){
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'equipmentDashboard'+ this.$route.query.eid;
+                //修改data参数
+                this.htmlTitle = `编辑 ${this.$route.query.name}`;
+                this.busName = 'equipmentDashboard'+this.$route.query.eid;
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'equipmentDashboard'+this.$route.query.eid,
+                    component:'dashboard/dashboard.vue',
+                    title:'编辑'
+                }
+                sessionStorage.setItem('/equipmentDashboard'+this.$route.query.eid,JSON.stringify(obj))
+                if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
+                    this.dashboardId = this.$route.query.id;
+                    this.equipmentId = this.$route.query.eid;
+                    this.dashboardTit = this.$route.query.name;
                 }
             }
 
@@ -424,14 +484,24 @@
             },
             /*添加系统图例*/
             addSE(){
-                //设置类型为systemChart
+                for (let i=0;i<this.sysCheckedList.length;i++){
+                    let obj = {
+                        id:this.sysCheckedList[i],
+                        type:'systemChart'
+                    }
+                    this.createConstruction(obj)
+                }
+                /*//设置类型为systemChart
                 for(let i in this.allComps){
                     let obj = {
                         id:i,
                         type:'systemChart'
                     }
                     this.createConstruction(obj)
-                }
+                }*/
+                //清空选中
+                this.sysCheckedList = [];
+                this.sysDrawerState = false;
             },
             /*保存dashboart*/
             saveDashBoard(){
@@ -594,7 +664,14 @@
                 let obj = resObj.obj;
                 let param = resObj.param;
                 param.startTime = this.dateArr[0];
-                param.endTime = this.dateArr[1]
+                param.endTime = this.dateArr[1];
+                //判断是否是单个资产的统计
+                if (this.equipmentId !== ''){
+                    let eqObj = {
+                        'fields.equipmentid':this.equipmentId
+                    }
+                    param.queryParam = JSON.stringify(eqObj);
+                }
                 return new Promise((resolve,reject)=>{
                     this.$nextTick(()=>{
                         layer.load(1);
@@ -725,7 +802,7 @@
                 for(let i in this.layout){
                     this.chartsCount += 1;
                     //判断是否是文字块  不是则是图表类型 需要获取图表结构
-                    if(this.layout[i].chartType !== 'text'){
+                    if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
                         this.getEchartsConstruction(this.layout[i])
                             .then((res)=>{
                                 //获取图例数据
@@ -735,6 +812,8 @@
                                 //加载图例
                                 return this.creatEcharts(res)
                             })
+                    }else if(this.layout[i].chartType == 'systemChart'){
+
                     }
 
                 }
@@ -789,6 +868,13 @@
         z-index: 100;
         cursor: no-drop;
         text-shadow: none;
+    }
+    .tit-eq{
+        position: absolute;
+        text-shadow: none;
+        top: 0;
+        left: 41%;
+        text-align: center;
     }
     .date-wapper{
         float: right;
@@ -926,7 +1012,7 @@
         height: 100vh;
         top: 0;
         left: 0;
-        z-index: 99;
+        z-index: 101;
         background:rgba(0,0,0,0.7);
         display: flex;
         justify-content: center;

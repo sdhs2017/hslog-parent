@@ -28,7 +28,7 @@
                         <span class="eq-name-span">{{i.name}}</span>
                         <span class="eq-t-span">{{i.type}}</span>
                     </div>
-                    <div class="eq-type"><i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i></div>
+                    <div class="eq-type"><i class="el-icon-data-line" title="查看资产指标统计" @click="equipmentDashboard(i)"></i></div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
                         <span class="eq-ip">{{i.ip}}</span>
@@ -385,7 +385,10 @@
                     //跳转页面
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }
-
+            },
+            /*资产仪表盘*/
+            equipmentDashboard(rowData,index){
+                jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'修改')
             },
             /*查看资产事件*/
             equipmentEvents(rowData,index){

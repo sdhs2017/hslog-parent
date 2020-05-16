@@ -42,7 +42,7 @@
                               layer.msg("添加成功",{icon:1});
                               this.$router.push({path:'/logicAssetsList'})
                           }else{
-                              layer.msg("添加失败",{icon:1});
+                              layer.msg("添加失败",{icon:5});
                           }
                       })
                       .catch((err)=>{

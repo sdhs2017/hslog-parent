@@ -219,6 +219,9 @@
         },
         data(){
             return{
+                nameState:false,//name合法性
+                ipOrTypeState:false,//ip与日志类型合法性
+                saveState:false,
                 form:{
                     name:'',//资产名称
                     ip:'',//资产Ip
@@ -297,14 +300,19 @@
                         this.$axios.post(this.$baseUrl+'/equipment/checkNameUnique.do',this.$qs.stringify(params))
                             .then(res=>{
                                 layer.closeAll('loading');
-                                let obj = res.data;
-                                if(obj.success !== 'true'){
-                                    layer.msg(obj.message,{icon:5})
-                                }
+                                setInterval(()=>{
+                                    let obj = res.data;
+                                    if(obj.success !== 'true'){
+                                        layer.msg(obj.message,{icon:5})
+                                        this.nameState = false;
+                                    }else{
+                                        this.nameState = true;
+                                    }
+                                },500)
+
                             })
                             .catch(err=>{
                                 layer.closeAll('loading');
-
                             })
                     })
                 }
@@ -323,10 +331,16 @@
                         this.$axios.post(this.$baseUrl+'/equipment/checkIpAndLogTypeUnique.do',this.$qs.stringify(params))
                             .then(res=>{
                                 layer.closeAll('loading');
-                                let obj = res.data;
-                                if(obj.success !== 'true'){
-                                    layer.msg(obj.message,{icon:5})
-                                }
+                                setTimeout(()=>{
+                                    let obj = res.data;
+                                    if(obj.success !== 'true'){
+                                        layer.msg(obj.message,{icon:5})
+                                        this.ipOrTypeState = false;
+                                    }else{
+                                        this.ipOrTypeState = true;
+                                    }
+                                },500)
+
                             })
                             .catch(err=>{
                                 layer.closeAll('loading');
@@ -383,6 +397,7 @@
                 }else if(this.form.type.length == 0){
                     layer.msg("资产类型不能为空",{icon:5});
                 }else{
+                    this.saveState = true;
                     let formData2 = Object.assign({}, this.form);
                     //处理日志级别参数
                     let length = formData2.log_level.length;
@@ -391,13 +406,35 @@
                         str += formData2.log_level[i]+',';
                     }
                     formData2.log_level = str;
-                    console.log(formData2.log_level)
                     //处理资产类型
-                    formData2.type = formData2.type[1]
-                    bus.$emit(this.busName,formData2)
+                    formData2.type = formData2.type[1];
+                    //先验证名称 /ip+日志类型合法性
+                    if(this.nameState && this.ipOrTypeState){
+                        bus.$emit(this.busName,formData2);
+                        this.saveState = false;
+                    }
+
                 }
 
 
+            },
+            watch:{
+                'nameState'(){
+                    //判断是否是点击的提交按钮与数据合法性
+                    if(this.saveState && this.nameState){
+                       this.saveEquipment();
+                    }else{
+                        this.saveState = false;
+                    }
+                },
+                'ipOrTypeState'(){
+                    //判断是否是点击的提交按钮与数据合法性
+                    if(this.saveState && this.ipOrTypeState){
+                        this.saveEquipment();
+                    }else{
+                        this.saveState = false;
+                    }
+                }
             },
             /*清空数据*/
             emptyData(){

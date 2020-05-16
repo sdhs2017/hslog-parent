@@ -283,7 +283,7 @@
         },
         methods:{
             clickss(params){
-                this.$router.push({name:'accurateSearch2',params:{logLevel: params.name}})
+                this.$router.push({name:'accurateSearch2',params:{logLevel: params.name,dateArr:this.dateVal1}})
             },
             //跳转页面 path:'/equipment',query: {name: 1}
             goToSearchLogs(){

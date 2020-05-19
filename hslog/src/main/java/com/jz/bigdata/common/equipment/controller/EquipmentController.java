@@ -41,25 +41,60 @@ public class EquipmentController {
 	@Autowired protected ILogCrudDao logCrudDao;
 
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-	
+
+	/**
+	 * @param request
+	 * @param equipment
+	 * @param session
+	 * @return 添加/修改资产
+	 */
+	@ResponseBody
+	@RequestMapping(value="/upsert.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="添加/修改资产")
+	public String upsert(HttpServletRequest request, Equipment equipment,HttpSession session) {
+		return this.equipmentService.upsert(equipment,session);
+	}
+	//弃用，使用upsert
 	@ResponseBody
 //	@RequestMapping("/insert")
 	@RequestMapping(value="/insert.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="添加或修改资产")
 	public String insert(HttpServletRequest request, Equipment equipment,HttpSession session) {
-	
-		
-		// 结果一般命名为result
-		int	result = this.equipmentService.insert(equipment,session);
-		if(result==0){
-			//return Constant.equipmentMaxInsertMessage();
-			return Constant.failureMessage(2,"资产达到上限，无法添加！");
-		}else if(result==1){
-			//return Constant.equipmentNameIpInsertMessage();
-			return Constant.failureMessage(2,"资产名,ip重复,无法添加！");
-		}else{
-			return Constant.successMessage();
+		/*
+		int resultCheck = this.equipmentService.checkUnique(equipment);
+		switch(resultCheck){
+			case 0:
+				return Constant.successMessage();
+			case 1:
+				return Constant.failureMessage("资产名称重复，请重新输入！");
+			case 2:
+				return Constant.failureMessage("ip+日志类型重复，请重新输入！");
 		}
+		*/
+		try{
+			// 结果一般命名为result
+			int	result = this.equipmentService.insert(equipment,session);
+			if(result==0){
+				//return Constant.equipmentMaxInsertMessage();
+				return Constant.failureMessage(2,"资产达到上限，无法添加！");
+			}else if(result==1){
+				//return Constant.equipmentNameIpInsertMessage();
+				return Constant.failureMessage(2,"资产名,ip重复,无法添加！");
+			}else{
+				return Constant.successMessage();
+			}
+		}catch(Exception e){
+			//根据异常信息判定是否存在唯一索引重复
+			if(e.getMessage().indexOf("nameUnique")>=0){
+				return Constant.failureMessage("资产名称重复，请重新输入！");
+			}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
+				return Constant.failureMessage("资产“ip+日志类型”重复，请重新输入！");
+			}else{
+				return Constant.failureMessage("资产添加失败！");
+			}
+		}
+
+
 //		} else {// 更新操作
 //			result = this.equipmentService.updateById(equipment,session);
 //		}
@@ -161,6 +196,7 @@ public class EquipmentController {
 	 * @param equipment
 	 * @param session
 	 * @return 修改资产
+	 * //弃用，使用upsert
 	 */
 	@ResponseBody
 //	@RequestMapping("/insert")
@@ -205,8 +241,40 @@ public class EquipmentController {
 			return map;
 		}
 	}
-	
-	
+	@ResponseBody
+	@RequestMapping(value="/checkNameUnique.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="验证资产名称是否重复")
+	public String checkNameUnique(HttpServletRequest request, Equipment equipment) {
+
+		try {
+			if(this.equipmentService.checkNameUnique(equipment)){
+				return Constant.failureMessage("资产名称重复，请重新输入！");
+			}else{
+				return Constant.successMessage();
+			}
+		} catch (Exception e) {
+			logger.error("资产名称重复性查询异常！");
+			e.printStackTrace();
+			return Constant.failureMessage("资产重复，请重新输入！");
+		}
+	}
+	@ResponseBody
+	@RequestMapping(value="/checkIpAndLogTypeUnique.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="验证资产ip+日志类型是否重复")
+	public String checkIpAndLogTypeUnique(HttpServletRequest request, Equipment equipment) {
+
+		try {
+			if(this.equipmentService.checkIpAndLogTypeUnique(equipment)){
+				return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
+			}else{
+				return Constant.successMessage();
+			}
+		} catch (Exception e) {
+			logger.error("资产名称重复性查询异常！");
+			e.printStackTrace();
+			return Constant.failureMessage("资产重复，请重新输入！");
+		}
+	}
 	/**
 	 * 获取id
 	 * @param request

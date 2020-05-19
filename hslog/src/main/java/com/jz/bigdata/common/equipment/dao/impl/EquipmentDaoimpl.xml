@@ -418,8 +418,35 @@
 
 	</select>
 
+	<!-- 查看资产名称是否重复，返回count>1为重复-->
+	<select id="checkNameUnique" parameterType="com.jz.bigdata.common.equipment.entity.Equipment" >
 
+		select count(*) as count
+		from equipment
+		where 1=1
+		<if test="id != null">
+			and id != #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="name != null">
+			and name = #{name,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<!-- 查看ip+logtype是否重复，返回count>1为重复-->
+	<select id="checkIpAndLogTypeUnique" parameterType="com.jz.bigdata.common.equipment.entity.Equipment" >
 
+		select count(*) as count
+		from equipment
+		where 1=1
+		<if test="id != null">
+			and id != #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="ip != null">
+			and ip = #{ip,jdbcType=VARCHAR}
+		</if>
+		<if test="logType != null">
+			and logType = #{logType,jdbcType=VARCHAR}
+		</if>
+	</select>
 	<!-- 查询总数量 -->
 	<select id="count_Number">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->

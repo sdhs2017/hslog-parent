@@ -17,7 +17,7 @@
 
 	<!-- 查询所有数据 -->
 	<select id="selectAllSystem"  resultMap="BaseResultMap"  >
-		select id,sys_name,icon from HS_System
+		select id,sys_name,icon from HS_System order by `order`
 	</select>
 	<!-- 查询单挑记录 -->
 	<select id="getEntity"  resultMap="BaseResultMap"  >

@@ -78,7 +78,7 @@ public class EcsCommonController {
             long count = 0;
             Map<String, String> mappram = new HashMap<>();
             // 业务只查询范式化成功的日志
-            mappram.put("fields.failure","false");
+            //mappram.put("fields.failure","false");
             mappram.put("log.level", "error");
             // 判断资产查询条件是否为空，不为空则是全局error日志数查询
             if (equipmentid!=null&&!equipmentid.equals("")) {
@@ -104,7 +104,7 @@ public class EcsCommonController {
                 mappram.put("fields.equipmentid", equipmentid);
             }
             // 业务只查询范式化成功的日志
-            mappram.put("fields.failure","false");
+            //mappram.put("fields.failure","false");
             count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
             map.put("indices", count);
         } catch (Exception e) {
@@ -144,7 +144,7 @@ public class EcsCommonController {
             map.put("fields.equipmentid", equipmentid);
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
 
         List<Map<String, Object>> list = new ArrayList<>();
         int size = 10;
@@ -180,7 +180,7 @@ public class EcsCommonController {
             map = gson.fromJson(hsData,Map.class);
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String, List<Map<String, Object>>>  result = new HashMap<>();
         int size = 10;
@@ -291,7 +291,7 @@ public class EcsCommonController {
             map.remove("endtime");
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
         // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
         map.put("exists", "event.action");
 
@@ -363,7 +363,7 @@ public class EcsCommonController {
             map.remove("endtime");
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
 
         List<Map<String, Object>> list = null;
         try {

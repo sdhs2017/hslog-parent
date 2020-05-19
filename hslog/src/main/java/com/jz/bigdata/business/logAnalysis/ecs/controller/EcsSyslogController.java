@@ -67,7 +67,7 @@ public class EcsSyslogController {
             mappram.put("exists", "event.action");
             mappram.put("log.level", "error");
             // 业务只查询范式化成功的日志
-            mappram.put("fields.failure","false");
+            //mappram.put("fields.failure","false");
             if (equipmentid!=null&&!equipmentid.equals("")) {
                 mappram.put("fields.equipmentid", equipmentid);
             }
@@ -89,7 +89,7 @@ public class EcsSyslogController {
             // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
             mappram.put("exists", "event.action");
             // 业务只查询范式化成功的日志
-            mappram.put("fields.failure","false");
+            //mappram.put("fields.failure","false");
             if (equipmentid!=null&&!equipmentid.equals("")) {
                 mappram.put("fields.equipmentid", equipmentid);
             }
@@ -123,7 +123,7 @@ public class EcsSyslogController {
             List<Map<String, Object>> event_list = null;
             Map<String,String> map = new HashMap<>();
             // 业务只查询范式化成功的日志
-            map.put("fields.failure","false");
+            //map.put("fields.failure","false");
             // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
             map.put("exists", "event.action");
             map.put("fields.equipmentid",equipmentid);
@@ -160,7 +160,7 @@ public class EcsSyslogController {
             map.put("fields.equipmentid", equipmentid);
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
         // 聚合返回的数据条数，在目前的产品中日志级别总共有8个，设置为10个保证8个正常显示
         int size = 10;
         List<Map<String, Object>> list = null;

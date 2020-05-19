@@ -18,7 +18,9 @@ import javax.servlet.http.HttpSession;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFilebeat;
@@ -71,6 +73,9 @@ public class LogController extends BaseController{
 
 	@Resource(name = "EquipmentService")
 	private IEquipmentService equipmentService;
+
+	@Resource(name = "AssetService")
+	private IAssetService assetService;
 
 	@Resource(name ="configProperty")
 	private ConfigProperty configProperty;
@@ -275,7 +280,17 @@ public class LogController extends BaseController{
 				map.put("msg", "开启index生命周期管理失败！");
 				return JSONArray.fromObject(map).toString();
 			}
-
+			/**
+			 *初始化工作五：更新资产缓存信息
+			 */
+			try{
+				AssetCache.INSTANCE.init(equipmentService,assetService);
+			}catch (Exception e){
+				e.printStackTrace();
+				map.put("state", false);
+				map.put("msg", "资产信息获取失败！");
+				return JSONArray.fromObject(map).toString();
+			}
 			map.put("state", true);
 			map.put("msg", "初始化成功！");
 			return JSONArray.fromObject(map).toString();
@@ -402,7 +417,17 @@ public class LogController extends BaseController{
 				map.put("msg", "开启index生命周期管理失败！");
 				return JSONArray.fromObject(map).toString();
 			}
-
+			/**
+			 *初始化工作五：更新资产缓存信息
+			 */
+			try{
+				AssetCache.INSTANCE.init(equipmentService,assetService);
+			}catch (Exception e){
+				e.printStackTrace();
+				map.put("state", false);
+				map.put("msg", "资产信息获取失败！");
+				return JSONArray.fromObject(map).toString();
+			}
 			map.put("state", true);
 			map.put("msg", "初始化成功！");
 			logger.info("初始化工作完成！！！");

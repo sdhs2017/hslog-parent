@@ -2,6 +2,7 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.asset.entity.Asset;
@@ -76,14 +77,14 @@ public class KafakaOfBeatsCollector implements Runnable {
     /**
      * 资产列表（虚拟资产）
      */
-    Map<String, Equipment> equipmentMap;
-    Set<String> ipadressSet;
-    Map<String, String> equipmentLogLevel;
+    //Map<String, Equipment> equipmentMap;
+    //Set<String> ipadressSet;
+    //Map<String, String> equipmentLogLevel;
     /**
      * 逻辑资产
      */
-    Map<String, Asset> assetMap;
-    Set<String> assetIpAddressSet;
+    //Map<String, Asset> assetMap;
+    //Set<String> assetIpAddressSet;
     /**
      *
      * @param equipmentService
@@ -135,14 +136,14 @@ public class KafakaOfBeatsCollector implements Runnable {
         this.logCurdDao = logCurdDao;
         this.configProperty = configProperty;
         //初始化：获取设备列表、map
-        equipmentMap = equipmentService.selectAllEquipment();
+        //equipmentMap = equipmentService.selectAllEquipment();
 
-        ipadressSet = equipmentService.selectAllIPAdress();
+        //ipadressSet = equipmentService.selectAllIPAdress();
 
-        equipmentLogLevel = equipmentService.selectLog_level();
+        //equipmentLogLevel = equipmentService.selectLog_level();
         //初始化逻辑资产
-        assetMap = assetService.selectAllAsset();
-        assetIpAddressSet = assetService.selectAllIPAdress();
+        //assetMap = assetService.selectAllAsset();
+        //assetIpAddressSet = assetService.selectAllIPAdress();
 
     }
 
@@ -204,15 +205,15 @@ public class KafakaOfBeatsCollector implements Runnable {
                         //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
                         //如果IP在逻辑资产列表中，加上逻辑资产标签
-                        asset = assetMap.get(ipadress);
+                        asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
                         if(asset!=null){
                             jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
                             jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
                         }
                         //判断是否在资产ip地址池里
-                        if (ipadressSet.contains(ipadress)) {
+                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
                             //判断是否在已识别资产里————日志类型可识别
-                            equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_WINLOG);
+                            equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_WINLOG);
                             if (null != equipment) {
                                 // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
                                 //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
@@ -302,15 +303,15 @@ public class KafakaOfBeatsCollector implements Runnable {
                         //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
                         //如果IP在逻辑资产列表中，加上逻辑资产标签
-                        asset = assetMap.get(ipadress);
+                        asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
                         if(asset!=null){
                             jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
                             jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
                         }
                         //判断是否在资产ip地址池里
-                        if (ipadressSet.contains(ipadress)) {
+                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
                             //判断是否在已识别资产里————日志类型可识别
-                            equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_PACKET);
+                            equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_PACKET);
                             if (null != equipment) {
                                 // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
                                 //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
@@ -363,15 +364,15 @@ public class KafakaOfBeatsCollector implements Runnable {
                         //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
                         //如果IP在逻辑资产列表中，加上逻辑资产标签
-                        asset = assetMap.get(ipadress);
+                        asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
                         if(asset!=null){
                             jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
                             jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
                         }
                         //判断是否在资产ip地址池里
-                        if (ipadressSet.contains(ipadress)) {
+                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
                             //判断是否在已识别资产里————日志类型可识别
-                            equipment = equipmentMap.get(ipadress + LogType.LOGTYPE_PACKET);
+                            equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_METRIC);
                             if (null != equipment) {
                                 // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
                                 //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}

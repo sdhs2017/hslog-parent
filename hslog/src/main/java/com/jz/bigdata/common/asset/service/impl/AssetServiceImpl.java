@@ -264,6 +264,7 @@ public class AssetServiceImpl implements IAssetService {
 		Asset e;
 		//String logType = "syslog";
 		//key ip 逻辑资产 ip是唯一标识
+		//TODO
 		for (int i = 0; i < list.size(); i++) {
 			map.put(list.get(i).getIp() , list.get(i));
 		}

@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import com.alibaba.fastjson.JSON;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.asset.service.IAssetService;
@@ -65,8 +66,8 @@ public class KafkaCollector implements Runnable {
 	/**
 	 * 逻辑资产
 	 */
-	Map<String, Asset> assetMap;
-	Set<String> assetIpAddressSet;
+	//Map<String, Asset> assetMap;
+	//Set<String> assetIpAddressSet;
 	Asset asset;//逻辑资产
 
 	// log4j日志信息过滤条件
@@ -129,9 +130,9 @@ public class KafkaCollector implements Runnable {
 	/**
 	 * 资产列表
 	 */
-	Map<String, Equipment> equipmentMap;
-	Set<String> ipadressSet;
-	Map<String, String> equipmentLogLevel;
+	//Map<String, Equipment> equipmentMap;
+	//Set<String> ipadressSet;
+	//Map<String, String> equipmentLogLevel;
 	/**
 	 * 告警事件
 	 */
@@ -192,17 +193,17 @@ public class KafkaCollector implements Runnable {
 //		setStarted(true);
 		
 		//初始化：获取设备列表、map
-		equipmentMap = equipmentService.selectAllEquipment();
+		//equipmentMap = equipmentService.selectAllEquipment();
 		
-		ipadressSet = equipmentService.selectAllIPAdress();
+		//ipadressSet = equipmentService.selectAllIPAdress();
 		
-		equipmentLogLevel = equipmentService.selectLog_level();
+		//equipmentLogLevel = equipmentService.selectLog_level();
 		
 		eventType = alarmService.selectByEmailState();
 
 		//初始化逻辑资产
-		assetMap = assetService.selectAllAsset();
-		assetIpAddressSet = assetService.selectAllIPAdress();
+		//assetMap = assetService.selectAllAsset();
+		//assetIpAddressSet = assetService.selectAllIPAdress();
 		
 		Gson gson = new Gson();
     	
@@ -354,14 +355,14 @@ public class KafkaCollector implements Runnable {
 							ipadress = logstashSyslog.getHost().toString();
 
 							//如果IP在逻辑资产列表中，加上逻辑资产标签
-							asset = assetMap.get(ipadress);
+							asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
 							if(asset!=null){
 								logstashSyslog.setAssetname(asset.getName());
 								logstashSyslog.setAssetid(asset.getId());
 							}
 							//IP是否在虚拟资产中
-							if (ipadressSet.contains(ipadress)) {
-								equipment = equipmentMap.get(ipadress+logType);
+							if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+								equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress+logType);
 								if (equipment!=null) {
 									//TODO 日志级别的判定
 									logstashSyslog.setUserid(equipment.getUserId());
@@ -410,11 +411,11 @@ public class KafkaCollector implements Runnable {
 										log4j.setHslog_type(logType);
 										ipadress = log4j.getIp();
 										//判断是否在资产ip地址池里
-										if(ipadressSet.contains(ipadress)){
+										if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 											//判断是否在已识别资产里————日志类型可识别
-											equipment=equipmentMap.get(ipadress +logType);
+											equipment=AssetCache.INSTANCE.getEquipmentMap().get(ipadress +logType);
 											if(null != equipment){
-												if (equipmentLogLevel.get(equipment.getId()).indexOf(log4j.getOperation_level().toLowerCase())!=-1){
+												if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(log4j.getOperation_level().toLowerCase())!=-1){
 													log4j.setUserid(equipment.getUserId());
 													log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
 													log4j.setEquipmentname(equipment.getName());
@@ -458,10 +459,10 @@ public class KafkaCollector implements Runnable {
 							log4j = new Log4j(log, cal);
 							log4j.setHslog_type(logType);
 							ipadress = log4j.getIp();
-							if (ipadressSet.contains(ipadress)) {
-								equipment = equipmentMap.get(log4j.getIp()+logType);
+							if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+								equipment = AssetCache.INSTANCE.getEquipmentMap().get(log4j.getIp()+logType);
 								if (equipment!=null) {
-									if (equipmentLogLevel.get(equipment.getId()).indexOf(log4j.getOperation_level().toLowerCase())!=-1){
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(log4j.getOperation_level().toLowerCase())!=-1){
 										log4j.setUserid(equipment.getUserId());
 										log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
 										log4j.setEquipmentname(equipment.getName());
@@ -496,8 +497,8 @@ public class KafkaCollector implements Runnable {
 							packetFilteringFirewal = new PacketFilteringFirewal(log);
 							packetFilteringFirewal.setHslog_type(logType);
 							ipadress = packetFilteringFirewal.getIp();
-							if (ipadressSet.contains(ipadress)) {
-								equipment=equipmentMap.get(packetFilteringFirewal.getIp() +logType);
+							if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+								equipment=AssetCache.INSTANCE.getEquipmentMap().get(packetFilteringFirewal.getIp() +logType);
 								if (equipment!=null) {
 									packetFilteringFirewal.setUserid(equipment.getUserId());
 									packetFilteringFirewal.setDeptid(String.valueOf(equipment.getDepartmentId()));
@@ -533,7 +534,7 @@ public class KafkaCollector implements Runnable {
 							netflow = new Netflow(log, cal, protocolmap);
 							netflow.setHslog_type(logType);
 //						netflow=netflow.SetNetflow(log, cal);
-							equipment = equipmentMap.get(netflow.getIp()+logType);
+							equipment = AssetCache.INSTANCE.getEquipmentMap().get(netflow.getIp()+logType);
 							if (equipment!=null) {
 								netflow.setUserid(equipment.getUserId());
 								netflow.setDeptid(String.valueOf(equipment.getDepartmentId()));
@@ -590,11 +591,11 @@ public class KafkaCollector implements Runnable {
 							winlog.setHslog_type(logType);
 							ipadress = winlog.getIp();
 							//判断是否在资产ip地址池里
-							if(ipadressSet.contains(ipadress)){
+							if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别
-								equipment=equipmentMap.get(winlog.getIp() +logType);
+								equipment=AssetCache.INSTANCE.getEquipmentMap().get(winlog.getIp() +logType);
 								if(equipment != null){
-									if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {
 										winlog.setUserid(equipment.getUserId());
 										winlog.setDeptid(String.valueOf(equipment.getDepartmentId()));
 										winlog.setEquipmentname(equipment.getName());
@@ -631,11 +632,11 @@ public class KafkaCollector implements Runnable {
 							dns.setHslog_type(logType);
 							ipadress = dns.getIp();
 							//判断是否在资产ip地址池里
-							if(ipadressSet.contains(ipadress)){
+							if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别
-								equipment=equipmentMap.get(dns.getIp() +logType);
+								equipment=AssetCache.INSTANCE.getEquipmentMap().get(dns.getIp() +logType);
 								if(equipment != null){
-									if (equipmentLogLevel.get(equipment.getId()).indexOf(dns.getOperation_level().toLowerCase())!=-1) {
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(dns.getOperation_level().toLowerCase())!=-1) {
 										dns.setUserid(equipment.getUserId());
 										dns.setDeptid(String.valueOf(equipment.getDepartmentId()));
 										dns.setEquipmentname(equipment.getName());
@@ -671,11 +672,11 @@ public class KafkaCollector implements Runnable {
 							dhcp.setHslog_type(logType);
 							ipadress = dhcp.getIp();
 							//判断是否在资产ip地址池里
-							if(ipadressSet.contains(ipadress)){
+							if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别
-								equipment=equipmentMap.get(dhcp.getIp() +logType);
+								equipment=AssetCache.INSTANCE.getEquipmentMap().get(dhcp.getIp() +logType);
 								if(equipment != null){
-									if (equipmentLogLevel.get(equipment.getId()).indexOf(dhcp.getOperation_level().toLowerCase())!=-1) {
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(dhcp.getOperation_level().toLowerCase())!=-1) {
 										dhcp.setUserid(equipment.getUserId());
 										dhcp.setDeptid(String.valueOf(equipment.getDepartmentId()));
 										dhcp.setEquipmentname(equipment.getName());
@@ -714,11 +715,11 @@ public class KafkaCollector implements Runnable {
 							app_file.setHslog_type(logType);
 							ipadress = app_file.getIp();
 							//判断是否在资产ip地址池里
-							if(ipadressSet.contains(ipadress)){
+							if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别
-								equipment = equipmentMap.get(app_file.getIp() +logType);
+								equipment = AssetCache.INSTANCE.getEquipmentMap().get(app_file.getIp() +logType);
 								if(null != equipment){
-									if (equipmentLogLevel.get(equipment.getId()).indexOf(app_file.getOperation_level().toLowerCase())!=-1) {
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(app_file.getOperation_level().toLowerCase())!=-1) {
 										app_file.setUserid(equipment.getUserId());
 										app_file.setDeptid(String.valueOf(equipment.getDepartmentId()));
 										app_file.setEquipmentid(equipment.getId());
@@ -758,18 +759,18 @@ public class KafkaCollector implements Runnable {
 							syslog.setHslog_type(logType);
 							ipadress = syslog.getIp();
 							//如果IP在逻辑资产列表中，加上逻辑资产标签
-							asset = assetMap.get(ipadress);
+							asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
 							if(asset!=null){
 								logstashSyslog.setAssetname(asset.getName());
 								logstashSyslog.setAssetid(asset.getId());
 							}
 							//IP是否在虚拟资产中
 							//判断是否在资产ip地址池里
-							if(ipadressSet.contains(ipadress)){
+							if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别
-								equipment = equipmentMap.get(syslog.getIp() +logType);
+								equipment = AssetCache.INSTANCE.getEquipmentMap().get(syslog.getIp() +logType);
 								if(null != equipment){
-									if (equipmentLogLevel.get(equipment.getId()).indexOf(syslog.getOperation_level().toLowerCase())!=-1) {
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(syslog.getOperation_level().toLowerCase())!=-1) {
 										syslog.setUserid(equipment.getUserId());
 										syslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
 										syslog.setEquipmentid(equipment.getId());

@@ -8,6 +8,7 @@ import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.DescribeLog;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.DocWriteResponse;
 import org.springframework.stereotype.Controller;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -94,41 +97,27 @@ public class BIController {
     @DescribeLog(describe = "通过图表参数获取查询结果，并返回")
     public String getDataByChartParams(HttpServletRequest request){
         try{
-            /*
-            //聚合方式
-            String x_agg = request.getParameter("x_agg");
-            String y_agg = request.getParameter("y_agg");
-            //聚合的字段
-            String x_field = request.getParameter("x_field");
-            String y_field = request.getParameter("y_field");
-            //查询数据条数
-            String size = request.getParameter("size");
-            //默认为10条记录
-            int sizeInt = 10;
-            if(size!=null){
-                try{
-                    sizeInt = Integer.parseInt(size);
-                }catch (Exception e){
-                    logger.error("size参数不为整数");
-                }
-            }
-            //排序，Y轴
-            String sort = request.getParameter("sort");
-            //时间间隔类型
-            String intervalType = request.getParameter("intervalType");
-            //时间间隔数值
-            String intervalValue = request.getParameter("intervalValue");
-            //索引名称
-            String indexName = request.getParameter("indexName");
-             */
-
             VisualParam vp = new VisualParam();
             Map<String, String[]> params = request.getParameterMap();
             vp.mapToBean(params);
             //组装要检索的index的名称： 前缀+后缀
             vp.setIndex_name(vp.getPre_index_name()+vp.getSuffix_index_name());
-            //日期字段
+            //日期字段 //TODO 日期字段暂时写死
             vp.setDateField("@timestamp");
+            //查询条件处理,数据格式为json，{key:value,key:value}
+            String queryParam = request.getParameter("queryParam");
+
+            if(null!=queryParam){
+                JSONObject query = JSONObject.fromObject(queryParam);
+                Iterator<String> iterator = query.keys();
+                Map<String,String> paramMap = new HashMap<>();
+                String key;
+                while (iterator.hasNext()) {
+                    key = iterator.next();
+                    paramMap.put(key,query.getString(key));
+                }
+                vp.setQueryParam(paramMap);
+            }
             //返回结果
             String result;
             //根据聚合方式调用不同的方法

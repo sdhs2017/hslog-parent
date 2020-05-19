@@ -1,14 +1,8 @@
 package com.jz.bigdata.common.equipment.service.impl;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
@@ -16,6 +10,9 @@ import javax.servlet.http.HttpSession;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
@@ -39,6 +36,7 @@ import net.sf.json.JSONArray;
 @Service(value = "EquipmentService")
 public class EquipmentServiceImpl implements IEquipmentService {
 
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource
 	private IEquipmentDao equipmentDao;
 
@@ -95,6 +93,75 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			return 0;
 		}
 
+	}
+
+	/**
+	 * 添加/修改资产
+	 * @param equipment
+	 * @param session
+	 * @return
+	 */
+	@Override
+	public String upsert(Equipment equipment, HttpSession session) {
+		// 获取总数
+		List<Object> count = equipmentDao.count_Number();
+		// 获取总数集合6
+
+		List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+		resultList = (List<Map<String, Object>>) count.get(0);
+
+		BASE64Util base64Util = new BASE64Util();
+		// 判断资产数是否超过限定
+		if (Integer.valueOf((String) resultList.get(0).get("count")) < Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())) {
+			int result = 0;
+			try{
+				//id不为空，说明是资产的update
+				if(equipment.getId()!=null&&!"".equals(equipment.getId())){
+					// 设置日期格式
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+					// 获取日期
+					equipment.setUpDateTime(df.format(new Date()));
+					equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+					result = equipmentDao.updateById(equipment);
+				}else{
+					equipment.setId(Uuid.getUUID());
+					//id为空，为新增资产
+					User user = userDao.selectById(session.getAttribute(Constant.SESSION_USERID).toString());
+					equipment.setDepartmentId(user.getDepartmentId());
+					equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
+					equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+					// 获取日期
+					equipment.setCreateTime(df.format(new Date()));
+					result = equipmentDao.insert(equipment);
+				}
+				//返回添加或更新的数据，如果是1，说明添加/更新成功
+				if(result==1){
+					return Constant.successMessage("操作成功！");
+				}else{
+					return Constant.successMessage("操作失败！");
+				}
+			}catch (Exception e){
+				//异常类型
+				if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
+					//根据异常信息判定是否存在唯一索引重复
+					if(e.getMessage().indexOf("nameUnique")>=0){
+						return Constant.failureMessage("资产名称重复，请重新输入！");
+					}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
+						return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
+					}else{
+						logger.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
+					}
+				}else{
+					logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
+				}
+				System.out.println(e.getMessage());
+				//其他异常情况
+				return Constant.failureMessage("操作失败！");
+			}
+		} else {
+			return Constant.failureMessage("资产达到上限，无法添加！");
+		}
 	}
 
 	/**
@@ -323,6 +390,33 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	@Override
 	public int batchUpdate(List<Equipment> list) {
 		return equipmentDao.batchUpdate(list);
+	}
+
+	/**
+	 * 验证资产名称重复
+	 * @param equipment
+	 * @return  true：存在    false ：不存在
+	 */
+	@Override
+	public boolean checkNameUnique(Equipment equipment) {
+		List<List<Map<String,String>>> nameCount = equipmentDao.checkNameUnique(equipment);
+		if(Integer.parseInt(nameCount.get(0).get(0).get("count"))>0){
+			return true;
+		}
+		return false;
+	}
+	/**
+	 * 验证IP+日志类型重复性
+	 * @param equipment
+	 * @return  true：存在    false ：不存在
+	 */
+	@Override
+	public boolean checkIpAndLogTypeUnique(Equipment equipment) {
+		List<List<Map<String,String>>> ipAndLogTypeCount = equipmentDao.checkIpAndLogTypeUnique(equipment);
+		if(Integer.parseInt(ipAndLogTypeCount.get(0).get(0).get("count"))>0){
+			return true;
+		}
+		return false;
 	}
 
 }

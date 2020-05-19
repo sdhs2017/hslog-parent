@@ -11,6 +11,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.pcap4j.core.PcapAddress;
@@ -96,7 +97,17 @@ public class CollectorController {
 			logger.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		}
-
+		/**
+		 *更新资产缓存信息
+		 */
+		try{
+			AssetCache.INSTANCE.init(equipmentService,assetService);
+		}catch (Exception e){
+			e.printStackTrace();
+			map.put("state", false);
+			map.put("msg", "资产信息获取失败！");
+			return JSONArray.fromObject(map).toString();
+		}
 		/**
 		 * 符合上述条件后执行开启kafka采集器
 		 */
@@ -441,7 +452,17 @@ public class CollectorController {
 			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
 			return JSONArray.fromObject(map).toString();
 		}*/
-
+		/**
+		 *更新资产缓存信息
+		 */
+		try{
+			AssetCache.INSTANCE.init(equipmentService,assetService);
+		}catch (Exception e){
+			e.printStackTrace();
+			map.put("state", false);
+			map.put("msg", "资产信息获取失败！");
+			return JSONArray.fromObject(map).toString();
+		}
 		/**
 		 * 符合上述条件后执行开启kafka采集器
 		 */

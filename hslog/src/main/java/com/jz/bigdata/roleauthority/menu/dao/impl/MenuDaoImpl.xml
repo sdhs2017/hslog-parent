@@ -45,6 +45,7 @@
 		left join HS_User u on u.id = ur.FK_UserID
 		where  u.id=#{userID}  and rm.fk_menuAndButon_id is not null
 		group by sys.id,sys_name
+		order by `order`
 	</select>
 
 	<!-- 查询所有数据 -->

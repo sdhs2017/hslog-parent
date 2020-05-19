@@ -306,7 +306,7 @@ public class BIServiceImpl implements IBIService {
     }
     private String valueFormatter(Object value,String type){
         String result = null;
-        DecimalFormat decimalFormat=new DecimalFormat(".00");
+        DecimalFormat decimalFormat=new DecimalFormat("0.00");
         try{
             switch (type){
                 case "pct":

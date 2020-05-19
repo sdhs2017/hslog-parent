@@ -16,6 +16,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
@@ -102,7 +103,8 @@ public class CollectorServiceImpl implements ICollectorService{
 	
 	@Resource(name="assetsService")
 	private IAssetsService assetsService;
-	
+	@Resource(name="AssetService")
+	private IAssetService assetService;
 	@Resource(name ="configProperty")  
     private ConfigProperty configProperty;
 	
@@ -631,7 +633,13 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
-	
+
+	/**
+	 * 资产重新初始化
+	 */
+	public void assetCacheInit(){
+		AssetCache.INSTANCE.init(equipmentService,assetService);
+	}
 	/**
 	 * 定时任务将获取的http url 插入到servicefunction表中
 	 * @return

@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.equipment.dao;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -44,5 +45,9 @@ public interface IEquipmentDao {
 	int batchUpdate(List<Equipment> list);
 	
 	int deleteEvent(String[] ids);
-	
+
+	List<List<Map<String,String>>> checkNameUnique(Equipment equipment);
+
+	List<List<Map<String,String>>> checkIpAndLogTypeUnique(Equipment equipment);
+
 }

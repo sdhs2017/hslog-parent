@@ -272,7 +272,7 @@ public class EcsWinlogController {
             map.remove("endtime");
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
 
         // 判断是否是非管理员角色，是传入参数用户id
         if (!userrole.equals(ContextRoles.MANAGEMENT)){
@@ -344,7 +344,7 @@ public class EcsWinlogController {
             map.remove("endtime");
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String, Object> allmap = new HashMap<>();
         try {
@@ -482,7 +482,7 @@ public class EcsWinlogController {
             map = gson.fromJson(hsData,Map.class);
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
 
         // 聚合返回的数据条数，在目前的产品中日志级别总共有8个，设置为10个保证8个正常显示
         int size = 10;
@@ -526,7 +526,7 @@ public class EcsWinlogController {
             map = gson.fromJson(hsData,Map.class);
         }
         // 业务只查询范式化成功的日志
-        map.put("fields.failure","false");
+        //map.put("fields.failure","false");
         int size = 10;
 
         List<Map<String, Object>> list = null;

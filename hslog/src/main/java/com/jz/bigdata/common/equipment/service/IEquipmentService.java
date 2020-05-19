@@ -16,7 +16,7 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 public interface IEquipmentService {
 
 	int insert(Equipment equipment, HttpSession session);
-	
+	String upsert(Equipment equipment, HttpSession session);
 	String selectAll(Equipment equipment, HttpSession session);
 	
 	int updateById(Equipment equipment, HttpSession session);
@@ -42,5 +42,8 @@ public interface IEquipmentService {
 	List<Equipment> selectAllEquipmentByRisk();
 	
 	int batchUpdate(List<Equipment> list);
-	
+
+	boolean checkNameUnique(Equipment equipment);
+	boolean checkIpAndLogTypeUnique(Equipment equipment);
+
 }

@@ -835,6 +835,27 @@
 			<value>0 */2 * * * ?</value>
 		</property>
 	</bean>
+	<!-- 资产缓存定时刷新任务 -->
+	<bean id="assetCacheJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 调用类 -->
+		<property name="targetObject">
+			<ref bean="CollectorService"/>
+		</property>
+		<!--  调用类方法 -->
+		<property name="targetMethod">
+			<value>assetCacheInit</value>
+		</property>
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="assetCacheJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="assetCacheJob"/>
+		</property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression">
+			<value>0 */2 * * * ?</value>
+		</property>
+	</bean>
 	<!-- url定时入库任务 -->
 	<bean id="urlJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
 		<!-- 调用类 -->
@@ -910,6 +931,7 @@
 				<!--<ref bean="CreateIndexJobTrigger"/>-->
 				<ref bean="urlJobTrigger" />
 				<ref bean="domainJobTrigger" />
+				<ref bean="assetCacheJobTrigger" />
 				<!-- <ref bean="assetsHeartBeatJobTrigger" /> -->
 			</list>
 		</property>

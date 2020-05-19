@@ -25,6 +25,33 @@ public class VisualParam {
     private String startTime;
     private String endTime;
     private String dateField;//时间范围查询时对应的字段
+    private Map<String,String> queryParam;//查询条件 查询框和时间范围
+
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
+    public Map<String, String> getQueryParam() {
+        return queryParam;
+    }
+
+    public void setQueryParam(Map<String, String> queryParam) {
+        this.queryParam = queryParam;
+    }
+
     public enum IntervalType{
         SECOND,//秒
         MINUTE,//分钟
@@ -74,22 +101,6 @@ public class VisualParam {
 
     public void setDateField(String dateField) {
         this.dateField = dateField;
-    }
-
-    public String getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
-    }
-
-    public String getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(String endTime) {
-        this.endTime = endTime;
     }
 
     public String getSort() {

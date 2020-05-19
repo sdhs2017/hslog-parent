@@ -26,7 +26,7 @@ public class BIDaoImpl implements IBIDao {
     @Override
     public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception {
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -49,7 +49,7 @@ public class BIDaoImpl implements IBIDao {
     @Override
     public List<Map<String, Object>> getListByCountOfAggregation(VisualParam params) throws Exception {
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -72,7 +72,7 @@ public class BIDaoImpl implements IBIDao {
     @Override
     public List<Map<String, Object>> getListByAvgOfAggregation(VisualParam params) throws Exception {
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -97,7 +97,7 @@ public class BIDaoImpl implements IBIDao {
     @Override
     public List<Map<String, Object>> getListByMaxOfAggregation(VisualParam params) throws Exception {
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -120,7 +120,7 @@ public class BIDaoImpl implements IBIDao {
     @Override
     public List<Map<String, Object>> getListByMinOfAggregation(VisualParam params) throws Exception {
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params);
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = buildAggregation(params);
         // 返回聚合的内容
@@ -142,22 +142,33 @@ public class BIDaoImpl implements IBIDao {
     }
 
     /**
-     * 创建查询条件
-     * @param params
+     *
+     * @param queryParam
+     * @param startTime 起始时间
+     * @param endTime 截止时间
+     * @param dateField 时间范围对应的字段名
      * @return
      */
-    private BoolQueryBuilder buildQuery(VisualParam params){
-        String starttime = params.getStartTime();//起始时间
-        String endtime = params.getEndTime();//截止时间
-        String dateField = params.getDateField();//时间范围对应的字段名
+    //TODO 查询参数更好的处理方式
+    private BoolQueryBuilder buildQuery(Map<String,String> queryParam,String startTime,String endTime,String dateField){
+
+
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         //存在时间类型字段，需要添加时间范围参数查询
         if(dateField!=null&&!"".equals(dateField)){
             //时间范围，起始时间和截止时间都不允许为空
-            if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
-                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            if (startTime != null && !startTime.equals("") && endTime != null && !endTime.equals("")) {
+                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(startTime).lte(endTime));
             }
         }
+        //其他查询字段  各个条件用的must
+        //TODO 条件之间的关系  and or 等等
+        if(null!=queryParam){
+            for(Map.Entry<String,String> entry:queryParam.entrySet()){
+                boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
+            }
+        }
+
         return boolQueryBuilder;
     }
     /**

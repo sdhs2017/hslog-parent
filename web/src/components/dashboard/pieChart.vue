@@ -380,10 +380,11 @@
                 xAggregationParamArr:[],
                 //x轴时间间隔
                 timeIntervalArr:[
-                    {
+                    /*{
                         value: 'second',
                         label: '每秒'
-                    },{
+                    },*/
+                    {
                         value: 'minute',
                         label: '每分钟'
                     },

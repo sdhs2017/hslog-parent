@@ -468,10 +468,11 @@
                 }],
                 //x轴时间间隔
                 timeIntervalArr:[
-                    {
+                    /*{
                         value: 'second',
                         label: '秒'
-                    },{
+                    },*/
+                    {
                         value: 'minute',
                         label: '分钟'
                     },

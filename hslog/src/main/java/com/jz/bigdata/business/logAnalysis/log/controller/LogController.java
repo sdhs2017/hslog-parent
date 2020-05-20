@@ -325,6 +325,8 @@ public class LogController extends BaseController{
 			settingmap.put("index.lifecycle.name", "hs_policy");
 			// 默认1000，数据字段过多，需要调整配置
 			settingmap.put("mapping.total_fields.limit", "5000");
+			// TODO 通过初始化设置聚合时buckets的大小
+			//settingmap.put("","260000");
 			// elasticsearch7 版本初始化template
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());

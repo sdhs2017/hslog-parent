@@ -787,7 +787,7 @@
                 }
                 this.userParams.id = this.reviseUserId;
                 if(this.userCheckboxState === true){
-                    this.userParams.state = 0;
+                    this.userParams.state = 2;
                 }else{
                     this.userParams.state = 1;
                 }

@@ -118,7 +118,7 @@
                     <el-input v-model="userParams.Email" placeholder="邮箱"  class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="状态:"  v-if="userBtnType !== 'add'">
-                    <el-checkbox v-model="userCheckboxState" :disabled="disabled">限制登录</el-checkbox>
+                    <el-checkbox v-model="userCheckboxState" >限制登录</el-checkbox>
                 </el-form-item>
                 <el-form-item label="性别:">
                     <el-radio-group v-model="userParams.sex">
@@ -237,7 +237,18 @@
                         prop:'state',
                         label:'状态',
                         width:'',
-                        formatData:(val)=>{return val == '1' ? '正常' : '受限'}
+                        formatData:(val)=>{
+                            switch (val) {
+                                case '0':
+                                    return '已锁定';
+                                case '1':
+                                    return '正常';
+                                case '2' :
+                                    return '停用'
+                                default :
+                                    return '';
+                            }
+                        }
                     },
                     {
                         prop:'tools',

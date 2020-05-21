@@ -325,6 +325,11 @@ public class LogController extends BaseController{
 			settingmap.put("index.lifecycle.name", "hs_policy");
 			// 默认1000，数据字段过多，需要调整配置
 			settingmap.put("mapping.total_fields.limit", "5000");
+			// elasticsearch 桶聚合最大值设置
+			/*Map<String, Object> persistentmap = new HashMap<>();
+			persistentmap.put("search.max_buckets",configProperty.getEs_agg_buckets());
+			settingmap.put("persistent",persistentmap);*/
+			//settingmap.put("persistent.search.max_buckets",configProperty.getEs_agg_buckets());
 			// elasticsearch7 版本初始化template
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
@@ -340,6 +345,12 @@ public class LogController extends BaseController{
 			//settingmap4Hsdata.put("index.lifecycle.name", "hs_policy");
 			// 默认1000，数据字段过多，需要调整配置
 			settingmap4Hsdata.put("mapping.total_fields.limit", "5000");
+			// elasticsearch 桶聚合最大值设置
+			/*Map<String, Object> persistentmap = new HashMap<>();
+			persistentmap.put("search.max_buckets",configProperty.getEs_agg_buckets());
+			settingmap.put("persistent",persistentmap);*/
+			//settingmap.put("persistent.search.max_buckets",configProperty.getEs_agg_buckets());
+
 			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap4Hsdata,new HSData().toMapping());
 			//初始化beat template
 

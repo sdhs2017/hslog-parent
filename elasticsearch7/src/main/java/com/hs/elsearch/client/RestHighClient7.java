@@ -4,6 +4,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
@@ -72,10 +73,22 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
 
         //restClient = RestClient.builder(httpHost);
         RestClientBuilder builder = RestClient.builder(httpHost);
+        /*.setRequestConfigCallback(new RestClientBuilder.RequestConfigCallback() {
+            @Override
+            public RequestConfig.Builder customizeRequestConfig(RequestConfig.Builder requestConfigBuilder) {
+                requestConfigBuilder.setConnectTimeout(5000);
+                requestConfigBuilder.setSocketTimeout(40000);
+                requestConfigBuilder.setConnectionRequestTimeout(1000);
+                return requestConfigBuilder;
+            }
+        }).setMaxRetryTimeoutMillis(5*60*1000);*/
+
         //设置安全
         builder.setHttpClientConfigCallback(httpClientBuilder ->
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
         );
+
+
 
         restHighLevelClient = new RestHighLevelClient(builder);
     }

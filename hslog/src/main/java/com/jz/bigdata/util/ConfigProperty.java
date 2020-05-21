@@ -8,12 +8,14 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class ConfigProperty {
 
+	// 操作系统的用户名（elsearch）
 	@Value("#{prop.host_user}")
 	private String host_user;
-	
+
+	// 操作系统的密码
 	@Value("#{prop.host_passwd}")
 	private String host_passwd;  
-    
+    // 系统ip
 	@Value("#{prop.host_ip}")
 	private String host_ip;  
     
@@ -31,10 +33,10 @@ public class ConfigProperty {
     
     @Value("#{prop.es_port}")
     private String es_port;
-
+	// elasticsearch的用户名
 	@Value("#{prop.es_user}")
 	private String es_user;
-
+	// elasticsearch的密码
 	@Value("#{prop.es_password}")
 	private String es_password;
     
@@ -49,13 +51,19 @@ public class ConfigProperty {
 
 	@Value("#{prop.es_tempalatePattern}")
 	private String es_tempalatePattern;
-
+	// elasticsearch的旧版本index名称
 	@Value("#{prop.es_old_index}")
 	private String es_old_index;
-
+	// elasticsearch的新index名称
     @Value("#{prop.es_index}")
     private String es_index;
-
+	// elasticsearch的生命周期管理名称
+    @Value("#{prop.es_ilm_policy}")
+    private String es_ilm_policy;
+	// elasticsearch的桶聚合最大值
+    @Value("#{prop.es_agg_buckets}")
+    private String es_agg_buckets;
+	// elasticsearch的索引保留时间
 	@Value("#{prop.es_days_of_log_storage}")
 	private String es_days_of_log_storage;
 
@@ -325,5 +333,21 @@ public class ConfigProperty {
 
 	public void setEs_days_of_log_storage(String es_days_of_log_storage) {
 		this.es_days_of_log_storage = es_days_of_log_storage;
+	}
+
+	public String getEs_ilm_policy() {
+		return es_ilm_policy;
+	}
+
+	public void setEs_ilm_policy(String es_ilm_policy) {
+		this.es_ilm_policy = es_ilm_policy;
+	}
+
+	public String getEs_agg_buckets() {
+		return es_agg_buckets;
+	}
+
+	public void setEs_agg_buckets(String es_agg_buckets) {
+		this.es_agg_buckets = es_agg_buckets;
 	}
 }

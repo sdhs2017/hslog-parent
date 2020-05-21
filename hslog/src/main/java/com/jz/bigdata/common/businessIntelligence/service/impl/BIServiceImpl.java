@@ -6,6 +6,7 @@ import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.dao.biDao.entity.VisualParam;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.cache.BICache;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
@@ -22,6 +23,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpSession;
 import java.text.DecimalFormat;
 import java.util.*;
 
@@ -103,7 +105,7 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
-    public String getVisualizations(String indexName) throws Exception {
+    public String getVisualizations(String indexName, HttpSession session) throws Exception {
         List<Visualization> result = new ArrayList<>();
         //获取index的visualization列存在数据的信息
         List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,"visualization");
@@ -116,6 +118,15 @@ public class BIServiceImpl implements IBIService {
             visual.setTitle(visualizationInfo.get("title").toString());//标题
             visual.setDescription(visualizationInfo.get("description").toString());//描述
             visual.setType(visualizationInfo.get("type").toString());//图表类型
+            //master用户在BI模块可以进行编辑保存
+            if("master".equals(session.getAttribute(Constant.SESSION_USERNAME).toString())){
+                visual.setEditable(true);//是否可编辑
+                visual.setDeletable(true);//是否可删除
+            }else{
+                visual.setEditable((Boolean)visualizationInfo.get("editable"));//是否可编辑
+                visual.setDeletable((Boolean)visualizationInfo.get("deletable"));//是否可删除
+            }
+
             //visual.setIndexName(visualizationInfo.get("indexName").toString());//数据查询的数据源（index名称）
             result.add(visual);
         }
@@ -123,7 +134,7 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
-    public String getDashboards(String indexName) throws Exception {
+    public String getDashboards(String indexName,HttpSession session) throws Exception {
         List<Dashboard> result = new ArrayList<>();
         //获取index的visualization列存在数据的信息
         List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,"dashboard");
@@ -135,6 +146,14 @@ public class BIServiceImpl implements IBIService {
             Map<String,Object> dashboardInfo = (HashMap<String,Object>)map.get("dashboard");
             dashboard.setTitle(dashboardInfo.get("title").toString());//标题
             dashboard.setDescription(dashboardInfo.get("description").toString());//描述
+            //master用户在BI模块可以进行编辑保存
+            if("master".equals(session.getAttribute(Constant.SESSION_USERNAME).toString())){
+                dashboard.setEditable(true);//是否可编辑
+                dashboard.setDeletable(true);//是否可删除
+            }else{
+                dashboard.setEditable((Boolean)dashboardInfo.get("editable"));//是否可编辑
+                dashboard.setDeletable((Boolean)dashboardInfo.get("deletable"));//是否可删除
+            }
 
             result.add(dashboard);
         }

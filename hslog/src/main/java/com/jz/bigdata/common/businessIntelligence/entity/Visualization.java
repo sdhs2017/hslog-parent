@@ -19,6 +19,24 @@ public class Visualization {
     private String option;//图表结构
     private String params;//查询参数
     private String data;//查询结果
+    private Boolean editable;//是否可编辑，默认可编辑
+    private Boolean deletable;//是否可删除，默认可删除
+
+    public Boolean getDeletable() {
+        return deletable;
+    }
+
+    public void setDeletable(Boolean deletable) {
+        this.deletable = deletable;
+    }
+
+    public Boolean getEditable() {
+        return editable;
+    }
+
+    public void setEditable(Boolean editable) {
+        this.editable = editable;
+    }
 
     public String getIndex_name() {
         return index_name;

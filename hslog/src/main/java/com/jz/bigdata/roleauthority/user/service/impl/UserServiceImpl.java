@@ -197,6 +197,7 @@ public class UserServiceImpl implements IUserService {
 					session.setAttribute(Constant.SESSION_USERID, _user.getId());
 					session.setAttribute(Constant.SESSION_USERNAME, _user.getName());
 					session.setAttribute(Constant.SESSION_USERACCOUNT, _user.getPhone());
+
 					//是否有所属部门
 					if(_user.getDepartmentId()!=0){
 						session.setAttribute(Constant.SESSION_DEPARTMENTNAME, department.getName());
@@ -206,6 +207,8 @@ public class UserServiceImpl implements IUserService {
 
 					session.setAttribute(Constant.SESSION_ID, session.getId());
 					//TODO 角色相关模块的处理
+					//User userInfo = this.selectById(_user.getId());
+					//session.setAttribute(Constant.SESSION_USERROLE, userInfo.getRole());
 					session.setAttribute(Constant.SESSION_USERROLE, "1");
 					map.put("success", "true");
 					map.put("message", "登陆成功");

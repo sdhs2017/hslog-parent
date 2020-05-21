@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -154,7 +155,7 @@ public class BIController {
     @ResponseBody
     @RequestMapping(value="/saveVisualization", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "图表保存")
-    public String saveVisualization(HttpServletRequest request, Visualization visual){
+    public String saveVisualization(HttpServletRequest request, Visualization visual, HttpSession session){
         try{
             String isSaveAs = request.getParameter("isSaveAs");
             //用户新建保存或者编辑时另存，需要检测标题是否重复
@@ -163,6 +164,15 @@ public class BIController {
                     return Constant.failureMessage("标题名称重复，请修改！");
                 }
             }
+            //根据master用户确定表格是否可编辑，master不可编辑/删除，其他用的的可编辑/删除
+            if("master".equals(session.getAttribute(Constant.SESSION_USERNAME).toString())){
+                visual.setEditable(false);
+                visual.setDeletable(false);
+            }else{
+                visual.setEditable(true);
+                visual.setDeletable(true);
+            }
+
             DocWriteResponse.Result result = iBIService.saveVisualization(visual,biIndexName);
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");
@@ -182,7 +192,7 @@ public class BIController {
     @ResponseBody
     @RequestMapping(value="/saveDashboard", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "仪表盘保存")
-    public String saveDashboard(HttpServletRequest request, Dashboard dashboard){
+    public String saveDashboard(HttpServletRequest request, Dashboard dashboard, HttpSession session){
         try{
             String isSaveAs = request.getParameter("isSaveAs");
             //用户新建保存或者编辑时另存，需要检测标题是否重复
@@ -190,6 +200,13 @@ public class BIController {
                 if(iBIService.isDashboardExists(dashboard.getTitle(),biIndexName)){
                     return Constant.failureMessage("标题名称重复，请修改！");
                 }
+            }
+            if("master".equals(session.getAttribute(Constant.SESSION_USERNAME).toString())){
+                dashboard.setEditable(false);
+                dashboard.setDeletable(false);
+            }else{
+                dashboard.setEditable(true);
+                dashboard.setDeletable(true);
             }
             DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,biIndexName);
             if (result == DocWriteResponse.Result.CREATED) {
@@ -210,9 +227,9 @@ public class BIController {
     @ResponseBody
     @RequestMapping(value="/getVisualizations", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取图表列表")
-    public String getVisualizations(HttpServletRequest request){
+    public String getVisualizations(HttpServletRequest request,HttpSession session){
         try{
-            String result = iBIService.getVisualizations(biIndexName);
+            String result = iBIService.getVisualizations(biIndexName,session);
             return Constant.successData(result);
         }catch(Exception e){
             return Constant.successData(null);
@@ -225,9 +242,9 @@ public class BIController {
     @ResponseBody
     @RequestMapping(value="/getDashboards", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取仪表盘列表")
-    public String getDashboards(HttpServletRequest request){
+    public String getDashboards(HttpServletRequest request,HttpSession session){
         try{
-            String result = iBIService.getDashboards(biIndexName);
+            String result = iBIService.getDashboards(biIndexName,session);
             return Constant.successData(result);
         }catch(Exception e){
             return Constant.successData(null);

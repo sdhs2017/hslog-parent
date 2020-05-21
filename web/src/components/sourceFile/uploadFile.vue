@@ -3,7 +3,7 @@
         <div class="top-title">本地文件上传</div>
         <div class="upload-file-wapper">
             <p>通过浏览本地文件或将文件拖到下面指定区域，上传日志文件。</p>
-            <p>文件支持的类型：<span class="txt-color">txt、log、csv、json</span></p>
+            <p>文件支持的类型：<span class="txt-color">txt、log、json</span></p>
             <el-form ref="form" label-width="80px">
                 <el-form-item label="日志类型">
                     <span style="color:red">*</span>
@@ -36,7 +36,7 @@
             $('#ssi-upload').ssi_uploader({
                 url:this.$baseUrl+'/upload/uploadFile.do',//地址
                 data:{"logType":this.logType},//除了文件额外的数据参数
-                allowed:['log','txt','csv',"json"]//允许上传文件的类型
+                allowed:['log','txt',"json"]//允许上传文件的类型
             })
         }
     }

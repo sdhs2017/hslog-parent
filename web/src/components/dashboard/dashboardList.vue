@@ -51,7 +51,10 @@
                             },
                             {
                                 icon: 'el-icon-edit',
-                                text: '修改',
+                                text: '编辑',
+                                formatData:(obj)=>{
+                                    return obj.editable
+                                },
                                 clickFun: (row, index) => {
                                     //this.reviseChart(row,index)
                                     jumpHtml('resiveDashboard'+row.id,'dashboard/dashboard.vue',{name:row.title,id:row.id,type:'edit'},' 编辑');
@@ -60,6 +63,9 @@
                             {
                                 icon: 'el-icon-error',
                                 text: '删除',
+                                formatData:(obj)=>{
+                                    return obj.deletable
+                                },
                                 clickFun: (row, index) => {
                                     this.removeChart(row,index)
                                 }

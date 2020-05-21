@@ -94,13 +94,19 @@
                             {
                                 icon: 'el-icon-edit',
                                 text: '编辑',
+                                formatData:(obj)=>{
+                                    return obj.editable
+                                },
                                 clickFun: (row, index) => {
-                                    this.reviseChart(row,index)
+                                   this.reviseChart(row,index)
                                 }
                             },
                             {
                                 icon: 'el-icon-error',
                                 text: '删除',
+                                formatData:(obj)=>{
+                                    return obj.deletable
+                                },
                                 clickFun: (row, index) => {
                                     this.removeChart(row,index)
                                 }

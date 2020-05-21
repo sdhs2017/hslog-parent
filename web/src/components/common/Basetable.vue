@@ -20,7 +20,7 @@
                         <!-- <i :class="item.btn.icon" @click="readDetails(scope.row)" :title="item.btn.text"></i> @click.native.prevent="o.clickFun(scope.row)"    -->
                         <!--<i v-for="(ic,index) in item.btns" :class="ic.icon" @click= "btnClick($event,scope.row,scope.index)" :btnType="ic.btnType" :title="ic.text" :key="index"></i>-->
                         <!--<i v-for="(ic,index) in item.btns" :class="ic.icon" @click.native.prevent= "ic.clickFun(scope.row,scope.index)" :btnType="ic.btnType" :title="ic.text" :key="index"></i>-->
-                        <el-button v-for="(ic, ind) in item.btns" :key="ind"  @click.native.prevent="ic.clickFun(scope.row,scope.$index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#D6DFEB;">
+                        <el-button v-for="(ic, ind) in item.btns" :key="ind"  @click.native.prevent="ic.clickFun(scope.row,scope.$index)" v-if="!ic.formatData ? true : tableFormatter(scope.row,ic.formatData,scope.row)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#D6DFEB;">
                             <i :class="ic.icon" :title="ic.text"></i>
                         </el-button>
                     </template>

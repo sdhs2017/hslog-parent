@@ -489,7 +489,7 @@ public class EcsWinlogController {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
             list = ecsService.groupByThenCount(starttime,endtime,groupbyfield,size,map,index);
-            logger.error("统计各个日志级别的数据量 : 成功！");
+            logger.info("统计各个日志级别的数据量 : 成功！");
         } catch (Exception e) {
             logger.error("统计各个日志级别的数据量 : 失败！");
             logger.error(e.getMessage());

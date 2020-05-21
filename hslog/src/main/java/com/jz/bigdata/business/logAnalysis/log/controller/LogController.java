@@ -20,8 +20,10 @@ import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.business.logAnalysis.log.init.DataVisualInit;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
+import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFilebeat;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFirewalls;
@@ -31,6 +33,7 @@ import com.jz.bigdata.util.*;
 import net.sf.json.JSON;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
@@ -95,9 +98,12 @@ public class LogController extends BaseController{
 	@Resource(name ="BeatTemplate")
 	private BeatTemplate beatTemplate;
 
+	@Autowired
+	protected ILogCrudDao logCurdDao;
 
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
-
+	//json处理全局对象
+	private final Gson gson = new GsonBuilder().create();
 	//默认查询types
 	String[] default_types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 
@@ -428,6 +434,19 @@ public class LogController extends BaseController{
 				map.put("msg", "资产信息获取失败！");
 				return JSONArray.fromObject(map).toString();
 			}
+			/**
+			 * 初始化工作六：内置基本报表（数据可视化模块）
+			 */
+			try{
+				DataVisualInit.init(logCurdDao);
+			}catch (Exception e){
+				e.printStackTrace();
+				map.put("state", false);
+				map.put("msg", "数据可视化内置报表失败！");
+				return JSONArray.fromObject(map).toString();
+			}
+
+
 			map.put("state", true);
 			map.put("msg", "初始化成功！");
 			logger.info("初始化工作完成！！！");
@@ -441,6 +460,7 @@ public class LogController extends BaseController{
 			return JSONArray.fromObject(map).toString();
 		}
 	}
+
 	/**
 	 * 获取template信息，暂时只支持一个template的查询
 	 * @param request

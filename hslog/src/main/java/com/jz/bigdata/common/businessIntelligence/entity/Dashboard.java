@@ -9,6 +9,24 @@ public class Dashboard {
     private String option;//dashboard结构
     private String params;//查询参数
     private String data;//查询结果
+    private Boolean editable;//是否可编辑
+    private Boolean deletable;//是否可删除
+
+    public Boolean getEditable() {
+        return editable;
+    }
+
+    public void setEditable(Boolean editable) {
+        this.editable = editable;
+    }
+
+    public Boolean getDeletable() {
+        return deletable;
+    }
+
+    public void setDeletable(Boolean deletable) {
+        this.deletable = deletable;
+    }
 
     public String getId() {
         return id;

@@ -2,7 +2,6 @@ package com.jz.bigdata.roleauthority.role.controller;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.roleauthority.role.entity.Role;

@@ -6,6 +6,7 @@ import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 public interface IBIService {
@@ -74,12 +75,12 @@ public interface IBIService {
      * 获取图表列表，不包含option和params信息（数据内容太多，影响响应速度）
      * @return
      */
-    public String getVisualizations(String indexName) throws Exception;
+    public String getVisualizations(String indexName, HttpSession session) throws Exception;
     /**
      * 获取仪表盘列表，不包含option和params信息（数据内容太多，影响响应速度）
      * @return
      */
-    public String getDashboards(String indexName) throws Exception;
+    public String getDashboards(String indexName,HttpSession session) throws Exception;
 
     /**
      * 根据id获取图表详情以及查询的数据结果

@@ -119,7 +119,6 @@ public class EcsCommonController {
     public List<Map<String, Object>> getCountGroupByTime(HttpServletRequest request) {
         String index = configProperty.getEs_index();
 
-        String equipmentid = request.getParameter("equipmentid");
         String starttime = request.getParameter("starttime");
         String endtime = request.getParameter("endtime");
 
@@ -129,9 +128,6 @@ public class EcsCommonController {
         if(null!=hsData){
             Gson gson = new Gson();
             map = gson.fromJson(hsData,Map.class);
-        }
-        if (equipmentid!=null&&!equipmentid.equals("")) {
-            map.put("fields.equipmentid", equipmentid);
         }
         // 业务只查询范式化成功的日志
         //map.put("fields.failure","false");

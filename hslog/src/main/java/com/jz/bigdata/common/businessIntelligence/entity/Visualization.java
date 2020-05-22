@@ -21,6 +21,15 @@ public class Visualization {
     private String data;//查询结果
     private Boolean editable;//是否可编辑，默认可编辑
     private Boolean deletable;//是否可删除，默认可删除
+    private String group_name;//分组
+
+    public String getGroup_name() {
+        return group_name;
+    }
+
+    public void setGroup_name(String group_name) {
+        this.group_name = group_name;
+    }
 
     public Boolean getDeletable() {
         return deletable;

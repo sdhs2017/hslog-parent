@@ -95,6 +95,17 @@ public class ConfigProperty {
     @Value("#{prop.pcap4j_network}")
     private String pcap4j_network;
 
+	@Value("#{prop.es_search_max_buckets}")
+    private String es_search_max_buckets;
+
+	public String getEs_search_max_buckets() {
+		return es_search_max_buckets;
+	}
+
+	public void setEs_search_max_buckets(String es_search_max_buckets) {
+		this.es_search_max_buckets = es_search_max_buckets;
+	}
+
 	public String getHost_user() {
 		return host_user;
 	}

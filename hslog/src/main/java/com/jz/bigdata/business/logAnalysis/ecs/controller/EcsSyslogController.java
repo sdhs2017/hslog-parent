@@ -9,6 +9,7 @@ import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.HttpRequestUtil;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,29 +56,27 @@ public class EcsSyslogController {
     @RequestMapping(value="/getEventsCount",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取事件数据的数量")
     public String getEventsCount(HttpServletRequest request) {
-        String equipmentid = request.getParameter("equipmentid");
-        Map<String, Object> map = new HashMap<>();
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        //hsData参数处理
+        Map<String, String> mapParam = HttpRequestUtil.getHsdata(request);
+        //返回结果
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        Map<String,Object> resultMap = new HashMap<>();
 
         /**
          * 日志级别是error的事件数
          */
         try {
-            Map<String, String> mappram = new HashMap<>();
-            mappram.put("exists", "event.action");
-            mappram.put("log.level", "error");
-            // 业务只查询范式化成功的日志
-            //mappram.put("fields.failure","false");
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                mappram.put("fields.equipmentid", equipmentid);
-            }
+            Map<String, String> errorParam = new HashMap<>();
+            errorParam.putAll(mapParam);
+            errorParam.put("exists", "event.action");
+            errorParam.put("log.level", "error");
             long count = 0;
-            count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
-            map.put("eventserror", count);
+            count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
+            resultMap.put("eventserror", count);
         } catch (Exception e) {
             logger.error("获取日志级别是error的事件数量：失败！");
             logger.error(e.getMessage());
-            map.put("eventserror", "获取异常");
+            resultMap.put("eventserror", "获取异常");
         }
 
         /**
@@ -85,23 +84,19 @@ public class EcsSyslogController {
          */
         try {
             long count = 0;
-            Map<String, String> mappram = new HashMap<>();
+            Map<String, String> allParam = new HashMap<>();
+            allParam.putAll(mapParam);
             // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
-            mappram.put("exists", "event.action");
-            // 业务只查询范式化成功的日志
-            //mappram.put("fields.failure","false");
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                mappram.put("fields.equipmentid", equipmentid);
-            }
-            count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
-            map.put("events", count);
+            allParam.put("exists", "event.action");
+            count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
+            resultMap.put("events", count);
         } catch (Exception e) {
             logger.error("获取事件数量：失败！");
             logger.error(e.getMessage());
-            map.put("events", "获取异常");
+            resultMap.put("events", "获取异常");
         }
-        list.add(map);
-        String result = JSONArray.fromObject(list).toString();
+        resultList.add(resultMap);
+        String result = JSONArray.fromObject(resultList).toString();
 
         return result;
     }

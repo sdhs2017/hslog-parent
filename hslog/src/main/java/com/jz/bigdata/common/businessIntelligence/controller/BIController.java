@@ -6,10 +6,12 @@ import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
+import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.DocWriteResponse;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,10 +20,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * BI报表
@@ -33,6 +34,8 @@ public class BIController {
     private final String biIndexName = "hsdata";
     @Resource(name = "BIService")
     private IBIService iBIService;
+    @Resource(name ="configProperty")
+    private ConfigProperty configProperty;
     /**
      * Buckets
      * 通过X轴的聚合方式获取fields
@@ -106,6 +109,7 @@ public class BIController {
             //日期字段 //TODO 日期字段暂时写死
             vp.setDateField("@timestamp");
             //查询条件处理,数据格式为json，{key:value,key:value}
+            //TODO 并不是一个很好的实现方式，需要再考虑
             String queryParam = request.getParameter("queryParam");
 
             if(null!=queryParam){
@@ -119,6 +123,19 @@ public class BIController {
                 }
                 vp.setQueryParam(paramMap);
             }
+            //如果x轴是时间聚合类型，进行计算
+            if("Date".equals(vp.getX_agg())){
+                //计算聚合桶数，对超出设置search.max_buckets的，进行返回
+                //计算方式，时间范围/时间间隔
+                if(getSearchBuckets(vp.getStartTime(),vp.getEndTime(),vp.getIntervalType(),vp.getIntervalValue())){
+                    //continue
+                }else{
+                    return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
+                }
+            }else{
+                //continue
+            }
+
             //返回结果
             String result;
             //根据聚合方式调用不同的方法
@@ -143,8 +160,29 @@ public class BIController {
                     break;
             }
             return Constant.successData(result);
+        }catch(ElasticsearchStatusException e){
+            /** 一级异常 ElasticsearchStatusException，通过catch获取*/
+
+            /** 二级异常 search_phase_execution_exception*/
+            //[Elasticsearch exception [type=search_phase_execution_exception, reason=]];
+            String ES_ExceptionTypeSecondLevel = e.getDetailedMessage();
+            /** 三级异常 too_many_buckets_exception */
+            //nested: ElasticsearchException[Elasticsearch exception [type=too_many_buckets_exception, reason=Trying to create too many buckets.
+            String ES_ExceptionTypeThirdLevel = e.getCause().toString();
+            if(ES_ExceptionTypeSecondLevel.indexOf("search_phase_execution_exception")>=0){
+                if(ES_ExceptionTypeThirdLevel.indexOf("too_many_buckets_exception")>=0){
+                    logger.error("数据可视化模块，聚合异常，聚合桶数超出阈值（search.max_buckets）");
+                    return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
+                }else{
+                    logger.error("ElasticsearchStatusException->search_phase_execution_exception->"+e.getMessage());
+                    return Constant.failureMessage("数据查询失败");
+                }
+            }else{
+                logger.error("ElasticsearchStatusException->非search_phase_execution_exception"+e.getMessage());
+                return Constant.failureMessage("数据查询失败");
+            }
         }catch(Exception e){
-            logger.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
+            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -313,6 +351,63 @@ public class BIController {
         }catch(Exception e){
             return Constant.failureMessage("删除仪表盘失败");
         }
+    }
+
+    /**
+     * 计算聚合查询的  时间范围/时间间隔
+     * 用于判定预估聚合桶数与配置项中的最大聚合桶数的大小
+     * 小于：继续执行
+     * 大于：返回提示信息
+     * @param startTime 开始时间
+     * @param endTime 截止时间
+     * @param intervalType 间隔类型（分、小时、天）
+     * @param intervalValue 间隔数值N（N分、N小时）
+     * @return
+     * @throws Exception 如果参数出现异常，统一在上游catch处理
+     */
+    private boolean getSearchBuckets(String startTime, String endTime, VisualParam.IntervalType intervalType, int intervalValue) throws Exception {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date dateStart = formatter.parse(startTime);
+        Date dateEnd = formatter.parse(endTime);
+        //差值 秒
+        long difValue = (dateEnd.getTime() - dateStart.getTime())/1000;
+        //间隔 秒
+        long intervalSeconds=1L;
+        switch(intervalType){
+            case SECOND:
+                intervalSeconds = intervalValue*1;
+                break;
+            case MINUTE:
+                intervalSeconds = intervalValue*60;
+                break;
+            case HOURLY:
+                intervalSeconds = intervalValue*60*60;
+                break;
+            case DAILY:
+                intervalSeconds = intervalValue*60*60*24;
+                break;
+            case WEEKLY:
+                intervalSeconds = intervalValue*60*60*24*7;
+                break;
+            case MONTHLY:
+                intervalSeconds = intervalValue*60*60*24*7*30;
+                break;
+            case YEARLY:
+                intervalSeconds = intervalValue*60*60*24*7*30*365;
+                break;
+            default:
+                intervalSeconds = 1L;
+                break;
+        }
+        //计算 时间范围/时间间隔
+        long buckets = difValue/intervalSeconds;
+        //计算出的桶数【小于】最大聚合桶数，可执行下一步聚合查询
+        if(buckets<Integer.parseInt(configProperty.getEs_search_max_buckets())){
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
 }

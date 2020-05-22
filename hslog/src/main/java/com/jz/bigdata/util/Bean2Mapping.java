@@ -59,6 +59,8 @@ public class Bean2Mapping {
 				// url
 				"equipmentname","request_url","domain_url","url_param","complete_url","protocol_name","application_layer_protocol",
 				"encryption_based_protection_protocol","flag",
+				//hsdata
+				"group_name",
 				// user-agent
 				"user_agent_os","user_agent_browser","session_status",
 				"dst_addr_country","dst_addr_province","dst_addr_city",

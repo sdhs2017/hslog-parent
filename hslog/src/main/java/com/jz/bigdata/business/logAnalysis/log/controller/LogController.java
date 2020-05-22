@@ -17,7 +17,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.google.gson.*;
+import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.template.GlobalTemplate;
+import com.hs.elsearch.template.IndexTemplate;
 import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.business.logAnalysis.log.init.DataVisualInit;
@@ -100,6 +103,9 @@ public class LogController extends BaseController{
 
 	@Autowired
 	protected ILogCrudDao logCurdDao;
+
+	@Autowired
+	protected IGlobalDao globalDao;
 
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
 	//json处理全局对象
@@ -419,6 +425,7 @@ public class LogController extends BaseController{
 				}
 			} catch (Exception e){
 				e.printStackTrace();
+				logger.error("开启index生命周期管理失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "开启index生命周期管理失败！");
 				return JSONArray.fromObject(map).toString();
@@ -430,6 +437,7 @@ public class LogController extends BaseController{
 				AssetCache.INSTANCE.init(equipmentService,assetService);
 			}catch (Exception e){
 				e.printStackTrace();
+				logger.error("资产信息获取失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "资产信息获取失败！");
 				return JSONArray.fromObject(map).toString();
@@ -441,8 +449,34 @@ public class LogController extends BaseController{
 				DataVisualInit.init(logCurdDao);
 			}catch (Exception e){
 				e.printStackTrace();
+				logger.error("数据可视化内置报表失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "数据可视化内置报表失败！");
+				return JSONArray.fromObject(map).toString();
+			}
+			/**
+			 * 初始化工作七：cluster-setting设置
+			 */
+			try{
+				//Persistent setting map
+				Map<String, Object> clusterPersistentSetting = new HashMap<>();
+				//查询最大聚合桶数
+				clusterPersistentSetting.put("search.max_buckets",configProperty.getEs_search_max_buckets());
+				boolean result = globalDao.updateClusterSetting(clusterPersistentSetting,null);
+				//配置失败时
+				if(!result){
+					logger.info("cluster-setting配置返回失败！");
+					map.put("state", false);
+					map.put("msg", "集群全局配置失败！");
+					return JSONArray.fromObject(map).toString();
+				}else{
+					logger.info("集群全局配置成功！");
+				}
+			}catch (Exception e){
+				e.printStackTrace();
+				logger.error("集群全局配置失败！："+e.getMessage());
+				map.put("state", false);
+				map.put("msg", "集群全局配置失败！");
 				return JSONArray.fromObject(map).toString();
 			}
 

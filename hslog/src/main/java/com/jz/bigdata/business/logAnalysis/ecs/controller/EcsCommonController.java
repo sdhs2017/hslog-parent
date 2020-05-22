@@ -67,30 +67,25 @@ public class EcsCommonController {
     @RequestMapping(value="/getIndicesCount",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取索引数据的数量")
     public String getIndicesCount(HttpServletRequest request) {
-        String equipmentid = request.getParameter("equipmentid");
-        Map<String, Object> map = new HashMap<>();
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
+        //hsData参数处理
+        Map<String, String> mapParam = HttpRequestUtil.getHsdata(request);
+        //返回结果
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        Map<String,Object> resultMap = new HashMap<>();
         /**
          *  error日志条数统计
          */
         try {
             long count = 0;
-            Map<String, String> mappram = new HashMap<>();
-            // 业务只查询范式化成功的日志
-            //mappram.put("fields.failure","false");
-            mappram.put("log.level", "error");
-            // 判断资产查询条件是否为空，不为空则是全局error日志数查询
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                mappram.put("fields.equipmentid", equipmentid);
-            }
-
-            count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
-            map.put("indiceserror", count);
+            Map<String, String> errorParam = new HashMap<>();
+            errorParam.putAll(mapParam);
+            errorParam.put("log.level", "error");
+            count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
+            resultMap.put("indiceserror", count);
         } catch (Exception e) {
             logger.error("查询error日志数：失败！");
             logger.error(e.getMessage());
-            map.put("indiceserror", "获取异常");
+            resultMap.put("indiceserror", "获取异常");
         }
 
         /**
@@ -98,22 +93,17 @@ public class EcsCommonController {
          */
         try {
             long count = 0;
-            Map<String, String> mappram = new HashMap<>();
-            // 判断资产查询条件是否为空，不为空则是全局查询
-            if (equipmentid!=null&&!equipmentid.equals("")) {
-                mappram.put("fields.equipmentid", equipmentid);
-            }
-            // 业务只查询范式化成功的日志
-            //mappram.put("fields.failure","false");
-            count = ecsService.getCount(mappram, null, null, configProperty.getEs_index());
-            map.put("indices", count);
+            Map<String, String> allParam = new HashMap<>();
+            allParam.putAll(mapParam);
+            count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
+            resultMap.put("indices", count);
         } catch (Exception e) {
             logger.error("查询日志数：失败！");
             logger.error(e.getMessage());
-            map.put("indices", "获取异常");
+            resultMap.put("indices", "获取异常");
         }
-        list.add(map);
-        String result = JSONArray.fromObject(list).toString();
+        resultList.add(resultMap);
+        String result = JSONArray.fromObject(resultList).toString();
         logger.info("查询日志数：成功！");
 
         return result;

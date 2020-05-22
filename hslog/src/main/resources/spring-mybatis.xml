@@ -741,6 +741,10 @@
 		<constructor-arg ref="elasticsearch"/>
 	</bean>
 
+	<bean id="globalTemplate" class="com.hs.elsearch.template.GlobalTemplate">
+		<constructor-arg ref="elasticsearch"/>
+	</bean>
+
 	<bean id="logIndexDao" class="com.hs.elsearch.dao.logDao.impl.LogIndexDaoImpl">
 	</bean>
 
@@ -759,7 +763,8 @@
 
 	<bean id="ibiDao" class="com.hs.elsearch.dao.biDao.impl.BIDaoImpl">
 	</bean>
-
+	<bean id="globalDao" class="com.hs.elsearch.dao.globalDao.impl.GlobalDao">
+	</bean>
 	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">
 			<!-- 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组，跟上面一样  -->

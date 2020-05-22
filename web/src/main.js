@@ -36,7 +36,7 @@ if (process.env.NODE_ENV === 'development'){
     //axios.defaults.baseURL = '../';
     Vue.prototype.$baseUrl = '../hslog';
 }
-axios.defaults.timeout = 30000;
+axios.defaults.timeout = 120000;
 //axios拦截器
 axios.interceptors.request.use(config => {
     return config;

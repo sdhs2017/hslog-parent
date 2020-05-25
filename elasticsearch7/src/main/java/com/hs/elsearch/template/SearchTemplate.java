@@ -1,6 +1,7 @@
 package com.hs.elsearch.template;
 
 import org.apache.log4j.Logger;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -77,22 +78,21 @@ public class SearchTemplate {
      * @return
      */
     public Aggregations getAggregationsByBuilder(QueryBuilder queryBuilder,AggregationBuilder aggregationBuilder,String... indices) throws Exception {
+            SearchRequest searchRequest = new SearchRequest(indices);
+            SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+            if (queryBuilder!=null){
+                searchSourceBuilder.query(queryBuilder);
+            }
+            if (aggregationBuilder!=null){
+                searchSourceBuilder.aggregation(aggregationBuilder);
+            }
+            searchRequest.source(searchSourceBuilder);
 
-        SearchRequest searchRequest = new SearchRequest(indices);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
-        if (queryBuilder!=null){
-            searchSourceBuilder.query(queryBuilder);
-        }
-        if (aggregationBuilder!=null){
-            searchSourceBuilder.aggregation(aggregationBuilder);
-        }
-        searchRequest.source(searchSourceBuilder);
+            SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
 
-        SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+            Aggregations aggregations= response.getAggregations();
 
-        Aggregations aggregations= response.getAggregations();
-
-        return aggregations;
+            return aggregations;
     }
 
     /**

@@ -71,12 +71,17 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticsearchbean.get("es_user"),elasticsearchbean.get("es_password")));
 
         //restClient = RestClient.builder(httpHost);
-        RestClientBuilder builder = RestClient.builder(httpHost);
+        RestClientBuilder builders = RestClient.builder(httpHost);
         //设置安全
-        builder.setHttpClientConfigCallback(httpClientBuilder ->
+        builders.setHttpClientConfigCallback(httpClientBuilder ->
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)
         );
+        //请求配置
+        builders.setRequestConfigCallback(builder -> builder
+                .setConnectTimeout(10000)//连接超时
+                .setSocketTimeout(300000)//请求超时300秒
+                );
 
-        restHighLevelClient = new RestHighLevelClient(builder);
+        restHighLevelClient = new RestHighLevelClient(builders);
     }
 }

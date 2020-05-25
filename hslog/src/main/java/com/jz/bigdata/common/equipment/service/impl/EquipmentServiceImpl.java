@@ -13,6 +13,7 @@ import com.jz.bigdata.roleauthority.user.entity.User;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
@@ -102,7 +103,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * @return
 	 */
 	@Override
-	public String upsert(Equipment equipment, HttpSession session) {
+	public String upsert(Equipment equipment, HttpSession session) throws Exception {
 		// 获取总数
 		List<Object> count = equipmentDao.count_Number();
 		// 获取总数集合6
@@ -141,7 +142,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				}else{
 					return Constant.successMessage("操作失败！");
 				}
-			}catch (Exception e){
+			}catch(DataAccessException e){//spring
 				//异常类型
 				if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
 					//根据异常信息判定是否存在唯一索引重复
@@ -155,7 +156,6 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				}else{
 					logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
 				}
-				System.out.println(e.getMessage());
 				//其他异常情况
 				return Constant.failureMessage("操作失败！");
 			}
@@ -245,7 +245,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		 * 新版本查询ecsService
 		 */
 		esMap.put("fields.equipmentid", equipmentid);
-		esMap.put("fields.failure","false");
+		//esMap.put("fields.failure","false");
 		equipmentmap.put("log_count", ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
 
 		equipment = JavaBeanUtil.convertMapToBean(Equipment.class, equipmentmap);
@@ -408,7 +408,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	/**
 	 * 验证IP+日志类型重复性
 	 * @param equipment
-	 * @return  true：存在    false ：不存在
+	 * @return  true：存在  false ：不存在
 	 */
 	@Override
 	public boolean checkIpAndLogTypeUnique(Equipment equipment) {

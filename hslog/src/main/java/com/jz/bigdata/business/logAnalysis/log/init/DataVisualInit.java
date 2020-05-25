@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.template.CrudTemplate;
+import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
@@ -19,9 +20,9 @@ public class DataVisualInit {
 
     /**
      * 初始化工作
-     * @param logCurdDao
+     * @param logService
      */
-    public static void init(ILogCrudDao logCurdDao) throws Exception {
+    public static void init(IlogService logService) throws Exception {
         //做成统一变量，后期在内部环境修改时，方便进行调整
         Boolean editable = false;
         Boolean deletable = false;
@@ -41,7 +42,7 @@ public class DataVisualInit {
         visualCPU.setEditable(editable);
         visualCPU.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualCPU);
-        DocWriteResponse.Result resultCPU = logCurdDao.upsert("hsdata",visualCPU.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultCPU = logService.upsert("hsdata",visualCPU.getId(),gson.toJson(hsdataSingleAsset));
         //系统态占用CPU时间百分比
         Visualization visualSysCpuUse = new Visualization();
         visualSysCpuUse.setId("n_2RB3IBmkPMjFREQqe-");
@@ -56,7 +57,7 @@ public class DataVisualInit {
         visualSysCpuUse.setEditable(editable);
         visualSysCpuUse.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualSysCpuUse);
-        DocWriteResponse.Result resultSysCpuUse = logCurdDao.upsert("hsdata",visualSysCpuUse.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultSysCpuUse = logService.upsert("hsdata",visualSysCpuUse.getId(),gson.toJson(hsdataSingleAsset));
         //系统处理软中断占用CPU时间百分比
         Visualization visualSoftIrqCpuUse = new Visualization();
         visualSoftIrqCpuUse.setId("mAGWB3IBmkPMjFRE9Edd");
@@ -71,7 +72,7 @@ public class DataVisualInit {
         visualSoftIrqCpuUse.setEditable(editable);
         visualSoftIrqCpuUse.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualSoftIrqCpuUse);
-        DocWriteResponse.Result resultSoftIrqCpuUse = logCurdDao.upsert("hsdata",visualSoftIrqCpuUse.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultSoftIrqCpuUse = logService.upsert("hsdata",visualSoftIrqCpuUse.getId(),gson.toJson(hsdataSingleAsset));
         //进程占用内存TOP10
         Visualization visualMemoryTop10 = new Visualization();
         visualMemoryTop10.setId("TlyhBnIBmkPMjFRE_Fl_");
@@ -86,7 +87,7 @@ public class DataVisualInit {
         visualMemoryTop10.setEditable(editable);
         visualMemoryTop10.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualMemoryTop10);
-        DocWriteResponse.Result resultMemoryTop10 = logCurdDao.upsert("hsdata",visualMemoryTop10.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultMemoryTop10 = logService.upsert("hsdata",visualMemoryTop10.getId(),gson.toJson(hsdataSingleAsset));
         //CPU使用率-主机TOP10
         Visualization visualSysCpuTop10 = new Visualization();
         visualSysCpuTop10.setId("C1OHBnIBmkPMjFREwgdj");
@@ -101,7 +102,7 @@ public class DataVisualInit {
         visualSysCpuTop10.setEditable(editable);
         visualSysCpuTop10.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualSysCpuTop10);
-        DocWriteResponse.Result resultSysCpuTop10 = logCurdDao.upsert("hsdata",visualSysCpuTop10.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultSysCpuTop10 = logService.upsert("hsdata",visualSysCpuTop10.getId(),gson.toJson(hsdataSingleAsset));
 
         //nice值为正的进程占用CPU时间百分比
         Visualization visualNiceCpuUse = new Visualization();
@@ -117,7 +118,7 @@ public class DataVisualInit {
         visualNiceCpuUse.setEditable(editable);
         visualNiceCpuUse.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualNiceCpuUse);
-        DocWriteResponse.Result resultNiceCpuUse = logCurdDao.upsert("hsdata",visualNiceCpuUse.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultNiceCpuUse = logService.upsert("hsdata",visualNiceCpuUse.getId(),gson.toJson(hsdataSingleAsset));
         //用户态占用CPU时间百分比
         Visualization visualUserCpuUse = new Visualization();
         visualUserCpuUse.setId("RPyQB3IBmkPMjFREC-xR");
@@ -132,7 +133,7 @@ public class DataVisualInit {
         visualUserCpuUse.setEditable(editable);
         visualUserCpuUse.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualUserCpuUse);
-        DocWriteResponse.Result resultUserCpuUse = logCurdDao.upsert("hsdata",visualUserCpuUse.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultUserCpuUse = logService.upsert("hsdata",visualUserCpuUse.getId(),gson.toJson(hsdataSingleAsset));
         //内存使用情况
         Visualization visualMemoryUsed = new Visualization();
         visualMemoryUsed.setId("FFOOBnIBmkPMjFREc-Xb");
@@ -147,7 +148,7 @@ public class DataVisualInit {
         visualMemoryUsed.setEditable(editable);
         visualMemoryUsed.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualMemoryUsed);
-        DocWriteResponse.Result resultMemoryUsed = logCurdDao.upsert("hsdata",visualMemoryUsed.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultMemoryUsed = logService.upsert("hsdata",visualMemoryUsed.getId(),gson.toJson(hsdataSingleAsset));
         //内存空闲情况
         Visualization visualMemoryFree = new Visualization();
         visualMemoryFree.setId("P5f2BnIBmkPMjFREqQTq");
@@ -162,7 +163,7 @@ public class DataVisualInit {
         visualMemoryFree.setEditable(editable);
         visualMemoryFree.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualMemoryFree);
-        DocWriteResponse.Result resultMemoryFree = logCurdDao.upsert("hsdata",visualMemoryFree.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultMemoryFree = logService.upsert("hsdata",visualMemoryFree.getId(),gson.toJson(hsdataSingleAsset));
         //系统处理硬中断占用CPU时间百分比
         Visualization visualIrqCpuUse = new Visualization();
         visualIrqCpuUse.setId("SACWB3IBmkPMjFREHsGk");
@@ -177,7 +178,7 @@ public class DataVisualInit {
         visualIrqCpuUse.setEditable(editable);
         visualIrqCpuUse.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualIrqCpuUse);
-        DocWriteResponse.Result resultIrqCpuUse = logCurdDao.upsert("hsdata",visualIrqCpuUse.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultIrqCpuUse = logService.upsert("hsdata",visualIrqCpuUse.getId(),gson.toJson(hsdataSingleAsset));
         //CPU在等待I/O操作完成所花费的时间百分比
         Visualization visualIOwaitCpuUse = new Visualization();
         visualIOwaitCpuUse.setId("owKYB3IBmkPMjFREmW--");
@@ -192,7 +193,7 @@ public class DataVisualInit {
         visualIOwaitCpuUse.setEditable(editable);
         visualIOwaitCpuUse.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualIOwaitCpuUse);
-        DocWriteResponse.Result resultIOwaitCpuUse = logCurdDao.upsert("hsdata",visualIOwaitCpuUse.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultIOwaitCpuUse = logService.upsert("hsdata",visualIOwaitCpuUse.getId(),gson.toJson(hsdataSingleAsset));
         //内存使用率-主机TOP10
         Visualization visualMemoryUseTOP10 = new Visualization();
         visualMemoryUseTOP10.setId("zlOLBnIBmkPMjFRE8oRo");
@@ -207,7 +208,7 @@ public class DataVisualInit {
         visualMemoryUseTOP10.setEditable(editable);
         visualMemoryUseTOP10.setDeletable(deletable);
         hsdataSingleAsset.setVisualization(visualMemoryUseTOP10);
-        DocWriteResponse.Result resultMemoryUseTOP10 = logCurdDao.upsert("hsdata",visualMemoryUseTOP10.getId(),gson.toJson(hsdataSingleAsset));
+        DocWriteResponse.Result resultMemoryUseTOP10 = logService.upsert("hsdata",visualMemoryUseTOP10.getId(),gson.toJson(hsdataSingleAsset));
 
 
         /****************dashboard*******************/
@@ -221,7 +222,7 @@ public class DataVisualInit {
         dashboardAllAsset.setDeletable(deletable);
         dashboardAllAsset.setOption("[{\"eId\":\"zlOLBnIBmkPMjFRE8oRo\",\"x\":24,\"y\":2,\"w\":24,\"h\":10,\"tit\":\"内存使用率-主机TOP10\",\"i\":\"2020-05-1211:28:373111115\",\"chartType\":\"bar\",\"opt\":{},\"moved\":false},{\"eId\":\"C1OHBnIBmkPMjFREwgdj\",\"x\":0,\"y\":2,\"w\":24,\"h\":10,\"tit\":\"CPU使用率-主机TOP10\",\"i\":\"2020-05-1211:28:373111116\",\"chartType\":\"bar\",\"opt\":{},\"moved\":false},{\"x\":0,\"y\":0,\"w\":48,\"h\":2,\"tit\":\"\",\"i\":\"2020-05-1217:14:102\",\"chartType\":\"text\",\"opt\":{},\"text\":\"<p><strong style=\\\"font-size: 24px;\\\">全局指标数据统计</strong><span style=\\\"font-size: 24px;\\\"><span class=\\\"ql-cursor\\\">\uFEFF</span></span></p>\",\"moved\":false}]");
         hsdataAllAsset.setDashboard(dashboardAllAsset);
-        DocWriteResponse.Result resultAll = logCurdDao.upsert("hsdata",dashboardAllAsset.getId(),gson.toJson(hsdataAllAsset));
+        DocWriteResponse.Result resultAll = logService.upsert("hsdata",dashboardAllAsset.getId(),gson.toJson(hsdataAllAsset));
         //单一资产指标数据统计
         Dashboard dashboardSingleAsset = new Dashboard();
         dashboardSingleAsset.setId("y_qMB3IBmkPMjFRE7O-_");
@@ -231,6 +232,6 @@ public class DataVisualInit {
         dashboardSingleAsset.setDeletable(deletable);
         dashboardSingleAsset.setOption("[{\"eId\":\"QlOKBnIBmkPMjFREMFbc\",\"x\":0,\"y\":2,\"w\":24,\"h\":10,\"tit\":\"CPU使用情况\",\"i\":\"2020-05-1214:24:001\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"FFOOBnIBmkPMjFREc-Xb\",\"x\":24,\"y\":2,\"w\":24,\"h\":10,\"tit\":\"内存使用情况\",\"i\":\"2020-05-1214:24:002\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"P5f2BnIBmkPMjFREqQTq\",\"x\":24,\"y\":12,\"w\":24,\"h\":9,\"tit\":\"内存空闲情况\",\"i\":\"2020-05-1214:24:003\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"TlyhBnIBmkPMjFRE_Fl_\",\"x\":0,\"y\":12,\"w\":24,\"h\":9,\"tit\":\"进程占用内存TOP10\",\"i\":\"2020-05-1214:24:004\",\"chartType\":\"bar\",\"opt\":{},\"moved\":false},{\"eId\":\"n_2RB3IBmkPMjFREQqe-\",\"x\":16,\"y\":21,\"w\":16,\"h\":10,\"tit\":\"系统态占用CPU时间百分比\",\"i\":\"2020-05-1214:50:514\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"mAGWB3IBmkPMjFRE9Edd\",\"x\":16,\"y\":31,\"w\":16,\"h\":10,\"tit\":\"系统处理软中断占用CPU时间百分比\",\"i\":\"2020-05-1214:50:515\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"hv6SB3IBmkPMjFRE8bma\",\"x\":32,\"y\":21,\"w\":16,\"h\":10,\"tit\":\"nice值为正的进程占用CPU时间百分比\",\"i\":\"2020-05-1214:50:516\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"RPyQB3IBmkPMjFREC-xR\",\"x\":0,\"y\":21,\"w\":16,\"h\":10,\"tit\":\"用户态占用CPU时间百分比\",\"i\":\"2020-05-1214:50:517\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"SACWB3IBmkPMjFREHsGk\",\"x\":0,\"y\":31,\"w\":16,\"h\":10,\"tit\":\"系统处理硬中断占用CPU时间百分比\",\"i\":\"2020-05-1214:50:518\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"eId\":\"owKYB3IBmkPMjFREmW--\",\"x\":32,\"y\":31,\"w\":16,\"h\":10,\"tit\":\"CPU在等待I/O操作完成所花费的时间百分比\",\"i\":\"2020-05-1214:50:519\",\"chartType\":\"line\",\"opt\":{},\"moved\":false},{\"x\":0,\"y\":0,\"w\":48,\"h\":2,\"tit\":\"\",\"i\":\"2020-05-1216:44:2910\",\"chartType\":\"text\",\"opt\":{},\"text\":\"<p><span style=\\\"font-size: 20px;\\\">单一资产指标数据统计</span></p>\",\"moved\":false}]");
         hsdataAllAsset.setDashboard(dashboardSingleAsset);
-        DocWriteResponse.Result resultSingleAsset = logCurdDao.upsert("hsdata",dashboardSingleAsset.getId(),gson.toJson(hsdataAllAsset));
+        DocWriteResponse.Result resultSingleAsset = logService.upsert("hsdata",dashboardSingleAsset.getId(),gson.toJson(hsdataAllAsset));
     }
 }

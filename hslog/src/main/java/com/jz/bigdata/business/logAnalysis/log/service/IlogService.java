@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 
@@ -463,5 +464,25 @@ public interface IlogService {
 	 * @throws Exception
 	 */
 	public List<IndexTemplateMetaData> getTemplate(String ...templatename) throws Exception;
+
+	/**
+	 * 更新全局配置信息
+	 * @param clusterPersistentSetting
+	 * @param clusterTransientSetting
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean updateClusterSetting(Map<String, Object> clusterPersistentSetting,Map<String, Object> clusterTransientSetting) throws Exception;
+
+	/**
+	 * 向ES提交数据保存或更新
+	 * @param index 索引
+	 * @param id es存储数据id
+	 * @param json es存储数据
+	 * @return
+	 * @throws Exception
+	 */
+	public DocWriteResponse.Result upsert(String index, String id, String json) throws Exception;
+
 
 }

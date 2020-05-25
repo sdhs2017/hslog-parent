@@ -8,6 +8,7 @@ import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.MapUtil;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -109,18 +110,9 @@ public class BIController {
             //日期字段 //TODO 日期字段暂时写死
             vp.setDateField("@timestamp");
             //查询条件处理,数据格式为json，{key:value,key:value}
-            //TODO 并不是一个很好的实现方式，需要再考虑
             String queryParam = request.getParameter("queryParam");
-
             if(null!=queryParam){
-                JSONObject query = JSONObject.fromObject(queryParam);
-                Iterator<String> iterator = query.keys();
-                Map<String,String> paramMap = new HashMap<>();
-                String key;
-                while (iterator.hasNext()) {
-                    key = iterator.next();
-                    paramMap.put(key,query.getString(key));
-                }
+                Map<String,String> paramMap = MapUtil.json2map(queryParam);
                 vp.setQueryParam(paramMap);
             }
             //如果x轴是时间聚合类型，进行计算
@@ -195,6 +187,7 @@ public class BIController {
     @DescribeLog(describe = "图表保存")
     public String saveVisualization(HttpServletRequest request, Visualization visual, HttpSession session){
         try{
+            //另存为
             String isSaveAs = request.getParameter("isSaveAs");
             //用户新建保存或者编辑时另存，需要检测标题是否重复
             if(null!=isSaveAs&&"true".equals(isSaveAs)){
@@ -220,6 +213,7 @@ public class BIController {
                 return Constant.failureMessage("数据操作成功");
             }
         }catch(Exception e){
+            logger.error("图表保存"+e.getMessage());
             return Constant.failureMessage("数据操作失败");
         }
     }
@@ -255,6 +249,7 @@ public class BIController {
                 return Constant.failureMessage("数据操作成功");
             }
         }catch(Exception e){
+            logger.error("仪表盘保存"+e.getMessage());
             return Constant.failureMessage("数据操作失败");
         }
     }
@@ -270,6 +265,7 @@ public class BIController {
             String result = iBIService.getVisualizations(biIndexName,session);
             return Constant.successData(result);
         }catch(Exception e){
+            logger.error("获取图表列表"+e.getMessage());
             return Constant.successData(null);
         }
     }
@@ -285,6 +281,7 @@ public class BIController {
             String result = iBIService.getDashboards(biIndexName,session);
             return Constant.successData(result);
         }catch(Exception e){
+            logger.error("获取仪表盘列表"+e.getMessage());
             return Constant.successData(null);
         }
     }
@@ -301,6 +298,7 @@ public class BIController {
             String result = iBIService.getVisualizationById(id,biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
+            logger.error("获取图表详情"+e.getMessage());
             return Constant.failureMessage("获取图表详情失败");
         }
     }
@@ -317,6 +315,7 @@ public class BIController {
             String result = iBIService.getDashboardById(id,biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
+            logger.error("获取仪表盘详情"+e.getMessage());
             return Constant.failureMessage("获取仪表盘详情失败");
         }
     }
@@ -333,6 +332,7 @@ public class BIController {
             String result = iBIService.deleteVisualizationById(id,biIndexName);
             return Constant.successMessage(result);
         }catch(Exception e){
+            logger.error("删除图表"+e.getMessage());
             return Constant.failureMessage("删除图表失败");
         }
     }
@@ -349,6 +349,7 @@ public class BIController {
             String result = iBIService.deleteDashboardById(id,biIndexName);
             return Constant.successMessage(result);
         }catch(Exception e){
+            logger.error("删除仪表盘"+e.getMessage());
             return Constant.failureMessage("删除仪表盘失败");
         }
     }
@@ -371,7 +372,7 @@ public class BIController {
         Date dateEnd = formatter.parse(endTime);
         //差值 秒
         long difValue = (dateEnd.getTime() - dateStart.getTime())/1000;
-        //间隔 秒
+        //计算间隔 秒
         long intervalSeconds=1L;
         switch(intervalType){
             case SECOND:
@@ -401,8 +402,8 @@ public class BIController {
         }
         //计算 时间范围/时间间隔
         long buckets = difValue/intervalSeconds;
-        //计算出的桶数【小于】最大聚合桶数，可执行下一步聚合查询
-        if(buckets<Integer.parseInt(configProperty.getEs_search_max_buckets())){
+        //计算出的桶数【小于】最大聚合桶数(查询es当前设置的值)，可执行下一步聚合查询
+        if(buckets<iBIService.getClusterSearchMaxBuckets()){
             return true;
         }else{
             return false;

@@ -32,9 +32,6 @@ public class AssetController {
 	@Resource(name = "AssetService")
 	private IAssetService assetService;
 
-
-	@Autowired protected ILogCrudDao logCrudDao;
-
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@ResponseBody
@@ -90,6 +87,7 @@ public class AssetController {
 	@RequestMapping(value="/selectAll.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="查询所有资产")
 	public String selectAll(HttpServletRequest request, Asset asset,HttpSession session){
+
 		return assetService.selectAll(asset,session);
 	}
 

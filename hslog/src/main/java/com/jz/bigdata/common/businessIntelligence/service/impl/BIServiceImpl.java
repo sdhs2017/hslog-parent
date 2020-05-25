@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.*;
 import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.jz.bigdata.common.Constant;
@@ -16,6 +17,7 @@ import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.admin.cluster.settings.ClusterGetSettingsResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -38,6 +40,8 @@ public class BIServiceImpl implements IBIService {
     protected ILogCrudDao logCurdDao;
     @Autowired
     protected IBIDao ibiDao;
+    @Autowired
+    protected IGlobalDao globalDao;
     @Override
     public List<MappingField> getFieldByXAxisAggregation(String templateName, String indexName, String agg) throws Exception {
         return getMappingFieldByAggType(templateName,indexName,agg);
@@ -270,6 +274,13 @@ public class BIServiceImpl implements IBIService {
         }else{
             return false;
         }
+    }
+
+    @Override
+    public int getClusterSearchMaxBuckets() throws Exception {
+        ClusterGetSettingsResponse setting = globalDao.getClusterSetting();
+        String result = setting.getPersistentSettings().get("search.max_buckets");
+        return Integer.parseInt(result);
     }
 
 

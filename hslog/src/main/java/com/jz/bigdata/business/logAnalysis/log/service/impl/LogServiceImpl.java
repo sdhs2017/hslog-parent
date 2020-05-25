@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
@@ -21,6 +22,7 @@ import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
+import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -49,6 +51,8 @@ public class LogServiceImpl implements IlogService {
     @Autowired protected ILogIndexDao logIndexDao;
 
 	@Autowired protected ILogSearchDao logSearchDao;
+	@Autowired
+	protected IGlobalDao globalDao;
 
 	@Resource(name ="SafeStrategyService")
 	private ISafeStrategyService safeStrategyService;
@@ -1637,6 +1641,16 @@ public class LogServiceImpl implements IlogService {
 	@Override
 	public List<IndexTemplateMetaData> getTemplate(String... templatename) throws Exception {
 		return logIndexDao.getTemplateData(templatename);
+	}
+
+	@Override
+	public boolean updateClusterSetting(Map<String, Object> clusterPersistentSetting, Map<String, Object> clusterTransientSetting) throws Exception {
+		return globalDao.updateClusterSetting(clusterPersistentSetting,clusterTransientSetting);
+	}
+
+	@Override
+	public DocWriteResponse.Result upsert(String index, String id, String json) throws Exception {
+		return logCrudDao.upsert(index,id,json);
 	}
 
 

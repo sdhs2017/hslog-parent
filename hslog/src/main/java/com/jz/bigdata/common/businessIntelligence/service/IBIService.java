@@ -5,6 +5,7 @@ import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
+import org.elasticsearch.action.admin.cluster.settings.ClusterGetSettingsResponse;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
@@ -123,5 +124,10 @@ public interface IBIService {
      */
     public boolean isDashboardExists(String title,String indexName) throws Exception;
 
-
+    /**
+     * 获取cluster-setting信息中的persistent的search.max_buckets
+     * @return
+     * @throws Exception
+     */
+    public int getClusterSearchMaxBuckets() throws Exception;
 }

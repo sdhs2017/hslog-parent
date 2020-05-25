@@ -95,17 +95,11 @@ public class LogController extends BaseController{
 	@Resource(name ="UserService")
 	private IUserService usersService;
 
-	//@Autowired protected ClientTemplate clientTemplate;
-	@Autowired protected ILogCrudDao logCrudDao;
-
 	@Resource(name ="BeatTemplate")
 	private BeatTemplate beatTemplate;
 
-	@Autowired
-	protected ILogCrudDao logCurdDao;
 
-	@Autowired
-	protected IGlobalDao globalDao;
+
 
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
 	//json处理全局对象
@@ -299,6 +293,7 @@ public class LogController extends BaseController{
 				AssetCache.INSTANCE.init(equipmentService,assetService);
 			}catch (Exception e){
 				e.printStackTrace();
+				logger.error("初始化工作五：更新资产缓存信息失败"+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "资产信息获取失败！");
 				return JSONArray.fromObject(map).toString();
@@ -446,7 +441,7 @@ public class LogController extends BaseController{
 			 * 初始化工作六：内置基本报表（数据可视化模块）
 			 */
 			try{
-				DataVisualInit.init(logCurdDao);
+				DataVisualInit.init(logService);
 			}catch (Exception e){
 				e.printStackTrace();
 				logger.error("数据可视化内置报表失败！："+e.getMessage());
@@ -460,9 +455,9 @@ public class LogController extends BaseController{
 			try{
 				//Persistent setting map
 				Map<String, Object> clusterPersistentSetting = new HashMap<>();
-				//查询最大聚合桶数
+				//查询最大聚合桶数，通过配置文件读取
 				clusterPersistentSetting.put("search.max_buckets",configProperty.getEs_search_max_buckets());
-				boolean result = globalDao.updateClusterSetting(clusterPersistentSetting,null);
+				boolean result = logService.updateClusterSetting(clusterPersistentSetting,null);
 				//配置失败时
 				if(!result){
 					logger.info("cluster-setting配置返回失败！");
@@ -479,8 +474,6 @@ public class LogController extends BaseController{
 				map.put("msg", "集群全局配置失败！");
 				return JSONArray.fromObject(map).toString();
 			}
-
-
 			map.put("state", true);
 			map.put("msg", "初始化成功！");
 			logger.info("初始化工作完成！！！");
@@ -1796,285 +1789,285 @@ public class LogController extends BaseController{
 	 * @param request
 	 * @return
 	 */
-	@ResponseBody
-	@RequestMapping(value="/importHistoricalData",produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="导入历史数据")
-	public String importHistoricalData(HttpServletRequest request) {
-
-		String filepath = request.getParameter("filepath");
-		String DEFAULT_REGEX = "^ java.|^   at";
-		//日志类型
-		String logType="unknown";
-		Log4j log4j = null;
-		Winlog winlog;
-		PacketFilteringFirewal packetFilteringFirewal;
-		Mysql mysql;
-		Syslog syslog;
-
-		//初始化：获取设备列表、map
-		Map<String, Equipment> equipmentMap = equipmentService.selectAllEquipment();
-
-		Set<String> ipadressSet = equipmentService.selectAllIPAdress();
-
-		Map<String, String> equipmentLogType = equipmentService.selectLog_level();
-
-		Set<String> eventType = alarmService.selectByEmailState();
-
-		Map<String, Object> map = new HashMap<>();
-		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-		//BulkRequest requests = new BulkRequest();
-		List<IndexRequest> requests = new ArrayList<IndexRequest>();
-
-		File file = new File(filepath);
-
-		try{
-			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
-			String json;
-
-			//	资产、ip地址
-			Equipment equipment;
-			String ipadress;
-
-			StringBuilder builder = new StringBuilder();
-			BufferedReader br = new BufferedReader(new FileReader(file));//构造一个BufferedReader类来读取文件
-			String log = null;
-
-			//使用readLine方法，一次读一行
-			while((log = br.readLine())!=null){
-
-				// 日志过滤正则
-				// log4j日志信息过滤条件
-				Pattern facility_pattern = Pattern.compile("local3:");
-				Matcher facility_matcher = facility_pattern.matcher(log);
-				Pattern pattern = Pattern.compile(DEFAULT_REGEX);
-				// 防火墙-包过滤日志信息过滤条件
-				Pattern logtype_pattern = Pattern.compile("logtype=1");
-				Matcher logtype_matcher = logtype_pattern.matcher(log);
-				Pattern dmg_pattern = Pattern.compile("包过滤日志");
-				Matcher dmg_matcher = dmg_pattern.matcher(log);
-				// 防火墙-其他日志信息过滤条件
-				Pattern logothertype_pattern = Pattern.compile("logtype=");
-				Matcher logtotherype_matcher = logothertype_pattern.matcher(log);
-				Pattern dmgother_pattern = Pattern.compile("dsp_msg=");
-				Matcher dmgother_matcher = dmgother_pattern.matcher(log);
-				// windows安全审计
-				Pattern win2008pattern = Pattern.compile("Security-Auditing:");
-				Matcher win2008matcher = win2008pattern.matcher(log);
-				Pattern win2003pattern = Pattern.compile("Security:");
-				Matcher win2003matcher = win2003pattern.matcher(log);
-				// mysql日志
-				Pattern mysqlpattern = Pattern.compile("timestamp");
-				Matcher mysqlmatcher = mysqlpattern.matcher(log);
-
-				if (facility_matcher.find()) {
-					logType = LogType.LOGTYPE_LOG4J;
-					synchronized (log) {
-						String logleft = log.substring(0, log.indexOf(facility_matcher.group(0))+facility_matcher.group(0).length());
-
-						Matcher m = pattern.matcher(log.replace(logleft, ""));
-						//判断是否符合正则表达式 如果符合，表明这是一条开始数据
-						if(m.find()) {
-							log = log.replace(logleft, "");
-							//添加数据
-							builder.append(" \\005 "+log);
-						}else {
-							//添加builder
-							if (builder.length()!=0) {
-								//进入范式化
-								try {
-									log4j = new Log4j(builder.toString());
-								} catch (Exception e) {
-									continue;
-								}
-								ipadress = log4j.getIp();
-								//判断是否在资产ip地址池里
-								if(ipadressSet.contains(ipadress)){
-									//判断是否在已识别资产里————日志类型可识别
-									equipment=equipmentMap.get(log4j.getIp() +logType);
-									if(equipment!=null){
-										log4j.setUserid(equipment.getUserId());
-										log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
-										log4j.setEquipmentname(equipment.getName());
-										log4j.setEquipmentid(equipment.getId());
-										json = gson.toJson(log4j);
-										requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
-									}else{
-										log4j.setUserid(LogType.LOGTYPE_UNKNOWN);
-										log4j.setDeptid(LogType.LOGTYPE_UNKNOWN);
-										log4j.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-										log4j.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-										json = gson.toJson(log4j);
-										requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
-									}
-								}else{
-									//不在资产ip池里，暂不处理
-									//TODO
-								}
-
-								//清空数据
-								builder.delete(0, builder.length());
-							}
-							builder.append(log);
-
-						}
-					}
-				}else if (logtype_matcher.find()&&dmg_matcher.find()) {
-					logType = LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG;
-					try {
-						packetFilteringFirewal = new PacketFilteringFirewal(log);
-					} catch (Exception e) {
-						continue;
-					}
-					ipadress = packetFilteringFirewal.getIp();
-					if (ipadressSet.contains(ipadress)) {
-						equipment=equipmentMap.get(packetFilteringFirewal.getIp() +logType);
-						if (equipment!=null) {
-							packetFilteringFirewal.setUserid(equipment.getUserId());
-							packetFilteringFirewal.setDeptid(String.valueOf(equipment.getDepartmentId()));
-							packetFilteringFirewal.setEquipmentid(equipment.getId());
-							packetFilteringFirewal.setEquipmentname(equipment.getName());
-							json = gson.toJson(packetFilteringFirewal);
-							//requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
-							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
-						}else {
-							packetFilteringFirewal.setUserid(LogType.LOGTYPE_UNKNOWN);
-							packetFilteringFirewal.setDeptid(LogType.LOGTYPE_UNKNOWN);
-							packetFilteringFirewal.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-							packetFilteringFirewal.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-							json = gson.toJson(packetFilteringFirewal);
-							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
-						}
-					}else {
-						//不在资产ip池里，暂不处理
-					}
-					//es暂无防火墙包过滤日志对应的mapping，暂未入库es
-				}else if(logtotherype_matcher.find()&&dmgother_matcher.find()){
-					//防火墙、不包括包过滤日志，暂不处理
-					System.out.println("-------不做处理-------------");
-				}/*else if (mysqlmatcher.find()) {
-					logType = LogType.LOGTYPE_MYSQLLOG;
-					mysql = new Mysql(log);
-					ipadress = mysql.getIp();
-					if (ipadressSet.contains(ipadress)) {
-						equipment=equipmentMap.get(mysql.getIp() +logType);
-						if (equipment!=null) {
-							mysql.setUserid(equipment.getUserId());
-							mysql.setDeptid(String.valueOf(equipment.getDepartmentId()));
-							mysql.setEquipmentname(equipment.getName());
-							mysql.setEquipmentid(equipment.getId());
-							json = gson.toJson(mysql);
-							requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_MYSQLLOG, json));
-						}else {
-							mysql.setUserid(LogType.LOGTYPE_UNKNOWN);
-							mysql.setDeptid(String.valueOf(LogType.LOGTYPE_UNKNOWN));
-							mysql.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-							mysql.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-							json = gson.toJson(mysql);
-							requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_MYSQLLOG, json));
-						}
-					}else {
-						//不在资产ip池里，暂不处理
-					}
-				}*/
-				else if(win2003matcher.find()||win2008matcher.find()){
-					//windows、evtsys组件收集日志
-					logType = LogType.LOGTYPE_WINLOG;
-					try {
-						winlog = new Winlog(log);
-					} catch (Exception e) {
-						continue;
-					}
-					ipadress = winlog.getIp();
-					//判断是否在资产ip地址池里
-					if(ipadressSet.contains(ipadress)){
-						//判断是否在已识别资产里————日志类型可识别
-						equipment=equipmentMap.get(winlog.getIp() +logType);
-						if(equipment != null){
-							if (equipmentLogType.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {
-								winlog.setUserid(equipment.getUserId());
-								winlog.setDeptid(String.valueOf(equipment.getDepartmentId()));
-								winlog.setEquipmentname(equipment.getName());
-								winlog.setEquipmentid(equipment.getId());
-								json = gson.toJson(winlog);
-								requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_WINLOG, json));
-							}
-						}else{
-							winlog.setUserid(LogType.LOGTYPE_UNKNOWN);
-							winlog.setDeptid(LogType.LOGTYPE_UNKNOWN);
-							winlog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-							winlog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-							json = gson.toJson(winlog);
-							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_WINLOG, json));
-						}
-					}else{
-						//不在资产ip池里，暂不处理
-					}
-				}else {
-					logType = LogType.LOGTYPE_SYSLOG;
-					try {
-						syslog = new Syslog(log);
-					} catch (Exception e) {
-						continue;
-					}
-					ipadress = syslog.getIp();
-					//判断是否在资产ip地址池里
-					if(ipadressSet.contains(ipadress)){
-						//判断是否在已识别资产里————日志类型可识别
-						equipment = equipmentMap.get(syslog.getIp() +logType);
-						if(null != equipment){
-							if (equipmentLogType.get(equipment.getId()).indexOf(syslog.getOperation_level().toLowerCase())!=-1) {
-								syslog.setUserid(equipment.getUserId());
-								syslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
-								syslog.setEquipmentid(equipment.getId());
-								syslog.setEquipmentname(equipment.getName());
-								if (eventType.contains(syslog.getEvent_type())) {
-									Sendmail sendmail = new Sendmail(syslog.getIp(), syslog.getEquipmentname(), syslog.getEvent_des(), usersService.selectById(syslog.getUserid()).getEmail());
-								}
-								json = gson.toJson(syslog);
-								requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_SYSLOG, json));
-							}
-						}else{
-							//在资产ip地址池里，但是无法识别日志类型
-							syslog.setUserid(LogType.LOGTYPE_UNKNOWN);
-							syslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
-							syslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-							syslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-							json = gson.toJson(syslog);
-							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_UNKNOWN, json));
-						}
-					}else{
-						//不在资产ip池里，暂不处理
-					}
-				}
-				// 根据配置参数进行批量提交
-				if (requests.size()==configProperty.getEs_bulk()) {
-					//clientTemplate.bulk(requests);
-					logCrudDao.bulkInsert(requests);
-					requests.clear();
-				}
-			}
-			br.close();
-			map.put("result", "导入历史数据成功！");
-		}catch(Exception e){
-			requests.clear();
-			map.put("result", "导入历史数据失败！");
-			e.printStackTrace();
-		}finally {
-			if (requests.size()>0) {
-				try {
-					logCrudDao.bulkInsert(requests);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		}
-
-		list.add(map);
-		String result = JSONArray.fromObject(list).toString();
-
-		return result;
-	}
-
+//	@ResponseBody
+//	@RequestMapping(value="/importHistoricalData",produces = "application/json; charset=utf-8")
+//	@DescribeLog(describe="导入历史数据")
+//	public String importHistoricalData(HttpServletRequest request) {
+//
+//		String filepath = request.getParameter("filepath");
+//		String DEFAULT_REGEX = "^ java.|^   at";
+//		//日志类型
+//		String logType="unknown";
+//		Log4j log4j = null;
+//		Winlog winlog;
+//		PacketFilteringFirewal packetFilteringFirewal;
+//		Mysql mysql;
+//		Syslog syslog;
+//
+//		//初始化：获取设备列表、map
+//		Map<String, Equipment> equipmentMap = equipmentService.selectAllEquipment();
+//
+//		Set<String> ipadressSet = equipmentService.selectAllIPAdress();
+//
+//		Map<String, String> equipmentLogType = equipmentService.selectLog_level();
+//
+//		Set<String> eventType = alarmService.selectByEmailState();
+//
+//		Map<String, Object> map = new HashMap<>();
+//		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+//		//BulkRequest requests = new BulkRequest();
+//		List<IndexRequest> requests = new ArrayList<IndexRequest>();
+//
+//		File file = new File(filepath);
+//
+//		try{
+//			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+//			String json;
+//
+//			//	资产、ip地址
+//			Equipment equipment;
+//			String ipadress;
+//
+//			StringBuilder builder = new StringBuilder();
+//			BufferedReader br = new BufferedReader(new FileReader(file));//构造一个BufferedReader类来读取文件
+//			String log = null;
+//
+//			//使用readLine方法，一次读一行
+//			while((log = br.readLine())!=null){
+//
+//				// 日志过滤正则
+//				// log4j日志信息过滤条件
+//				Pattern facility_pattern = Pattern.compile("local3:");
+//				Matcher facility_matcher = facility_pattern.matcher(log);
+//				Pattern pattern = Pattern.compile(DEFAULT_REGEX);
+//				// 防火墙-包过滤日志信息过滤条件
+//				Pattern logtype_pattern = Pattern.compile("logtype=1");
+//				Matcher logtype_matcher = logtype_pattern.matcher(log);
+//				Pattern dmg_pattern = Pattern.compile("包过滤日志");
+//				Matcher dmg_matcher = dmg_pattern.matcher(log);
+//				// 防火墙-其他日志信息过滤条件
+//				Pattern logothertype_pattern = Pattern.compile("logtype=");
+//				Matcher logtotherype_matcher = logothertype_pattern.matcher(log);
+//				Pattern dmgother_pattern = Pattern.compile("dsp_msg=");
+//				Matcher dmgother_matcher = dmgother_pattern.matcher(log);
+//				// windows安全审计
+//				Pattern win2008pattern = Pattern.compile("Security-Auditing:");
+//				Matcher win2008matcher = win2008pattern.matcher(log);
+//				Pattern win2003pattern = Pattern.compile("Security:");
+//				Matcher win2003matcher = win2003pattern.matcher(log);
+//				// mysql日志
+//				Pattern mysqlpattern = Pattern.compile("timestamp");
+//				Matcher mysqlmatcher = mysqlpattern.matcher(log);
+//
+//				if (facility_matcher.find()) {
+//					logType = LogType.LOGTYPE_LOG4J;
+//					synchronized (log) {
+//						String logleft = log.substring(0, log.indexOf(facility_matcher.group(0))+facility_matcher.group(0).length());
+//
+//						Matcher m = pattern.matcher(log.replace(logleft, ""));
+//						//判断是否符合正则表达式 如果符合，表明这是一条开始数据
+//						if(m.find()) {
+//							log = log.replace(logleft, "");
+//							//添加数据
+//							builder.append(" \\005 "+log);
+//						}else {
+//							//添加builder
+//							if (builder.length()!=0) {
+//								//进入范式化
+//								try {
+//									log4j = new Log4j(builder.toString());
+//								} catch (Exception e) {
+//									continue;
+//								}
+//								ipadress = log4j.getIp();
+//								//判断是否在资产ip地址池里
+//								if(ipadressSet.contains(ipadress)){
+//									//判断是否在已识别资产里————日志类型可识别
+//									equipment=equipmentMap.get(log4j.getIp() +logType);
+//									if(equipment!=null){
+//										log4j.setUserid(equipment.getUserId());
+//										log4j.setDeptid(String.valueOf(equipment.getDepartmentId()));
+//										log4j.setEquipmentname(equipment.getName());
+//										log4j.setEquipmentid(equipment.getId());
+//										json = gson.toJson(log4j);
+//										requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
+//									}else{
+//										log4j.setUserid(LogType.LOGTYPE_UNKNOWN);
+//										log4j.setDeptid(LogType.LOGTYPE_UNKNOWN);
+//										log4j.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+//										log4j.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+//										json = gson.toJson(log4j);
+//										requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_LOG4J, json));
+//									}
+//								}else{
+//									//不在资产ip池里，暂不处理
+//									//TODO
+//								}
+//
+//								//清空数据
+//								builder.delete(0, builder.length());
+//							}
+//							builder.append(log);
+//
+//						}
+//					}
+//				}else if (logtype_matcher.find()&&dmg_matcher.find()) {
+//					logType = LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG;
+//					try {
+//						packetFilteringFirewal = new PacketFilteringFirewal(log);
+//					} catch (Exception e) {
+//						continue;
+//					}
+//					ipadress = packetFilteringFirewal.getIp();
+//					if (ipadressSet.contains(ipadress)) {
+//						equipment=equipmentMap.get(packetFilteringFirewal.getIp() +logType);
+//						if (equipment!=null) {
+//							packetFilteringFirewal.setUserid(equipment.getUserId());
+//							packetFilteringFirewal.setDeptid(String.valueOf(equipment.getDepartmentId()));
+//							packetFilteringFirewal.setEquipmentid(equipment.getId());
+//							packetFilteringFirewal.setEquipmentname(equipment.getName());
+//							json = gson.toJson(packetFilteringFirewal);
+//							//requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+//							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+//						}else {
+//							packetFilteringFirewal.setUserid(LogType.LOGTYPE_UNKNOWN);
+//							packetFilteringFirewal.setDeptid(LogType.LOGTYPE_UNKNOWN);
+//							packetFilteringFirewal.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+//							packetFilteringFirewal.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+//							json = gson.toJson(packetFilteringFirewal);
+//							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG, json));
+//						}
+//					}else {
+//						//不在资产ip池里，暂不处理
+//					}
+//					//es暂无防火墙包过滤日志对应的mapping，暂未入库es
+//				}else if(logtotherype_matcher.find()&&dmgother_matcher.find()){
+//					//防火墙、不包括包过滤日志，暂不处理
+//					System.out.println("-------不做处理-------------");
+//				}/*else if (mysqlmatcher.find()) {
+//					logType = LogType.LOGTYPE_MYSQLLOG;
+//					mysql = new Mysql(log);
+//					ipadress = mysql.getIp();
+//					if (ipadressSet.contains(ipadress)) {
+//						equipment=equipmentMap.get(mysql.getIp() +logType);
+//						if (equipment!=null) {
+//							mysql.setUserid(equipment.getUserId());
+//							mysql.setDeptid(String.valueOf(equipment.getDepartmentId()));
+//							mysql.setEquipmentname(equipment.getName());
+//							mysql.setEquipmentid(equipment.getId());
+//							json = gson.toJson(mysql);
+//							requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_MYSQLLOG, json));
+//						}else {
+//							mysql.setUserid(LogType.LOGTYPE_UNKNOWN);
+//							mysql.setDeptid(String.valueOf(LogType.LOGTYPE_UNKNOWN));
+//							mysql.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+//							mysql.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+//							json = gson.toJson(mysql);
+//							requests.add(clientTemplate.insertNo(configProperty.getEs_index(), LogType.LOGTYPE_MYSQLLOG, json));
+//						}
+//					}else {
+//						//不在资产ip池里，暂不处理
+//					}
+//				}*/
+//				else if(win2003matcher.find()||win2008matcher.find()){
+//					//windows、evtsys组件收集日志
+//					logType = LogType.LOGTYPE_WINLOG;
+//					try {
+//						winlog = new Winlog(log);
+//					} catch (Exception e) {
+//						continue;
+//					}
+//					ipadress = winlog.getIp();
+//					//判断是否在资产ip地址池里
+//					if(ipadressSet.contains(ipadress)){
+//						//判断是否在已识别资产里————日志类型可识别
+//						equipment=equipmentMap.get(winlog.getIp() +logType);
+//						if(equipment != null){
+//							if (equipmentLogType.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {
+//								winlog.setUserid(equipment.getUserId());
+//								winlog.setDeptid(String.valueOf(equipment.getDepartmentId()));
+//								winlog.setEquipmentname(equipment.getName());
+//								winlog.setEquipmentid(equipment.getId());
+//								json = gson.toJson(winlog);
+//								requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_WINLOG, json));
+//							}
+//						}else{
+//							winlog.setUserid(LogType.LOGTYPE_UNKNOWN);
+//							winlog.setDeptid(LogType.LOGTYPE_UNKNOWN);
+//							winlog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+//							winlog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+//							json = gson.toJson(winlog);
+//							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_WINLOG, json));
+//						}
+//					}else{
+//						//不在资产ip池里，暂不处理
+//					}
+//				}else {
+//					logType = LogType.LOGTYPE_SYSLOG;
+//					try {
+//						syslog = new Syslog(log);
+//					} catch (Exception e) {
+//						continue;
+//					}
+//					ipadress = syslog.getIp();
+//					//判断是否在资产ip地址池里
+//					if(ipadressSet.contains(ipadress)){
+//						//判断是否在已识别资产里————日志类型可识别
+//						equipment = equipmentMap.get(syslog.getIp() +logType);
+//						if(null != equipment){
+//							if (equipmentLogType.get(equipment.getId()).indexOf(syslog.getOperation_level().toLowerCase())!=-1) {
+//								syslog.setUserid(equipment.getUserId());
+//								syslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
+//								syslog.setEquipmentid(equipment.getId());
+//								syslog.setEquipmentname(equipment.getName());
+//								if (eventType.contains(syslog.getEvent_type())) {
+//									Sendmail sendmail = new Sendmail(syslog.getIp(), syslog.getEquipmentname(), syslog.getEvent_des(), usersService.selectById(syslog.getUserid()).getEmail());
+//								}
+//								json = gson.toJson(syslog);
+//								requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_SYSLOG, json));
+//							}
+//						}else{
+//							//在资产ip地址池里，但是无法识别日志类型
+//							syslog.setUserid(LogType.LOGTYPE_UNKNOWN);
+//							syslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
+//							syslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+//							syslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+//							json = gson.toJson(syslog);
+//							requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_UNKNOWN, json));
+//						}
+//					}else{
+//						//不在资产ip池里，暂不处理
+//					}
+//				}
+//				// 根据配置参数进行批量提交
+//				if (requests.size()==configProperty.getEs_bulk()) {
+//					//clientTemplate.bulk(requests);
+//					logCrudDao.bulkInsert(requests);
+//					requests.clear();
+//				}
+//			}
+//			br.close();
+//			map.put("result", "导入历史数据成功！");
+//		}catch(Exception e){
+//			requests.clear();
+//			map.put("result", "导入历史数据失败！");
+//			e.printStackTrace();
+//		}finally {
+//			if (requests.size()>0) {
+//				try {
+//					logCrudDao.bulkInsert(requests);
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		}
+//
+//		list.add(map);
+//		String result = JSONArray.fromObject(list).toString();
+//
+//		return result;
+//	}
+//
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub

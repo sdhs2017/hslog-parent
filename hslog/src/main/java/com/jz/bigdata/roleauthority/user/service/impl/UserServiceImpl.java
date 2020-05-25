@@ -58,6 +58,7 @@ public class UserServiceImpl implements IUserService {
 	 */
 	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
 	public int insert(User user) {
+		//默认添加时用户状态正常
 		user.setState(1);
 		user.setPassword(MD5.EncoderByMd5(user.getPassword()));
 		String[] roleIDs = user.getRole().split(",");
@@ -124,7 +125,7 @@ public class UserServiceImpl implements IUserService {
 		List<String> count=userDao.count(page);
 		Map<String,Object> map =new HashMap<String,Object>();
 //		List li=new ArrayList<>();
-//		添加到map
+//		添加到map，拦截器多结果返回原因，取第一个结果
 		map.put("count", (count.get(0)));
 //		List<Map<String,Object>> list=new ArrayList<>();
 //		用户信息添加到map
@@ -320,6 +321,8 @@ public class UserServiceImpl implements IUserService {
 		user.setPassword(MD5.EncoderByMd5(user.getPassword()));
 		String userID = Uuid.getUUID().toString();
 		user.setId(userID);
+		//注册用户默认用户状态正常
+		user.setState(1);
 		//用户基本信息
 		userDao.registerUser(user);
 		//角色权限表，新用户默认为游客。

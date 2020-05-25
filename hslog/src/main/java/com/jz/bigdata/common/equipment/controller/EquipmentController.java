@@ -52,52 +52,13 @@ public class EquipmentController {
 	@RequestMapping(value="/upsert.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="添加/修改资产")
 	public String upsert(HttpServletRequest request, Equipment equipment,HttpSession session) {
-		return this.equipmentService.upsert(equipment,session);
-	}
-	//弃用，使用upsert
-	@ResponseBody
-//	@RequestMapping("/insert")
-	@RequestMapping(value="/insert.do", produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="添加或修改资产")
-	public String insert(HttpServletRequest request, Equipment equipment,HttpSession session) {
-		/*
-		int resultCheck = this.equipmentService.checkUnique(equipment);
-		switch(resultCheck){
-			case 0:
-				return Constant.successMessage();
-			case 1:
-				return Constant.failureMessage("资产名称重复，请重新输入！");
-			case 2:
-				return Constant.failureMessage("ip+日志类型重复，请重新输入！");
-		}
-		*/
 		try{
-			// 结果一般命名为result
-			int	result = this.equipmentService.insert(equipment,session);
-			if(result==0){
-				//return Constant.equipmentMaxInsertMessage();
-				return Constant.failureMessage(2,"资产达到上限，无法添加！");
-			}else if(result==1){
-				//return Constant.equipmentNameIpInsertMessage();
-				return Constant.failureMessage(2,"资产名,ip重复,无法添加！");
-			}else{
-				return Constant.successMessage();
-			}
-		}catch(Exception e){
-			//根据异常信息判定是否存在唯一索引重复
-			if(e.getMessage().indexOf("nameUnique")>=0){
-				return Constant.failureMessage("资产名称重复，请重新输入！");
-			}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
-				return Constant.failureMessage("资产“ip+日志类型”重复，请重新输入！");
-			}else{
-				return Constant.failureMessage("资产添加失败！");
-			}
+			return this.equipmentService.upsert(equipment,session);
+		}catch (Exception e){
+			logger.error(e.getMessage());
+			return Constant.failureMessage("操作失败！");
 		}
 
-
-//		} else {// 更新操作
-//			result = this.equipmentService.updateById(equipment,session);
-//		}
 	}
 
 	/**
@@ -109,14 +70,20 @@ public class EquipmentController {
 	@RequestMapping(value="/delete.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="删除资产")
 	public String delete(HttpServletRequest request) {
-		int result = 0;
+		try{
+			int result = 0;
 //		获取id数组
-		String[] ids = request.getParameter("id").split(",");
+			String[] ids = request.getParameter("id").split(",");
 //		数组长度大于0删除数据
-		if (ids.length > 0) {
-			result = this.equipmentService.delete(ids);
+			if (ids.length > 0) {
+				result = this.equipmentService.delete(ids);
+			}
+			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+		}catch(Exception e){
+			logger.error("删除资产"+e.getMessage());
+			return Constant.failureMessage();
 		}
-		return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+
 	}
 
 	
@@ -130,7 +97,13 @@ public class EquipmentController {
 	@RequestMapping(value="/selectAll.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="查询所有资产")
 	public String selectAll(HttpServletRequest request, Equipment equipment,HttpSession session){
-		return equipmentService.selectAll(equipment,session);
+		try{
+			return equipmentService.selectAll(equipment,session);
+		}catch (Exception e){
+			logger.error("查询所有资产"+e.getMessage());
+			return Constant.failureMessage();
+		}
+
 	}
 	
 	/**
@@ -148,7 +121,7 @@ public class EquipmentController {
 		try {
 			list = this.equipmentService.selectEquipment(equipment);
 		} catch (Exception e) {
-			logger.error("查询单个资产：失败");
+			logger.error("查询单个资产：失败"+e.getMessage());
 		}
 		return list;
 	}
@@ -184,30 +157,9 @@ public class EquipmentController {
 			result = equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session);
 			logger.info("查询资产：成功");
 		} catch (Exception e) {
-			logger.error("查询资产：失败");
-			e.printStackTrace();
+			logger.error("查询资产：失败"+e.getMessage());
 		}
 		return result;
-	}
-	
-	
-	/**
-	 * @param request
-	 * @param equipment
-	 * @param session
-	 * @return 修改资产
-	 * //弃用，使用upsert
-	 */
-	@ResponseBody
-//	@RequestMapping("/insert")
-	@RequestMapping(value="/update.do", produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="修改资产")
-	public String update(HttpServletRequest request, Equipment equipment,HttpSession session) {
-		
-		// 结果一般命名为result
-		int	result = 0;
-		result = this.equipmentService.updateById(equipment,session);
-		return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 	}
 	
 	/**

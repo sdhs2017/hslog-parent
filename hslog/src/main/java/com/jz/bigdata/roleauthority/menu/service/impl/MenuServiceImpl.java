@@ -99,7 +99,7 @@ public class MenuServiceImpl implements IMenuService {
 		//如果该节点信息中有父节点信息，检验该父节点信息是否存在
 		if(menu.getSuperiorId()!=null&&!"".equals(menu.getSuperiorId())){
 			List<List<Map<String,Object>>> i = menuDao.selectExistParentMenuById(menu.getSuperiorId());
-			if("0".equals(i.get(0).get(0).get("num"))){
+			if(i.size()>0&&"0".equals(i.get(0).get(0).get("num"))){
 				return false;
 			}
 		}
@@ -165,6 +165,7 @@ public class MenuServiceImpl implements IMenuService {
 	@Override
 	public String selectSystemMenu() {
 		List<List<Menu>> list =menuDao.selectSystemMenu();
+		//拦截器处理时对于多结果返回进行了处理，该功能只有一个结果，因此使用get(0)
 		TreeBuilder treeBuilder = new TreeBuilder(list.get(0));
 		String menuTree=treeBuilder.buildJSONTree();
 		return menuTree;
@@ -173,6 +174,7 @@ public class MenuServiceImpl implements IMenuService {
 	@Override
 	public String selectSystemMenuByIDs(List<String> ids) {
 		List<List<Menu>> list =menuDao.selectSystemMenuByIDs(ids);
+		//拦截器处理时对于多结果返回进行了处理，该功能只有一个结果，因此使用get(0)
 		TreeBuilder treeBuilder = new TreeBuilder(list.get(0));
 		String menuTree=treeBuilder.buildJSONTree();
 		return menuTree;

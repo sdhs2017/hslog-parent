@@ -16,7 +16,7 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 public interface IEquipmentService {
 
 	int insert(Equipment equipment, HttpSession session);
-	String upsert(Equipment equipment, HttpSession session);
+	String upsert(Equipment equipment, HttpSession session) throws Exception;
 	String selectAll(Equipment equipment, HttpSession session);
 	
 	int updateById(Equipment equipment, HttpSession session);

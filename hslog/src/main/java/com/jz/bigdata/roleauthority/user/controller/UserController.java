@@ -8,6 +8,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -28,7 +30,7 @@ import com.jz.bigdata.util.Uuid;
 @Controller
 @RequestMapping("/user")
 public class UserController {
-
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource(name = "UserService")
 	private IUserService userService;
 	
@@ -45,7 +47,13 @@ public class UserController {
 	@RequestMapping("/selectAlls")
 	@DescribeLog(describe="查询所有用户")
 	public  Map<String,Object> selectAll(Page page,HttpSession session) {
-		return userService.selectPage(page,session);
+		try{
+			return userService.selectPage(page,session);
+		}catch(Exception e){
+			logger.error("查询所有用户"+e.getMessage());
+			return null;
+		}
+
 	}
 
 	/**
@@ -58,22 +66,28 @@ public class UserController {
 	@RequestMapping(value="/inserts", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="添加或修改用户")
 	public String insert(HttpServletRequest request, User user) {
-		int result = 0;
+		try{
+			int result = 0;
 //		判断id是否为空
-		if (user.getId() == null || user.getId().isEmpty()) {
-			List<User> userList =userService.selectByName(user);
-			if(userList.size()<1 ){
-				user.setId(Uuid.getUUID());
+			if (user.getId() == null || user.getId().isEmpty()) {
+				List<User> userList =userService.selectByName(user);
+				if(userList.size()<1 ){
+					user.setId(Uuid.getUUID());
 //				添加数据
-				result = this.userService.insert(user);
-			}else{
-				return Constant.repetitionMessage();
-			}
+					result = this.userService.insert(user);
+				}else{
+					return Constant.repetitionMessage();
+				}
 
-		} else {
-			result = this.userService.updateById(user);
+			} else {
+				result = this.userService.updateById(user);
+			}
+			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+		}catch(Exception e){
+			logger.error("添加或修改用户"+e.getMessage());
+			return Constant.failureMessage("添加或修改用户失败！");
 		}
-		return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+
 	}
 
 	/**
@@ -84,13 +98,19 @@ public class UserController {
 	@RequestMapping("/deletes")
 	@DescribeLog(describe="删除用户")
 	public String delete(HttpServletRequest request) {
-		int result = 0;
+		try{
+			int result = 0;
 //		获取id数组
-		String[] ids = request.getParameter("ids").split(",");
-		if (ids.length > 0) {
-			result = this.userService.delete(ids);
+			String[] ids = request.getParameter("ids").split(",");
+			if (ids.length > 0) {
+				result = this.userService.delete(ids);
+			}
+			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+		}catch(Exception e){
+			logger.error("删除用户"+e.getMessage());
+			return Constant.failureMessage("删除用户失败");
 		}
-		return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+
 	}
 
 	/**
@@ -102,7 +122,13 @@ public class UserController {
 	@RequestMapping("/selectPage")
 	@DescribeLog(describe="分页查询用户")
 	public  Map<String,Object> selectPage(HttpServletRequest request, Page page,HttpSession session) {
-		return userService.selectPage(page,session);
+		try{
+			return userService.selectPage(page,session);
+		}catch(Exception e){
+			logger.error("分页查询用户"+e.getMessage());
+			return null;
+		}
+
 	}
 
 	/**
@@ -114,9 +140,15 @@ public class UserController {
 	@RequestMapping("/selectUser")
 	@DescribeLog(describe="查询单个用户信息")
 	public List<User> selectUser(HttpServletRequest request) {
+		try{
 //		获取id
-		String id = request.getParameter("id");
-		return userService.selectUser(id);
+			String id = request.getParameter("id");
+			return userService.selectUser(id);
+		}catch(Exception e){
+			logger.error("查询单个用户信息"+e.getMessage());
+			return null;
+		}
+
 	}
 	
 	
@@ -129,11 +161,15 @@ public class UserController {
 	@RequestMapping(value="/selectUserRole", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="查询用户角色信息")
 	public String selectUserRole(HttpSession session) {
-//		获取id
-//		String id = request.getParameter("id");
-		String role = userService.selectUserRole(session);
-		return Constant.successMessage(role);
-		//return role;
+		try{
+			String role = userService.selectUserRole(session);
+			return Constant.successMessage(role);
+		}catch(Exception e){
+			logger.error("查询用户角色信息"+e.getMessage());
+			return Constant.failureMessage("查询用户角色信息失败");
+		}
+
+
 	}
 	/**
 	 * @param request
@@ -144,12 +180,18 @@ public class UserController {
 	@RequestMapping("/selectById")
 	@DescribeLog(describe="根据id查询用户信息")
 	public User selectById(HttpServletRequest request){
+		try{
 //		获取id
-		String id = request.getParameter("id");
+			String id = request.getParameter("id");
 //		查询数据
-		User user= userService.selectById(id);
+			User user= userService.selectById(id);
 
-		return user;
+			return user;
+		}catch(Exception e){
+			logger.error("根据id查询用户信息"+e.getMessage());
+			return null;
+		}
+
 	}
 	
 	
@@ -165,8 +207,13 @@ public class UserController {
 	@RequestMapping(value="/login", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="用户登录")
 	public String login(HttpServletRequest request,User user,HttpSession session){
+		try{
+			return this.userService.login(user,session);
+		}catch(Exception e){
+			logger.error("用户登录"+e.getMessage());
+			return Constant.failureMessage("用户登录失败！");
+		}
 
-		return this.userService.login(user,session);
 	}
 	
 	
@@ -179,8 +226,15 @@ public class UserController {
 	@RequestMapping("/checkLogin")
 	@DescribeLog(describe="登录确认")
 	public String checkLogin(HttpSession session){
-		Boolean result = this.userService.checkLogin(session);
-		return result?"{\"success\":\"true\"}":"{\"success\":\"false\"}";
+
+		try{
+			Boolean result = this.userService.checkLogin(session);
+			return result?"{\"success\":\"true\"}":"{\"success\":\"false\"}";
+		}catch(Exception e){
+			logger.error("登录确认失败"+e.getMessage());
+			return Constant.failureMessage("登录确认失败！");
+		}
+
 	}
 	
 	/**
@@ -193,8 +247,14 @@ public class UserController {
 	@RequestMapping("/logout")
 	@DescribeLog(describe="退出登录")
 	public String loginOut(HttpSession session) throws UnsupportedEncodingException{
-		Boolean result = this.userService.loginOut(session);
-		return result?"{\"success\":\"true\"}":"{\"success\":\"false\"}";
+		try{
+			Boolean result = this.userService.loginOut(session);
+			return result?"{\"success\":\"true\"}":"{\"success\":\"false\"}";
+		}catch(Exception e){
+			logger.error("退出登录失败"+e.getMessage());
+			return Constant.failureMessage("退出登录失败");
+		}
+
 	}
 	
 	@ResponseBody
@@ -213,6 +273,7 @@ public class UserController {
 				return Constant.repetitionMessage();
 			}
 		}catch (Exception e){
+			logger.error("注册用户"+e.getMessage());
 			e.getStackTrace();
 		}
 		return result == 2 ? Constant.successMessage() : Constant.failureMessage();
@@ -222,11 +283,16 @@ public class UserController {
 	@RequestMapping(value="/updatePasswordById", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="修改密码")
 	public String updatePasswordById(HttpServletRequest request) {
-		String id= request.getParameter("id");
-		String password= request.getParameter("password");
-		String oldPassword=request.getParameter("oldPassword");
-//		System.out.println("id"+id+"password"+password+"oldPassword"+password);
-		return userService.updatePasswordById(id, password,oldPassword);
+		try{
+			String id= request.getParameter("id");
+			String password= request.getParameter("password");
+			String oldPassword=request.getParameter("oldPassword");
+			return userService.updatePasswordById(id, password,oldPassword);
+		}catch(Exception e){
+			logger.error("修改密码失败"+e.getMessage());
+			return Constant.failureMessage("修改密码失败！");
+		}
+
 	}
 
 }

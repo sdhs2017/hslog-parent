@@ -79,7 +79,7 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
         //请求配置
         builders.setRequestConfigCallback(builder -> builder
                 .setConnectTimeout(10000)//连接超时
-                .setSocketTimeout(300000)//请求超时300秒
+                .setSocketTimeout(3000000)//请求超时3000秒
                 );
 
         restHighLevelClient = new RestHighLevelClient(builders);

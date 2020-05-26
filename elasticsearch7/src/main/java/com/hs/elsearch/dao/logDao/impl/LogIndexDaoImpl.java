@@ -67,7 +67,7 @@ public class LogIndexDaoImpl implements ILogIndexDao {
     }
 
     @Override
-    public ForceMergeResponse indexForceMerge(String[] indices, int maxNumSegments, boolean onlyExpungeDeletes) throws Exception {
+    public ForceMergeResponse indexForceMerge(int maxNumSegments, boolean onlyExpungeDeletes,String... indices) throws Exception {
         return indexTemplate.mergeIndex(maxNumSegments, onlyExpungeDeletes, indices);
     }
 

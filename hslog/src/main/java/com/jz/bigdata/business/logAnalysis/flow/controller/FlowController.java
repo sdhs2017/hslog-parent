@@ -13,6 +13,7 @@ import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
 import com.jz.bigdata.util.*;
 import net.sf.json.JSONArray;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1792,5 +1793,192 @@ public class FlowController {
             }
         }
         return JSONArray.fromObject(llist).toString();
+    }
+
+
+    /******************************性能测试***************************************************/
+
+    /**
+     * @param request
+     * index segments 强制合并
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/indexForceMerge", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="index segments合并操作")
+    public String indexForceMerge(HttpServletRequest request) {
+        // 需要合并的索引
+        String indices = request.getParameter("indices");
+        // 合并后的segments数
+        int segments = Integer.valueOf(request.getParameter("segments"));
+
+        HashMap result = new HashMap();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        try {
+            Date startdate = new Date();
+            System.out.println("开始时间：" + format.format(startdate));
+            result = logService.indexForceMerge(segments, true, indices);
+            Date enddate = new Date();
+            System.out.println("结束时间：" + format.format(enddate));
+            // 响应时间计算
+            long times = enddate.getTime() - startdate.getTime();
+            System.out.println("时间差：" + times + " ms");
+        } catch (ElasticsearchStatusException exception ) {
+            // Elasticsearch exception [type=index_not_found_exception, reason=no such index [hslog_packet2020-04-27]]
+            String DetailedMessage = exception.getDetailedMessage();
+            if (DetailedMessage.indexOf("index_not_found_exception")!=-1){
+                logger.error("未找到合并的索引："+indices);
+                return Constant.failureMessage("未找到合并的索引："+indices);
+            }
+        } catch (Exception e) {
+            logger.error("索引合并失败!");
+            logger.error(e.getMessage());
+            e.printStackTrace();
+            return Constant.failureMessage("索引合并失败！");
+        }
+        return JSONArray.fromObject(result).toString();
+    }
+
+
+    /**
+     * @param request
+     * 测试单个idnex的数据查询速度
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getFlowListBeforeMerge", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="单个index的数据查询")
+    public String getFlowListBeforeMerge(HttpServletRequest request) {
+
+        String index = request.getParameter("indices");
+        String [] indices = index.split(",");
+
+        List<Map<String, Object>> list = new ArrayList<>();
+        String size = "10";
+        HashMap map = new HashMap();
+        String [] type = {"defaultpacket"};
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        try {
+            Date startdate = new Date();
+            System.out.println("开始时间："+format.format(startdate));
+            list = flowService.getFlowListByBlend(map, null, null, "1", size, type, indices);
+            Date enddate = new Date();
+            System.out.println("结束时间："+format.format(enddate));
+            // 响应时间计算
+            long times = enddate.getTime() - startdate.getTime();
+            System.out.println("时间差："+times +" ms");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+
+
+    /**
+     * @param request
+     * 测试单个idnex的聚合查询，业务流分析是目前产品中最复杂的查询
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getNetworkTop")
+    @DescribeLog(describe="通过netflow数据获取网络拓扑数据")
+    public String getNetworkTop(HttpServletRequest request) {
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        logger.info("进入业务流分析统计   "+format.format(new Date()));
+
+        String index = request.getParameter("indices");
+        String [] indices = index.split(",");
+
+        // 双向划线
+        String [] groupbys = {"ipv4_src_addr.raw","ipv4_dst_addr.raw"};
+        String[] types = {"defaultpacket"};
+
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
+        Map<String, String> searchmap = new HashMap<>();
+
+        Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
+
+        List<Map<String, Object>> datalist = new LinkedList<Map<String, Object>>();
+        List<Map<String, Object>> linkslist = new LinkedList<Map<String, Object>>();
+        // 临时map
+        Map<String,Object> tMap = new HashMap<>();
+
+
+        Date startdate = new Date();
+        System.out.println("聚合开始时间："+format.format(startdate));
+        // 聚合源IP和目的IP，处理他们的数据，得到一个以key（IP地址），value（相同IP：源IP访问量和目的IP访问量之和）的map
+        for(String param:groupbys) {
+
+            // 聚合源IP和目的IP
+            List<Map<String, Object>> list = null;
+            try {
+                logger.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
+                list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
+                logger.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            // 数据处理，将源IP和目的IP两者之间相同的IP的值相加
+            if (tMap.isEmpty()&&list.size()>0) {
+                tMap = list.get(0);
+            }else {
+                if (list.size()>0){
+                    for(Map.Entry<String, Object> entrymap : list.get(0).entrySet()) {
+                        if (tMap.containsKey(entrymap.getKey())) {
+                            int newvalue  = Integer.parseInt(tMap.get(entrymap.getKey()).toString())+Integer.parseInt(entrymap.getValue().toString());
+                            tMap.put(entrymap.getKey(), newvalue);
+                        }else{
+                            tMap.put(entrymap.getKey(), entrymap.getValue());
+                        }
+                    }
+                }
+
+            }
+        }
+
+        // 遍历以上聚合数据结果
+        for(Map.Entry<String, Object> key : tMap.entrySet()) {
+            // 组织data中的数据内容
+            Map<String,Object> dataMap = new HashMap<>();
+            dataMap.put("name", key.getKey());
+            dataMap.put("count", key.getValue());
+            datalist.add(dataMap);
+        }
+
+        // 源IP、目的IP的连线，连线次数
+        // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
+        try {
+            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
+            linkslist = flowService.groupBys(index,types,groupbys,1000,starttime,endtime,searchmap);
+            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Date enddate = new Date();
+        System.out.println("聚合结束时间："+format.format(enddate));
+        // 响应时间计算
+        long times = enddate.getTime() - startdate.getTime();
+        System.out.println("聚合耗时："+times +" ms");
+
+        //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
+        Iterator<Map<String, Object>> iterator = linkslist.iterator();
+        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
+        while (iterator.hasNext()) {
+            Map<String, Object> linkmap = iterator.next();
+            if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
+                iterator.remove();//使用迭代器的删除方法删除
+            }/*else {
+				System.out.println("包含："+linkmap);
+			}*/
+        }
+        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
+        map.put("data", datalist);
+        map.put("links", linkslist);
+
+        logger.info("结束业务流分析统计   "+format.format(new Date()));
+        return JSONArray.fromObject(map).toString();
     }
 }

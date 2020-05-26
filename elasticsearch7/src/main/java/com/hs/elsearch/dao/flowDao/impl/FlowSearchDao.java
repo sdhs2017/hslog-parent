@@ -279,30 +279,37 @@ public class FlowSearchDao implements IFlowSearchDao {
             String count = groupByField+"_count";
             // 聚合查询group by
             if (aggregationBuilder==null){
+                // 多个字段聚合时，第一个字段的聚合条件
                 aggregationBuilder = AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size);
             }else {
+                // 第2+个字段的聚合，需要通过AggregationBuilders.topHits("top").size(1))获取聚合后的一条完整数据，用于获取城市名称和地理坐标
                 aggregationBuilder.subAggregation(AggregationBuilders.terms(count).field(groupByField).order(BucketOrder.count(false)).size(size).subAggregation(AggregationBuilders.topHits("top").size(1)));
             }
 
         }
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
-
+        // 获取第一层数据数据
         Terms terms  = aggregations.get(groupByFields[0]+"_count");
 
         List<List<Map<String, Object>>> list = new ArrayList<>();
 
-
+        // 循环第一层buckets，获取第二层聚合数据
         for(Terms.Bucket bucket:terms.getBuckets()) {
-
+            // 拿到第二层的聚合数据
             Terms terms1 = (Terms) bucket.getAggregations().asMap().get(groupByFields[1]+"_count");
+            // 遍历第二层聚合数据以获取两个聚合字段的内容
             for(Terms.Bucket bucket2 : terms1.getBuckets()) {
                 List<Map<String,Object>> tmplist = new ArrayList<>();
+                // 获取聚合结果的一条完整数据
                 TopHits topHits = bucket2.getAggregations().get("top");
                 for (SearchHit hit : topHits.getHits().getHits()) {
                     Map<String,Object> source = new HashMap<>();
+                    // 从hit中拿到源IP的所在城市
                     source.put("name",hit.getSourceAsMap().get("src_addr_city").toString().replace("\"","\'"));
+                    // 从hit中拿到源IP的所在城市的地理信息
                     String [] src_addr_locations =  hit.getSourceAsMap().get("src_addr_locations").toString().split(",");
+                    // 坐标信息处理并存入value
                     double [] value = new double[2];
                     int j = 0;
                     for (int i=src_addr_locations.length-1;i>=0;i--){
@@ -312,10 +319,14 @@ public class FlowSearchDao implements IFlowSearchDao {
                     source.put("value",value);
                     //source.put("count",bucket2.getDocCount());
                     tmplist.add(source);
+                    // 从hit中拿到目的IP的所在城市
                     Map<String,Object> dst = new HashMap<>();
                     dst.put("name",hit.getSourceAsMap().get("dst_addr_city"));
-                    double [] value2 = new double[2];
+
+                    // 从hit中拿目的IP的所在城市的地理信息
                     String [] dst_addr_locations = hit.getSourceAsMap().get("dst_addr_locations").toString().split(",");
+                    // 坐标信息处理并存入value
+                    double [] value2 = new double[2];
                     j = 0;
                     for (int i=dst_addr_locations.length-1;i>=0;i--){
                         value2[j] = Double.parseDouble(dst_addr_locations[i].toString());

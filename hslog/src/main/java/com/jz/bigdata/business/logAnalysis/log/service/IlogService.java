@@ -2,6 +2,7 @@ package com.jz.bigdata.business.logAnalysis.log.service;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -375,7 +376,7 @@ public interface IlogService {
 	 *
 	 * 实现indices合并
 	 */
-	public ForceMergeResponse indexForceMerge(String[] indices);
+	public HashMap<String,Object> indexForceMerge(int maxNumSegments, boolean onlyExpungeDeletes, String... indices) throws Exception;
 
 	/**
 	 *
@@ -384,7 +385,7 @@ public interface IlogService {
 	 *
 	 * 实现indices中对已删除segments的合并达到释放存储空间的作用
 	 */
-	public ForceMergeResponse indexForceMergeForDelete(String[] indices) throws Exception;
+	public ForceMergeResponse indexForceMergeForDelete(int maxNumSegments, boolean onlyExpungeDeletes, String... indices) throws Exception;
 
 	/**
 	 * 实现删除数据后强制合并 删除段释放存储空间

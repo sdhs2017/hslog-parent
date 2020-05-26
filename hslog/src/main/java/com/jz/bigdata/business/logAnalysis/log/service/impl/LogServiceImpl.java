@@ -1469,24 +1469,49 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
-	public ForceMergeResponse indexForceMerge(String[] indices) {
+	public HashMap<String,Object> indexForceMerge(int maxNumSegments, boolean onlyExpungeDeletes, String... indices) throws Exception {
 		// TODO Auto-generated method stub
 
 		// 针对以后架构实现的多indices可能会对indices进行合并操作
 		// 暂时不实现这个方法，该合并需要考虑单个索引的大小，默认的合并段设置是1
 
-		return null;
+		// 判断强制合并时segments的大小，小于1时设置为1
+		if (maxNumSegments<1){
+			maxNumSegments = 1;
+		}
+
+		// 该合并操作针对删除数据后希望释放存储空间,
+		/*if (!onlyExpungeDeletes){
+			onlyExpungeDeletes = true;
+		}*/
+		ForceMergeResponse forceMergeResponse = logIndexDao.indexForceMerge( maxNumSegments, onlyExpungeDeletes, indices);
+
+		int totalShards = forceMergeResponse.getTotalShards();
+		int successfulShards = forceMergeResponse.getSuccessfulShards();
+		int failedShards = forceMergeResponse.getFailedShards();
+
+		HashMap map = new HashMap();
+		map.put("totalShards",totalShards);
+		map.put("successfulShards",successfulShards);
+		map.put("failedShards",failedShards);
+
+		return map;
 	}
 
 	@Override
-	public ForceMergeResponse indexForceMergeForDelete(String[] indices) throws Exception {
+	public ForceMergeResponse indexForceMergeForDelete(int maxNumSegments, boolean onlyExpungeDeletes, String... indices) throws Exception {
 
-		// 该强制合并操作不对index的segments做操作
-		int maxNumSegments = -1;
-		// 该合并操作针对删除数据后希望释放存储空间
-		boolean onlyExpungeDeletes = true;
+		// 判断强制合并时segments的大小，小于1时设置为1
+		if (maxNumSegments<1){
+			maxNumSegments = 1;
+		}
 
-		return logIndexDao.indexForceMerge(indices, maxNumSegments, onlyExpungeDeletes);
+		// 该合并操作针对删除数据后希望释放存储空间,
+		/*if (!onlyExpungeDeletes){
+			onlyExpungeDeletes = true;
+		}*/
+
+		return logIndexDao.indexForceMerge( maxNumSegments, onlyExpungeDeletes, indices);
 
 	}
 
@@ -1512,7 +1537,7 @@ public class LogServiceImpl implements IlogService {
 			long delete_count = deleteByQuery(indices,type,map);
 
 			System.out.println("删除数据条数："+delete_count);
-			indexForceMergeForDelete(indices);
+			indexForceMergeForDelete(1,true,indices);
 
 			boolean startresult = collectorService.startKafkaCollector(equipmentService, assetService, logCrudDao, configProperty,
 					alarmService, usersService);

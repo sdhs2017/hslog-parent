@@ -80,7 +80,7 @@ public interface ILogIndexDao {
      * @param onlyExpungeDeletes 是否仅合并删除段
      * @return
      */
-    public ForceMergeResponse indexForceMerge(String[] indices, int maxNumSegments, boolean onlyExpungeDeletes) throws Exception;
+    public ForceMergeResponse indexForceMerge(int maxNumSegments, boolean onlyExpungeDeletes, String... indices) throws Exception;
 
 
     /**

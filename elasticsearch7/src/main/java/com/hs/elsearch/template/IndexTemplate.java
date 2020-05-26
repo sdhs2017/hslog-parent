@@ -248,13 +248,15 @@ public class IndexTemplate {
             request = new ForceMergeRequest();
         }
         // 要合并的段数。 要完全合并索引，请将其设置为1.默认为只检查是否需要执行合并，如果需要，则执行它。
-        if (maxNumSegments!=-1){
+
+        if (maxNumSegments!=0){
             request.maxNumSegments(maxNumSegments);
         }
         // 合并进程是否只删除其中包含删除内容的段,此标志只允许合并已删除的段。默认为false。
-        if (onlyExpungeDeletes){
+        // elasticsearch提示onlyExpungeDeletes参数和maxNumSegments参数不能同时使用，并且在未来会禁止同时使用这两个参数
+        /*if (onlyExpungeDeletes){
             request.onlyExpungeDeletes(onlyExpungeDeletes);
-        }
+        }*/
         // 默认强制合并后执行刷新
         request.flush(true);
 

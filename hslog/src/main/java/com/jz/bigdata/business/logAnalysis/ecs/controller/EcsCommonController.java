@@ -67,8 +67,8 @@ public class EcsCommonController {
     @RequestMapping(value="/getIndicesCount",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取索引数据的数量")
     public String getIndicesCount(HttpServletRequest request) {
-        //hsData参数处理
-        Map<String, String> mapParam = HttpRequestUtil.getHsdata(request);
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
         //返回结果
         List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
         Map<String,Object> resultMap = new HashMap<>();
@@ -78,7 +78,7 @@ public class EcsCommonController {
         try {
             long count = 0;
             Map<String, String> errorParam = new HashMap<>();
-            errorParam.putAll(mapParam);
+            errorParam.putAll(params.getQueryMap());
             errorParam.put("log.level", "error");
             count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
             resultMap.put("indiceserror", count);
@@ -94,7 +94,7 @@ public class EcsCommonController {
         try {
             long count = 0;
             Map<String, String> allParam = new HashMap<>();
-            allParam.putAll(mapParam);
+            allParam.putAll(params.getQueryMap());
             count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
             resultMap.put("indices", count);
         } catch (Exception e) {
@@ -118,30 +118,21 @@ public class EcsCommonController {
     @DescribeLog(describe="统计各时间段的日志数据量")
     public List<Map<String, Object>> getCountGroupByTime(HttpServletRequest request) {
         String index = configProperty.getEs_index();
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
 
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-
-        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-        Map<String,String> map = new HashMap<>();
-
-        if(null!=hsData){
-            Gson gson = new Gson();
-            map = gson.fromJson(hsData,Map.class);
-        }
         // 业务只查询范式化成功的日志
         //map.put("fields.failure","false");
 
         List<Map<String, Object>> list = new ArrayList<>();
         int size = 10;
         try {
-            list = ecsService.getListGroupByTime(starttime, endtime, "@timestamp", size, map, index);
+            list = ecsService.getListGroupByTime(params.getStartTime(), params.getEndTime(), "@timestamp", size, params.getQueryMap(), index);
         } catch (Exception e) {
             logger.error("统计各时间段日志数据量：失败！");
             logger.error(e.getMessage());
             e.printStackTrace();
         }
-
         return list;
     }
     /**
@@ -154,17 +145,8 @@ public class EcsCommonController {
     @DescribeLog(describe="统计各时间段的各事件数据量")
     public String getCountGroupByTimeAndEvent(HttpServletRequest request) {
         String index = configProperty.getEs_index();
-
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-
-        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-
-        Map<String, String> map = new HashMap();
-        if (hsData!=null){
-            Gson gson = new Gson();
-            map = gson.fromJson(hsData,Map.class);
-        }
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
         // 业务只查询范式化成功的日志
         //map.put("fields.failure","false");
         List<Map<String, Object>> list = new ArrayList<>();
@@ -172,7 +154,7 @@ public class EcsCommonController {
         int size = 10;
         Set<String> events = new HashSet<>();
         try {
-            list = ecsService.getListGroupByTimeAndEvent(starttime, endtime, "@timestamp","terms", "event.action", size, map, index);
+            list = ecsService.getListGroupByTimeAndEvent(params.getStartTime(), params.getEndTime(), "@timestamp","terms", "event.action", size, params.getQueryMap(), index);
             /**
              * 遍历list获取所有的事件名称存入Set
              */
@@ -371,5 +353,33 @@ public class EcsCommonController {
 
 
 
+    }
+    /**
+     * @param request
+     * 统计各个日志级别的数据量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getCountGroupByParam")
+    @DescribeLog(describe="读取日志级别数据量")
+    public List<Map<String, Object>> getCountGroupByParam(HttpServletRequest request) {
+
+        String index = configProperty.getEs_index();
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
+
+        // 业务只查询范式化成功的日志
+        //map.put("fields.failure","false");
+        // 聚合返回的数据条数，在目前的产品中日志级别总共有8个，设置为10个保证8个正常显示
+        int size = 10;
+        List<Map<String, Object>> list = null;
+        try {
+            list = ecsService.groupByThenCount(params.getStartTime(),params.getEndTime(),params.getGroupField(),size,params.getQueryMap(),index);
+        } catch (Exception e) {
+            logger.error("统计日志级别数据量：失败！");
+            e.printStackTrace();
+        }
+
+        return list;
     }
 }

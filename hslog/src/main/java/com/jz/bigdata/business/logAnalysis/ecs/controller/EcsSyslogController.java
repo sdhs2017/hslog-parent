@@ -9,6 +9,7 @@ import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.HttpRequestParams;
 import com.jz.bigdata.util.HttpRequestUtil;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
@@ -56,8 +57,8 @@ public class EcsSyslogController {
     @RequestMapping(value="/getEventsCount",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取事件数据的数量")
     public String getEventsCount(HttpServletRequest request) {
-        //hsData参数处理
-        Map<String, String> mapParam = HttpRequestUtil.getHsdata(request);
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
         //返回结果
         List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
         Map<String,Object> resultMap = new HashMap<>();
@@ -67,7 +68,7 @@ public class EcsSyslogController {
          */
         try {
             Map<String, String> errorParam = new HashMap<>();
-            errorParam.putAll(mapParam);
+            errorParam.putAll(params.getQueryMap());
             errorParam.put("exists", "event.action");
             errorParam.put("log.level", "error");
             long count = 0;
@@ -85,7 +86,7 @@ public class EcsSyslogController {
         try {
             long count = 0;
             Map<String, String> allParam = new HashMap<>();
-            allParam.putAll(mapParam);
+            allParam.putAll(params.getQueryMap());
             // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
             allParam.put("exists", "event.action");
             count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
@@ -110,9 +111,8 @@ public class EcsSyslogController {
     @DescribeLog(describe="统计各个事件的数据量")
     public List<List<Map<String, Object>>> getCountGroupByEventType(HttpServletRequest request) {
         List<List<Map<String, Object>>> list = new ArrayList<>();
-        String equipmentid = request.getParameter("equipmentid");
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
         // 0全部，1高危，2中等，3普通
         for(int i=0;i<4;i++) {
             List<Map<String, Object>> event_list = null;
@@ -120,11 +120,10 @@ public class EcsSyslogController {
             // 业务只查询范式化成功的日志
             //map.put("fields.failure","false");
             // 不为空字段设置，key固定，value是不为null的字段event.action，多个字段逗号相隔
-            map.put("exists", "event.action");
-            map.put("fields.equipmentid",equipmentid);
-            map.put("log.syslog.severity.code",i+"");
+            params.getQueryMap().put("exists", "event.action");
+            params.getQueryMap().put("log.syslog.severity.code",i+"");
             try {
-                event_list = ecsService.getCountGroupByEventType(starttime,endtime,"@timestamp",map,configProperty.getEs_index());
+                event_list = ecsService.getCountGroupByEventType(params.getStartTime(),params.getEndTime(),"@timestamp",params.getQueryMap(),configProperty.getEs_index());
             } catch (Exception e) {
                 logger.error("统计各个事件的数据量:失败！");
                 e.printStackTrace();
@@ -134,39 +133,6 @@ public class EcsSyslogController {
 
         return list;
     }
-    /**
-     * @param request
-     * 统计各个日志级别的数据量
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping("/getCountGroupByParam")
-    @DescribeLog(describe="读取日志级别数据量")
-    public List<Map<String, Object>> getCountGroupByParam(HttpServletRequest request) {
 
-        String index = configProperty.getEs_index();
-        String groupByField = request.getParameter("param");
-        String equipmentid = request.getParameter("equipmentid");
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-
-        ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-        if (equipmentid!=null&&!equipmentid.equals("")) {
-            map.put("fields.equipmentid", equipmentid);
-        }
-        // 业务只查询范式化成功的日志
-        //map.put("fields.failure","false");
-        // 聚合返回的数据条数，在目前的产品中日志级别总共有8个，设置为10个保证8个正常显示
-        int size = 10;
-        List<Map<String, Object>> list = null;
-        try {
-            list = ecsService.groupByThenCount(starttime,endtime,groupByField,size,map,index);
-        } catch (Exception e) {
-            logger.error("统计日志级别数据量：失败！");
-            e.printStackTrace();
-        }
-
-        return list;
-    }
 
 }

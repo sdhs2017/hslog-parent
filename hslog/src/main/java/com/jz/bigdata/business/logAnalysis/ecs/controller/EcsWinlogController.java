@@ -424,35 +424,6 @@ public class EcsWinlogController {
         return JSONArray.fromObject(allmap).toString();
     }
 
-    /**
-     * @param request
-     * 统计各时间段的日志数据量
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping("/getLogCountGroupByTime")
-    @DescribeLog(describe="统计各时间段的日志数据量")
-    public List<Map<String, Object>> getCountGroupByTime(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
-
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-
-        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-
-        Gson gson = new Gson();
-        Map map = gson.fromJson(hsData,Map.class);
-
-        List<Map<String, Object>> list = new ArrayList<>();
-        int size = 10;
-        try {
-            list = ecsService.getListGroupByTime(starttime, endtime, "@timestamp", size, map, index);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
 
     /**
      * @param request
@@ -499,47 +470,6 @@ public class EcsWinlogController {
         return list;
     }
 
-    /**
-     * @param request
-     * 统计ECS事件的数据量
-     * @return
-     */
-    @ResponseBody
-    @RequestMapping(value="/getCountGroupByEvent",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="统计事件的数据量")
-    public List<Map<String, Object>> getCountGroupByEvent(HttpServletRequest request) {
-        String index = configProperty.getEs_index();
 
-
-        String equipmentid = request.getParameter("equipmentid");
-        String starttime = request.getParameter("starttime");
-        String endtime = request.getParameter("endtime");
-        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-        /**
-         * 聚合字段--事件
-         */
-        String groupbyfield = "event.action";
-
-        Map map = Maps.newHashMap();
-        if (hsData!=null){
-            Gson gson = new Gson();
-            map = gson.fromJson(hsData,Map.class);
-        }
-        // 业务只查询范式化成功的日志
-        //map.put("fields.failure","false");
-        int size = 10;
-
-        List<Map<String, Object>> list = null;
-        try {
-            list = ecsService.groupByThenCount(starttime,endtime,groupbyfield,size,map,index);
-            logger.info("统计事件的数据量 ：成功!");
-        } catch (Exception e) {
-            logger.error("统计事件的数据量 ：失败!");
-            logger.error(e.getMessage());
-            e.printStackTrace();
-        }
-
-        return list;
-    }
 
 }

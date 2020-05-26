@@ -7,12 +7,13 @@
             <div class="echarts-item">
                 <p class="echarts-tit">
                     {{this.chartTitle}}
-                    <el-button type="primary" plain v-if="this.chartDataType !== 'all'" class="goBack" @click="goBack" size="mini">返回</el-button>
+<!--                    <el-button type="primary" plain v-if="this.chartDataType !== 'all'" class="goBack" @click="goBack" size="mini">返回</el-button>-->
                 </p>
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.appAvgResTimeData" :busName="this.busName"></v-echarts>
+<!--                            <v-echarts echartType="bar" :echartData = "this.appAvgResTimeData" :busName="this.busName"></v-echarts>-->
+                            <performanceAnalysis_bar :params="dateArr"></performanceAnalysis_bar>
                         </div>
                     </el-col>
                    <!-- <el-col :span="12">
@@ -45,12 +46,14 @@
 <script>
     import vBasedate from '../common/baseDate'
     import vEcharts from '../common/echarts'
+    import performanceAnalysis_bar from '../charts/flow/performance/performanceAnalysis_bar'
     import bus from '../common/bus'
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "performanceAnalysis",
         data() {
             return {
+                dateArr:{},
                 interTime:'',
                 //刷新时间间隔
                 refreshIntTime :'5000',
@@ -93,122 +96,26 @@
         created(){
             /*监听日期改变*/
             bus.$on('performanceAnalysis',(arr)=>{
-                //判断图表数据类型
-                if(this.chartDataType === 'all'){
-                    let paramObj = {
-                        starttime:arr[0],
-                        endtime:arr[1]
-                    }
-                    layer.load(1);
-                    /*获取应用平均响应时间数据*/
-                    this.getAppAvgResTimeData(paramObj);
-                }else{
-                    let obj = {
-                        domain_url:this.clickxAxis,
-                        starttime:arr[0],
-                        endtime:arr[1]
-                    }
-                    layer.load(1);
-                    this.getOneAppfuncResTimeData(obj);
+                let paramObj = {
+                    starttime:arr[0],
+                    endtime:arr[1]
                 }
+                this.dateArr = paramObj;
             })
-            /*监听点击事件*/
-            bus.$on('appAvgResTimeClick',(data)=>{
-                //保存点击的x轴
-                this.clickxAxis = data.name;
-                let obj = {
-                    starttime:this.allParams.starttime,
-                    endtime:this.allParams.endtime,
-                    domain_url:data.name
-                }
-                layer.load(1);
-                this.getOneAppfuncResTimeData(obj);
+            bus.$on('titleChange',(val)=>{
+                this.chartTitle = val
             })
         },
         mounted(){},
         methods:{
-            /*获取应用平均响应时间数据*/
-            getAppAvgResTimeData(obj){
-                let paramObj = JSON.stringify(obj)
-                this.chartDataType = 'all'
-                this.allParams = obj;
-                this.chartTitle = "应用平均响应时间统计"
-                this.busName.clickName = 'appAvgResTimeClick';
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getDomaiUrlAvgResponsetime.do',this.$qs.stringify({
-                        hsData:paramObj
-                    }))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data){
-                                let obj = res.data[i];
-                                xns1.push(obj.key);
-                                yvs1.push(obj.value.toFixed(2))
-                                /*yvs2.push({
-                                    name:j,
-                                    value:obj[j]
-                                })*/
-                            }
-                            this.appAvgResTimeData.xAxisArr = xns1;
-                            this.appAvgResTimeData.yAxisArr = yvs1;
-                            //this.ipPacketsData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
-            /*获取单个应用功能URL平均响应时间*/
-            getOneAppfuncResTimeData(obj){
-                let paramObj = JSON.stringify(obj)
-                this.chartDataType = 'one'
-                this.chartTitle = this.clickxAxis + " 功能URL平均响应时间统计";
-                this.busName.clickName = '';
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getRequestUrlAvgResponsetime.do',this.$qs.stringify({
-                        hsData:paramObj
-                    }))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data){
-                                let obj = res.data[i];
-                                xns1.push(obj.key);
-                                yvs1.push(obj.value.toFixed(2))
-                                /*yvs2.push({
-                                    name:j,
-                                    value:obj[j]
-                                })*/
-                            }
-                            this.appAvgResTimeData.xAxisArr = xns1;
-                            this.appAvgResTimeData.yAxisArr = yvs1;
-                            //this.ipPacketsData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
-            /*返回*/
-            goBack(){
-                this.chartTitle = "应用平均响应时间统计"
-                layer.load(1);
-                /*获取应用平均响应时间数据*/
-                this.getAppAvgResTimeData(this.allParams);
-            }
         },
         beforeDestroy(){
+            bus.$off('performanceAnalysis')
+            bus.$off('titleChange')
         },
         components:{
             vBasedate,
-            vEcharts
+            performanceAnalysis_bar
         }
     }
 </script>
@@ -227,15 +134,16 @@
     .echarts-item{
         background: #303e4e;
         margin: 20px 0;
-
     }
     .echarts-tit{
         height: 80px;
-        line-height: 80px;
         text-align: center;
         font-weight: 600;
         font-size: 21px;
         color: #5bc0de;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
     .flow-row{
         padding-bottom: 80px;

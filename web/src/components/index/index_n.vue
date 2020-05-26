@@ -295,7 +295,7 @@
             //this.getBarPieEchartData(this.starttime,this.todayDate,true,true);
             // //获取折线图数据  轮训 1min
             //this.getLineEchartData();
-            setInterval(this.getLineEchartData,60000);
+            //setInterval(this.getLineEchartData,60000);
             // //获取日志数据
             this.getErrorLogsData();
             // //获取流量条数

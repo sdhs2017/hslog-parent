@@ -1,6 +1,6 @@
 <template>
     <!--今日日志数量统计--折线图-->
-    <div class="eb">
+    <div class="eb"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <v-echarts echartType="line" :echartData = "this.lineData" :busName="busName" ></v-echarts>
     </div>
 </template>
@@ -39,6 +39,7 @@
         },
         data() {
             return {
+                loading:false,
                 lineData:{//折线图数据
                     baseConfig:{
                         title:'',
@@ -72,9 +73,11 @@
         methods:{
             //获取每小时日志数
             getEchartData(params){
+                this.loading = true;
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/ecsCommon/getLogCountGroupByTime.do',this.$qs.stringify(params))
                         .then((res) => {
+                            this.loading = false;
                             let xVal = [];
                             let yVal = [];
                             for(let i in res.data){
@@ -86,6 +89,7 @@
                             this.lineData.yAxisArr = yVal;
                         })
                         .catch((err) => {
+                            this.loading = false;
                             console.log(err)
                         })
                 })

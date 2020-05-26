@@ -57,6 +57,7 @@
                     if(JSON.stringify(newV) != JSON.stringify(oldV) && JSON.stringify(newV) !== '{}'){
                         //判断条件合法性
                         if(newV.hsData && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
+                            this.params.groupField='event.action';
                             this.getEchartData(this.params)
                         }else{//显示错误提示
                             this.errState = true
@@ -71,7 +72,7 @@
             //获取数据
             getEchartData(params){
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/ecsSyslog/getCountGroupByParam.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/ecsCommon/getCountGroupByParam.do',this.$qs.stringify(params))
                         .then((res) => {
                             //事件饼图
                             this.pieData.yAxisArr = [];

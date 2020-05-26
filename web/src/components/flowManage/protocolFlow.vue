@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.TUData" ></v-echarts>
+                            <transport_bar :params="params" :setIntervalObj="intervalObj"></transport_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.TUData2" ></v-echarts>
+                            <transport_pie :params="params" :setIntervalObj="intervalObj"></transport_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,12 +24,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.appData" ></v-echarts>
+                            <application_bar :params="params" :setIntervalObj="intervalObj"></application_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.appData2" ></v-echarts>
+                            <application_pie :params="params" :setIntervalObj="intervalObj"></application_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -39,12 +39,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.agreementData" ></v-echarts>
+                            <multiple_bar :params="params" :setIntervalObj="intervalObj"></multiple_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.agreementData2" ></v-echarts>
+                            <multiple_pie :params="params" :setIntervalObj="intervalObj"></multiple_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -56,258 +56,77 @@
 
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
-    import vEcharts from '../common/echarts'
+    import application_bar from '../charts/flow/protocoFlow/application_bar'
+    import application_pie from '../charts/flow/protocoFlow/application_pie'
+    import multiple_bar from '../charts/flow/protocoFlow/multiple_bar'
+    import multiple_pie from '../charts/flow/protocoFlow/multiple_pie'
+    import transport_bar from '../charts/flow/protocoFlow/transport_bar'
+    import transport_pie from '../charts/flow/protocoFlow/transport_pie'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "protocolFlow",
         data() {
             return {
-                interTime:'',
-                //刷新时间间隔
-                refreshIntTime :'5000',
-                //数据日期间隔
-                dataTime:3600,
-                //传输层协议长度统计
-                TUData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'传输层\n协议',
-                        yAxisName:'数据包长度/KB',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                params:{
+                    timeInterval:3600
                 },
-                TUData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
                 },
-                //应用层协议长度统计
-                appData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'应用层\n协议',
-                        yAxisName:'数据包长度/KB',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
-                appData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
-                //协议长度综合统计
-                agreementData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'协议',
-                        yAxisName:'数据包长度/KB',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
-                agreementData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
+                dataTime:'3600',
             }
         },
         created(){
             /*监听刷新时间改变*/
             bus.$on('protocolFlowRefreshBus',(val)=>{
-                    this.refreshIntTime = val;
-                    clearInterval(this.interTime);
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取传输层协议长度统计*/
-                        this.getTUData(paramObj);
-                        /*获取应用层协议长度统计*/
-                        this.getAppData(paramObj);
-                        /*获取协议长度综合统计*/
-                        this.getAgreementData(paramObj);
-                    },this.refreshIntTime);
+                this.intervalObj.interval = val
             })
             /*监听数据时间改变*/
             bus.$on('protocolFlowDataBus',(val)=>{
                 this.dataTime = val;
+                this.params = {
+                    timeInterval:val
+                }
             })
             /*监听switch改变*/
             bus.$on('protocolFlowSwitchBus',(obj)=>{
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取传输层协议长度统计*/
-                        this.getTUData(paramObj);
-                        /*获取应用层协议长度统计*/
-                        this.getAppData(paramObj);
-                        /*获取协议长度综合统计*/
-                        this.getAgreementData(paramObj);
-                    },this.refreshIntTime);
+                this.intervalObj.state = obj.switchVal;
+                if (obj.switchVal) {
+                    this.params = {
+                        timeInterval:this.dataTime
+                    }
                 }
             })
             /*监听日期改变*/
             bus.$on('protocolFlowTimeBus',(obj)=>{
-                let paramObj = {
+                layer.load(1)
+                this.params = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]
                 }
-                /*获取传输层协议长度统计*/
-                this.getTUData(paramObj);
-                /*获取应用层协议长度统计*/
-                this.getAppData(paramObj);
-                /*获取协议长度综合统计*/
-                this.getAgreementData(paramObj);
             })
         },
         mounted(){
-            //第一次获取数据
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取传输层协议长度统计*/
-            this.getTUData(paramObj);
-            /*获取应用层协议长度统计*/
-            this.getAppData(paramObj);
-            /*获取协议长度综合统计*/
-            this.getAgreementData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取传输层协议长度统计*/
-                this.getTUData(paramObj);
-                /*获取应用层协议长度统计*/
-                this.getAppData(paramObj);
-                /*获取协议长度综合统计*/
-                this.getAgreementData(paramObj);
-            },this.refreshIntTime);
         },
         methods:{
-            /*获取传输层协议长度统计*/
-            getTUData(paramObj){
-                this.$nextTick(()=>{
 
-                    this.$axios.post(this.$baseUrl+'/flow/getTransportLength.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data[0]){
-                                xns1.push(i);
-                                yvs1.push(res.data[0][i]);
-                                yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })
-                            }
-                             this.TUData.xAxisArr = xns1;
-                             this.TUData.yAxisArr = yvs1;
-                            this.TUData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
-            /*获取应用层协议长度统计*/
-            getAppData(paramObj){
-                this.$nextTick(()=>{
-
-                    this.$axios.post(this.$baseUrl+'/flow/getApplicationLength.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data[0]){
-                                xns1.push(i);
-                                yvs1.push(res.data[0][i]);
-                                yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })
-                            }
-                             this.appData.xAxisArr = xns1;
-                             this.appData.yAxisArr = yvs1;
-                            this.appData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
-            /*获取协议长度综合统计*/
-            getAgreementData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getMultipleLength.do',this.$qs.stringify(paramObj))
-
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data){
-                                /*yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })*/
-                                for(let j in res.data[i]){
-                                    xns1.push(j);
-                                    yvs1.push(res.data[i][j]);
-                                    yvs2.push({
-                                        name:j,
-                                        value:res.data[i][j]
-                                    })
-                                }
-                            }
-                             this.agreementData.xAxisArr = xns1;
-                             this.agreementData.yAxisArr = yvs1;
-                             this.agreementData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('protocolFlowRefreshBus');
+            bus.$off('protocolFlowDataBus')
+            bus.$off('protocolFlowSwitchBus')
+            bus.$off('protocolFlowTimeBus')
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            application_bar,
+            application_pie,
+            multiple_bar,
+            multiple_pie,
+            transport_bar,
+            transport_pie
         }
     }
 </script>

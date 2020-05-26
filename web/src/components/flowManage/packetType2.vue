@@ -9,7 +9,7 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.allPacketsTypeData2" ></v-echarts>
+                            <packetType_bar :params="dateArr" ></packetType_bar>
                         </div>
                     </el-col>
                 </el-row>
@@ -21,89 +21,36 @@
 
 <script>
     import vBasedate from '../common/baseDate'
-    import vEcharts from '../common/echarts'
+    import packetType_bar from '../charts/flow/packetType/packetType_bar'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "packetType",
         data() {
             return {
-                //全局数据包类型个数
-                allPacketsTypeData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'时间',
-                        yAxisName:'数据包/个数',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'碎片包',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    },{
-                        name:'正常包',
-                        color:'rgb(9,243,105)',
-                        data:[]
-                    },{
-                        name:'特大包',
-                        color:'rgb(243,220,15)',
-                        data:[]
-                    }]
-                },
-                allPacketsTypeData2:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'类型',
-                        yAxisName:'数据包/个数',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:['碎片包','正常包','特大包'],
-                    yAxisArr:[]
-
-                },
+                dateArr:{}
             }
         },
         created(){
             /*监听日期改变*/
             bus.$on('packetTypeTimeBus2',(arr)=>{
-                //定义参数
+                layer.load(1)
                 let paramObj = {
                     starttime:arr[0],
                     endtime:arr[1]
                 }
-                /*获取全局数据包类型个数*/
-                layer.load(1);
-                this.getAllPacketsTypeData(paramObj);
+                this.dateArr = paramObj;
             })
         },
         mounted(){},
         methods:{
-            /*获取全局数据包类型个数*/
-            getAllPacketsTypeData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getPacketTypeCount.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let arr = [];
-                            arr.push(res.data[0].small.value[1]);
-                            arr.push(res.data[0].normal.value[1]);
-                            arr.push(res.data[0].big.value[1]);
-                            this.allPacketsTypeData2.yAxisArr= arr;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            }
         },
         beforeDestroy(){
-            //clearInterval(this.interTime);
+            bus.$off('packetTypeTimeBus2')
         },
         components:{
             vBasedate,
-            vEcharts
+            packetType_bar
         }
     }
 </script>

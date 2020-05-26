@@ -173,11 +173,11 @@
                         hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
                     };
                     //日志级别参数、事件类型
-                    if(this.chartName === 'eqLogLevel_bar'){
+                    /*if(this.chartName === 'eqLogLevel_bar'){
                         this.params.groupField='log.level';
                     }else if(this.chartName === 'eqEventType_bar'){
                         this.params.groupField='event.action';
-                    }
+                    }*/
                     //监听导出事件
                     bus.$on(this.busName.exportName,(params)=>{
                         this.exportEchartdata = true;
@@ -268,12 +268,12 @@
                     endtime:this.timeVal+ ' 23:59:59',
                     hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
                 };
-                //日志级别参数、事件类型
+              /*  //日志级别参数、事件类型
                 if(this.chartName === 'eqLogLevel_bar'){
                     this.params.groupField='log.level';
                 }else if(this.chartName === 'eqEventType_bar'){
                     this.params.groupField='event.action';
-                }
+                }*/
             },
             /*页码改变*/
             handleCurrentChange(page){

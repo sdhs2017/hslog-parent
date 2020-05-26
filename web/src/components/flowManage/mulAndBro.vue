@@ -1,33 +1,46 @@
 <template>
     <div class="content-bg">
         <div class="top-title">广播包/组播包
-            <v-flowchartfrom class="from-wapper" refreshBus="mulAndBroRefreshBus" :refreshObj="refreshObj" switchBus="mulAndBroSwitchBus" timeBus="mulAndBroTimeBus"></v-flowchartfrom>
+            <v-flowchartfrom class="from-wapper" refreshBus="mulAndBroRefreshBus_n" :refreshObj="refreshObj" switchBus="mulAndBroSwitchBus_n" timeBus="mulAndBroTimeBus_n"></v-flowchartfrom>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
                 <p class="echarts-tit">全局-广播包、组播包</p>
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
-                        <div class="chart-wapper ip-chart">
-                            <v-echarts :echartType="this.chartType" :echartData = "this.chartData" ></v-echarts>
+                        <div class="chart-wapper ip-chart" v-if="chartType === 'timeline'">
+                            <mulAndBro_timeline :params="lineParam" :setIntervalObj="intervalObj"> </mulAndBro_timeline>
+                        </div>
+                        <div class="chart-wapper ip-chart" v-else>
+                            <mulAndBro_bar :params="barParam" :setIntervalObj="intervalObj"> </mulAndBro_bar>
                         </div>
                     </el-col>
                 </el-row>
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
+    import mulAndBro_bar from '../charts/flow/mulAndBro/mulAndBro_bar'
+    import mulAndBro_timeline from '../charts/flow/mulAndBro/mulAndBro_timeline'
     import {dateFormat} from '../../../static/js/common'
     export default {
-        name: "mulAndBro",
+        name: "mulAndBro_n",
         data() {
             return {
+                lineParam:{
+                    timeInterval:5
+                },
+                barParam:{},
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
+                },
                 refreshObj:{
                     defaultVal:'5',
                     opt:[{
@@ -44,149 +57,48 @@
                         }
                     ]
                 },
-                interTime:'',
                 //刷新时间间隔
                 refreshIntTime :'5000',
-                //数据日期间隔
-                dataTime:1,
-                echartChange:false,
-                chartData:{
-                    baseConfig:{
-                        title:''
-                    }
-                },
                 chartType:'timeline',
-                //全局广播包组播包个数
-                allMulAndBroData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'时间',
-                        yAxisName:'个数',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'组播包',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    },{
-                        name:'广播包',
-                        color:'rgb(9,243,105)',
-                        data:[]
-                    }]
-                },
-                allMulAndBroData2:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'类型',
-                        yAxisName:'数据包/个数',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:['组播包','广播包'],
-                    yAxisArr:[]
-
-                }
             }
         },
         created(){
             /*监听刷新时间改变*/
-            bus.$on('mulAndBroRefreshBus',(val)=>{
-                this.refreshIntTime = val*1000;
-                clearInterval(this.interTime);
-                //开启轮训
-                this.setIntervalFun();
+            bus.$on('mulAndBroRefreshBus_n',(val)=>{
+                this.intervalObj.interval = val*1000
+                this.refreshIntTime = this.intervalObj.interval
             })
             /*监听switch改变*/
-            bus.$on('mulAndBroSwitchBus',(obj)=>{
-                this.echartChange = true;
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
+            bus.$on('mulAndBroSwitchBus_n',(obj)=>{
+                this.intervalObj.state = obj.switchVal;
+                if(obj.switchVal){
                     this.chartType = 'timeline'
-                    let paramObj={
-                        timeInterval:this.refreshIntTime/1000
-                    }
-                    /*获取全局数据包类型个数*/
-                    this.getAllMulAndBroData(paramObj);
-                    //开启轮训
-                    this.setIntervalFun();
                 }
             })
             /*监听日期改变*/
-            bus.$on('mulAndBroTimeBus',(obj)=>{
-                //设置图表类型
+            bus.$on('mulAndBroTimeBus_n',(obj)=>{
                 this.chartType = 'bar'
-                //定义参数
-                let paramObj = {
+                layer.load(1)
+                this.barParam = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]
                 }
-                /*获取全局数据包类型个数*/
-                layer.load(1);
-                this.getAllMulAndBroData(paramObj);
             })
         },
         mounted(){
-            let paramObj={
-                timeInterval:this.refreshIntTime/1000
-            }
-            /*获取组播包广播包个数*/
-            this.getAllMulAndBroData(paramObj);
-            /*循环获取数据*/
-            this.setIntervalFun();
         },
         methods:{
-            /*获取广播包组播包个数*/
-            getAllMulAndBroData(paramObj){
-                this.$nextTick(()=> {
-                    this.allMulAndBroData.baseConfig.dispose = this.echartChange;
-                    this.allMulAndBroData2.baseConfig.dispose = this.echartChange;
-                    this.$axios.post(this.$baseUrl + '/flow/getMulticastAndBroadcastPacketTypeCount.do', this.$qs.stringify(paramObj))
-                        .then(res => {
-                            layer.closeAll('loading');
-                            if(this.chartType === 'timeline'){
-                                if (this.allMulAndBroData.yAxisArr[0].data.length < 60) {
-                                    this.allMulAndBroData.yAxisArr[0].data.push(res.data[0].multicast);
-                                    this.allMulAndBroData.yAxisArr[1].data.push(res.data[0].broadcast);
-                                    this.chartData = this.allMulAndBroData;
-                                } else {
-                                    this.allMulAndBroData.yAxisArr[0].data.shift();
-                                    this.allMulAndBroData.yAxisArr[0].data.push(res.data[0].multicast);
-                                    this.allMulAndBroData.yAxisArr[1].data.push(res.data[0].broadcast);
-                                }
-                            }else{
-                                let arr = [];
-                                arr.push(res.data[0].multicast.value[1]);
-                                arr.push(res.data[0].broadcast.value[1]);
-                                this.allMulAndBroData2.yAxisArr= arr;
-                                this.chartData = this.allMulAndBroData2;
-                            }
-                            //改变状态（第一次切换类型）
-                            this.echartChange = false;
-                        })
-                        .catch(err => {
-                            layer.closeAll('loading');
-                        })
-                })
-            },
-            setIntervalFun(){
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.refreshIntTime/1000
-                    }
-                    /*获取组播包广播包个数*/
-                    this.getAllMulAndBroData(paramObj);
-                },this.refreshIntTime);
-            }
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('mulAndBroTimeBus_n');
+            bus.$off('mulAndBroSwitchBus_n');
+            bus.$off('mulAndBroRefreshBus_n');
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            vEcharts,
+            mulAndBro_timeline,
+            mulAndBro_bar
         }
     }
 </script>

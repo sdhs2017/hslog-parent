@@ -20,12 +20,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="timeline" :echartData = "this.allUsedData" ></v-echarts>
+                            <allUsedPer_timeline :params="param" :setIntervalObj="intervalObj"></allUsedPer_timeline>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="gauge" :echartData = "this.allUsedData2" ></v-echarts>
+                            <allUsedPer_gauge :params="param" :setIntervalObj="intervalObj"></allUsedPer_gauge>
                         </div>
                     </el-col>
                 </el-row>
@@ -33,12 +33,12 @@
             <el-row :gutter="20" class="flow-row">
                 <el-col :span="12">
                     <div class="echarts-item chart-wapper" style="padding-top: 30px">
-                        <v-echarts echartType="timeline" :echartData = "this.allPacketsData" ></v-echarts>
+                        <allPacketCount_timeline :params="param" :setIntervalObj="intervalObj"></allPacketCount_timeline>
                     </div>
                 </el-col>
                 <el-col :span="12">
                     <div class="echarts-item chart-wapper" style="padding-top: 30px">
-                        <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>
+                        <allflow_timeline :params="param" :setIntervalObj="intervalObj"></allflow_timeline>
                     </div>
                 </el-col>
             </el-row>
@@ -49,34 +49,44 @@
 
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
-    import vEcharts from '../common/echarts'
+    //import vEcharts from '../common/echarts'
+    import allflow_timeline from '../charts/flow/realTime/allflow_timeline'
+    import allPacketCount_timeline from '../charts/flow/realTime/allPacketCount_timeline'
+    import allUsedPer_gauge from '../charts/flow/realTime/allUsedPer_gauge'
+    import allUsedPer_timeline from '../charts/flow/realTime/allUsedPer_timeline'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "realTimeFlow",
         data() {
             return {
+                param:{
+                    timeInterval:5
+                },
+                barParam:{},
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
+                },
                 refreshObj:{
                     defaultVal:'5',
                     opt:[{
                         label:'5s',
                         value:'5'
                     },
-                    {
-                        label:'10s',
-                        value:'10'
-                    },
-                    {
-                        label:'20s',
-                        value:'20'
-                    }
+                        {
+                            label:'10s',
+                            value:'10'
+                        },
+                        {
+                            label:'20s',
+                            value:'20'
+                        }
                     ]
                 },
-                interTime:'',
                 //刷新时间间隔
-                refreshIntTime :5000,
-                //数据日期间隔
-                dataTime:1,
+                refreshIntTime :'5000',
+                chartType:'timeline',
                 //全局利用率百分比
                 bandwidth:10,
                 bandwidthArr:[
@@ -93,187 +103,29 @@
                         value:1000
                     }
                 ],
-                allUsedData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'时间',
-                        yAxisName:'百分比/%',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    }]
-                },
-                allUsedData2:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'',
-                        yAxisName:'',
-                        hoverText:'全局',
-                    },
-                    yAxisArr:[{
-                        name:'利用率',
-                        data:[/*{value: 10, name: '利用率'}*/]
-                    }]
-                },
-                //全局数据包个数
-                allPacketsData:{
-                    baseConfig:{
-                        title:'全局数据包个数',
-                        xAxisName:'时间',
-                        yAxisName:'个数/个',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    }]
-                },
-                //全局实时流量
-                chartData2:{
-                    baseConfig:{
-                        title:'全局实时流量',
-                        xAxisName:'时间',
-                        yAxisName:'数据包长度/KB',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    }]
-                },
             }
         },
         created(){
             /*监听刷新时间改变*/
             bus.$on('realTimeFlowRefreshBus',(val)=>{
-                    this.refreshIntTime = val*1000;
-                    clearInterval(this.interTime);
-                    this.interTime = setInterval(()=>{
-                        /*获取全局利用率百分比*/
-                        this.getAllUsedData(this.refreshIntTime/1000);
-                        /*获取全局数据包个数*/
-                        this.getAllPacketsData(this.refreshIntTime/1000);
-                        /*获取数据-动态实时*/
-                        this.getDataByTime(this.refreshIntTime/1000);
-
-                    },this.refreshIntTime);
+                this.intervalObj.interval = val*1000
+                this.refreshIntTime = this.intervalObj.interval
             })
 
         },
         mounted(){
-            //第一次获取数据
-            /*获取全局利用率百分比*/
-            this.getAllUsedData(this.refreshIntTime/1000);
-            /*获取全局数据包个数*/
-            this.getAllPacketsData(this.refreshIntTime/1000);
-            /*获取数据-动态实时*/
-            this.getDataByTime(this.refreshIntTime/1000);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                    /*获取全局利用率百分比*/
-                    this.getAllUsedData(this.refreshIntTime/1000);
-                    /*获取全局数据包个数*/
-                    this.getAllPacketsData(this.refreshIntTime/1000);
-                    /*获取数据-动态实时*/
-                    this.getDataByTime(this.refreshIntTime/1000)
-            },this.refreshIntTime);
         },
         methods:{
-            /*获取全局利用率百分比*/
-            getAllUsedData(timeInterval){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
-                        timeInterval:timeInterval
-                    }))
-                        .then(res=>{
-                            res.data[0].value[1] = res.data[0].value[1] * 8 * 1000 * 100 / this.refreshIntTime / this.bandwidth / 1024;
-                            res.data[0].value[1] = res.data[0].value[1].toFixed(2);
-                            if(this.allUsedData.yAxisArr[0].data.length < 60){
-                                this.allUsedData.yAxisArr[0].data.push(res.data[0])
-                            }else{
-                                this.allUsedData.yAxisArr[0].data.shift();
-                                this.allUsedData.yAxisArr[0].data.push(res.data[0])
-                            }
-                            this.allUsedData2.yAxisArr[0].data=[{
-                                value:res.data[0].value[1],
-                                name:'利用率'
-                            }]
-                        })
-                        .catch(err=>{
-
-                        })
-                })
-            },
-            /*获取全局数据包个数*/
-            getAllPacketsData(timeInterval){
-                this.$nextTick(()=> {
-                    this.$axios.post(this.$baseUrl + '/flow/getPacketCount.do', this.$qs.stringify({
-                        timeInterval:timeInterval
-                    }))
-                        .then(res => {
-                            layer.closeAll('loading');
-                            if (this.allPacketsData.yAxisArr[0].data.length < 60) {
-                                this.allPacketsData.yAxisArr[0].data.push(res.data[0]);
-                            } else {
-                                this.allPacketsData.yAxisArr[0].data.shift();
-                                this.allPacketsData.yAxisArr[0].data.push(res.data[0]);
-                            }
-                        })
-                        .catch(err => {
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
-            /*获取数据-动态实时*/
-            getDataByTime(timeInterval){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify({
-                        timeInterval:timeInterval
-                    }))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            if(this.chartData2.yAxisArr[0].data.length < 60){
-                                this.chartData2.yAxisArr[0].data.push(res.data[0])
-                            }else{
-                                this.chartData2.yAxisArr[0].data.shift();
-                                this.chartData2.yAxisArr[0].data.push(res.data[0])
-                            }
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-                /* //获得当前时间
-                 let time = new Date();
-                 //console.log(time)
-                 let value = Math.random() * 21 + 100;
-                 if(this.chartData2.yAxisArr[0].data.length < 60){
-                     this.chartData2.yAxisArr[0].data.push({
-                         name:time,
-                         value:[time, Math.round(value)]
-                     })
-                 }else{
-                     this.chartData2.yAxisArr[0].data.shift();
-                     this.chartData2.yAxisArr[0].data.push({
-                         name:time,
-                         value:[time, Math.round(value)]
-                     })
-                 }*/
-            }
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('realTimeFlowRefreshBus')
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            allflow_timeline,
+            allPacketCount_timeline,
+            allUsedPer_gauge,
+            allUsedPer_timeline
         }
     }
 </script>

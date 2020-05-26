@@ -55,7 +55,7 @@
             params:{
                 handler(newV,oldV) {
                     if(JSON.stringify(newV) != JSON.stringify(oldV) && JSON.stringify(newV) !== '{}'){
-                        if(newV.hsData != {} && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
+                        if(newV.hsData && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
                             this.getEchartData(this.params)
                         }else{//显示错误提示
                             this.errState = true

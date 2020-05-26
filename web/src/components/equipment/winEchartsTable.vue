@@ -5,11 +5,11 @@
                 <el-date-picker class="equipment-echart-time" value-format="yyyy-MM-dd" v-model="timeVal" @change="dateChage" type="date" placeholder="选择日期" size="mini"></el-date-picker>
             </div>
             <div class="echarts-data" v-if="!eventTypeEchart">
-                <v-echarts :echartType="this.echartType" :echartData="this.echartData[this.echartDataType]" :busName="busName"></v-echarts>
+                <component :is="chartName" :params="params" :busName="busName"> </component>
             </div>
             <div class="echarts-data" v-else style="display: flex">
-                <v-echarts echartType="bar" :echartData="this.echartData.barData" :busName="busName"></v-echarts>
-                <v-echarts echartType="pie" :echartData="this.echartData.pieData" :busName="busName"></v-echarts>
+                <component is="eqEventType_bar" :params="params" :busName="busName"> </component>
+                <component is="eqEventType_pie" :params="params" :busName="busName"> </component>
             </div>
         </div>
         <div v-show="!echartsStatus" class="echarts-content">
@@ -28,6 +28,11 @@
 <script>
     import vEcharts from '../common/echarts'
     import vBasetable2 from '../common/Basetable2';
+    import eqHourlyLogCount_line from '../charts/log/equipment/eqHourlyLogCount_line'
+    import eqLogLevel_bar from '../charts/log/equipment/eqLogLevel_bar'
+    import eqEventType_bar from '../charts/log/equipment/eqEventType_bar'
+    import eqEventType_pie from '../charts/log/equipment/eqEventType_pie'
+    import eqWinlogHourlyEventCount_moreline from '../charts/log/equipment/eqWinlogHourlyEventCount_moreline'
     import bus from '../common/bus';
     export default {
         // name: "echartsTable",
@@ -59,6 +64,9 @@
                     }
                 }
             },
+            chartName:{
+                type:String
+            },
             echartType:{
                 type:String
             },
@@ -80,6 +88,7 @@
                 echartsStatus:true,
                 timeVal:'',//时间
                 echartDataType:'',//用于区分图表数据
+                params:{},
                 echartData:{
                     barData:{//柱状图数据
                         baseConfig:{
@@ -195,15 +204,22 @@
             'equipment.id'(){
                this.$nextTick(()=>{
                    //请求参数
-                   //this.echartsConditions.equipmentid = this.equipment.id;
-                   // this.echartsConditions.type = this.equipment.type;
-                   // this.echartsConditions.param = this.timeVal;
-                   // this.echartsConditions.index = 'estest';
-                   this.echartsConditions = {
+                   /*this.echartsConditions = {
                        '@timestamp' : this.timeVal,
                        'fields.equipmentid':this.equipment.id
+                   }*/
+                   this.params = {
+                       starttime:this.timeVal+ ' 00:00:00',
+                       endtime:this.timeVal+ ' 23:59:59',
+                       hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
+                   };
+                   //日志级别参数、事件类型
+                   if(this.chartName === 'eqLogLevel_bar'){
+                       this.params.groupField='log.level';
+                   }else if(this.chartName === 'eqEventType_bar'){
+                       this.params.groupField='event.action';
                    }
-
+/*
                    //配置图表基本设置
                     if(this.echartType === 'line' || this.echartType === 'moreline'){
                         this.echartDataType = 'lineData';
@@ -224,18 +240,8 @@
                             hoverText:'百分比'
                         }
                     }
+*/
 
-                   // //日志级别参数
-                   // if(this.echartsConfig.title === '日志级别数量统计'){
-                   //     this.echartsConditions.type='';
-                   //     this.echartsConditions.param='operation_level';
-                   //     this.echartsConditions.time = this.timeVal;
-                   // }
-                   //请求数据
-                   this.getEchartsData(this.echartsConditions);
-                   //绑定监听事件
-                   // this.busName.clickName = this.equipment.id+'_'+this.echartType;
-                   //this.busName.exportName ='export'+this.equipment.id+'_'+this.echartType;
                    //监听导出事件
                    bus.$on(this.busName.exportName,(params)=>{
                        this.exportEchartdata = true;
@@ -264,7 +270,6 @@
                        }else if(this.echartType === 'moreline'){//事件每小时
                            this.tableTitle = this.timeVal+' '+this.clickXVal+' '+params.seriesName+'事件列表'
                            this.clickXVal = params.name;
-                           console.log(params.name)
                            this.tableCondition = {
                                starttime : this.timeVal+' '+ params.name+':00:00',
                                endtime : this.timeVal+' '+ params.name+':59:59',
@@ -394,13 +399,17 @@
             },
             /*日期改变*/
             dateChage(){
-                // if (this.echartsConfig.title === '日志级别数量统计'){
-                //     this.echartsConditions.time = this.timeVal;
-                // } else{
-                //     this.echartsConditions.param = this.timeVal;
-                // }
-                this.echartsConditions['@timestamp'] = this.timeVal;
-                this.getEchartsData(this.echartsConditions);
+                this.params = {
+                    starttime:this.timeVal+ ' 00:00:00',
+                    endtime:this.timeVal+ ' 23:59:59',
+                    hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
+                };
+                //日志级别参数、事件类型
+                if(this.chartName === 'eqLogLevel_bar'){
+                    this.params.groupField='log.level';
+                }else if(this.chartName === 'eqEventType_bar'){
+                    this.params.groupField='event.action';
+                }
             },
             /*页码改变*/
             handleCurrentChange(page){
@@ -409,7 +418,12 @@
         },
         components:{
             vEcharts,
-            vBasetable2
+            vBasetable2,
+            eqHourlyLogCount_line,
+            eqLogLevel_bar,
+            eqEventType_bar,
+            eqEventType_pie,
+            eqWinlogHourlyEventCount_moreline
         }
     }
 </script>

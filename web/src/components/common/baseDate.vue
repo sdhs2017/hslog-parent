@@ -33,6 +33,7 @@
 
 <script>
     import bus from '../common/bus';
+    import {dateFormat} from '../../../static/js/common'
     export default {
         name: "baseDate",
         props:{
@@ -111,12 +112,23 @@
             }
             let startTime = curYear+'-'+curMonth+'-01';
             let endTime = curYear+'-'+curMonth+'-'+curDay+' '+curHour+':'+curMin+':'+curSec;
-            if(this.type ==='daterange'){
+            /*if(this.type ==='daterange'){
                 this.dateVal = [startTime,endTime];
             }else if(this.type === 'datetimerange'){
                 this.dateVal2 = [startTime+' 00:00:00',endTime];
+            }*/
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+            if(this.type ==='daterange'){
+                let td = dateFormat('yyyy-mm-dd',end)
+                let p7d = dateFormat('yyyy-mm-dd',start)
+                this.dateVal = [p7d,td];
+            }else if(this.type === 'datetimerange'){
+                let td = dateFormat('yyyy-mm-dd HH:MM:SS',end)
+                let p7d = dateFormat('yyyy-mm-dd HH:MM:SS',start)
+                this.dateVal2 = [p7d,td];
             }
-
         },
         watch:{
             'dateVal'(){

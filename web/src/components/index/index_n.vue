@@ -65,7 +65,8 @@
                         </el-date-picker>
                     </p>
                     <div class="content-infom">
-                        <v-echarts echartType="bar" :echartData = "this.echartData.barData" @callbackFucnc="clickss"></v-echarts>
+<!--                        <v-echarts echartType="bar" :echartData = "this.echartData.barData" @callbackFucnc="clickss"></v-echarts>-->
+                        <logLevel_bar :params="barParam" :busName1="barBusName"></logLevel_bar>
                     </div>
                 </div>
             </el-col>
@@ -86,7 +87,8 @@
                         </el-date-picker>
                     </p>
                     <div class="content-infom">
-                        <v-echarts echartType="pie" :echartData = "this.echartData.pieData"></v-echarts>
+<!--                        <v-echarts echartType="pie" :echartData = "this.echartData.pieData"></v-echarts>-->
+                        <logLevel_pie :params="pieParam"></logLevel_pie>
                     </div>
                 </div>
             </el-col>
@@ -120,7 +122,8 @@
                     <p class="content-title">{{todayDate }} 数据量统计</p>
                     <div class="content-infom"  style="height: 350px;">
                         <div class="content-infom"  style="height: 350px;">
-                            <v-echarts echartType="line" :echartData = "this.echartData.lineData"></v-echarts>
+<!--                            <v-echarts echartType="line" :echartData = "this.echartData.lineData"></v-echarts>-->
+                            <hourlyLogCount_line :params="lineParam"></hourlyLogCount_line>
                         </div>
                     </div>
                 </div>
@@ -136,6 +139,9 @@
 <script>
     import vEcharts from '../common/echarts'
     import vListdetails2 from '../common/Listdetails2'
+    import logLevel_bar from '../charts/log/index/logLevel_bar'
+    import logLevel_pie from '../charts/log/index/logLevel_pie'
+    import hourlyLogCount_line from '../charts/log/index/hourlyLogCount_line'
     import bus from '../common/bus';
     import {dateFormat} from "../../../static/js/common";
 
@@ -147,6 +153,22 @@
         name: "index_n",
         data() {
             return{
+                barParam:{
+                    starttime:'',
+                    endtime:''
+                },
+                barBusName:{
+                    clickName:'indexLogLevelClick',
+                    exportName:''
+                },
+                pieParam:{
+                    starttime:'',
+                    endtime:''
+                },
+                lineParam:{
+                    starttime:'',
+                    endtime:''
+                },
                 date:'',//日期
                 hour:'',//时
                 min:'',//分
@@ -253,19 +275,34 @@
 
             this.todayDate = dateFormat('yyyy-mm-dd',end)
             this.starttime = dateFormat('yyyy-mm-dd',start)
+            this.barParam = {
+                starttime : dateFormat('yyyy-mm-dd',start)+ ' 00:00:00',
+                endtime : dateFormat('yyyy-mm-dd',end)+ ' 23:59:59'
+            }
+            this.pieParam = {
+                starttime : dateFormat('yyyy-mm-dd',start)+ ' 00:00:00',
+                endtime : dateFormat('yyyy-mm-dd',end)+ ' 23:59:59'
+            }
+            this.lineParam = {
+                starttime : dateFormat('yyyy-mm-dd',end)+ ' 00:00:00',
+                endtime : dateFormat('yyyy-mm-dd',end)+ ' 23:59:59'
+            }
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
             // //获取日志条数方法
              this.getLogsTotle();
             // //获取柱状图
-            this.getBarPieEchartData(this.starttime,this.todayDate,true,true);
+            //this.getBarPieEchartData(this.starttime,this.todayDate,true,true);
             // //获取折线图数据  轮训 1min
-            this.getLineEchartData();
+            //this.getLineEchartData();
             setInterval(this.getLineEchartData,60000);
             // //获取日志数据
             this.getErrorLogsData();
             // //获取流量条数
             // this.getFlowTotle();
+            bus.$on(this.barBusName.clickName,(params)=>{
+                this.$router.push({name:'accurateSearch2',params:{logLevel: params.name,dateArr:this.dateVal1}})
+            })
         },
         mounted(){
         },
@@ -311,11 +348,19 @@
             },
             //日期改变
             changeDate1(){
-                this.getBarPieEchartData(this.dateVal1[0],this.dateVal1[1],true,false);
+                //this.getBarPieEchartData(this.dateVal1[0],this.dateVal1[1],true,false);
+                this.barParam = {
+                    starttime : this.dateVal1[0]+ ' 00:00:00',
+                    endtime : this.dateVal1[1]+ ' 23:59:59'
+                }
             },
             //日期改变
             changeDate2(){
-                this.getBarPieEchartData(this.dateVal2[0],this.dateVal2[1],false,true);
+                //this.getBarPieEchartData(this.dateVal2[0],this.dateVal2[1],false,true);
+                this.pieParam = {
+                    starttime : this.dateVal2[0]+ ' 00:00:00',
+                    endtime : this.dateVal2[1]+ ' 23:59:59'
+                }
             },
             //获取日志条
             getLogsTotle(){
@@ -488,9 +533,15 @@
                 return -this.activeIndex * 112.66 + 'px';
             }
         },
+        beforeDestroy(){
+            bus.$off(this.barBusName.clickName)
+        },
         components:{
             vEcharts,
-            vListdetails2
+            vListdetails2,
+            logLevel_bar,
+            logLevel_pie,
+            hourlyLogCount_line
         }
     }
 </script>

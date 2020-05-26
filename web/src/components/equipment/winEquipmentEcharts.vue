@@ -53,7 +53,7 @@
                             <v-echarts-Table2
                                 exportName="e1"
                                 :busName="{clickName:equipmentId+'_line',exportName:'export'+equipmentId+'_line'}"
-                                :echartsConfig="{title:'每小时日志数量统计', xAxisName:'小时', yAxisName:'数量/条',hoverText:'数量'}"
+                                chartName="eqHourlyLogCount_line"
                                 echartType="line"
                                 :equipment="{id:equipmentId,type:logType}"
                                 :urls="{echartUrl:'ecsCommon/getLogCountGroupByTime.do',tableUrl:'ecsCommon/getLogListByEquipment.do'}"
@@ -67,7 +67,7 @@
                     <v-echarts-Table2
                         exportName="e4-e5"
                         :busName="{clickName:equipmentId+'_bar-pie',exportName:'export'+equipmentId+'_bar-pie'}"
-                        :echartsConfig="{title:'事件数量统计',hoverText:'百分比'}"
+                        chartName="eqEventType_bar"
                         echartType="bar-pie"
                         :eventTypeEchart = "true"
                         :equipment="{id:equipmentId,type:logType}"
@@ -78,7 +78,7 @@
                     <v-echarts-Table2
                         exportName="e3"
                         :busName="{clickName:equipmentId+'_bar',exportName:'export'+equipmentId+'_bar'}"
-                        :echartsConfig="{title:'日志级别数量统计', xAxisName:'级别', yAxisName:'数量/条',hoverText:'数量'}"
+                        chartName="eqLogLevel_bar"
                         echartType="bar"
                         :equipment="{id:equipmentId,type:logType}"
                         :urls="{echartUrl:'ecsWinlog/getCountGroupByLevel.do',tableUrl:'ecsCommon/getLogListByEquipment.do'}"
@@ -91,7 +91,7 @@
                     <v-echarts-Table2
                         exportName="e2"
                         :busName="{clickName:equipmentId+'_moreline',exportName:'export'+equipmentId+'_moreline'}"
-                        :echartsConfig="{title:'每小时事件数量统计', xAxisName:'小时', yAxisName:'数量/条',hoverText:'数量',dispose:true}"
+                        chartName="eqWinlogHourlyEventCount_moreline"
                         echartType="moreline"
                         :equipment="{id:equipmentId,type:logType}"
                         :urls="{echartUrl:'ecsCommon/getCountGroupByTimeAndEvent.do',tableUrl:'ecsWinlog/getLogListByBlend.do'}"
@@ -163,7 +163,9 @@
             /*获取日志总数于错误日志数*/
             getLogCount(id){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/ecsCommon/getIndicesCount.do',this.$qs.stringify({equipmentid: id}))
+                    this.$axios.post(this.$baseUrl+'/ecsCommon/getIndicesCount.do',this.$qs.stringify({
+                        hsData:JSON.stringify({'fields.equipmentid':id})
+                    }))
                         .then((res)=>{
                             this.logsCount = res.data[0].indices;
                             this.errorLogsCount = res.data[0].indiceserror;
@@ -210,7 +212,6 @@
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
-                            console.log(res.data)
                             this.equipmentInfo = res.data[0]
                         })
                         .catch(err=>{

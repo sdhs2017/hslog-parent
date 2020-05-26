@@ -5,11 +5,11 @@
                 <el-date-picker class="equipment-echart-time" value-format="yyyy-MM-dd" v-model="timeVal" @change="dateChage" type="date" placeholder="选择日期" size="mini"></el-date-picker>
             </div>
             <div class="echarts-data" v-if="!eventTypeEchart">
-                <v-echarts :echartType="this.echartType" :echartData="this.echartData[this.echartDataType]" :busName="busName"></v-echarts>
+                <component :is="chartName" :params="params" :busName="busName"> </component>
             </div>
             <div class="echarts-data" v-else style="display: flex">
-                <v-echarts echartType="bar" :echartData="this.echartData.barData" :busName="busName"></v-echarts>
-                <v-echarts echartType="pie" :echartData="this.echartData.pieData" :busName="busName"></v-echarts>
+                <component is="eqEventType_bar" :params="params" :busName="busName"> </component>
+                <component is="eqEventType_pie" :params="params" :busName="busName"> </component>
             </div>
         </div>
         <div v-show="!echartsStatus" class="echarts-content">
@@ -29,12 +29,14 @@
     import vEcharts from '../common/echarts'
     import vBasetable2 from '../common/Basetable2';
     import bus from '../common/bus';
+    import eqHourlyLogCount_line from '../charts/log/equipment/eqHourlyLogCount_line'
+    import eqLogLevel_bar from '../charts/log/equipment/eqLogLevel_bar'
+    import eqEventType_bar from '../charts/log/equipment/eqEventType_bar'
+    import eqEventType_pie from '../charts/log/equipment/eqEventType_pie'
+    import eqSyslogHourlyEventCount_moreline from '../charts/log/equipment/eqSyslogHourlyEventCount_moreline'
     export default {
         // name: "echartsTable",
         props:{
-            echartsConfig:{
-                type: Object,
-            },
             eventTypeEchart:{
                 type: Boolean,
                 default(){
@@ -50,17 +52,19 @@
                     }
                 }
             },
+            chartName:{
+                type:String
+            },
+            echartType:{
+                type:String
+            },
             urls:{
                 type:Object,
                 default(){
                     return{
-                        echartUrl:'',
                         tableUrl:''
                     }
                 }
-            },
-            echartType:{
-                type:String
             },
             exportName:{
                 type:String
@@ -79,38 +83,10 @@
             return{
                 echartsStatus:true,
                 timeVal:'',//时间
+                timeValArr:[],
+                params:{},
                 echartDataType:'',//用于区分图表数据
-                echartData:{
-                    barData:{//柱状图数据
-                        baseConfig:{
-                        },
-                        xAxisArr:[],
-                        yAxisArr:[]
-                    },
-                    pieData:{//饼状图数据
-                        baseConfig:{
-                        },
-                        xAxisArr:[],
-                        yAxisArr:[]
-                    },
-                    lineData:{//折线图数据
-                        baseConfig:{
-                        },
-                        xAxisArr:["00","01","02","03","04","05","06","07","08","09","10","11","12","13","14","15","16","17","18","19","20","21","22","23"],
-                        yAxisArr:[]
-                    }
-                },
-                echartsConditions:{
-                    equipmentid:'',
-                    type:'',
-                    param:'',
-                    index:'estest'
-                },//图表参数
                 tableCondition:{},//表格数据参数
-                /*busName:{//监听名称
-                    clickName:'',
-                    exportName:''
-                },*/
                 tableHead:[],
                 logTableHead:[//表头
                     {
@@ -183,205 +159,88 @@
                 da = "0"+ (day1.getDate());
             }
             this.timeVal = day1.getFullYear()+"-" + mon + "-" + da;
-
-            //监听点击事件
-
         },
         beforeDestroy(){
             bus.$off(this.busName.clickName)
         },
         watch:{
-            /*检测资产id的变动*/
+            // /!*检测资产id的变动*!/
             'equipment.id'(){
-               this.$nextTick(()=>{
-                   //请求参数
-                   //this.echartsConditions.equipmentid = this.equipment.id;
-                   // this.echartsConditions.type = this.equipment.type;
-                   // this.echartsConditions.param = this.timeVal;
-                   // this.echartsConditions.index = 'estest';
-                   this.echartsConditions = {
-                       starttime:this.timeVal + ' 00:00:00',
-                       endtime:this.timeVal+ ' 23:59:59',
-                       equipmentid:this.equipment.id
-                   }
-
-                   //配置图表基本设置
-                    if(this.echartType === 'line' || this.echartType === 'moreline'){
-                        this.echartDataType = 'lineData';
-                        this.echartData.lineData.baseConfig = this.echartsConfig;
-                    }else if(this.echartType === 'bar'){
-                        this.echartDataType = 'barData';
-                        this.echartData.barData.baseConfig = this.echartsConfig;
-                   }else {
-                        this.echartData.barData.baseConfig = {
-                            title:'事件类型数量-柱状图',
-                            xAxisName:'类型',
-                            yAxisName:'数量/条',
-                            hoverText:'数量',
-                            rotate:'20'
-                        }
-                        this.echartData.pieData.baseConfig = {
-                            title:'事件类型数量-饼图',
-                            hoverText:'百分比'
-                        }
-                        //事件类型参数
-                        this.echartsConditions.param='event.action';
+                this.$nextTick(()=>{
+                    this.params = {
+                        starttime:this.timeVal+ ' 00:00:00',
+                        endtime:this.timeVal+ ' 23:59:59',
+                        hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
+                    };
+                    //日志级别参数、事件类型
+                    if(this.chartName === 'eqLogLevel_bar'){
+                        this.params.groupField='log.level';
+                    }else if(this.chartName === 'eqEventType_bar'){
+                        this.params.groupField='event.action';
                     }
-
-                   //日志级别参数
-                   if(this.echartsConfig.title === '日志级别数量统计'){
-                       this.echartsConditions.param='log.level';
-                   }
-                   //请求数据
-                   this.getEchartsData(this.echartsConditions);
-                   //绑定监听事件
-                   // this.busName.clickName = this.equipment.id+'_'+this.echartType;
-                   //this.busName.exportName ='export'+this.equipment.id+'_'+this.echartType;
-                   //监听导出事件
-                   bus.$on(this.busName.exportName,(params)=>{
-                       this.exportEchartdata = true;
-                       //向父组件传递参数
-                       this.echartdata = params;
-                       bus.$emit(this.exportName,params)
-                   })
-                   //监听点击事件
-                   bus.$on(this.busName.clickName,(params)=>{
-                       this.c_page = 1;
-                       this.clickXVal = params.name;
-                       if(params.name.length < 2){
-                           params.name = '0'+params.name
-                       }
-                       this.tableCondition = {
-                           starttime : this.timeVal+' '+ params.name+':00:00',
-                           endtime : this.timeVal+' '+ params.name+':59:59',
-                           'fields.equipmentid':this.equipment.id,
-                       }
-                       //隐藏图表
-                       this.echartsStatus = false;
-                       //判断当前的图表类型
-                       if(this.echartType === 'line'){//日志总数
-                            this.tableTitle = this.timeVal+' '+this.clickXVal+' 日志列表'
+                    //监听导出事件
+                    bus.$on(this.busName.exportName,(params)=>{
+                        this.exportEchartdata = true;
+                        //向父组件传递参数
+                        this.echartdata = params;
+                        bus.$emit(this.exportName,params)
+                    })
+                    //监听点击事件
+                    bus.$on(this.busName.clickName,(params)=>{
+                        this.c_page = 1;
+                        this.clickXVal = params.name;
+                        if(params.name.length < 2){
+                            params.name = '0'+params.name
+                        }
+                        this.tableCondition = {
+                            starttime : this.timeVal+' '+ params.name+':00:00',
+                            endtime : this.timeVal+' '+ params.name+':59:59',
+                            'fields.equipmentid':this.equipment.id,
+                        }
+                        //隐藏图表
+                        this.echartsStatus = false;
+                        //判断当前的图表类型
+                        if(this.echartType === 'line'){//日志总数
+                            this.tableTitle = this.timeVal+' '+this.clickXVal+'时 日志列表'
                             this.tableHead = this.logTableHead;
-                       }else if(this.echartType === 'moreline'){//事件每小时
-                           this.tableTitle = this.timeVal+' '+this.clickXVal+' '+params.seriesName+'事件列表'
-                           this.clickXVal = params.name;
-                           console.log(params.name)
-                           this.tableCondition = {
-                               starttime : this.timeVal+' '+ params.name+':00:00',
-                               endtime : this.timeVal+' '+ params.name+':59:59',
-                               'fields.equipmentid':this.equipment.id
-                           }
-                           this.tableCondition['log.levels'] = params.seriesName;
-                           this.tableHead = this.eventTableHead;
-                       }else if(this.echartType === 'bar'){//日志类型
-                           this.tableTitle = this.timeVal+' '+this.clickXVal+' 日志列表'
-                           this.tableCondition = {
-                               starttime : this.timeVal+' 00:00:00',
-                               endtime : this.timeVal+' 23:59:59',
-                               'fields.equipmentid':this.equipment.id,
-                           }
-                           this.tableCondition['log.level'] = params.name;
-                           this.tableHead = this.logTableHead;
-                       }else{//事件类型
-                           this.tableTitle = this.timeVal+' '+this.clickXVal+' 事件列表';
-                           this.tableCondition = {
-                               starttime : this.timeVal+' 00:00:00',
-                               endtime : this.timeVal+' 23:59:59',
-                               'fields.equipmentid':this.equipment.id,
-                           }
-                           this.tableCondition['event.action'] = params.name;
-                           this.tableHead = this.eventTableHead;
-                       }
-                       this.getLogsListData(1)
-                   })
-               })
+                        }else if(this.echartType === 'moreline'){//事件每小时
+                            this.tableTitle = this.timeVal+' '+this.clickXVal+' '+params.seriesName+'事件列表'
+                            this.clickXVal = params.name;
+                            this.tableCondition = {
+                                starttime : this.timeVal+' '+ params.name+':00:00',
+                                endtime : this.timeVal+' '+ params.name+':59:59',
+                                'fields.equipmentid':this.equipment.id
+                            }
+                            this.tableCondition['log.levels'] = params.seriesName;
+                            this.tableHead = this.eventTableHead;
+                        }else if(this.echartType === 'bar'){//日志类型
+                            this.tableTitle = this.timeVal+' '+this.clickXVal+' 日志列表'
+                            this.tableCondition = {
+                                starttime : this.timeVal+' 00:00:00',
+                                endtime : this.timeVal+' 23:59:59',
+                                'fields.equipmentid':this.equipment.id,
+                            }
+                            this.tableCondition['log.level'] = params.name;
+                            this.tableHead = this.logTableHead;
+                        }else{//事件类型
+                            this.tableTitle = this.timeVal+' '+this.clickXVal+' 事件列表';
+                            this.tableCondition = {
+                                starttime : this.timeVal+' 00:00:00',
+                                endtime : this.timeVal+' 23:59:59',
+                                'fields.equipmentid':this.equipment.id,
+                            }
+                            this.tableCondition['event.action'] = params.name;
+                            this.tableHead = this.eventTableHead;
+                        }
+                        this.getLogsListData(1)
+                    })
+                })
             },
             'exportEchartData'(){
-                console.log('eeeee')
                 bus.$emit('dd',this.echartdata)
             }
         },
         methods:{
-            /*获取图表数据*/
-            getEchartsData(obj){
-                let loading = layer.load(1)
-                //请求数据
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/'+this.urls.echartUrl,this.$qs.stringify(obj))
-                        .then((res)=>{
-                            layer.close(loading);
-                            //判断图表的类型
-                            if(this.echartType === 'line'){
-                                let yVal = [];
-                                let xVal = [];
-                                for(let i in res.data){
-                                    xVal.push(res.data[i].hour);
-                                    yVal.push(res.data[i].count)
-                                }
-                                this.echartData.lineData.yAxisArr = yVal;
-                                this.echartData.lineData.xAxisArr = xVal;
-                            }else if(this.echartType === 'moreline'){
-                                let color = ['#00EABD','#20C1F3','#FC686F','#F9D124','#DE1AFB','#C0D7FC','#A9F4B7','#FF9E96','#75B568','#323A81'];
-                                this.echartData.lineData.yAxisArr = [];
-                                let whole = {
-                                    name:'全部',
-                                    color:'#61a0a8',
-                                    data:[]
-                                }
-                                let high = {
-                                    name:'高危',
-                                    color:'#c64541',
-                                    data:[]
-                                }
-                                let middle = {
-                                    name:'中危',
-                                    color:'#d48265',
-                                    data:[]
-                                }
-                                let low = {
-                                    name:'普通',
-                                    color:'#95c9b1',
-                                    data:[]
-                                }
-                                for(let i = 0;i<24;i++){
-                                    whole.data.push(res.data[0][i].count);
-                                    high.data.push(res.data[1][i].count);
-                                    middle.data.push(res.data[2][i].count);
-                                    low.data.push(res.data[3][i].count);
-                                }
-                                this.echartData.lineData.yAxisArr.push(whole)
-                                this.echartData.lineData.yAxisArr.push(high)
-                                this.echartData.lineData.yAxisArr.push(middle)
-                                this.echartData.lineData.yAxisArr.push(low)
-                            }else if(this.echartType === 'bar'){
-                                this.echartData.barData.xAxisArr = [];
-                                this.echartData.barData.yAxisArr = [];
-
-                                for(let i in res.data[0]){
-                                    this.echartData.barData.xAxisArr.push(i);
-                                    this.echartData.barData.yAxisArr.push(res.data[0][i]);
-                                }
-
-                            }else{
-                                //事件柱状图
-                                this.echartData.barData.xAxisArr = [];
-                                this.echartData.barData.yAxisArr = [];
-                                //事件饼图
-                                this.echartData.pieData.yAxisArr = [];
-                                for(let i in res.data[0]){
-                                    this.echartData.barData.xAxisArr.push(i);
-                                    this.echartData.barData.yAxisArr.push(res.data[0][i]);
-                                    this.echartData.pieData.yAxisArr.push({name:i,value:res.data[0][i]});
-                                }
-
-                            }
-
-                        })
-                        .catch((err)=>{
-                            layer.close(loading);
-                        })
-                })
-            },
             /*获取日志列表数据*/
             getLogsListData(page){
                 let loading = layer.load(1)
@@ -404,21 +263,17 @@
             },
             /*日期改变*/
             dateChage(){
-
-                // this.echartsConditions = {
-                //     starttime:this.timeVal + ' 00:00:00',
-                //     endtime:this.timeVal+ ' 23:59:59',
-                //     equipmentid:this.equipment.id
-                // }
-                // if (this.echartsConfig.title === '日志级别数量统计'){
-                //
-                // } else{
-                //     this.echartsConditions.starttime = this.timeVal + ' 00:00:00',
-                //     this.echartsConditions.endtime = this.timeVal + ' 23:59:59',
-                // }
-                this.echartsConditions.starttime = this.timeVal + ' 00:00:00',
-                 this.echartsConditions.endtime = this.timeVal + ' 23:59:59',
-                this.getEchartsData(this.echartsConditions);
+                this.params = {
+                    starttime:this.timeVal+ ' 00:00:00',
+                    endtime:this.timeVal+ ' 23:59:59',
+                    hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
+                };
+                //日志级别参数、事件类型
+                if(this.chartName === 'eqLogLevel_bar'){
+                    this.params.groupField='log.level';
+                }else if(this.chartName === 'eqEventType_bar'){
+                    this.params.groupField='event.action';
+                }
             },
             /*页码改变*/
             handleCurrentChange(page){
@@ -427,7 +282,12 @@
         },
         components:{
             vEcharts,
-            vBasetable2
+            vBasetable2,
+            eqHourlyLogCount_line,
+            eqLogLevel_bar,
+            eqEventType_bar,
+            eqEventType_pie,
+            eqSyslogHourlyEventCount_moreline
         }
     }
 </script>

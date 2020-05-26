@@ -35,7 +35,7 @@
                 :value="item.value">
             </el-option>
         </el-select>
-        <el-select v-model="indexSecondVal"  placeholder="请选择" @change="indexSecondValChange" filterable allow-create default-first-option  class="chooseClass iss"   size="mini">
+        <el-select v-model="indexSecondVal"  placeholder="输入/选择" @change="indexSecondValChange" filterable allow-create default-first-option  class="chooseClass iss"   size="mini">
             <el-option
                 v-for="item in indexSecondOpt"
                 :key="item.value"
@@ -207,10 +207,10 @@
             /*template改变事件*/
             templateValChange(val){
                 //清空index的值
-                this.indexFirstVal='',
-                this.indexFirstOpt=[],
-                this.indexSecondVal='',
-                this.indexSecondOpt=[]
+                this.indexFirstVal='';
+                this.indexFirstOpt=[];
+                this.indexSecondVal='';
+                this.indexSecondOpt=[];
                 //获取indexfirst值集合
                 this.getIndexFirstOpt(val);
                 this.$nextTick(()=>{
@@ -223,8 +223,8 @@
             /*indexFirst改变事件*/
             indexFirstValChange(val){
                 //清空时间后缀
-                this.indexSecondVal='',
-                this.indexSecondOpt=[]
+                this.indexSecondVal='*';
+                this.indexSecondOpt=[];
                 //获取时间后缀
                 this.getIndexSecondOpt(val);
                 this.$nextTick(()=>{

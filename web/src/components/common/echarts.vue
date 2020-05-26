@@ -1,17 +1,21 @@
 <template>
-    <div class="echart-wapper" ref="mybox">
+    <div class="echart-wapper" ref="mybox" :id="idv">
 
     </div>
 </template>
 
 <script>
     import bus from '../common/bus';
+    import {dateFormat,jumpHtml} from "../../../static/js/common";
     const echarts = require('echarts');
-
+    import elementResizeDetectorMaker from "element-resize-detector";
     export default {
         name: "echarts",
         data(){
           return{
+              ew:'',
+              eh:'',
+              idv:'',
               clickEchartData:{}//点击图表获得的数据
           }
         },
@@ -86,10 +90,10 @@
             }
         },
         created() {
-
+            this.idv = dateFormat('yyyy-mm-dd HH:MM:SS',new Date()).replace(/\s*/g,"");
         },
         mounted() {
-            this.judgeEchartType()
+            this.judgeEchartType();
         },
         watch:{
             //监听props参数值的变化
@@ -135,11 +139,24 @@
                         break;
                 }
             },
+            //判断宽高变化 重绘图表
+            setResize(myChart){
+                const _this = this;
+                const erd = elementResizeDetectorMaker();
+                erd.listenTo(this.$refs.mybox, element => {
+                    if(Math.abs(this.ew - element.offsetWidth) > 10 || Math.abs(this.eh - element.offsetHeight) > 10){
+                        this.ew = element.offsetWidth;
+                        this.eh =  element.offsetHeight;
+                        _this.$nextTick(() => {
+                            //监听到事件后执行的业务逻辑
+                            myChart.resize();
+                        });
+                    }
+
+                })
+            },
             //柱状图
             barEchart(){
-                if(this.echartData.baseConfig.dispose){
-                    echarts.init(this.$refs.mybox).dispose();//销毁前一个实例
-                }
                 // 基于准备好的dom，初始化echarts实例
                 // var myChart = echarts.init(document.getElementById('echart-wapper'));
                // let myChart1 = 'bar'+new Date();
@@ -237,10 +254,12 @@
                 //图表点击事件
                 myChart.on('click',(params)=>{
                     //调用父组件回调函数
-                    this.$emit('callbackFucnc', params);
+                    //this.$emit('callbackFucnc', params);
                     bus.$emit(this.busName.clickName,params)
                 })
                 bus.$emit(this.busName.exportName,myChart)
+                this.setResize(myChart)
+
                 window.addEventListener("resize",()=>{
                     myChart.resize();
                 });
@@ -335,6 +354,7 @@
                         data:this.echartData.yAxisArr
                     }]
                 });
+
                 myChart.off('click')
                 //图表点击事件
                 myChart.on('click',(params)=>{
@@ -343,6 +363,8 @@
                     bus.$emit(this.busName.clickName,params)
                 })
                 bus.$emit(this.busName.exportName,myChart)
+                //监听宽高改变
+                this.setResize(myChart)
                 window.addEventListener("resize",function(){
                     myChart.resize();
                 });
@@ -380,7 +402,8 @@
                         top:"25px",
                         textStyle:{
                             color:'#eee'
-                        }
+                        },
+                        pageIconColor:'#fff'
                     },
                     xAxis: {
                         name:this.echartData.baseConfig.xAxisName,
@@ -462,6 +485,8 @@
                     bus.$emit(this.busName.clickName,params)
                 })
                 bus.$emit(this.busName.exportName,myChart)
+                //监听宽高改变
+                this.setResize(myChart)
                 window.addEventListener("resize",function(){
                     myChart.resize();
                 });
@@ -572,6 +597,8 @@
                 }
                 //option.series = this.echartData.yAxisArr ;
                 myChart.setOption(option);
+                //监听宽高改变
+                this.setResize(myChart)
                 window.addEventListener("resize",function(){
                     myChart.resize();
                 });
@@ -632,6 +659,8 @@
                     bus.$emit(this.busName.clickName,params)
                 })
                 bus.$emit(this.busName.exportName,myChart)
+                //监听宽高改变
+                this.setResize(myChart)
                 window.addEventListener("resize",function(){
                     myChart.resize();
                 });
@@ -701,6 +730,8 @@
                         data: arr2
                     }]
                 })
+                //监听宽高改变
+                this.setResize(myChart)
                 window.addEventListener("resize",function(){
                     myChart.resize();
                 });
@@ -733,6 +764,8 @@
                         }
                     ]
                 })
+                //监听宽高改变
+                this.setResize(myChart)
                 window.addEventListener("resize",function(){
                     myChart.resize();
                 });

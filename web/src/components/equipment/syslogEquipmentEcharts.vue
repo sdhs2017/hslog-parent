@@ -42,20 +42,20 @@
                     <v-echarts-Table
                         exportName="e1"
                         :busName="{clickName:equipmentId+'_line',exportName:'export'+equipmentId+'_line'}"
-                        :echartsConfig="{title:'每小时日志数量统计', xAxisName:'小时', yAxisName:'数量/条',hoverText:'数量'}"
+                        chartName="eqHourlyLogCount_line"
                         echartType="line"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsCommon/getLogCountGroupByTime.do',tableUrl:'ecsCommon/getLogListByEquipment.do'}"
+                        :urls="{tableUrl:'ecsCommon/getLogListByEquipment.do'}"
                     ></v-echarts-Table>
                 </el-col>
                 <el-col class="wapper-row" :span="12">
                     <v-echarts-Table
                         exportName="e2"
                         :busName="{clickName:equipmentId+'_moreline',exportName:'export'+equipmentId+'_moreline'}"
-                        :echartsConfig="{title:'每小时事件数量统计', xAxisName:'小时', yAxisName:'数量/条',hoverText:'数量',dispose:true}"
+                        chartName="eqSyslogHourlyEventCount_moreline"
                         echartType="moreline"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsSyslog/getCountGroupByEventType.do',tableUrl:'ecsCommon/getEventListByBlend.do'}"
+                        :urls="{tableUrl:'ecsCommon/getEventListByBlend.do'}"
                     ></v-echarts-Table>
                 </el-col>
             </el-row>
@@ -64,21 +64,21 @@
                     <v-echarts-Table
                         exportName="e3"
                         :busName="{clickName:equipmentId+'_bar',exportName:'export'+equipmentId+'_bar'}"
-                        :echartsConfig="{title:'日志级别数量统计', xAxisName:'级别', yAxisName:'数量/条',hoverText:'数量'}"
+                        chartName="eqLogLevel_bar"
                         echartType="bar"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsSyslog/getCountGroupByParam.do',tableUrl:'ecsCommon/getLogListByEquipment.do'}"
+                        :urls="{tableUrl:'ecsCommon/getLogListByEquipment.do'}"
                     ></v-echarts-Table>
                 </el-col>
                 <el-col class="wapper-row" :span="14">
                     <v-echarts-Table
                         exportName="e4-e5"
                         :busName="{clickName:equipmentId+'_bar-pie',exportName:'export'+equipmentId+'_bar-pie'}"
-                        :echartsConfig="{title:'事件类型数量统计',hoverText:'百分比'}"
+                        chartName="eqEventType_bar"
                         echartType="bar-pie"
                         :eventTypeEchart = "true"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsSyslog/getCountGroupByParam.do',tableUrl:'ecsCommon/getEventListByBlend.do'}"
+                        :urls="{tableUrl:'ecsCommon/getEventListByBlend.do'}"
                     ></v-echarts-Table>
                 </el-col>
             </el-row>
@@ -129,7 +129,9 @@
             /*获取日志总数于错误日志数*/
             getLogCount(id){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/ecsCommon/getIndicesCount.do',this.$qs.stringify({equipmentid: id}))
+                    this.$axios.post(this.$baseUrl+'/ecsCommon/getIndicesCount.do',this.$qs.stringify({
+                        hsData:JSON.stringify({'fields.equipmentid':id})
+                    }))
                         .then((res)=>{
                             this.logsCount = res.data[0].indices;
                             this.errorLogsCount = res.data[0].indiceserror;
@@ -142,7 +144,9 @@
             /*获取事件总数于高危事件数*/
             getEventCount(id){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/ecsSyslog/getEventsCount.do',this.$qs.stringify({equipmentid: id}))
+                    this.$axios.post(this.$baseUrl+'/ecsSyslog/getEventsCount.do',this.$qs.stringify({
+                        hsData:JSON.stringify({'fields.equipmentid':id})
+                    }))
                         .then((res)=>{
                             this.eventCount = res.data[0].events;
                             this.dangerEventCount = res.data[0].eventserror;

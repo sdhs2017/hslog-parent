@@ -6,7 +6,7 @@
         </div>
         <div class="logo">
             <img src="../../../static/img/login_cx.png" alt="">
-            <span style="position: absolute;top: -7px;left: 320px;font-size: 10px;">3.0</span>
+            <span style="position: absolute;top: -7px;left: 320px;font-size: 10px;">V 3.0</span>
 <!--            <img src="../../../static/img/logo_ay.png" alt="">-->
         </div>
         <ul class="header-ul">

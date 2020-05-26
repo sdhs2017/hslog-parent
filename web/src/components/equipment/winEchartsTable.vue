@@ -214,11 +214,11 @@
                        hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
                    };
                    //日志级别参数、事件类型
-                   if(this.chartName === 'eqLogLevel_bar'){
+                  /* if(this.chartName === 'eqLogLevel_bar'){
                        this.params.groupField='log.level';
                    }else if(this.chartName === 'eqEventType_bar'){
                        this.params.groupField='event.action';
-                   }
+                   }*/
 /*
                    //配置图表基本设置
                     if(this.echartType === 'line' || this.echartType === 'moreline'){
@@ -405,11 +405,11 @@
                     hsData:JSON.stringify({'fields.equipmentid':this.equipment.id})
                 };
                 //日志级别参数、事件类型
-                if(this.chartName === 'eqLogLevel_bar'){
+                /*if(this.chartName === 'eqLogLevel_bar'){
                     this.params.groupField='log.level';
                 }else if(this.chartName === 'eqEventType_bar'){
                     this.params.groupField='event.action';
-                }
+                }*/
             },
             /*页码改变*/
             handleCurrentChange(page){

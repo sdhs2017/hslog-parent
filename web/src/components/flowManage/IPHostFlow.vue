@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.sourceIpData" ></v-echarts>
+                            <srcIp_bar :params="params" :setIntervalObj="intervalObj"></srcIp_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.sourceIpData2" ></v-echarts>
+                            <srcIp_pie :params="params" :setIntervalObj="intervalObj"></srcIp_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,12 +24,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.targetIpData" ></v-echarts>
+                            <dstIp_bar :params="params" :setIntervalObj="intervalObj"></dstIp_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.targetIpData2" ></v-echarts>
+                            <dstIp_pie :params="params" :setIntervalObj="intervalObj"></dstIp_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -43,192 +43,73 @@
     import vFlowchartfrom from '../common/flowChartsFrom'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
+    import dstIp_bar from '../charts/flow/ipHostFlow/dstIp_bar'
+    import dstIp_pie from '../charts/flow/ipHostFlow/dstIp_pie'
+    import srcIp_bar from '../charts/flow/ipHostFlow/srcIp_bar'
+    import srcIp_pie from '../charts/flow/ipHostFlow/srcIp_pie'
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "IPHostFlow",
         data() {
             return {
-                interTime:'',
-                //刷新时间间隔
-                refreshIntTime :'5000',
-                //数据日期间隔
-                dataTime:3600,
-                //源ip地址流量排行
-                sourceIpData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'源IP',
-                        yAxisName:'数据包长度/KB',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                params:{
+                    timeInterval:3600
                 },
-                sourceIpData2:{
-                    baseConfig:{
-                        title:'',
-                            hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                        yAxisArr:[]
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
                 },
-                //目的ip地址流量排行
-                targetIpData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'目的IP',
-                        yAxisName:'数据包长度/KB',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
-                targetIpData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
+                dataTime:'3600',
             }
         },
         created(){
             /*监听刷新时间改变*/
             bus.$on('IPHostFlowRefreshBus',(val)=>{
-                this.refreshIntTime = val;
-                clearInterval(this.interTime);
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.dataTime
-                    }
-                    /*获取全局利用率百分比*/
-                    this.getSourceIpData(paramObj);
-                    /*获取全局数据包个数*/
-                    this.getTargetIpData(paramObj);
-                },this.refreshIntTime);
+                this.intervalObj.interval = val
             })
             /*监听数据时间改变*/
             bus.$on('IPHostFlowDataBus',(val)=>{
                 this.dataTime = val;
+                this.params = {
+                    timeInterval:val
+                }
             })
             /*监听switch改变*/
             bus.$on('IPHostFlowSwitchBus',(obj)=>{
-               //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取全局利用率百分比*/
-                        this.getSourceIpData(paramObj);
-                        /*获取全局数据包个数*/
-                        this.getTargetIpData(paramObj);
-                    },this.refreshIntTime);
+                this.intervalObj.state = obj.switchVal;
+                if (obj.switchVal) {
+                    this.params = {
+                        timeInterval:this.dataTime
+                    }
                 }
             })
             /*监听日期改变*/
             bus.$on('IPHostFlowTimeBus',(obj)=>{
-                let paramObj = {
+                layer.load(1)
+                this.params = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]
                 }
-                layer.load(1);
-                /*获取全局利用率百分比*/
-                this.getSourceIpData(paramObj);
-                /*获取全局数据包个数*/
-                this.getTargetIpData(paramObj);
             })
         },
         mounted(){
-            //第一次获取数据
-            /*获取全局利用率百分比*/
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取全局利用率百分比*/
-            this.getSourceIpData(paramObj);
-            /*获取全局数据包个数*/
-            this.getTargetIpData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取全局利用率百分比*/
-                this.getSourceIpData(paramObj);
-                /*获取全局数据包个数*/
-                this.getTargetIpData(paramObj);
-            },this.refreshIntTime);
         },
         methods:{
-            /*获取源IP地址流量排行*/
-            getSourceIpData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getSrcIPFlow.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data[0]){
-                                xns1.push(i);
-                                yvs1.push(res.data[0][i]);
-                                yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })
-                            }
-                            this.sourceIpData.xAxisArr = xns1;
-                            this.sourceIpData.yAxisArr = yvs1;
-                            this.sourceIpData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-                        })
-                })
-            },
-            /*获取目的IP地址流量排行*/
-            getTargetIpData(paramObj){
-                this.$nextTick(()=>{
 
-                    this.$axios.post(this.$baseUrl+'/flow/getDstIPFlow.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data[0]){
-                                xns1.push(i);
-                                yvs1.push(res.data[0][i]);
-                                yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })
-                            }
-                            this.targetIpData.xAxisArr = xns1;
-                            this.targetIpData.yAxisArr = yvs1;
-                            this.targetIpData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('IPHostFlowRefreshBus');
+            bus.$off('IPHostFlowDataBus')
+            bus.$off('IPHostFlowSwitchBus')
+            bus.$off('IPHostFlowTimeBus')
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            vEcharts,
+            dstIp_bar,
+            dstIp_pie,
+            srcIp_bar,
+            srcIp_pie
         }
     }
 </script>

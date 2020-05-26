@@ -9,7 +9,7 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.allMulAndBroData2" ></v-echarts>
+                            <mulAndBro_bar :params="dateArr" ></mulAndBro_bar>
                         </div>
                     </el-col>
                 </el-row>
@@ -21,84 +21,37 @@
 
 <script>
     import vBasedate from '../common/baseDate'
-    import vEcharts from '../common/echarts'
+    import mulAndBro_bar from '../charts/flow/mulAndBro/mulAndBro_bar'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "mulAndBro2",
         data() {
             return {
-                //全局广播包组播包个数
-                allMulAndBroData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'时间',
-                        yAxisName:'个数',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'组播包',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    },{
-                        name:'广播包',
-                        color:'rgb(9,243,105)',
-                        data:[]
-                    }]
-                },
-                allMulAndBroData2:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'类型',
-                        yAxisName:'数据包/个数',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:['组播包','广播包'],
-                    yAxisArr:[]
-
-                }
+                dateArr:{}
             }
         },
         created(){
             /*监听日期改变*/
             bus.$on('mulAndBroTimeBus2',(arr)=>{
-                //定义参数
+                layer.load(1)
                 let paramObj = {
                     starttime:arr[0],
                     endtime:arr[1]
                 }
-                /*获取全局数据包类型个数*/
-                layer.load(1);
-                this.getAllMulAndBroData(paramObj);
+                this.dateArr = paramObj;
             })
         },
         mounted(){
         },
         methods:{
-            /*获取广播包组播包个数*/
-            getAllMulAndBroData(paramObj){
-                this.$nextTick(()=> {
-                    this.$axios.post(this.$baseUrl + '/flow/getMulticastAndBroadcastPacketTypeCount.do', this.$qs.stringify(paramObj))
-                        .then(res => {
-                            layer.closeAll('loading');
-                            let arr = [];
-                            arr.push(res.data[0].multicast.value[1]);
-                            arr.push(res.data[0].broadcast.value[1]);
-                            this.allMulAndBroData2.yAxisArr= arr;
-                        })
-                        .catch(err => {
-                            layer.closeAll('loading');
-                        })
-                })
-            }
         },
         beforeDestroy(){
-            //clearInterval(this.interTime);
+            bus.$off('mulAndBroTimeBus2')
         },
         components:{
             vBasedate,
-            vEcharts
+            mulAndBro_bar
         }
     }
 </script>

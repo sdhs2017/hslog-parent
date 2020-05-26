@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">资产流量
-            <v-flowchartfrom class="from-wapper" refreshBus="equipmentFlowRefreshBus" dataBus="equipmentFlowDataBus" switchBus="equipmentFlowSwitchBus" timeBus="equipmentFlowTimeBus"></v-flowchartfrom>
+            <v-flowchartfrom class="from-wapper" refreshBus="equipmentFlowRefreshBus_n" dataBus="equipmentFlowDataBus_n" switchBus="equipmentFlowSwitchBus_n" timeBus="equipmentFlowTimeBus_n"></v-flowchartfrom>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.ipPacketsData" ></v-echarts>
+                            <eqippacketbar :params="params" :setIntervalObj="intervalObj"></eqippacketbar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.ipPacketsData2" ></v-echarts>
+                            <eqippacketpie :params="params" :setIntervalObj="intervalObj"></eqippacketpie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,216 +24,91 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="bar" :echartData = "this.domainPacketsData" ></v-echarts>
+                            <eqserverpacketbar :params="params" :setIntervalObj="intervalObj"></eqserverpacketbar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <v-echarts echartType="pie" :echartData = "this.domainPacketsData2" ></v-echarts>
+                            <eqserverpacketpie :params="params" :setIntervalObj="intervalObj"></eqserverpacketpie>
                         </div>
                     </el-col>
                 </el-row>
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
+    import eqippacketbar from '../charts/flow/equipmentFlow/eqIpPacket_bar'
+    import eqippacketpie from '../charts/flow/equipmentFlow/eqIpPacket_pie'
+    import eqserverpacketbar from '../charts/flow/equipmentFlow/eqServerPacket_bar'
+    import eqserverpacketpie from '../charts/flow/equipmentFlow/eqServerPacket_pie'
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "equipmentFlow",
         data() {
             return {
-                interTime:'',
-                //刷新时间间隔
-                refreshIntTime :'5000',
-                //数据日期间隔
-                dataTime:3600,
-                //资产（ip）数据包个数
-                ipPacketsData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'资产(IP)',
-                        yAxisName:'数据包/个',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                params:{
+                    timeInterval:3600
                 },
-                ipPacketsData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
                 },
-                //资产（域名）数据包个数
-                domainPacketsData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'资产(服务)',
-                        yAxisName:'数据包/个',
-                        rotate:'10',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
-                domainPacketsData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                },
+                dataTime:'3600',
             }
         },
         created(){
             /*监听刷新时间改变*/
-            bus.$on('equipmentFlowRefreshBus',(val)=>{
-                this.refreshIntTime = val;
-                clearInterval(this.interTime);
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.dataTime
-                    }
-                    /*获取资产（ip）数据包个数*/
-                    this.getIpPacketsData(paramObj);
-                    /*获取资产（域名）数据包个数*/
-                    this.getDomainPacketsData(paramObj);
-                },this.refreshIntTime);
+            bus.$on('equipmentFlowRefreshBus_n',(val)=>{
+                this.intervalObj.interval = val
             })
             /*监听数据时间改变*/
-            bus.$on('equipmentFlowDataBus',(val)=>{
+            bus.$on('equipmentFlowDataBus_n',(val)=>{
                 this.dataTime = val;
+                this.params = {
+                    timeInterval:val
+                }
             })
             /*监听switch改变*/
-            bus.$on('equipmentFlowSwitchBus',(obj)=>{
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取资产（ip）数据包个数*/
-                        this.getIpPacketsData(paramObj);
-                        /*获取资产（域名）数据包个数*/
-                        this.getDomainPacketsData(paramObj);
-                    },this.refreshIntTime);
+            bus.$on('equipmentFlowSwitchBus_n',(obj)=>{
+                this.intervalObj.state = obj.switchVal;
+                if (obj.switchVal) {
+                    this.params = {
+                        timeInterval:this.dataTime
+                    }
                 }
             })
             /*监听日期改变*/
-            bus.$on('equipmentFlowTimeBus',(obj)=>{
-                let paramObj = {
+            bus.$on('equipmentFlowTimeBus_n',(obj)=>{
+                layer.load(1)
+                this.params = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]
                 }
-                layer.load(1);
-                /*获取资产（ip）数据包个数*/
-                this.getIpPacketsData(paramObj);
-                /*获取资产（域名）数据包个数*/
-                this.getDomainPacketsData(paramObj);
             })
         },
         mounted(){
-            //第一次获取数据
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取资产（ip）数据包个数*/
-            this.getIpPacketsData(paramObj);
-            /*获取资产（域名）数据包个数*/
-            this.getDomainPacketsData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取资产（ip）数据包个数*/
-                this.getIpPacketsData(paramObj);
-                /*获取资产（域名）数据包个数*/
-                this.getDomainPacketsData(paramObj);
-            },this.refreshIntTime);
         },
         methods:{
-            /*获取资产（ip）数据包个数*/
-            getIpPacketsData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getDstIPPacketCount.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data){
-                                let obj = res.data[i];
-                                for (let j in obj){
-                                    xns1.push(j);
-                                    yvs1.push(obj[j])
-                                    yvs2.push({
-                                        name:j,
-                                        value:obj[j]
-                                    })
-                                }
-                            }
-                            this.ipPacketsData.xAxisArr = xns1;
-                            this.ipPacketsData.yAxisArr = yvs1;
-                            this.ipPacketsData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
-            /*获取资产（域名）数据包个数*/
-            getDomainPacketsData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getDstUrlPacketCount.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data){
-                                let obj = res.data[i];
-                                for (let j in obj){
-                                    xns1.push(j);
-                                    yvs1.push(obj[j]);
-                                    yvs2.push({
-                                        name:j,
-                                        value:obj[j]
-                                    })
-                                }
-                            }
-                            this.domainPacketsData.xAxisArr = xns1;
-                            this.domainPacketsData.yAxisArr = yvs1;
-                            this.domainPacketsData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-
-                        })
-                })
-            },
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('equipmentFlowRefreshBus_n');
+            bus.$off('equipmentFlowDataBus_n')
+            bus.$off('equipmentFlowSwitchBus_n')
+            bus.$off('equipmentFlowTimeBus_n')
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            vEcharts,
+            eqippacketbar,
+            eqippacketpie,
+            eqserverpacketbar,
+            eqserverpacketpie
         }
     }
 </script>

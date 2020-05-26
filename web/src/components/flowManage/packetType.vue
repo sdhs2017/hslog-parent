@@ -8,8 +8,11 @@
                 <p class="echarts-tit">全局-数据包类型个数</p>
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
-                        <div class="chart-wapper ip-chart">
-                            <v-echarts :echartType="this.chartType" :echartData = "this.chartData" ></v-echarts>
+                        <div class="chart-wapper ip-chart" v-if="chartType === 'timeline'">
+                            <packetType_timeline :params="lineParam" :setIntervalObj="intervalObj"> </packetType_timeline>
+                        </div>
+                        <div class="chart-wapper ip-chart" v-else>
+                            <packetType_bar :params="barParam" :setIntervalObj="intervalObj"> </packetType_bar>
                         </div>
                     </el-col>
                 </el-row>
@@ -21,184 +24,80 @@
 
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
-    import vEcharts from '../common/echarts'
+    import packetType_timeline from '../charts/flow/packetType/packetType_timeline'
+    import packetType_bar from '../charts/flow/packetType/packetType_bar'
     import bus from '../common/bus';
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "packetType",
         data() {
             return {
+                lineParam:{
+                    timeInterval:5
+                },
+                barParam:{},
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
+                },
                 refreshObj:{
                     defaultVal:'5',
                     opt:[{
                         label:'5s',
                         value:'5'
                     },
-                    {
-                        label:'10s',
-                        value:'10'
-                    },
-                    {
-                        label:'20s',
-                        value:'20'
-                    }
+                        {
+                            label:'10s',
+                            value:'10'
+                        },
+                        {
+                            label:'20s',
+                            value:'20'
+                        }
                     ]
                 },
-                interTime:'',
                 //刷新时间间隔
                 refreshIntTime :'5000',
-                //数据日期间隔
-                dataTime:1,
-                echartChange:false,
-                chartData:{
-                    baseConfig:{
-                        title:''
-                    }
-                },
                 chartType:'timeline',
-                //全局数据包类型个数
-                allPacketsTypeData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'时间',
-                        yAxisName:'数据包/个数',
-                        hoverText:'',
-                    },
-                    yAxisArr:[{
-                        name:'碎片包',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    },{
-                        name:'正常包',
-                        color:'rgb(9,243,105)',
-                        data:[]
-                    },{
-                        name:'特大包',
-                        color:'rgb(243,220,15)',
-                        data:[]
-                    }]
-                },
-                allPacketsTypeData2:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'类型',
-                        yAxisName:'数据包/个数',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:['碎片包','正常包','特大包'],
-                    yAxisArr:[]
-
-                },
             }
         },
         created(){
             /*监听刷新时间改变*/
             bus.$on('packetTypeRefreshBus',(val)=>{
-                this.refreshIntTime = val*1000;
-                clearInterval(this.interTime);
-                this.setIntervalFun();
+                this.intervalObj.interval = val*1000
+                this.refreshIntTime = this.intervalObj.interval
             })
             /*监听switch改变*/
             bus.$on('packetTypeSwitchBus',(obj)=>{
-                this.echartChange = true;
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
+                this.intervalObj.state = obj.switchVal;
+                if(obj.switchVal){
                     this.chartType = 'timeline'
-                    let paramObj={
-                        timeInterval:this.refreshIntTime/1000
-                    }
-                    /*获取全局数据包类型个数*/
-                    this.getAllPacketsTypeData(paramObj);
-                    //开启轮训
-                    this.setIntervalFun();
                 }
             })
             /*监听日期改变*/
             bus.$on('packetTypeTimeBus',(obj)=>{
-                //设置图表类型
                 this.chartType = 'bar'
-                //定义参数
-                let paramObj = {
+                layer.load(1)
+                this.barParam = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]
                 }
-                /*获取全局数据包类型个数*/
-                layer.load(1);
-                this.getAllPacketsTypeData(paramObj);
             })
         },
         mounted(){
-            //第一次获取数据
-            let paramObj={
-                timeInterval:this.refreshIntTime/1000
-            }
-            /*获取全局数据包类型个数*/
-            this.getAllPacketsTypeData(paramObj);
-            this.setIntervalFun();
         },
         methods:{
-            /*获取全局数据包类型个数*/
-            getAllPacketsTypeData(paramObj){
-                this.$nextTick(()=>{
-                    this.allPacketsTypeData.baseConfig.dispose = this.echartChange;
-                    this.allPacketsTypeData2.baseConfig.dispose = this.echartChange;
-                    this.$axios.post(this.$baseUrl+'/flow/getPacketTypeCount.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            if(this.chartType === 'timeline'){
-                                if(this.allPacketsTypeData.yAxisArr[0].data.length < 60){
-                                    this.allPacketsTypeData.yAxisArr[0].data.push(res.data[0].small);
-                                    this.allPacketsTypeData.yAxisArr[1].data.push(res.data[0].normal);
-                                    this.allPacketsTypeData.yAxisArr[2].data.push(res.data[0].big);
-                                    this.chartData = this.allPacketsTypeData;
-                                }else{
-                                    this.allPacketsTypeData.yAxisArr[0].data.shift();
-                                    this.allPacketsTypeData.yAxisArr[1].data.shift();
-                                    this.allPacketsTypeData.yAxisArr[2].data.shift();
-                                    this.allPacketsTypeData.yAxisArr[0].data.push(res.data[0].small);
-                                    this.allPacketsTypeData.yAxisArr[1].data.push(res.data[0].normal);
-                                    this.allPacketsTypeData.yAxisArr[2].data.push(res.data[0].big);
-                                    this.chartData = this.allPacketsTypeData;
-                                }
-                            }else{
-                                let arr = [];
-                                arr.push(res.data[0].small.value[1]);
-                                arr.push(res.data[0].normal.value[1]);
-                                arr.push(res.data[0].big.value[1]);
-                                this.allPacketsTypeData2.yAxisArr= arr;
-                                this.chartData = this.allPacketsTypeData2;
-                            }
-                            //改变状态（第一次切换类型）
-                            this.echartChange = false;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
 
-                        })
-                })
-            },
-            /*设置计时器*/
-            setIntervalFun(){
-                /*循环获取数据*/
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.refreshIntTime/1000
-                    }
-                    /*获取全局数据包类型个数*/
-                    this.getAllPacketsTypeData(paramObj);
-                },this.refreshIntTime);
-            }
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('packetTypeTimeBus')
+            bus.$off('packetTypeSwitchBus')
+            bus.$off('packetTypeRefreshBus')
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            packetType_timeline,
+            packetType_bar
         }
     }
 </script>

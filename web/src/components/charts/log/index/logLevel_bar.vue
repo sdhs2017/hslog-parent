@@ -54,8 +54,8 @@
             params:{
                 handler(newV,oldV) {
                     if(JSON.stringify(newV) != JSON.stringify(oldV)){
+                        this.params.groupField='log.level'
                         this.getEchartData(this.params)
-                        console.log(this.params)
                     }
                 },
                 immediate: true,
@@ -67,7 +67,7 @@
             getEchartData(params){
                 this.loading = true
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/ecsWinlog/getCountGroupByLevel.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/ecsCommon/getCountGroupByParam.do',this.$qs.stringify(params))
                         .then((res) => {
                             this.loading = false
                             const obj = res.data[0];

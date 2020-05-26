@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper system-chart">
-                            <v-echarts echartType="bar" :echartData = "this.systemChartData" ></v-echarts>
+                            <agentSystem_bar :params="params" :setIntervalObj="intervalObj"></agentSystem_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper system-chart">
-                            <v-echarts echartType="pie" :echartData = "this.systemChartData2" ></v-echarts>
+                            <agentSystem_pie :params="params" :setIntervalObj="intervalObj"></agentSystem_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -25,12 +25,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper browser-chart">
-                            <v-echarts echartType="bar" :echartData = "this.browserChartData" ></v-echarts>
+                            <agentBrowser_bar :params="params" :setIntervalObj="intervalObj"></agentBrowser_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper browser-chart">
-                            <v-echarts echartType="pie" :echartData = "this.browserChartData2" ></v-echarts>
+                            <agentBrowser_pie :params="params" :setIntervalObj="intervalObj"></agentBrowser_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -44,210 +44,73 @@
     import vFlowchartfrom from '../common/flowChartsFrom'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
+    import agentBrowser_bar from '../charts/flow/userAgentInfo/agentBrowser_bar'
+    import agentBrowser_pie from '../charts/flow/userAgentInfo/agentBrowser_pie'
+    import agentSystem_bar from '../charts/flow/userAgentInfo/agentSystem_bar'
+    import agentSystem_pie from '../charts/flow/userAgentInfo/agentSystem_pie'
     import {dateFormat} from '../../../static/js/common'
     export default {
         name: "userAgentInfo",
         data() {
             return {
-                interTime:'',
-                //刷新时间间隔
-                refreshIntTime :'5000',
-                //数据日期间隔
-                dataTime:3600,
-                //操作系统 柱状图数据
-                systemChartData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'操作系统',
-                        yAxisName:'访问次数/次',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-
+                params:{
+                    timeInterval:3600
                 },
-                //操作系统 饼图数据
-                systemChartData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
                 },
-                //浏览器
-                browserChartData:{
-                    baseConfig:{
-                        title:'',
-                        xAxisName:'浏览器',
-                        yAxisName:'访问次数/次',
-                        rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-
-                },
-                browserChartData2:{
-                    baseConfig:{
-                        title:'',
-                        hoverText:'百分比'
-                    },
-                    xAxisArr:[],
-                    yAxisArr:[]
-
-                },
+                dataTime:'3600',
             }
         },
         created(){
             /*监听刷新时间改变*/
             bus.$on('userAgentInfoRefreshBus',(val)=>{
-                this.refreshIntTime = val;
-                clearInterval(this.interTime);
-                this.interTime = setInterval(()=>{
-                    let paramObj={
-                        timeInterval:this.dataTime
-                    }
-                    /*获取业务系统统计- 浏览器*/
-                    this.getBrowserData(paramObj);
-                    /*获取业务系统统计- 系统*/
-                    this.getSystemData(paramObj);
-                },this.refreshIntTime);
+                this.intervalObj.interval = val
             })
             /*监听数据时间改变*/
             bus.$on('userAgentInfoDataBus',(val)=>{
                 this.dataTime = val;
+                this.params = {
+                    timeInterval:val
+                }
             })
             /*监听switch改变*/
             bus.$on('userAgentInfoSwitchBus',(obj)=>{
-                //判断改变的值
-                if(!obj.switchVal){//停止轮训
-                    //停止轮训
-                    clearInterval(this.interTime);
-                }else{//开启轮训
-                    //开启轮训
-                    this.interTime = setInterval(()=>{
-                        let paramObj={
-                            timeInterval:this.dataTime
-                        }
-                        /*获取业务系统统计- 浏览器*/
-                        this.getBrowserData(paramObj);
-                        /*获取业务系统统计- 系统*/
-                        this.getSystemData(paramObj);
-                    },this.refreshIntTime);
+                this.intervalObj.state = obj.switchVal;
+                if (obj.switchVal) {
+                    this.params = {
+                        timeInterval:this.dataTime
+                    }
                 }
             })
             /*监听日期改变*/
             bus.$on('userAgentInfoTimeBus',(obj)=>{
-                let paramObj = {
+                layer.load(1)
+                this.params = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]
                 }
-                layer.load(1);
-                /*获取业务系统统计- 浏览器*/
-                this.getBrowserData(paramObj);
-                /*获取业务系统统计- 系统*/
-                this.getSystemData(paramObj);
             })
 
         },
         mounted(){
-            let paramObj={
-                timeInterval:this.dataTime
-            }
-            /*获取业务系统统计- 浏览器*/
-            this.getBrowserData(paramObj);
-            /*获取业务系统统计- 系统*/
-            this.getSystemData(paramObj);
-            /*循环获取数据*/
-            this.interTime = setInterval(()=>{
-                let paramObj={
-                    timeInterval:this.dataTime
-                }
-                /*获取业务系统统计- 浏览器*/
-                this.getBrowserData(paramObj);
-                /*获取业务系统统计- 系统*/
-                this.getSystemData(paramObj);
-            },this.refreshIntTime);
         },
         methods:{
-            /*获取业务系统统计- 浏览器*/
-            getBrowserData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getUserAgentBrowserGroupByTime.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data[0]){
-                                xns1.push(i);
-                                yvs1.push(res.data[0][i]);
-                                yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })
-                            }
-                            this.browserChartData.xAxisArr = xns1;
-                            this.browserChartData.yAxisArr = yvs1;
-                            this.browserChartData2.yAxisArr = yvs2;
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-                        })
-                })
-            },
-            /*获取业务系统统计- 系统*/
-            getSystemData(paramObj){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getUserAgentOSGroupByTime.do',this.$qs.stringify(paramObj))
-                        .then(res=>{
-                            layer.closeAll('loading');
-                            let xns1 = [];
-                            let yvs1 = [];
-                            let yvs2 = [];
-                            for(let i in res.data[0]){
-                                xns1.push(i);
-                                yvs1.push(res.data[0][i]);
-                                yvs2.push({
-                                    name:i,
-                                    value:res.data[0][i]
-                                })
-                            }
-                            this.systemChartData.xAxisArr = xns1;
-                            this.systemChartData.yAxisArr = yvs1;
-                            this.systemChartData2.yAxisArr = yvs2;
-
-                        })
-                        .catch(err=>{
-                            layer.closeAll('loading');
-                        })
-                })
-            },
-        },
-        computed:{
-            tagList(){
-                return this.$store.state.tagRouteList
-            }
-        },
-        watch:{
-            'tagList'(){
-                let noHas = this.tagList.some(item => {
-                    return item.name === this.$options.name;
-                })
-                if(!noHas){
-                    //clearInterval(this.interTime);
-                }
-            }
         },
         beforeDestroy(){
-            clearInterval(this.interTime);
+            bus.$off('userAgentInfoRefreshBus');
+            bus.$off('userAgentInfoDataBus')
+            bus.$off('userAgentInfoSwitchBus')
+            bus.$off('userAgentInfoTimeBus')
         },
         components:{
             vFlowchartfrom,
-            vEcharts
+            vEcharts,
+            agentBrowser_bar,
+            agentBrowser_pie,
+            agentSystem_bar,
+            agentSystem_pie
         }
     }
 </script>

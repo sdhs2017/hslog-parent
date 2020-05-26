@@ -1,6 +1,7 @@
 <template>
     <!--单个资产(syslog)每小时事件数量统计--多条折线图-->
     <div class="eb">
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此为单个资产的报表,缺少必要条件。</div>
         <v-echarts echartType="moreline" :echartData = "this.moreLineData" :busName="busName" ></v-echarts>
     </div>
 </template>
@@ -54,7 +55,7 @@
             params:{
                 handler(newV,oldV) {
                     if(JSON.stringify(newV) != JSON.stringify(oldV) && JSON.stringify(newV) !== '{}'){
-                        if(newV.hsData != {} && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
+                        if(newV.hsData && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
                             this.getEchartData(this.params)
                         }else{//显示错误提示
                             this.errState = true

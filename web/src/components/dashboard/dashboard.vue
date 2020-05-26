@@ -2,8 +2,8 @@
     <div class="content-bg" >
         <div class="top-title" style="position: relative;">
             <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
-            <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加图表</el-button>
-<!--            <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>-->
+            <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
+            <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
@@ -48,11 +48,10 @@
                             <span>{{item.tit}}</span>
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
                             <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
-                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
+<!--                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>-->
                         </div>
-                        <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="item-con" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
-                            <component :is="allComps[item.eId]" :params="{starttime:dateArr[0],endtime:dateArr[1]}" :baseConProp="{title:''}"> </component>
+                            <component :is="allComps[item.eId]" :params="sysChartParams" :baseConProp="{title:''}" :setIntervalObj="{state:item.intervalState}"> </component>
                         </div>
                     </div>
                     <div style="height: 100%;" v-else>
@@ -97,7 +96,7 @@
         <el-drawer
             title="我是标题"
             :visible.sync="sysDrawerState"
-            size="350"
+            size="450"
             :with-header="false">
             <div class="drawer-wapper">
                 <div class="drawer-tit">
@@ -105,31 +104,208 @@
                     <span>系统预设图表</span>
                     <i class="refresh-list el-icon-refresh-right" ></i>
                 </div>
-                <el-checkbox-group v-model="sysCheckedList" class="drawer-list">
+               <!-- <el-checkbox-group v-model="sysCheckedList" class="drawer-list">
                     <ul>
-                        <!--<li v-for="(item,i) in chartsList" :key="i">
-                            <el-checkbox :label="item.id" style="width: 260px;overflow:hidden;">{{item.title}}</el-checkbox>
-                            <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : ''}}</span>
-                        </li>-->
                         <li>
-                            <el-checkbox label="logLevel_bar" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
+                            <el-checkbox label="logLevel_bar-日志级别数量统计" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
                             <span>柱状图</span>
                         </li>
                         <li>
-                            <el-checkbox label="logLevel_pie" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
+                            <el-checkbox label="logLevel_pie-日志级别数量统计" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
                             <span>饼图</span>
                         </li>
+                        <li>
+                            <el-checkbox label="hourlyLogCount_line-今日日志数量统计" style="width: 260px;overflow:hidden;">今日日志数量统计</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqIpPacket_bar-资产（IP）数据包个数统计" style="width: 260px;overflow:hidden;">资产（IP）数据包个数统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqIpPacket_pie-资产（IP）数据包个数统计" style="width: 260px;overflow:hidden;">资产（IP）数据包个数统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqServerPacket_bar-资产（服务）数据包个数统计" style="width: 260px;overflow:hidden;">资产（服务）数据包个数统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqServerPacket_pie-资产（服务）数据包个数统计" style="width: 260px;overflow:hidden;">资产（服务）数据包个数统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="dstIp_bar-目的Ip地址流量统计" style="width: 260px;overflow:hidden;">目的Ip地址流量统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="dstIp_pie-目的Ip地址流量统计" style="width: 260px;overflow:hidden;">目的Ip地址流量统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="srcIp_bar-源Ip地址流量统计" style="width: 260px;overflow:hidden;">源Ip地址流量统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="srcIp_pie-源Ip地址流量统计" style="width: 260px;overflow:hidden;">源Ip地址流量统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="mulAndBro_bar-广播包/组播包统计" style="width: 260px;overflow:hidden;">广播包/组播包统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="mulAndBro_timeline-广播包/组播包统计（实时）-实时" style="width: 260px;overflow:hidden;">广播包/组播包统计（实时）</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="packetType_bar-数据包类型统计" style="width: 260px;overflow:hidden;">数据包类型统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="packetType_timeline-数据包类型统计（实时）-实时" style="width: 260px;overflow:hidden;">数据包类型统计（实时）</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="performanceAnalysis_bar-应用平均响应时间统计" style="width: 260px;overflow:hidden;">应用平均响应时间统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="dstPortAll_bar-目的端口总流量统计" style="width: 260px;overflow:hidden;">目的端口总流量统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="dstPortAll_pie-目的端口总流量统计" style="width: 260px;overflow:hidden;">目的端口总流量统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="tcpDstPort_bar-TCP目的端口总流量统计" style="width: 260px;overflow:hidden;">TCP目的端口总流量统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="tcpDstPort_pie-TCP目的端口总流量统计" style="width: 260px;overflow:hidden;">TCP目的端口总流量统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="udpDstPort_bar-UDP目的端口总流量统计" style="width: 260px;overflow:hidden;">UDP目的端口总流量统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="udpDstPort_pie-UDP目的端口总流量统计" style="width: 260px;overflow:hidden;">UDP目的端口总流量统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="application_bar-应用层协议长度统计" style="width: 260px;overflow:hidden;">应用层协议长度统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="application_pie-应用层协议长度统计" style="width: 260px;overflow:hidden;">应用层协议长度统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="multiple_bar-协议长度统计" style="width: 260px;overflow:hidden;">协议长度统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="multiple_pie-协议长度统计" style="width: 260px;overflow:hidden;">协议长度统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="transport_bar-传输层协议长度统计" style="width: 260px;overflow:hidden;">传输层协议长度统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="transport_pie-传输层协议长度统计" style="width: 260px;overflow:hidden;">传输层协议长度统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="allflow_timeline-全局实时流量（实时）-实时" style="width: 260px;overflow:hidden;">全局实时流量（实时）</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="allPacketCount_timeline-全局数据包个数（实时）-实时" style="width: 260px;overflow:hidden;">全局数据包个数（实时）</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="allUsedPer_gauge-全局实时流量（实时）-实时" style="width: 260px;overflow:hidden;">全局实时流量（实时）</el-checkbox>
+                            <span>仪表</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="allUsedPer_timeline-全局利用率（实时）-实时" style="width: 260px;overflow:hidden;">全局利用率（实时）</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="agentBrowser_bar-用户业务系统浏览器统计" style="width: 260px;overflow:hidden;">用户业务系统浏览器统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="agentBrowser_pie-用户业务系统浏览器统计" style="width: 260px;overflow:hidden;">用户业务系统浏览器统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="agentSystem_bar-用户业务系统统计" style="width: 260px;overflow:hidden;">用户业务系统统计</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="agentSystem_pie-用户业务系统统计" style="width: 260px;overflow:hidden;">用户业务系统统计</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqEventType_bar-事件级别数量统计(单一资产)" style="width: 260px;overflow:hidden;">事件级别数量统计(单一资产)</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqEventType_pie-事件级别数量统计(单一资产)" style="width: 260px;overflow:hidden;">事件级别数量统计(单一资产)</el-checkbox>
+                            <span>饼图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqHourlyLogCount_line-每小时日志数量统计(单一资产)" style="width: 260px;overflow:hidden;">每小时日志数量统计(单一资产)</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqLogLevel_bar-日志级别数量统计(单一资产)" style="width: 260px;overflow:hidden;">日志级别数量统计(单一资产)</el-checkbox>
+                            <span>柱状图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqSyslogHourlyEventCount_moreline-每小时事件数量统计(syslog单一资产)" style="width: 260px;overflow:hidden;">每小时事件数量统计(syslog-单一资产)</el-checkbox>
+                            <span>折线图</span>
+                        </li>
+                        <li>
+                            <el-checkbox label="eqWinlogHourlyEventCount_moreline-每小时事件数量统计(winlog单一资产)" style="width: 260px;overflow:hidden;">每小时事件数量统计(winlog-单一资产)</el-checkbox>
+                            <span>折线图</span>
+                        </li>
                     </ul>
-                </el-checkbox-group>
+                </el-checkbox-group>-->
+                <div class="drawer-list">
+                    <el-input
+                        style="margin: 5px;"
+                        placeholder="输入关键字进行过滤"
+                        size="mini"
+                        v-model="filterText">
+                    </el-input>
 
-                <el-button class="drawer-tools" type="primary" :disabled="this.sysCheckedList.length === 0" @click="addSE">确定</el-button>
+                    <el-tree
+                        class="filter-tree"
+                        :data="sysChartdata"
+                        show-checkbox
+                        node-key="id"
+                        :props="defaultProps"
+                        default-expand-all
+                        :filter-node-method="filterNode"
+                        ref="tree">
+                    </el-tree>
+                </div>
+                <!--:disabled="this.sysCheckedList.length === 0" -->
+                <el-button class="drawer-tools" type="primary"  @click="addSE">确定</el-button>
             </div>
         </el-drawer>
         <!-- 全屏 -->
         <div class="zz-e" v-if="fullscreenState">
             <div class="fullscreen-wapper">
                 <div class="fullscreenTit">{{fullscreenChartData.title}} <i class="close-fullscreen el-icon-close" @click="fullscreenState = false"></i></div>
-                <div id="fullscreenChart" ></div>
+                <div id="fullscreenChart" >
+                    <component v-if="fullscreenChartData.type === 'systemChart'" :is="allComps[fullscreenChartData.eid]" :params="sysChartParams" :baseConProp="{title:''}" :setIntervalObj="{state:fullscreenChartData.intervalState}"> </component>
+                </div>
             </div>
         </div>
         <!--富文本文字-->
@@ -229,7 +405,7 @@
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat,jumpHtml} from "../../../static/js/common";
-    // import allComps from '../charts/index'
+    import allComps from '../charts/index'
     const echarts = require('echarts');
     //引入font.css
     import '../../assets/font.css'
@@ -246,7 +422,8 @@
         name: "dashboard",
         data() {
             return {
-                // allComps:allComps,
+                allComps:allComps,
+                sysChartParams:{},
                 //资产id
                 equipmentId:'',
                 //标题
@@ -307,12 +484,154 @@
                 //选中的系统预设图例集合
                 sysCheckedList:[],
                 //图例列表
-                chartsList:[
-                   /* {id:0,title:'日志级别数量统计',type:'bar'},
-                    {id:1,title:'事件类型数量统计',type:'bar2'},
-                    {id:2,title:'每小时日志数',type:'line'},
-                    {id:3,title:'日志级别百分比',type:'pie'}*/
-                ],
+                chartsList:[],
+                sysChartdata: [
+                    {
+                    id: '1',
+                    label: '日志',
+                    children: [{
+                        id: 'logLevel_bar-日志级别数量统计',
+                        label: '日志级别数量统计 - 柱状图',
+                    },{
+                        id: 'logLevel_pie-日志级别数量统计',
+                        label: '日志级别数量统计 - 饼图',
+                    },{
+                        id: 'hourlyLogCount_line-今日日志数量统计',
+                        label: '今日日志数量统计 - 折线图',
+                    },
+                        {
+                            id: 'eqEventType_bar-事件级别数量统计(单一资产)',
+                            label: '事件级别数量统计(单一资产) - 柱状图',
+                        },
+                        {
+                            id: 'eqEventType_pie-事件级别数量统计(单一资产)',
+                            label: '事件级别数量统计(单一资产) - 饼图',
+                        },
+                        {
+                            id: 'eqHourlyLogCount_line-每小时日志数量统计(单一资产)',
+                            label: '每小时日志数量统计(单一资产) - 折线图',
+                        },
+                        {
+                            id: 'eqLogLevel_bar-日志级别数量统计(单一资产)',
+                            label: '日志级别数量统计(单一资产) - 柱状图',
+                        },
+                        {
+                            id: 'eqSyslogHourlyEventCount_moreline-每小时事件数量统计(syslog单一资产)',
+                            label: '每小时事件数量统计(syslog单一资产) - 折线图',
+                        },
+                        {
+                            id: 'eqWinlogHourlyEventCount_moreline-每小时事件数量统计(winlog单一资产)',
+                            label: '每小时事件数量统计(winlog单一资产) - 折线图',
+                        }]
+                },{
+                    id: '2',
+                    label: '流量',
+                    children: [{
+                        id: 'eqIpPacket_bar-资产（IP）数据包个数统计',
+                        label: '资产（IP）数据包个数统计 - 柱状图',
+                    },{
+                        id: 'eqIpPacket_pie-资产（IP）数据包个数统计',
+                        label: '资产（IP）数据包个数统计 - 饼图',
+                    },{
+                        id: 'eqServerPacket_bar-资产（服务）数据包个数统计',
+                        label: '资产（服务）数据包个数统计 - 柱状图',
+                    },{
+                        id: 'eqServerPacket_pie-资产（服务）数据包个数统计',
+                        label: '资产（服务）数据包个数统计 - 饼图',
+                    },{
+                        id: 'dstIp_bar-目的Ip地址流量统计',
+                        label: '目的Ip地址流量统计 - 柱状图',
+                    },{
+                        id: 'dstIp_pie-目的Ip地址流量统计',
+                        label: '目的Ip地址流量统计 - 饼图',
+                    },{
+                        id: 'srcIp_bar-源Ip地址流量统计',
+                        label: '源Ip地址流量统计 - 柱状图',
+                    },{
+                        id: 'srcIp_pie-源Ip地址流量统计',
+                        label: '源Ip地址流量统计 - 饼图',
+                    },{
+                        id: 'mulAndBro_bar-广播包/组播包统计',
+                        label: '广播包/组播包统计 - 柱状图',
+                    },{
+                        id: 'mulAndBro_timeline-广播包/组播包统计（实时）-实时',
+                        label: '广播包/组播包统计（实时） - 折线图',
+                    },{
+                        id: 'packetType_bar-数据包类型统计',
+                        label: '数据包类型统计 - 柱状图',
+                    },{
+                        id: 'packetType_timeline-数据包类型统计（实时）-实时',
+                        label: '数据包类型统计（实时） - 折线图',
+                    },{
+                        id: 'performanceAnalysis_bar-应用平均响应时间统计',
+                        label: '应用平均响应时间统计 - 柱状图',
+                    },{
+                        id: 'dstPortAll_bar-目的端口总流量统计',
+                        label: '目的端口总流量统计 - 柱状图',
+                    },{
+                        id: 'dstPortAll_pie-目的端口总流量统计',
+                        label: '目的端口总流量统计 - 饼图',
+                    },{
+                        id: 'tcpDstPort_bar-TCP目的端口总流量统计',
+                        label: 'TCP目的端口总流量统计 - 柱状图',
+                    },{
+                        id: 'tcpDstPort_pie-TCP目的端口总流量统计',
+                        label: 'TCP目的端口总流量统计 - 饼图',
+                    },{
+                        id: 'udpDstPort_bar-UDP目的端口总流量统计',
+                        label: 'UDP目的端口总流量统计 - 柱状图',
+                    },{
+                        id: 'udpDstPort_pie-UDP目的端口总流量统计',
+                        label: 'UDP目的端口总流量统计 - 饼图',
+                    },{
+                        id: 'application_bar-应用层协议长度统计',
+                        label: '应用层协议长度统计 - 柱状图',
+                    },{
+                        id: 'application_pie-应用层协议长度统计',
+                        label: '应用层协议长度统计 - 饼图',
+                    },{
+                        id: 'multiple_bar-协议长度统计',
+                        label: '协议长度统计 - 柱状图',
+                    },{
+                        id: 'multiple_pie-协议长度统计',
+                        label: '协议长度统计 - 饼图',
+                    },{
+                        id: 'transport_bar-传输层协议长度统计',
+                        label: '传输层协议长度统计 - 柱状图',
+                    },{
+                        id: 'transport_pie-传输层协议长度统计',
+                        label: '传输层协议长度统计 - 饼图',
+                    },{
+                        id: 'allflow_timeline-全局实时流量（实时）-实时',
+                        label: '全局实时流量（实时） - 折线图',
+                    },{
+                        id: 'allPacketCount_timeline-全局数据包个数（实时）-实时',
+                        label: '全局数据包个数 - 折线图',
+                    },{
+                        id: 'allUsedPer_gauge-全局实时流量（实时）-实时',
+                        label: '全局实时流量（实时） - 仪表',
+                    },{
+                        id: 'allUsedPer_timeline-全局利用率（实时）-实时',
+                        label: '全局利用率（实时） - 折线图',
+                    },{
+                        id: 'agentBrowser_bar-用户业务系统浏览器统计',
+                        label: '用户业务系统浏览器统计 - 柱状图',
+                    },{
+                        id: 'agentBrowser_pie-用户业务系统浏览器统计',
+                        label: '用户业务系统浏览器统计 - 饼图',
+                    },{
+                        id: 'agentSystem_bar-用户业务系统统计',
+                        label: '用户业务系统统计 - 柱状图',
+                    },{
+                        id: 'agentSystem_pie-用户业务系统统计',
+                        label: '用户业务系统统计 - 饼图',
+                    }]
+                }],
+                filterText: '',
+                defaultProps: {
+                    children: 'children',
+                    label: 'label'
+                },
                 addXLength:0,
                 fullscreenState:false,
                 fullscreenChartData:{
@@ -322,7 +641,6 @@
             }
         },
         created(){
-            // console.log(this.allComps)
             //判断是否有参数  有参数说明是修改功能页面
             if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "edit"){
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
@@ -387,12 +705,30 @@
             //监听时间改变事件
             bus.$on(this.busName,(arr)=>{
                 this.dateArr = arr;
+                //判断是否是单一资产的仪表盘（参数不同）
+                if (this.equipmentId !== ''){//是
+                    this.sysChartParams = {
+                        starttime:this.dateArr[0],
+                        endtime:this.dateArr[1],
+                        hsData:JSON.stringify({'fields.equipmentid':this.equipmentId})
+                    }
+                }else{//否
+                    this.sysChartParams = {
+                        starttime:this.dateArr[0],
+                        endtime:this.dateArr[1]
+                    }
+                }
             })
         },
         beforeDestroy(){
             bus.$off(this.busName)
         },
         methods:{
+            /*过滤系统预设报表*/
+            filterNode(value, data) {
+                if (!value) return true;
+                return data.label.indexOf(value) !== -1;
+            },
             /*获取图表列表*/
             getChartsList(){
                 this.$nextTick(()=>{
@@ -484,23 +820,32 @@
             },
             /*添加系统图例*/
             addSE(){
-                for (let i=0;i<this.sysCheckedList.length;i++){
+                // console.log();
+                let selectedArr = this.$refs.tree.getCheckedKeys()
+                //剔除标题id
+                let overArr = [];
+                for(let j in selectedArr){
+                    if(selectedArr[j].length > 2){
+                        overArr.push(selectedArr[j])
+                    }
+                }
+                //添加到仪表盘中
+                for (let i=0;i<overArr.length;i++){
+                    let arr = overArr[i].split('-');
+                    let intervals = false;
+                    if (arr[2]){
+                        intervals = true;
+                    }
                     let obj = {
-                        id:this.sysCheckedList[i],
-                        type:'systemChart'
+                        id:arr[0],
+                        type:'systemChart',
+                        tit:arr[1],
+                        intervalState:intervals
                     }
                     this.createConstruction(obj)
                 }
-                /*//设置类型为systemChart
-                for(let i in this.allComps){
-                    let obj = {
-                        id:i,
-                        type:'systemChart'
-                    }
-                    this.createConstruction(obj)
-                }*/
                 //清空选中
-                this.sysCheckedList = [];
+                this.$refs.tree.setCheckedKeys([])
                 this.sysDrawerState = false;
             },
             /*保存dashboart*/
@@ -564,11 +909,19 @@
                 //添加图表
                 this.fullscreenChartData.title = JSON.parse(JSON.stringify(obj.tit));
                 this.fullscreenChartData.opt = JSON.parse(JSON.stringify(obj.opt));
-                this.fullscreenChartData.i = 'fullscreenChart'
+                this.fullscreenChartData.i = 'fullscreenChart';
+                this.fullscreenChartData.type = JSON.parse(JSON.stringify(obj.chartType));
+                this.fullscreenChartData.intervalState = JSON.parse(JSON.stringify(obj.intervalState));
+                console.log(this.fullscreenChartData.intervalState )
+                if(this.fullscreenChartData.type === 'systemChart'){
+                    this.fullscreenChartData.eid = JSON.parse(JSON.stringify(obj.eId));
+                }else{
+                    setTimeout(()=>{
+                        this.creatEcharts(this.fullscreenChartData)
+                    },500)
+                }
                 //console.log(this.fullscreenChartData);
-                setTimeout(()=>{
-                    this.creatEcharts(this.fullscreenChartData)
-                },500)
+
                 //
             },
             /*获取dashboard数据*/
@@ -590,8 +943,8 @@
                                     //获取echart结构数据
                                     for(let i in this.layout){
                                         this.chartsCount = i;
-                                        //判断是否是文字块  不是则是图表类型 需要获取图表结构
-                                        if(this.layout[i].chartType !== 'text'){
+                                        //判断是否是文字块、系统预设报表还是自定义报表  自定义报表需要获取图表结构
+                                        if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
                                             this.getEchartsConstruction(this.layout[i])
                                                 .then((res)=>{
                                                     //获取图例数据
@@ -716,7 +1069,7 @@
                     this.addXLength += w;
                     this.chartsCount = Number(this.chartsCount)+1;
                     let i = dateFormat('yyyy-mm-dd HH:MM:SS',new Date()).replace(/\s*/g,"");
-                    let obj = {eId:eObj.id,"x":x,"y":0,"w":24,"h":8,"tit":'',"i":i+this.chartsCount,chartType:eObj.type,"opt":{}};
+                    let obj = {eId:eObj.id,"x":x,"y":0,"w":24,"h":8,intervalState:eObj.intervalState,"tit":eObj.tit ? eObj.tit : '',"i":i+this.chartsCount,chartType:eObj.type,"opt":{}};
                     this.layout.push(obj);
                     resolve(obj);
                 })
@@ -791,6 +1144,18 @@
             }
         },
         watch:{
+            /*系统报表过滤*/
+            'filterText'(val) {
+                this.$refs.tree.filter(val);
+            },
+            'sysDrawerState'(){
+                //清空选中
+                this.$nextTick(()=>{
+                    this.$refs.tree.setCheckedKeys([])
+                })
+
+            },
+            /*依据id查询*/
             'dashboardId'(newV) {
                 if (newV !== '') {
                     this.getDashboardData()
@@ -865,7 +1230,7 @@
         width: 100%;
         height: 100%;
         position: absolute;
-        z-index: 100;
+        z-index: 1;
         cursor: no-drop;
         text-shadow: none;
     }
@@ -922,6 +1287,10 @@
         float: right;
         margin-right: 10px;
         margin-top: 15px;
+    }
+    .fullscreenE{
+        position: relative;
+        z-index: 2;
     }
     .item-tit i:hover ,.text-box i:hover{
         cursor: pointer;
@@ -990,12 +1359,13 @@
         border-bottom: 1px solid #4b6179;
         display: flex;
         justify-content: space-between;
-        font-size: 14px;
+        font-size: 13px;
         padding-right:5px;
     }
     .drawer-list /deep/ .el-checkbox__label{
         color: #fff;
         margin-left: 30px;
+        font-size: 13px;
     }
     .drawer-tools{
         width: 100%;

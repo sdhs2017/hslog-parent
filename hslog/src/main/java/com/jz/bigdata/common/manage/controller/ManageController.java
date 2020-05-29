@@ -241,4 +241,18 @@ public class ManageController {
 		return JSONArray.fromObject(map).toString();
 
 	}
+
+	@ResponseBody
+	@RequestMapping(value = "/getIndex", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "index")
+	public String getIndex(HttpServletRequest request) {
+
+		iManageService.indexForceMerge();
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("state", true);
+		map.put("msg", "wan");
+		return JSONArray.fromObject(map).toString();
+
+	}
 }

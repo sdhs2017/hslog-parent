@@ -64,14 +64,20 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
     private void buildClient() {
 
         logger.info("------------启动连接elasticsearch-----IP:"+elasticsearchbean.get("es_ip")+"   PORT:"+elasticsearchbean.get("es_port")+"-------");
-        //System.out.println("------------启动连接elasticsearch------------");
-        HttpHost httpHost = new HttpHost(elasticsearchbean.get("es_ip"),Integer.valueOf(elasticsearchbean.get("es_port")),"http");
+
+        // 通过","获取配置文件中elasticsearch集群的多个节点
+        String [] address = elasticsearchbean.get("es_ip").split(",");
+        HttpHost[] httpHosts = new HttpHost[address.length];
+        for (int i = 0;i<address.length;i++){
+            httpHosts[i] = new HttpHost(address[i],Integer.valueOf(elasticsearchbean.get("es_port")),"http");
+        }
+        //HttpHost httpHost = new HttpHost(elasticsearchbean.get("es_ip"),Integer.valueOf(elasticsearchbean.get("es_port")),"http");
         // 用户名、密码
         final CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
         credentialsProvider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(elasticsearchbean.get("es_user"),elasticsearchbean.get("es_password")));
 
         //restClient = RestClient.builder(httpHost);
-        RestClientBuilder builders = RestClient.builder(httpHost);
+        RestClientBuilder builders = RestClient.builder(httpHosts);
         //设置安全
         builders.setHttpClientConfigCallback(httpClientBuilder ->
                 httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider)

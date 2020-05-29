@@ -485,5 +485,13 @@ public interface IlogService {
 	 */
 	public DocWriteResponse.Result upsert(String index, String id, String json) throws Exception;
 
+    /**
+     * 获取index的名称,支持模糊查询
+     * @param indexname
+     * @return
+     * @throws Exception
+     */
+    public String[] getIndices(String... indexname) throws Exception;
+
 
 }

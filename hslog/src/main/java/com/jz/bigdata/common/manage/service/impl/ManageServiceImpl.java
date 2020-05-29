@@ -5,17 +5,22 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 
+import com.jz.bigdata.common.Constant;
+import org.apache.commons.lang.ArrayUtils;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Service;
 
@@ -29,8 +34,13 @@ import com.jz.bigdata.util.ResourceUsage;
 
 import net.sf.json.JSONArray;
 
+/**
+ * manageService主要承担与服务器的交互命令以及定时任务的业务
+ */
 @Service(value="manageService")
 public class ManageServiceImpl extends QuartzJobBean implements IManageService {
+
+    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public static final String FILES_SHELL = "df -hl";
     public static final String LINE_SEPARATOR = System.getProperty("line.separator");
@@ -217,7 +227,10 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
         return result;
     }
 
-
+    /**
+     * 定时任务--elasticsearch自动备份日志数据
+     * @return
+     */
     public String createSnapshotByIndices() {
 
         String user = null;
@@ -254,7 +267,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
     }
 
     /**
-     * 定时任务统计客户自定义的安全策略数据
+     * 定时任务--统计客户自定义的安全策略数据
      * @return
      */
     public String updateRisk() throws Exception {
@@ -273,10 +286,94 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
         return JSONArray.fromObject(map).toString();
     }
 
+    /**
+     * 定时任务--对昨天的index segments进行合并操作
+     * @return
+     */
+    public String indexForceMerge() {
+        // 时间处理
+        LocalDate localDate = LocalDate.now();
+        LocalDate yesterday = localDate.plusDays(-1);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        String yesterday_str = formatter.format(yesterday);
+        // 获取配置文件中可以合并的index前缀
+        String [] merge_index = configProperty.getEs_merge_index().split(",");
+        List<String> list = new ArrayList<>();
+        for (String tmpindex : merge_index){
+            if (tmpindex.equals("hslog_packet")){
+                // 查询需要合并的索引
+                try {
+                    String [] hslog = logService.getIndices(tmpindex+yesterday);
+                    List<String> resultList= new ArrayList<>(Arrays.asList(hslog));
+                    list.addAll(resultList);
+                } catch (Exception e) {
+                    logger.error("通过模糊查询获取索引失败！");
+                    e.printStackTrace();
+                    continue;
+                }
+            }else {
+                try {
+                    String [] beats = logService.getIndices(tmpindex+yesterday_str);
+                    List<String> resultList= new ArrayList<>(Arrays.asList(beats));
+                    list.addAll(resultList);
+                } catch (Exception e) {
+                    logger.error("通过模糊查询获取索引失败！");
+                    e.printStackTrace();
+                    continue;
+                }
+
+            }
+        }
+
+
+        // 合并后的segments数
+        int segments = 1;
+
+        HashMap result = new HashMap();
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        for (String indices : list){
+            try {
+                Date startdate = new Date();
+                logger.info("合并开始时间：" + format.format(startdate));
+                result = logService.indexForceMerge(segments, true, indices);
+                Date enddate = new Date();
+                logger.info("合并结束时间：" + format.format(enddate));
+                // 响应时间计算
+                long times = enddate.getTime() - startdate.getTime();
+                logger.info("【"+indices+"】合并耗时：" + times + " ms");
+            } catch (ElasticsearchStatusException exception ) {
+                // Elasticsearch exception [type=index_not_found_exception, reason=no such index [hslog_packet2020-04-27]]
+                String DetailedMessage = exception.getDetailedMessage();
+                if (DetailedMessage.indexOf("index_not_found_exception")!=-1){
+                    logger.error("未找到合并的索引："+indices);
+                    //return Constant.failureMessage("未找到合并的索引："+indices);
+                }
+                continue;
+            } catch (Exception e) {
+                logger.error("索引合并失败!");
+                logger.error(e.getMessage());
+                e.printStackTrace();
+                //return Constant.failureMessage("索引合并失败！");
+                continue;
+            }
+        }
+
+        return JSONArray.fromObject(result).toString();
+    }
+
     @Override
     protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException {
         // TODO Auto-generated method stub
 
+    }
+
+    public static void main(String [] args){
+        LocalDate localDate = LocalDate.now();
+        LocalDate yesterday = localDate.plusDays(-1);
+        System.out.println(yesterday);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+        String yesterdays = formatter.format(yesterday);
+        System.out.println(yesterdays);
     }
 
 }

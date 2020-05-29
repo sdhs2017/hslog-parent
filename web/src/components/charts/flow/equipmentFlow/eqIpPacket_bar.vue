@@ -50,7 +50,7 @@
                 barData:{//柱状图数据
                     baseConfig:{
                         title:'',
-                        xAxisName:'资产(IP)',
+                        xAxisName:'资产\n(IP)',
                         yAxisName:'数据包/个',
                         rotate:'20',
                         itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']

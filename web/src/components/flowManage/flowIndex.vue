@@ -352,11 +352,13 @@
             /*设置地球*/
             setEarth(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    //layer.load(1);
                     //this.$axios.get('../../../static/filejson/data.json','')
-                    this.$axios.get(this.$baseUrl+'/flow/getMap.do','')
+                    this.$axios.post(this.$baseUrl+'/flow/getMap.do',this.$qs.stringify({
+                        timeInterval:259200
+                    }))
                         .then(res=> {
-                            layer.closeAll('loading');
+                            //layer.closeAll('loading');
                             let earthData = res.data;
                             /*
                              图中相关城市经纬度,根据你的需求添加数据
@@ -640,7 +642,7 @@
             /*获取流量数*/
             getFlowCount(){
                 this.$nextTick( ()=> {
-                    this.$axios.get(this.$baseUrl+'/log/getIndicesCountByType.do',{})
+                    this.$axios.post(this.$baseUrl+'/log/getIndicesCountByType.do',{})
                         .then((res) => {
                             this.flowCount = parseInt(res.data[0].indices_defaultpacket).toLocaleString();
                         })
@@ -752,7 +754,6 @@
             /*获取应用画像数据*/
             getRanklingData(){
                 this.$nextTick(()=>{
-                    layer.load(1);
                     this.$axios.post(this.$baseUrl+'/flow/getCountGroupByUrl.do',this.$qs.stringify({
                         timeInterval:3600
                     }))

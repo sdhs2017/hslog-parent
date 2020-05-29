@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">'{{equipmentName}}' 潜在威胁分析</div>
-        <div class="equipment-threat-content">
+        <div class="equipment-threat-content"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div class="threat-wapper hige-threat-wapper">
                 <div class="threat-top">
                     <h5>高危事件</h5>
@@ -79,6 +79,7 @@
         name: "equipmentThreat",
         data() {
             return {
+                loading:false,
                 equipmentName:'',//资产名称
                 equipmentId:'',//资产id
                 logType:'',//日志类型
@@ -117,10 +118,10 @@
             /*获取数据*/
             getEquipmentThreat(){
                 this.$nextTick(()=> {
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/log/getCountGroupByEventstype.do', this.$qs.stringify({equipmentid:this.equipmentId,type:this.logType}))
                         .then(res => {
-                            layer.closeAll();
+                            this.loading = false;
                             for(let i in res.data){
                                 //判断比值大小
                                 let pieVal = Number(res.data[i].per);
@@ -141,7 +142,7 @@
 
                         })
                         .catch(err =>{
-                            layer.closeAll();
+                            this.loading = false;
                             layer.msg('获取信息失败',{icon: 5});
                         })
                 })

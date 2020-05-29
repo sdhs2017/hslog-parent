@@ -13,7 +13,7 @@
         <div class="equipment-echarts-wapper">
             <el-row :gutter="10" class="wapper-row">
                 <el-col :span="8">
-                    <div class="grid-content con-wapper msg">
+                    <div class="grid-content con-wapper msg" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <h2 class="con-tit">资产信息</h2>
                         <div class="con">
                             <h3>一般信息</h3>
@@ -110,6 +110,7 @@
         name: "winEquipmentEcharts",
         data(){
             return{
+                loading:false,
                 equipmentId:'',//资产id
                 equipmentName:'',//资产名称
                 equipmentInfo:{ //资产的基本信息
@@ -206,17 +207,16 @@
                     'fields.equipmentid':id
                 }
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/ecsWinlog/getEquipmentInfo.do',this.$qs.stringify({
                         hsData:JSON.stringify(obj)
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             this.equipmentInfo = res.data[0]
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
                         })
                 })
             }

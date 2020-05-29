@@ -11,7 +11,7 @@
             <el-button type="danger" plain size="mini" title="删除" @click="removeLogs"><i class="el-icon-close"></i>删除</el-button>
             <el-button type="warning" plain size="mini" title="刷新" @click="repeatLogs"><i class="el-icon-refresh"></i>刷新</el-button>
         </div>
-        <div class="audit-table-wapper">
+        <div class="audit-table-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable :selection="selection" :tableHead="tableHead" :tableData="tableData" :busName="busName"></v-basetable>
         </div>
         <div class="user-page-wapper">
@@ -31,6 +31,7 @@
         name: "auditLog",
         data() {
             return {
+                loading:false,
                 selection:true,
                 busName:{
                     formBusName:'auditLog',
@@ -179,18 +180,18 @@
         methods:{
             /*获取日志信息*/
             getAuditLogData(page,obj){
-                layer.load(1)
+                this.loading = true;
                 obj.pageIndex = page;
                 obj.pageSize= this.pageSize;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/note/selectByPage.do',this.$qs.stringify(obj))
                         .then(res=>{
-                            layer.closeAll()
+                            this.loading = false;
                             this.tableData = res.data[0].note[0];
                             this.allCounts = Number(res.data[0].count.count);
                         })
                         .catch(err=>{
-                            layer.closeAll()
+                            this.loading = false;
                             layer.msg('获取信息失败',{icon: 5});
                         })
                 })

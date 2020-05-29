@@ -1,6 +1,6 @@
 <template>
     <!--单个资产每小时日志数量统计--折线图-->
-    <div class="eb">
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此为单个资产的报表,缺少必要条件。</div>
         <v-echarts echartType="line" :echartData = "this.lineData" :busName="busName" ></v-echarts>
     </div>
@@ -37,6 +37,7 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
                 lineData:{//折线图数据
                     baseConfig:{
@@ -73,9 +74,11 @@
         methods:{
             //获取每小时日志数
             getEchartData(params){
+                this.loading = true;
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/ecsCommon/getLogCountGroupByTime.do',this.$qs.stringify(params))
                         .then((res) => {
+                            this.loading = false;
                             let xVal = [];
                             let yVal = [];
                             for(let i in res.data){
@@ -87,6 +90,7 @@
                             this.lineData.yAxisArr = yVal;
                         })
                         .catch((err) => {
+                            this.loading = false;
                             console.log(err)
                         })
                 })

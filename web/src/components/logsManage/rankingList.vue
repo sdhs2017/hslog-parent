@@ -16,7 +16,7 @@
                 :picker-options="pickerOptions">
             </el-date-picker>
         </div>
-        <div class="ranking-list-wapper">
+        <div class="ranking-list-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div class="ip-ranking">
                 <div class="start-ip-wapper">
                     <div class="list-Box">
@@ -120,10 +120,12 @@
 </template>
 
 <script>
+    import {dateFormat} from "../../../static/js/common";
     export default {
         name: "rankingList",
         data() {
             return {
+                loading:false,
                 timepicker:[],//日期值
                 pickerOptions: { //日期选择器
                     shortcuts: [{
@@ -173,40 +175,31 @@
         },
         created(){
             //设置日期
-            let newDate = new Date();
-            let curDate = newDate.toLocaleDateString();
-            let curYear = newDate.getFullYear();
-            let curMonth = newDate.getMonth() + 1;
-            let curDay = newDate.getDate();
-            if(curMonth < 10){
-                curMonth = '0'+curMonth
-            }
-            if(curDay < 10){
-                curDay = '0' + curDay;
-            }
-            let startTime = curYear+'-'+curMonth+'-01';
-            let endTime = curYear+'-'+curMonth+'-'+curDay;
-            this.timepicker=[startTime,endTime]
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+
+            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
             this.getRankingListData(this.timepicker);
         },
         methods:{
             /*获取日志信息*/
             getRankingListData(timeArr){
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getTopGroupByIPOrPort.do',this.$qs.stringify({
                         startTime:timeArr[0],
                         endTime:timeArr[1]
                     }))
                         .then(res =>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             this.startIpArr = res.data[0].ipv4_src_addr;
                             this.endIpArr = res.data[0].ipv4_dst_addr;
                             this.startPortArr = res.data[0].l4_src_port;
                             this.endPortArr = res.data[0].l4_dst_port;
                         })
                         .catch(err =>{
-                            layer.closeAll('loading')
+                            this.loading = false;
                             layer.msg('获取信息失败',{icon:5})
                         })
                 })
@@ -298,6 +291,8 @@
 <style scoped>
     .ranking-list-wapper{
         padding: 10px;
+        height: calc(100% - 100px);
+        margin: 10px 0;
     }
     .ip-ranking {
         display: flex;

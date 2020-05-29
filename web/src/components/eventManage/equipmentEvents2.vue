@@ -4,10 +4,10 @@
         <div class="event-search-condition">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
-        <div class="equipment-table">
+        <div class="equipment-table" v-loading="loading1"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable2 :tableHead="equipmentHead" :tableData="equipmentData"></v-basetable2>
         </div>
-        <div class="event-search-content">
+        <div class="event-search-content"  v-loading="loading2"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable2 :tableHead="tableHead" :tableData="tableData"></v-basetable2>
             <div class="event-table-page">
                 共检索到事件数为 <b>{{allCounts}}</b>，最大展示
@@ -39,6 +39,8 @@
         name: 'equipmentEvents2',
         data(){
             return{
+                loading1:false,
+                loading2:false,
                 baseConfig:{ //弹窗基础配置
                     type:'2',
                     title:'事件详情',
@@ -213,9 +215,11 @@
         methods:{
             /*获取资产信息*/
             getEquipmentData(){
+                this.loading1 = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/equipment/selectEquipment.do',this.$qs.stringify({id:this.equipmentId}))
                         .then((res)=>{
+                            this.loading1 = false;
                             //时间类型处理
                             if( res.data[0].createTime !== null){
                                 res.data[0].createTime = res.data[0].createTime.split(".")[0];
@@ -255,7 +259,7 @@
                             this.equipmentData = res.data;
                         })
                         .catch((err)=>{
-                            layer.closeAll();
+                            this.loading1 = false;
                         })
                 })
             },
@@ -273,7 +277,7 @@
             },
             /*获得事件列表数据*/
             getEventsData(page,params){
-                layer.load(1)
+                this.loading2 = true;
                 params.size = this.size;
                 params.page = page;
                 params.exists = 'event.action';
@@ -283,7 +287,7 @@
                         hsData:JSON.stringify(params)
                     }))
                         .then((res)=>{
-                            layer.closeAll();
+                            this.loading2 = false;
                             this.tableData = res.data[0].list;
                             this.allCounts =  res.data[0].count;
                             if(this.allCounts >100000){
@@ -293,7 +297,7 @@
                             }
                         })
                         .catch((err)=>{
-                            layer.closeAll();
+                            this.loading2 = false;
                         })
                 })
             },
@@ -341,7 +345,6 @@
                 this.getEventsData(1,this.eventSearchCondition);
                 //监听检索条件
                 bus.$on(this.busName,(params)=>{
-                    console.log('aaaaa');
                     this.getEventsData(1,params);
                     this.c_page = 1;
                     this.saveCondition = params;

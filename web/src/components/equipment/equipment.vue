@@ -9,10 +9,10 @@
             <div class="equipemnt-tools-btns">
                 <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                 <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
-                <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>
+<!--                <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>-->
             </div>
         </div>
-        <div class="equipment-table-wapper">
+        <div class="equipment-table-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="busNames"></v-basetable>
         </div>
         <div class="equipment-table-page">
@@ -31,6 +31,7 @@
         name: "equipment",
         data(){
             return{
+                loading:false,
                 busName:'searchEquipment',
                 busNames:{
                     selectionName:'equipmentDelect'
@@ -135,7 +136,7 @@
                                     this.reviseEquipment(row,index)
                                 }
                             },
-                            {
+                            /*{
                                 icon:'el-icon-tickets',
                                 text:'查看资产日志',
                                 clickFun:(row,index)=>{
@@ -173,7 +174,7 @@
                                 clickFun:(row,index)=>{
                                     this.theartAnalyse(row,index)
                                 }
-                            }
+                            }*/
 
                         ]
                     },
@@ -287,7 +288,7 @@
                             for(let i=0;i<res.data.length; i++){
                                 let obj = {
                                     value:res.data[i].type,
-                                    label:res.data[i].type
+                                    label:res.data[i].label
                                 };
                                 this.logType.push(obj);
                             }
@@ -312,15 +313,15 @@
             },
             /*获取资产列表*/
             getEquipmentList(searchObj,page){
+                this.loading = true;
                 let obj = searchObj;
                 obj.pageIndex = page;//当前页
                 obj.pageSize = this.size;//页的条数
                 //请求
                 this.$nextTick( ()=> {
-                    layer.load(1)
                     this.$axios.post(this.$baseUrl+'/equipment/selectPage.do',this.$qs.stringify(obj))
                         .then((res) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             //填充表格数据
                             //对数据进行预处理
                             this.tableData = res.data[0].equipment;
@@ -336,7 +337,7 @@
 
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err);
                         })
                 })
@@ -344,10 +345,10 @@
             /*查询资产*/
             selectEquipment(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/equipment/selectEquipmentByLog.do',this.$qs.stringify({id:this.selectEquipmentId}))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             if(res.data.success === 'false'){
                                 layer.msg(res.data.message,{icon:5});
                             }else{
@@ -397,8 +398,8 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
+                            console.log(err)
                         })
                 })
             },

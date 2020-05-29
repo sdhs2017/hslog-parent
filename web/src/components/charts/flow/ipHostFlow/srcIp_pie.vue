@@ -1,6 +1,6 @@
 <template>
     <!--源ip地址流量统计--饼图-->
-    <div class="eb">
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
         <v-echarts v-else echartType="pie" :echartData = "this.pieData" :busName="busName" ></v-echarts>
     </div>
@@ -45,6 +45,7 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
                 pieData:{//柱状图数据
                     baseConfig:{
@@ -69,6 +70,7 @@
                 handler(newV,oldV) {
                     //判断值是否有变化
                     if(JSON.stringify(newV) !== '{}' && JSON.stringify(newV) !== JSON.stringify(oldV)){
+                        this.loading = true;
                         this.getEchartData(this.params)
                     }
                 },
@@ -104,14 +106,14 @@
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/flow/getSrcIPFlow.do',this.$qs.stringify(params))
                         .then((res) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             const arr = res.data;
                             //赋值
                             this.pieData.yAxisArr = pieDataFunc(arr);
                             //console.log(this.barData(obj)[0])
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err)
                         })
                 })

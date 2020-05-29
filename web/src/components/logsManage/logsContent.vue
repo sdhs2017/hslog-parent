@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <el-row :gutter="10">
             <el-col :span="4">
                 <div class="content-left-wapper">
@@ -107,6 +107,7 @@
         },
         data(){
             return{
+                loading:false,
                 baseConfig:{ //弹窗基础配置
                     type:'2',
                     title:'日志详情',
@@ -244,7 +245,7 @@
             /*获取日志信息*/
             getLogsData(searchObj,page){
                 this.filterWords = '';
-                layer.load(1);
+                this.loading = true;
                 //赋值
                 let obj = searchObj;
                 obj.page = page;
@@ -257,7 +258,7 @@
                         params:hsObj
                     })
                         .then((res) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             let logsData = res.data[0].list;
                             /*logsData.forEach(item =>{
                                 item.equipmentname =  '<a class="goToEquipment">'+item.equipmentname+'</a>'
@@ -287,7 +288,7 @@
 
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err);
                         })
                 })

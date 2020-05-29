@@ -4,7 +4,7 @@
         <div class="event-search-condition">
             <v-search-form :formItem="formConditionsArr" busName="eventSearch2"></v-search-form>
         </div>
-        <div class="event-search-content">
+        <div class="event-search-content" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable2 :tableHead="tableHead" :tableData="tableData"></v-basetable2>
             <div class="event-table-page">
                 共检索到事件数为 <b>{{allCounts}}</b>，最大展示
@@ -35,6 +35,7 @@
         name: "eventSearch2",
         data(){
             return{
+                loading:false,
                 baseConfig:{ //弹窗基础配置
                     type:'2',
                     title:'事件详情',
@@ -209,6 +210,9 @@
                 this.saveCondition = params;
             })
         },
+        beforeDestroy(){
+            bus.$off('eventSearch2')
+        },
         watch:{
         /*检测弹窗状态*/
         'layerObj.layerState': {
@@ -229,7 +233,7 @@
         methods:{
             /*获得事件列表数据*/
             getEventsData(page,params){
-                let loading = layer.load(1);
+                this.loading = true;
                 params.size = this.size;
                 params.page = page;
                 params.exists = 'event.action'
@@ -238,7 +242,7 @@
                         hsData:JSON.stringify(params)
                     }))
                         .then((res)=>{
-                            layer.close(loading);
+                            this.loading = false;
                             this.tableData = res.data[0].list;
                             this.allCounts =  res.data[0].count;
                             if(this.allCounts >100000){
@@ -248,7 +252,8 @@
                             }
                         })
                         .catch((err)=>{
-                            layer.close(loading);
+                            this.loading = false;
+                            console.log(err)
                         })
                 })
             },

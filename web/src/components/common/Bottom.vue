@@ -58,13 +58,7 @@
         methods:{
             /*获取磁盘使用大小*/
             getDiskUsed(){
-                this.$axios.get(this.$baseUrl+'/manage/getDiskUsage.do',{
-                    params:{
-                        user : 'root',
-                        passwd : 'hs.1234',
-                        host : '192.168.100.101'
-                    }
-                })
+                this.$axios.get(this.$baseUrl+'/manage/getDiskUsage.do',{})
                     .then((res) => {
                         if(res.data.error !== undefined){
                             this.thresholdText=res.data.error;

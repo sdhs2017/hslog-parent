@@ -1,7 +1,7 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.1)">
         <div class="top-title">{{title}}</div>
-        <div class="detail-content">
+        <div class="detail-content" >
             <div class="list-wapper" v-if="startIpArr">
                 <div class="detail-list-title">源IP排行榜</div>
                 <ul class="detail-list-ul">
@@ -95,6 +95,7 @@
         name: "rankingListDetail",
         data() {
             return {
+                loading:false,
                 iporport:'',
                 type:'',
                 startIpArr:[],//源ip
@@ -130,18 +131,18 @@
         methods:{
             /*获得数据*/
             getData(){
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getIPAndPortTop.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip}))
                         .then(res =>{
-                            layer.closeAll();
+                            this.loading = false;
                             this.startIpArr = res.data[0].ipv4_src_addr;
                             this.endIpArr = res.data[0].ipv4_dst_addr;
                             this.startPortArr = res.data[0].l4_src_port;
                             this.endPortArr = res.data[0].l4_dst_port;
                         })
                         .catch(err =>{
-                            layer.closeAll()
+                            this.loading = false;
                             layer.msg('获取信息失败',{icon:5})
                         })
                 })
@@ -174,6 +175,15 @@
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
                 vm.$options.name = 'rankingListDetail'+ to.query.iporport;
+                if (to.query.type === 'ipv4_src_addr') {
+                    vm.startIpArr = undefined
+                }else if(to.query.type === 'ipv4_dst_addr'){
+                    vm.endIpArr = undefined
+                }else if(to.query.type === 'l4_src_port'){
+                    vm.startPortArr = undefined
+                }else if(to.query.type === 'l4_dst_port'){
+                    vm.endPortArr = undefined
+                }
                 //修改data参数
                 if(vm.iporport === '' || vm.iporport !== to.query.iporport){
                     vm.iporport = to.query.iporport;

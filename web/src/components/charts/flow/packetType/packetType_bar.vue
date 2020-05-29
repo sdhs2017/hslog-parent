@@ -1,6 +1,6 @@
 <template>
     <!--数据包类型统计--柱状图-->
-    <div class="eb">
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
         <v-echarts v-else echartType="bar" :echartData = "this.barData" :busName="busName" ></v-echarts>
     </div>
@@ -45,6 +45,7 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
                 barData:{//柱状图数据
                     baseConfig:{
@@ -72,6 +73,7 @@
                 handler(newV,oldV) {
                     //判断值是否有变化
                     if(JSON.stringify(newV) !== '{}' && JSON.stringify(newV) !== JSON.stringify(oldV)){
+                        this.loading = true;
                         this.getEchartData(this.params)
                     }
                 },
@@ -107,7 +109,7 @@
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/flow/getPacketTypeCount.do',this.$qs.stringify(params))
                         .then((res) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             //赋值
                             let arr = [];
                             arr.push(res.data[0].small.value[1]);
@@ -116,7 +118,7 @@
                             this.barData.yAxisArr= arr;
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err)
                         })
                 })

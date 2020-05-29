@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title">{{ipv4_dst_addr}} 应用画像</div>
         <div class="datepicker-wapper" style="padding-left: 20px;">
             <span>日期范围：</span>
@@ -16,7 +16,7 @@
                 :picker-options="pickerOptions">
             </el-date-picker>
         </div>
-        <div class="content">
+        <div class="content" >
             <div class="ranking-wapper">
                 <v-ranking :title="rankingTitle" :rankingArr="rankingData" :busName="busName"></v-ranking>
             </div>
@@ -35,11 +35,12 @@
 <script>
     import vRanking from '../common/ranking';
     import bus from '../common/bus';
-    import {jumpHtml,savePath,gresizeW} from "../../../static/js/common";
+    import {jumpHtml,savePath,gresizeW,dateFormat} from "../../../static/js/common";
     export default {
         name: "urlRanking",
         data() {
             return {
+                loading:false,
                 rankingTitle:'URL Top10 排行',
                 rankingData:[],
                 busName:'urlRanking',
@@ -89,20 +90,12 @@
         },
         created(){
             //设置日期
-            let newDate = new Date();
-            let curDate = newDate.toLocaleDateString();
-            let curYear = newDate.getFullYear();
-            let curMonth = newDate.getMonth() + 1;
-            let curDay = newDate.getDate();
-            if(curMonth < 10){
-                curMonth = '0'+curMonth
-            }
-            if(curDay < 10){
-                curDay = '0' + curDay;
-            }
-            let startTime = curYear+'-'+curMonth+'-01';
-            let endTime = curYear+'-'+curMonth+'-'+curDay;
-            this.timepicker=[startTime,endTime]
+            //设置日期
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+
+            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
             //获取排行榜数据
             this.getRankingData(this.timepicker);
 
@@ -118,7 +111,7 @@
         methods:{
             //获取数据
             getRankingData(timeArr){
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     if(this.$route.query.val){
                         this.application_layer_protocol = 'http';
@@ -135,7 +128,7 @@
                         endTime:timeArr[1]
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             let arr = [];
                             res.data.forEach((item)=>{
                                 let obj = {};
@@ -146,7 +139,7 @@
                             this.rankingData = arr;
                         })
                         .catch(err=>{
-                            layer.closeAll('loading')
+                            this.loading = false;
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })

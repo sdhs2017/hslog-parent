@@ -10,7 +10,7 @@
                 <el-button type="danger" size="mini" plain  @click="removeLogicAssets">删除资产</el-button>
             </div>
         </div>
-        <div class="equipment-table-wapper">
+        <div class="equipment-table-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="busNames"></v-basetable>
         </div>
         <div class="equipment-table-page">
@@ -29,6 +29,7 @@
         name: "equipment",
         data(){
             return{
+                loading:false,
                 busName:'logicAssetsList',
                 busNames:{
                     selectionName:'logicAssetsDelect'
@@ -275,15 +276,15 @@
             },
             /*获取资产列表*/
             getEquipmentList(searchObj,page){
+                this.loading = true;
                 let obj = searchObj;
                 obj.pageIndex = page;//当前页
                 obj.pageSize = this.size;//页的条数
                 //请求
                 this.$nextTick( ()=> {
-                    layer.load(1)
                     this.$axios.post(this.$baseUrl+'/asset/selectPage.do',this.$qs.stringify(obj))
                         .then((res) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             //填充表格数据
                             //对数据进行预处理
                             this.tableData = res.data[0].asset;
@@ -299,7 +300,7 @@
 
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err);
                         })
                 })
@@ -307,10 +308,10 @@
             /*查询资产*/
             selectEquipment(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/asset/selectAsset.do',this.$qs.stringify({id:this.selectEquipmentId}))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             if(res.data.success === 'false'){
                                 layer.msg(res.data.message,{icon:5});
                             }else{
@@ -360,8 +361,8 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
+                            console.log(err)
                         })
                 })
             },

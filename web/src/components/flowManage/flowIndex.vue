@@ -8,12 +8,13 @@
                 <div class="item">
                     <div class="item-con">
                         <div class="con-tit">资产（IP）数据包个数</div>
-                        <div class="con">
-                            <v-echarts echartType="bar" :echartData = "this.chartData1" ></v-echarts>
+                        <div class="con" style="padding: 0 10px;">
+<!--                            <v-echarts echartType="bar" :echartData = "this.chartData1" ></v-echarts>-->
+                            <eqIpPacket_bar :params="params" :setIntervalObj="intervalObj"></eqIpPacket_bar>
                         </div>
                     </div>
                     <div class="item-con ranking">
-                        <div class="con-tit">{{this.currentMouth }}月 URL 排行榜</div>
+                        <div class="con-tit"> URL 排行榜</div>
                         <div class="con">
                             <div class="ranking-head">
                                 <span class="order">#</span>
@@ -58,13 +59,15 @@
                     <div class="item-con">
                         <div class="con-tit">实时流量数据访问包大小</div>
                         <div class="con">
-                            <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>
+<!--                            <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>-->
+                            <allflow_timeline :params="param2" :setIntervalObj="intervalObj" :baseConProp="{title:''}"></allflow_timeline>
                         </div>
                     </div>
                     <div class="item-con">
                         <div class="con-tit">目的端口总流量</div>
                         <div class="con">
-                            <v-echarts echartType="pie" :echartData = "this.chartData3" ></v-echarts>
+<!--                            <v-echarts echartType="pie" :echartData = "this.chartData3" ></v-echarts>-->
+                            <dstPortAll_pie :params="params" :setIntervalObj="intervalObj"></dstPortAll_pie>
                         </div>
                     </div>
                 </div>
@@ -79,6 +82,9 @@
     import 'echarts-gl'
     import '@/../node_modules/echarts/map/js/world.js'
     import vEcharts from '../common/echarts'
+    import eqIpPacket_bar from '../charts/flow/equipmentFlow/eqIpPacket_bar'
+    import dstPortAll_pie from '../charts/flow/portFlow/dstPortAll_pie'
+    import allflow_timeline from '../charts/flow/realTime/allflow_timeline'
     import {dateFormat} from "../../../static/js/common";
 
     const MONTHNAME = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ];
@@ -89,6 +95,18 @@
         name: "flowIndex",
         data() {
             return {
+                //目的地址、资产ip参数
+                params:{
+                    timeInterval:3600
+                },
+                //实时流量参数
+                param2:{
+                    timeInterval:5
+                },
+                intervalObj:{
+                    state:true,
+                    interval:'5000'
+                },
                 eData:[[{"name":"jinan","value":[120.3719,36.0986]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Hangzhou","value":[120.1619,30.294]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Singapore","value":[103.8547,1.2929]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Beijing","value":[116.3889,39.9288]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Tokyo","value":[139.7532,35.6882]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Mountain View","value":[-122.0748,37.4043]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Central","value":[114.15,22.2909]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Seattle","value":[-122.3451,47.6348]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Qingdao","value":[120.3694,36.066]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Ashburn","value":[-77.4728,39.0481]}],[{"name":"Hangzhou","value":[120.1619,30.294]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Mountain View","value":[-122.0748,37.4043]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Beijing","value":[116.3889,39.9288]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Singapore","value":[103.8547,1.2929]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Central","value":[114.15,22.2909]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Tokyo","value":[139.7532,35.6882]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Seattle","value":[-122.3451,47.6348]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Ashburn","value":[-77.4728,39.0481]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"San Francisco","value":[-122.4121,37.7506]},{"name":"jinan","value":[120.3719,36.0986]}]],
                 option:{},
                 interTime:'',
@@ -162,24 +180,22 @@
             //可能会出现图片还未加载完全，出现白球旋转
             //获取流量数
             this.getFlowCount();
-            //获取实时流量大小
+           /* //获取实时流量大小
             this.getDataByTime(this.timeInterval/1000);
             //获取资产ip数据
             this.getIpPacketsData(this.dataTime);
             //获取目的端口数据
-            this.getTargetPortFlowData(this.dataTime);
+            this.getTargetPortFlowData(this.dataTime);*/
             //获取应用画像排行榜
             let endTime = dateFormat('yyyy-mm-dd',new Date());
             let ta = endTime.split('-');
             let startTime = ta[0]+'-'+ta[1]+'-01';
             this.currentMouth = ta[1];
-            this.getRanklingData(startTime,endTime)
+            this.getRanklingData()
             //定时器
             this.interTime = setInterval(()=>{
                 this.getFlowCount();
-                this.getDataByTime(this.timeInterval/1000);
-                this.getIpPacketsData(this.dataTime);
-                this.getTargetPortFlowData(this.dataTime);
+                this.getRanklingData();
             },this.timeInterval);
         },
         methods:{
@@ -734,14 +750,11 @@
                 })
             },
             /*获取应用画像数据*/
-            getRanklingData(startTime,endTime){
+            getRanklingData(){
                 this.$nextTick(()=>{
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/flow/getCountGroupByUrl.do',this.$qs.stringify({
-                        application_layer_protocol:'',
-                        ipv4_dst_addr:'',
-                        startTime:startTime,
-                        endTime:endTime
+                        timeInterval:3600
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
@@ -765,7 +778,10 @@
           clearInterval(this.interTime)
         },
         components:{
-            vEcharts
+            vEcharts,
+            eqIpPacket_bar,
+            dstPortAll_pie,
+            allflow_timeline
         }
     }
 </script>

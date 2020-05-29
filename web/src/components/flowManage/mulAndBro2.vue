@@ -34,7 +34,6 @@
         created(){
             /*监听日期改变*/
             bus.$on('mulAndBroTimeBus2',(arr)=>{
-                layer.load(1)
                 let paramObj = {
                     starttime:arr[0],
                     endtime:arr[1]

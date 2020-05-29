@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg" >
+    <div class="content-bg" v-loading="allLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title" style="position: relative;">
             <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
             <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
@@ -54,7 +54,7 @@
                             <component :is="allComps[item.eId]" :params="sysChartParams" :baseConProp="{title:''}" :setIntervalObj="{state:item.intervalState}"> </component>
                         </div>
                     </div>
-                    <div style="height: 100%;" v-else>
+                    <div style="height: 100%;" v-else v-loading="true"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <div class="item-tit vue-draggable-handle">
                             <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
@@ -80,7 +80,7 @@
                    <span>图表列表</span>
                    <i class="refresh-list el-icon-refresh-right" @click="getChartsList"></i>
                </div>
-               <el-checkbox-group v-model="checkedList" class="drawer-list">
+               <el-checkbox-group v-model="checkedList" class="drawer-list" v-loading="chartsListLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                    <ul>
                        <li v-for="(item,i) in chartsList" :key="i">
                            <el-checkbox :label="item.id" style="width: 260px;overflow:hidden;">{{item.title}}</el-checkbox>
@@ -422,7 +422,13 @@
         name: "dashboard",
         data() {
             return {
+                //整个页面遮罩
+                allLoading:false,
+                //自定义列表遮罩
+                chartsListLoading:false,
+                //所有系统预设图表模板
                 allComps:allComps,
+                //系统预设图表参数
                 sysChartParams:{},
                 //资产id
                 equipmentId:'',
@@ -732,10 +738,10 @@
             /*获取图表列表*/
             getChartsList(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.chartsListLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getVisualizations.do','')
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.chartsListLoading = false;
                             let obj =res.data;
                             if (obj.success == 'true'){
                                 this.chartsList = obj.data;
@@ -744,7 +750,7 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.chartsListLoading = false;
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })
@@ -888,14 +894,6 @@
             /*刷新dashboard*/
             refreshDashboard(){
                 this.refresh++;
-               /* if (this.dashboardId !== ''){
-                    this.getDashboardData()
-                } else {
-
-                    /!*!//获取echart结构数据
-                    *!/
-                }*/
-
             },
             /*删除图例*/
             deleteE(i){
@@ -911,8 +909,9 @@
                 this.fullscreenChartData.opt = JSON.parse(JSON.stringify(obj.opt));
                 this.fullscreenChartData.i = 'fullscreenChart';
                 this.fullscreenChartData.type = JSON.parse(JSON.stringify(obj.chartType));
-                this.fullscreenChartData.intervalState = JSON.parse(JSON.stringify(obj.intervalState));
-                console.log(this.fullscreenChartData.intervalState )
+                if(obj.intervalState){
+                    this.fullscreenChartData.intervalState = JSON.parse(JSON.stringify(obj.intervalState));
+                }
                 if(this.fullscreenChartData.type === 'systemChart'){
                     this.fullscreenChartData.eid = JSON.parse(JSON.stringify(obj.eId));
                 }else{
@@ -927,12 +926,12 @@
             /*获取dashboard数据*/
             getDashboardData(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                   this.allLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getDashboardById.do',this.$qs.stringify({
                         id:this.dashboardId
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.allLoading = false;
                             let obj = res.data;
                             if (obj.success == 'true'){
                                 this.dashboardParams.name = obj.data.title;
@@ -945,6 +944,7 @@
                                         this.chartsCount = i;
                                         //判断是否是文字块、系统预设报表还是自定义报表  自定义报表需要获取图表结构
                                         if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
+                                            this.loadingObj[this.layout[i].i] = true;
                                             this.getEchartsConstruction(this.layout[i])
                                                 .then((res)=>{
                                                     //获取图例数据
@@ -963,8 +963,7 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.allLoading = false;
                         })
                 })
             },
@@ -972,12 +971,12 @@
             getEchartsConstruction(obj){
                 return new Promise((resolve,rej)=>{
                     this.$nextTick(()=>{
-                        layer.load(1);
+                        $(document.getElementById(obj.i)).next().css("display","block")
                         this.$axios.post(this.$baseUrl+'/BI/getVisualizationById.do',this.$qs.stringify({
                             id:obj.eId
                         }))
                             .then(res=>{
-                                layer.closeAll('loading');
+                               // layer.closeAll('loading');
                                 let data = res.data;
                                 if (data.success == 'true'){
                                     //判断图表是否适应被删除
@@ -1007,7 +1006,7 @@
                                 console.log(echartsData);*/
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                $(document.getElementById(obj.i)).next().css("display","none")
                             })
                     })
                 })
@@ -1027,10 +1026,10 @@
                 }
                 return new Promise((resolve,reject)=>{
                     this.$nextTick(()=>{
-                        layer.load(1);
+                       // layer.load(1);
                         this.$axios.post(this.$baseUrl+'/BI/getDataByChartParams.do',this.$qs.stringify(param))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                obj.loading = false;
                                 let xD = res.data.data[0].name;
                                 let yD = res.data.data[0].data;
                                 //判断图表类型
@@ -1051,8 +1050,7 @@
                                 resolve(obj);
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
-
+                                $(document.getElementById(obj.i)).next().css("display","none")
                             })
                     })
                 })
@@ -1110,7 +1108,7 @@
                     window.addEventListener("resize",()=>{
                         this.echartsArr[obj.i].resize();
                     });
-
+                    $(document.getElementById(obj.i)).next().css("display","none")
                 })
 
             },
@@ -1141,7 +1139,7 @@
                     this.echartsArr[i].resize();
                 }
 
-            }
+            },
         },
         watch:{
             /*系统报表过滤*/
@@ -1329,6 +1327,7 @@
     }
     /deep/ .el-drawer__body{
         height: 100%;
+        overflow: auto;
     }
     .drawer-wapper{
         /*padding: 10px 20px;*/

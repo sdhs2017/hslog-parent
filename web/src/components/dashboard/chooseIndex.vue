@@ -1,5 +1,5 @@
 <template>
-    <div class="choose-wapper">
+    <div class="choose-wapper" v-loading="loading"  element-loading-spinner="el-icon-loading"  element-loading-background="rgba(26,36,47, 0.5)">
         当前数据源:
 <!--        <el-select v-model="index" filterable  placeholder="请选择" @change="indexBlur"  size="mini" class="index-sel">-->
         <!--<el-cascader
@@ -61,6 +61,7 @@
         },
         data() {
             return {
+                loading:false,
                 /*index:'',
                 inputVal:'',
                 dataArr:[]*/
@@ -143,27 +144,26 @@
             /*获取template*/
             getTemplateVal(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/metadata/getTemplates.do',this.$qs.stringify())
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             this.templateOpt = res.data;
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
                         })
                 })
             },
             /*获取indexFirstOpt*/
             getIndexFirstOpt(val){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/metadata/getPreIndexByTemplate.do',this.$qs.stringify({
                         templateName:val
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             //设置index前缀名组
                             this.indexFirstOpt = res.data;
                          /*   //判断数组长度是否为1  是 则直接赋值下一级
@@ -174,7 +174,7 @@
 
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
 
                         })
                 })
@@ -182,13 +182,13 @@
             /*获取indexSecondOpt*/
             getIndexSecondOpt(val){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/metadata/getSuffixIndexByPre.do',this.$qs.stringify({
                         templateName:this.templateVal,
                         preIndexName:val
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             //设置index后缀时间组
                             this.indexSecondOpt = res.data;
                           /*  //判断数组长度是否为1  是 则直接赋值下一级
@@ -199,8 +199,7 @@
 */
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
                         })
                 })
             },

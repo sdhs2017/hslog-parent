@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg"  v-loading="allLoading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title"><!--{{htmlTitle}}-->
             <div class="top-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
             <div class="choose-wapper">
@@ -13,12 +13,12 @@
 <!--                <el-button class="creatBtn prevBtn" :disabled="this.chartsConfigArr.length <= 1 ? 'disabled' : false" type="primary" @click="prevCreate" title="上一步"><i class="el-icon-back"></i></el-button>-->
 <!--                <el-button class="creatBtn nextBtn" :disabled="this.chartsConfigArr.length <= 1 ? 'disabled' : false" type="primary" @click="prevCreate" title="下一步"><i class="el-icon-right"></i></el-button>-->
                 <el-button class="creatBtn" type="primary" @click="getData" :disabled="isCanCreate || this.htmlTitle.substr(0,2) == '查看'">生成</el-button>
-                <el-tabs v-model="activeName" style="height: 100%;" type="border-card">
+                <el-tabs v-model="activeName" style="height: 100%;" type="border-card"  v-loading="leftLoading"  element-loading-background="rgba(26,36,47, 0.2)">
                     <el-tab-pane label="数据" name="first">
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(yItem,i) in chartsConfig.yAxisArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    Y轴 {{yItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeTab(i,$event)"></i>
+                                    Y轴 {{yItem.legendName}}<!--<i class="header-icon el-icon-error removeTab" @click="removeTab(i,$event)"></i>-->
                                 </template>
                                 <el-form label-position="top" style="position: relative;">
                                     <div class="from-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
@@ -256,7 +256,7 @@
 <!--                    <el-tab-pane label="角色管理" name="third">角色管理</el-tab-pane>-->
                 </el-tabs>
             </div>
-            <div class="view-wapper" >
+            <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                 <div class="charts-title">{{chartsConfig.title.text}}</div>
                 <div id="charts-wapper"></div>
                 <div class="empty-tip" v-if="this.emptyTipState">暂无结果</div>
@@ -307,6 +307,9 @@
         name: "barChart",
         data() {
             return {
+                allLoading:false,
+                leftLoading:false,
+                loading:false,
                 //保存图表的弹窗状态
                 dialogFormVisible:false,
                 //保存图表表单参数
@@ -672,7 +675,7 @@
                 this.chartsConfig.yAxisArr[index].aggregationParamArr = [];
                 //获取参数集合
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.leftLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
                             agg:$event,
@@ -682,7 +685,7 @@
                         }
                     ))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.leftLoading = false;
                             res.data.forEach(item=>{
                                 let obj = {
                                     value:item.fieldName,
@@ -693,7 +696,7 @@
                             })
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.leftLoading = false;
 
                         })
                 })
@@ -708,7 +711,7 @@
                 this.chartsConfig.xAxisArr[0].aggregationParam = ''
                 this.chartsConfig.xAxisArr[0].aggregationParamArr = []
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.leftLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
                         agg:this.chartsConfig.xAxisArr[0].aggregationType,
                         pre_index_name:this.chartsConfig.preIndexName,
@@ -716,7 +719,7 @@
                         template_name:this.chartsConfig.templateName
                     }))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.leftLoading = false;
                             res.data.forEach(item=>{
                                 let obj = {
                                     value:item.fieldName,
@@ -728,7 +731,7 @@
                             })
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.leftLoading = false;
 
                         })
                 })
@@ -751,10 +754,10 @@
                     intervalValue:this.chartsConfig.xAxisArr[0].timeInterval,//x轴参数类型为date时 时间间隔的数值
                 };
                 this.$nextTick(()=>{
-                      layer.load(1);
+                      this.loading = true;
                       this.$axios.post(this.$baseUrl+'/BI/getDataByChartParams.do',this.$qs.stringify(param))
                           .then(res=>{
-                              layer.closeAll('loading');
+                              this.loading = false;
                               //存储查询条件
                               this.chartParams.searchParam = JSON.stringify(param);
                               //判断x轴label间隔类型
@@ -781,8 +784,7 @@
 
                           })
                           .catch(err=>{
-                              layer.closeAll('loading');
-
+                              this.loading = false;
                           })
                 })
             },
@@ -975,10 +977,10 @@
                     }
                 }
                this.$nextTick(()=>{
-                   layer.load(1);
+                   this.allLoading = true;
                    this.$axios.post(this.$baseUrl+'/BI/saveVisualization.do',this.$qs.stringify(params))
                        .then(res=>{
-                           layer.closeAll('loading');
+                           this.allLoading = false;
                            if(res.data.success == 'true'){
                                this.dialogFormVisible = false;
                                layer.msg(res.data.message,{icon:1})
@@ -988,7 +990,7 @@
 
                        })
                        .catch(err=>{
-                           layer.closeAll('loading');
+                           this.allLoading = false;
                            layer.msg('保存失败',{icon:5})
                        })
                })
@@ -1005,12 +1007,12 @@
             'chartId'(newV){
                 if(newV !== ''){
                     this.$nextTick(()=>{
-                        layer.load(1);
+                        this.allLoading = true;
                         this.$axios.post(this.$baseUrl+'/BI/getVisualizationById.do',this.$qs.stringify({
                             id:this.chartId
                         }))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.allLoading = false;
                                 let obj = res.data;
                                 if (obj.success == 'true'){
                                     //赋值
@@ -1044,7 +1046,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.allLoading = false;
                             })
                     })
                 }

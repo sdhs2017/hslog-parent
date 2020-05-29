@@ -1,6 +1,6 @@
 <template>
     <!--单个资产(winlog)每小时事件数量统计--多条折线图-->
-    <div class="eb">
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此为单个资产的报表,缺少必要条件。</div>
         <v-echarts echartType="moreline" :echartData = "this.moreLineData" :busName="busName" ></v-echarts>
     </div>
@@ -34,6 +34,7 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
                 moreLineData:{//折线图数据
                     baseConfig:{
@@ -70,9 +71,11 @@
         methods:{
             //获取每小时日志数
             getEchartData(params){
+                this.loading = true;
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/ecsCommon/getCountGroupByTimeAndEvent.do',this.$qs.stringify(params))
                         .then((res) => {
+                            this.loading = false;
                             this.moreLineData.yAxisArr = [];
                             let color = ['#00EABD','#20C1F3','#FC686F','#F9D124','#DE1AFB','#C0D7FC','#A9F4B7','#FF9E96','#75B568','#323A81'];
                             let k = 0;
@@ -96,6 +99,7 @@
                         })
                         .catch((err) => {
                             console.log(err)
+                            this.loading = false;
                         })
                 })
             },

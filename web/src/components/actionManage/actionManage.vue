@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.2)">
         <div class="top-title">动作列表</div>
         <div class="action-table-wapper">
             <v-basetable :tableHead = tableHead :tableData = tableData></v-basetable>
@@ -14,6 +14,7 @@
         name: "actionManage",
         data() {
             return {
+                loading:false,
                 tableHead:[
                     {
                         prop:'name',
@@ -68,11 +69,11 @@
         methods:{
             //获取数据
             getActionData(){
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post('/jz/action/selectAll.do','')
                         .then(res =>{
-                            layer.closeAll();
+                            this.loading = false;
                             res.data[0].forEach(item =>{
                                 if(item.state === '0'){
                                     item.state = '否'
@@ -84,7 +85,7 @@
                         })
                         .catch(error => {
                             console.log(error)
-                            layer.closeAll()
+                            this.loading = false;
                         })
                 })
             }

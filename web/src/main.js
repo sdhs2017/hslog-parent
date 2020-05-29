@@ -93,10 +93,12 @@ router.beforeEach((to, from, next) => {
     }*/
    //判断是否是登录/注册页面的路由跳转  是-不进行拦截   不是-验证登录是否过期
    if(to.path !== '/login' && to.path !== '/resigter'  && to.path !== '/flowLogin'){
-       let loading = layer.load(1)
+       // let loading = layer.load(1,{
+       //     shade: [0.8,'#000'] //0.1透明度的白色背景
+       // })
        axios.get(Vue.prototype.$baseUrl+'/user/checkLogin.do',{})
            .then((res)=>{
-               layer.close(loading);
+               // layer.close(loading);
                if (res.data.success === "false"){ //登录过期
                    layer.open({
                        content: '您的登陆信息已经超时，请重新登陆！',

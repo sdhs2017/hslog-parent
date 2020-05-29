@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title">控制中心</div>
         <div class="control-wapper">
             <div class="serviceConBox">
@@ -112,6 +112,7 @@
         name: "controlCenter2",
         data() {
             return {
+                loading:false,
                 beatState:'未开启',
                 syslogState:'未开启',
                 beatsLeft:'0px',
@@ -176,11 +177,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/collector/startKafkaOfBeatsCollector.do  ','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                     this.beatState='已开启';
@@ -190,7 +191,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('启动失败',{icon: 5});
                             })
                     })
@@ -205,11 +206,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/collector/stopKafkaOfBeatsCollector.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                     this.beatState='未开启';
@@ -219,7 +220,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('停止服务失败',{icon: 5});
                             })
                     })
@@ -234,11 +235,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/collector/startCollectorState.do  ','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                     this.syslogState='已开启';
@@ -248,7 +249,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('启动失败',{icon: 5});
                             })
                     })
@@ -263,11 +264,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/collector/stopKafkaCollector.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                     this.syslogState='未开启';
@@ -277,7 +278,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('停止服务失败',{icon: 5});
                             })
                     })
@@ -292,11 +293,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/log/createIndexAndMapping4Beats.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                 }else if(res.data[0].state === false){
@@ -304,7 +305,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('初始化失败',{icon: 5});
                             })
                     })
@@ -319,11 +320,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/manage/createSnapshotByIndices.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                 }else if(res.data[0].state === false){
@@ -331,7 +332,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('备份失败',{icon: 5});
                             })
                     })
@@ -346,11 +347,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/manage/restore.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                 }else if(res.data[0].state === false){
@@ -358,7 +359,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('恢复失败',{icon: 5});
                             })
                     })

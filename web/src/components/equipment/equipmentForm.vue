@@ -353,7 +353,7 @@
                             for(let i=0;i<res.data.length; i++){
                                 let obj = {
                                     value:res.data[i].type,
-                                    label:res.data[i].type
+                                    label:res.data[i].label
                                 };
                                 this.logTypeArr.push(obj);
                             }

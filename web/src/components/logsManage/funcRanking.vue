@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title">{{domain_url}} 功能排行</div>
         <div class="datepicker-wapper" style="padding-left: 20px;">
             <span>日期范围：</span>
@@ -28,11 +28,12 @@
 <script>
     import vRanking from '../common/ranking';
     import bus from '../common/bus';
-    import {jumpHtml,savePath} from "../../../static/js/common";
+    import {jumpHtml,savePath,dateFormat} from "../../../static/js/common";
     export default {
         name: "funcRanking",
         data() {
             return {
+                loading:false,
                 domain_url:'',//参数
                 rankingTitle:'功能 URL 排行',
                 rankingData:[],
@@ -69,20 +70,12 @@
         },
         created(){
             //设置日期
-            let newDate = new Date();
-            let curDate = newDate.toLocaleDateString();
-            let curYear = newDate.getFullYear();
-            let curMonth = newDate.getMonth() + 1;
-            let curDay = newDate.getDate();
-            if(curMonth < 10){
-                curMonth = '0'+curMonth
-            }
-            if(curDay < 10){
-                curDay = '0' + curDay;
-            }
-            let startTime = curYear+'-'+curMonth+'-01';
-            let endTime = curYear+'-'+curMonth+'-'+curDay;
-            this.timepicker=[startTime,endTime]
+            //设置日期
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+
+            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
         },
         beforeDestroy () {
             //销毁绑定的bus点击事件
@@ -102,6 +95,7 @@
         methods:{
             //获取数据
             getfuncRankingData(timeArr){
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getCountGroupByHttpComUrl.do',this.$qs.stringify({
                         domain_url:this.domain_url,
@@ -109,6 +103,7 @@
                         endTime:timeArr[1]
                     }))
                         .then(res=>{
+                            this.loading = false;
                             let arr = [];
                             res.data.forEach((item)=>{
                                 let obj = {};
@@ -119,7 +114,7 @@
                             this.rankingData = arr;
                         })
                         .catch(err=>{
-                            layer.closeAll()
+                            this.loading = false;
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })

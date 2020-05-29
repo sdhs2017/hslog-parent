@@ -99,7 +99,7 @@
             <el-col :span="10">
                 <div class="grid-content bg-purple wapper-content"  style="height: 400px;">
                     <p class="content-title">异常检索</p>
-                    <div class="content-infom" style="height: 350px;">
+                    <div class="content-infom" style="height: 350px;" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <p v-if="errorLogsData.length == 0" style="padding: 19px;color: #7593bc;">暂无异常</p>
                         <ul v-else class="errorLogsList" ref="errorLogsList" :style="{top}" @mouseenter="stopLogsInterval()" @mouseleave="startLogsInterval()">
                             <li class="error-logs-item" v-for="(item,index) in errorLogsData" :key="index" title="点击查看详情" @click="errorLogsClick(item)">
@@ -153,22 +153,28 @@
         name: "index_n",
         data() {
             return{
+                //日志级别柱状图参数
                 barParam:{
                     starttime:'',
                     endtime:''
                 },
+                //日志级别柱状图 点击name
                 barBusName:{
                     clickName:'indexLogLevelClick',
                     exportName:''
                 },
+                //日志级别饼图图参数
                 pieParam:{
                     starttime:'',
                     endtime:''
                 },
+                //今日每小时日志数
                 lineParam:{
                     starttime:'',
                     endtime:''
                 },
+                //日常检索遮罩
+                loading:false,
                 date:'',//日期
                 hour:'',//时
                 min:'',//分
@@ -387,81 +393,16 @@
                         })
                 })
             },
-            //获取柱状图 饼图 数据
-            getBarPieEchartData(starttime,endtime,bar,pie){
-                this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/ecsWinlog/getCountGroupByLevel.do',this.$qs.stringify({
-                            starttime:starttime + ' 00:00:00',
-                            endtime:endtime+ ' 23:59:59',
-                    }))
-                        .then((res) => {
-                            const obj = res.data[0];
-                            const xVal = [];//x轴数据
-                            const yVal = [];//y轴数据
-                            const pieVAl = [];//饼图数据
-                            for(const i in obj){
-                                const pieObj = {};
-                                xVal.push(i);
-                                yVal.push(obj[i])
-                                pieObj.value = obj[i];
-                                pieObj.name = i;
-                                pieVAl.push(pieObj)
-                            }
-                            //赋值
-                            if (bar){
-                                this.echartData.barData.xAxisArr = xVal;
-                                this.echartData.barData.yAxisArr = yVal;
-                            }
-                            if(pie){
-                                this.echartData.pieData.yAxisArr = pieVAl;
-                            }
-
-                        })
-                        .catch((err) => {
-                            console.log(err)
-                        })
-                })
-            },
-            //获取折线图数据
-            getLineEchartData(){
-
-                //this.echartData.lineData.baseConfig.title = this.todayDate + ' 数据量统计'
-
-                this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/ecsCommon/getLogCountGroupByTime.do',this.$qs.stringify({
-                       hsData:JSON.stringify({'@timestamp':this.todayDate})
-                    }))
-                        .then((res) => {
-                            /*const obj = res.data[0];
-                            const yVal = [];
-                            for(let i = 0;i<24;i++){
-                                if(i < 10){
-                                    i = "0"+i;
-                                }
-                                yVal.push(obj[i]);
-                            }*/
-                            let yVal = [];
-                            for(let i in res.data){
-                                yVal.push(res.data[i].count)
-                            }
-                            //赋值
-                            this.echartData.lineData.xAxisArr = HOUR;
-                            this.echartData.lineData.yAxisArr = yVal;
-                        })
-                        .catch((err) => {
-                            console.log(err)
-                        })
-                })
-
-            },
             //获取错误日志数据
             getErrorLogsData(){
                 //发送请求
+                this.loading = true;
                 this.$nextTick( ()=>{
                     this.$axios.post(this.$baseUrl+'/ecsWinlog/getLogListByBlend.do',this.$qs.stringify({
                         hsData:JSON.stringify({'log.level':'error',page:1,size:20})
                     }))
                         .then((res)=>{
+                            this.loading = false
                             //取数据的前30条
                             this.errorLogsData = res.data[0].list.slice(0,30);
                             if (this.errorLogsData.length < 3){
@@ -476,6 +417,7 @@
 
                         })
                         .catch((err)=>{
+                            this.loading = false
                             console.log(err)
                         })
                 })

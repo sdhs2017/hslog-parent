@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" >
         <div class="top-title">业务流分析
             <i class="el-icon-rank el-tooltip fullScreen" title="全屏观看视图" tabindex="0" @click="fullScreen()"></i>
             <el-date-picker
@@ -16,7 +16,7 @@
                 :picker-options="pickerOptions">
             </el-date-picker>
         </div>
-        <div class="topology-wapper">
+        <div class="topology-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div id="cy"></div>
         </div>
     </div>
@@ -31,6 +31,7 @@
         name: "networkTopology",
         data() {
             return {
+                loading:false,
                 timepicker:'',//日期值
                 pickerOptions: { //日期选择器
                     shortcuts: [{
@@ -95,13 +96,12 @@
         methods:{
             /*获得数据*/
             getNetflowTopologyData(timeArr){
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getNetworkTopological.do',this.$qs.stringify({starttime:timeArr[0],endtime:timeArr[1]}))
                         .then(res =>{
-                            layer.closeAll();
+                            this.loading = false;
                             $('#cy').html('');
-
                             //定义画布宽高
                             var width = $('#cy').width();
                             var height = $("#cy").height();
@@ -114,7 +114,6 @@
                                         container.attr("transform", d3.event.transform);
                                     }
                                 }))
-                            console.log( d3.event)
                             var container =  svg.append("g")   //相当于缩放的容器
                                 .attr("width", width)
                                 .attr("height", height)
@@ -404,7 +403,7 @@
 
                         })
                         .catch(err =>{
-                            layer.closeAll()
+                            this.loading = false;
                             layer.msg('获取信息失败',{icon:5})
                         })
                     /*//缩放
@@ -445,7 +444,6 @@
                 let el = document.getElementById('cy');
                 let rfs = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen || el.msRequestFullScreen,
                     wscript;
-                console.log(el)
                 if(typeof rfs !== "undefined" && rfs) {
                     rfs.call(el);
                     return;

@@ -5,7 +5,7 @@
             <el-button type="primary" size="mini" plain @click="addBtn()">添加</el-button>
             <el-button type="danger" size="mini" plain @click="delectEquipmentSafe()">删除</el-button>
         </div>
-        <div class="equipment-safe-table">
+        <div class="equipment-safe-table"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="busName"></v-basetable>
         </div>
         <!--弹出表单-->
@@ -101,6 +101,7 @@
         name: "equipmentSafe",
         data(){
             return{
+                loading:false,
                 busName:{
                     selectionName:'',
                     editSafeName: ''
@@ -283,15 +284,15 @@
         methods:{
            /*获取设备的安全策略数据*/
            getEquipmentSafeData(){
-               layer.load(1)
+               this.loading = true
                this.$nextTick(()=>{
                    this.$axios.post(this.$baseUrl+'/safeStrategy/selectByEquipmentId.do',this.$qs.stringify({equipmentId:this.equipmentId}))
                        .then(res =>{
-                           layer.closeAll();
+                           this.loading = false;
                            this.tableData = res.data;
                        })
                        .catch(err =>{
-                           layer.closeAll()
+                           this.loading = false;
                        })
                })
            },

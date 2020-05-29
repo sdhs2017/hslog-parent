@@ -13,7 +13,7 @@
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
-        <div class="eq-wapper">
+        <div class="eq-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-checkbox-group v-model="checkList">
             <ul class="eq-ul">
                 <li v-for="(i,index) in equipmentList"  :key="index"  class="eq-li" @mouseenter="liMouseenter($event)" @mouseleave="liMouseleave($event)" @>
@@ -106,6 +106,7 @@
 		name: "device2",
 		data() {
 			return {
+			    loading:false,
                 checkList:[],
 			    zzIndex:-2,
                 busName:'searchEquipment2',
@@ -204,7 +205,7 @@
                             for(let i=0;i<res.data.length; i++){
                                 let obj = {
                                     value:res.data[i].type,
-                                    label:res.data[i].type
+                                    label:res.data[i].label
                                 };
                                 this.logType.push(obj);
                             }
@@ -253,13 +254,13 @@
 		    /*获取数据*/
             getData(searchObj,page){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     let obj = searchObj;
                     obj.pageIndex = page;//当前页
                     obj.pageSize = this.size;//页的条数
                     this.$axios.post(this.$baseUrl+'/equipment/selectPage.do',this.$qs.stringify(obj))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             let data = res.data[0].equipment;
                             this.allCounts = JSON.parse(res.data[0].count.count);
                             //将查询条件保存，用于分页
@@ -278,18 +279,18 @@
 
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
+                            console.log(err)
                         })
                 })
             },
             /*根据id查询资产*/
             selectEquipment(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/equipment/selectEquipmentByLog.do',this.$qs.stringify({id:this.selectEquipmentId}))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             if(res.data.success === 'false'){
                                 layer.msg(res.data.message,{icon:5});
                             }else {
@@ -308,8 +309,8 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
+                            console.log(err)
                         })
                 })
             },
@@ -330,7 +331,6 @@
             },
             /*删除资产*/
             removeEquipment(){
-                console.log(this.checkList)
                 if(this.checkList.length === 0){
                     layer.msg('未选中任何资产',{icon: 5});
                 }else{

@@ -394,7 +394,7 @@
                     legend: {
                         type:'scroll',
                         pageTextStyle:{
-                            color:'#eee'
+                            color:''
                         },
                         data:[],
                         width:'80%',

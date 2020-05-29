@@ -2,7 +2,7 @@
     <div class="content-bg">
         <div class="top-title">修改 '{{equipmentName}}' 逻辑资产</div>
         <div class="equipment-path"></div>
-        <div class="form-wapper">
+        <div class="form-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-equipment-form :busName="busName" :formData="formData" :routerUrl="routerUrl"></v-equipment-form>
         </div>
     </div>
@@ -15,6 +15,7 @@
         name: "reviseLogicAssets",
         data(){
             return{
+                loading:false,
                 busName:'',
                 routerUrl:'/equipment',
                 formData:{},
@@ -31,10 +32,12 @@
         methods:{
             //修改资产
             reviseEquipment(params){
+                this.loading = true;
                 params.id = this.equipmentId;
                  this.$nextTick(()=>{
                       this.$axios.post(this.$baseUrl+'/asset/update.do',this.$qs.stringify(params))
                           .then((res)=>{
+                              this.loading = false;
                               if(res.data.success == 'true'){
                                   layer.msg("修改成功",{icon:1});
                                   this.$router.push({path:'/logicAssetsList'})
@@ -43,21 +46,21 @@
                               }
                           })
                           .catch((err)=>{
-
+                              this.loading = false;
                           })
                   })
             },
             /*获取资产信息*/
             getEquipmentData(){
-                layer.load(1)
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/asset/selectAsset.do',this.$qs.stringify({id:this.equipmentId}))
                         .then((res)=>{
-                            layer.closeAll();
+                            this.loading = false;
                             this.formData = res.data[0];
                         })
                         .catch((err)=>{
-                            layer.closeAll();
+                            this.loading = false;
                         })
                 })
             }

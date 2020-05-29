@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title">流量控制中心</div>
         <div class="content">
             <div class="service-state-wapper">
@@ -28,6 +28,7 @@
         name: "flowServiceManage",
         data() {
             return {
+                loading:false,
                 state:'未开启',
                 interval:''
             }
@@ -62,11 +63,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/collector/startPcap4jCollector.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                     this.state = '已开启'
@@ -75,7 +76,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('启动失败',{icon: 5});
                             })
                     })
@@ -90,11 +91,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/collector/stopPcap4jCollector.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                     this.state = '未开启'
@@ -103,7 +104,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('停止服务失败',{icon: 5});
                             })
                     })

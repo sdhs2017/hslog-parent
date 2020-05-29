@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">{{domain_url}} 业务流</div>
-        <div class="content">
+        <div class="content" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basegraph :nodeData="nodeData" :linkData="linkData" :nodeClick="nodeClick" :linkClick="linkClick"></v-basegraph>
         </div>
     </div>
@@ -16,6 +16,7 @@
         name: "urlGraph",
         data() {
             return {
+                loading:false,
                 domain_url:'',
                 nodeData:[],
                 linkData:[]
@@ -37,11 +38,11 @@
                 }else{
                     obj.domain_url = this.domain_url;
                 }
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(obj))
                         .then(res=>{
-                            layer.closeAll();
+                            this.loading = false;
                             let nodeArr = [];//点的集合数组
                             let linkArr = [];//线的集合数组
 
@@ -71,7 +72,7 @@
                             this.linkData = linkArr;
                         })
                         .catch(err=>{
-                            layer.closeAll();
+                            this.loading = false;
                             layer.msg('获取数据失败3',{icon:5});
                         })
                 })

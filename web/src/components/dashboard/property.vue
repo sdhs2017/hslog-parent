@@ -7,7 +7,7 @@
 <!--                <ul class="left-list" >-->
 <!--                    <li v-for="(item,index) in this.indexArr" :key="index" v-bind:class="{'current-li': currentIndex == index}" @click="chooseIndex(item,index)">{{item}}</li>-->
 <!--                </ul>-->
-                <div class="left-list">
+                <div class="left-list" v-loading="leftLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                     <el-tree
                         :props="propTree"
                         :data="propData"
@@ -17,7 +17,7 @@
                 </div>
 
             </div>
-            <div class="right-wapper">
+            <div class="right-wapper" v-loading="rightLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                 <h3 class="table-tit">{{currentName}} <!--<button class=" " @click="setting()">配置</button>--></h3>
                 <el-table
                     class="table-box"
@@ -89,6 +89,8 @@
         name: "property",
         data() {
             return {
+                leftLoading:false,
+                rightLoading:false,
                 //属性树
                 propTree:{
                     children: 'menus',
@@ -184,10 +186,10 @@
             /*获取propsData*/
             getProps(url,params){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.rightLoading = true;
                     this.$axios.post(this.$baseUrl+ url,this.$qs.stringify(params))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.rightLoading = false;
                             this.tableDataArr = [];
                             setTimeout(()=>{
                                 this.tableDataArr = res.data;
@@ -195,7 +197,7 @@
 
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.rightLoading = false;
 
                         })
                 })
@@ -248,15 +250,14 @@
             //获取树节点数据
             getTreeData(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.leftLoading = true;
                     this.$axios.post(this.$baseUrl+'/metadata/getIndexTree.do','')
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.leftLoading = false;
                             this.propData = res.data;
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.leftLoading = false;
                         })
                 })
             },
@@ -278,14 +279,14 @@
                     }
                 }
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.rightLoading = true;
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.rightLoading = false;
                             resolve(res.data)
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.rightLoading = false;
                             console.log('获取失败')
                         })
                 })

@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title">应用资产画像</div>
         <div class="datepicker-wapper" style="padding-left: 20px;">
             <span>日期范围：</span>
@@ -35,11 +35,12 @@
 <script>
     import vRanking from '../common/ranking';
     import bus from '../common/bus';
-    import {jumpHtml,gresizeW} from "../../../static/js/common";
+    import {jumpHtml,gresizeW,dateFormat} from "../../../static/js/common";
     export default {
         name: "urlIpRanking",
         data() {
             return {
+                loading:false,
                 rankingTitle:'应用资产 Top10 排行',
                 rankingData:[],
                 busName:'urlRanking',
@@ -87,20 +88,11 @@
         },
         created(){
             //设置日期
-            let newDate = new Date();
-            let curDate = newDate.toLocaleDateString();
-            let curYear = newDate.getFullYear();
-            let curMonth = newDate.getMonth() + 1;
-            let curDay = newDate.getDate();
-            if(curMonth < 10){
-                curMonth = '0'+curMonth
-            }
-            if(curDay < 10){
-                curDay = '0' + curDay;
-            }
-            let startTime = curYear+'-'+curMonth+'-01';
-            let endTime = curYear+'-'+curMonth+'-'+curDay;
-            this.timepicker=[startTime,endTime]
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+
+            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
             //获取排行榜数据
             this.getRankingData(this.timepicker);
             //绑定点击事件
@@ -121,7 +113,7 @@
         methods:{
             //获取数据
             getRankingData(timeArr){
-                layer.load(1);
+                this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getTopGroupByIPOrPort.do',this.$qs.stringify({
                         groupfiled : "ipv4_dst_addr",
@@ -130,7 +122,7 @@
                         endTime:timeArr[1]
                     }))
                         .then(res=>{
-                            layer.closeAll();
+                            this.loading = false;
                             let arr = [];
                             res.data[0].ipv4_dst_addr.forEach((item)=>{
                                 let obj = {};
@@ -141,7 +133,7 @@
                             this.rankingData = arr;
                         })
                         .catch(err=>{
-                            layer.closeAll()
+                            this.loading = false;
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })

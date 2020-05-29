@@ -1,5 +1,5 @@
 <template>
-    <div class="header">
+    <div class="header" v-loading="loading" element-loading-spinner="el-icon-loading" element-loading-background="rgba(48, 62, 78, 0.2)">
         <!-- 折叠按钮 -->
         <div class="collapse-btn" @click="collapseChage">
             <i class="el-icon-menu"></i>
@@ -73,6 +73,7 @@
     export default {
         data() {
             return {
+                loading:false,
                 collapse: false,
                 fullscreen: false,
                 passWordForm:false,
@@ -220,16 +221,15 @@
             //获取标题
             getSystem(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/menu/selectSystem.do','')
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             this.systemMenu = res.data;
                             bus.$emit('systemId', res.data[0].id);
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
-
+                            this.loading = false;
                         })
                 })
             },

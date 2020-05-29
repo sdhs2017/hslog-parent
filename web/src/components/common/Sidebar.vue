@@ -212,7 +212,7 @@
     }
     .sidebar > ul {
         height:100%;
-        padding-bottom: 100px;
+        /*padding-bottom: 100px;*/
     }
     .el-menu-item, .el-submenu__title{
         height: 40px!important;

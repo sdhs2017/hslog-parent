@@ -12,7 +12,7 @@
                 <component is="eqEventType_pie" :params="params" :busName="busName"> </component>
             </div>
         </div>
-        <div v-show="!echartsStatus" class="echarts-content">
+        <div v-show="!echartsStatus" class="echarts-content"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div class="equipment-table-title">{{tableTitle}} <b @click="()=>{this.echartsStatus = true}">返回图表</b></div>
             <div class="equipment-table-content">
                 <v-basetable2 :tableHead="tableHead" :tableData="tableData"></v-basetable2>
@@ -81,6 +81,7 @@
         },
         data(){
             return{
+                loading:false,
                 echartsStatus:true,
                 timeVal:'',//时间
                 timeValArr:[],
@@ -243,7 +244,7 @@
         methods:{
             /*获取日志列表数据*/
             getLogsListData(page){
-                let loading = layer.load(1)
+                this.loading = true;
                 this.tableCondition.page = page;
                 this.tableCondition.size = this.pageSize;
                 let hsObj = {};
@@ -251,13 +252,13 @@
                 this.$nextTick(()=>{
                     this.$axios.get(this.$baseUrl+'/'+this.urls.tableUrl,{params:hsObj})
                         .then((res)=>{
-                            layer.close(loading);
+                            this.loading = false;
                             //console.log(res.data)
                             this.allCount = res.data[0].count;
                             this.tableData = res.data[0].list;
                         })
                         .catch((err)=>{
-                            layer.close(loading);
+                            this.loading = false;
                         })
                 })
             },

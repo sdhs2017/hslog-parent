@@ -78,7 +78,6 @@
                     starttime:arr[0],
                     endtime:arr[1]
                 }
-                layer.load(1);
                 this.dateArr = paramObj;
             })
         },

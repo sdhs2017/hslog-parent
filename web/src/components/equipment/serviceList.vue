@@ -7,7 +7,7 @@
         <div class="tools-wapper">
             <el-button type="danger" size="mini" plain  @click="removeService">停用</el-button>
         </div>
-        <div class="table-wapper">
+        <div class="table-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="busNames"></v-basetable>
         </div>
         <div class="table-page">
@@ -56,6 +56,7 @@
         name: "serviceList",
         data() {
             return {
+                loading:false,
                 busNames:{
                     searchBusName:'serviceListSearch',
                     selectionName:'serviceListSelection',
@@ -307,15 +308,15 @@
         methods:{
             /*获取服务列表数据*/
             getServiceListData(searchObj,page){
+                this.loading = true;
                 let obj = searchObj;
                 obj.pageIndex = page;//当前页
                 obj.pageSize = this.size;//页的条数
                 //请求
                 this.$nextTick( ()=> {
-                    layer.load(1)
                     this.$axios.post(this.$baseUrl+'/serviceInfo/selectPage.do',this.$qs.stringify(obj))
                         .then((res) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             //填充表格数据
                             this.tableData = res.data[0].serviceInfo;
                             this.allCounts = JSON.parse(res.data[0].count.count);
@@ -324,7 +325,7 @@
 
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err);
                         })
                 })

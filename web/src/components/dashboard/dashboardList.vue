@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title">仪表盘列表</div>
         <div class="tools-wapper">
             <el-button  type="primary" plain @click="goToHtml" >新建</el-button>
@@ -20,6 +20,7 @@
         name: "dashboardList",
         data() {
             return {
+                loading:false,
                 tableHead:[
                     {
                         prop:'title',
@@ -90,10 +91,10 @@
             /*获取图表列表*/
             getDashboardsList(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getDashboards.do','')
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             let obj =res.data;
                             if (obj.success == 'true'){
                                 this.tableData = obj.data;
@@ -102,7 +103,7 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })
@@ -127,14 +128,14 @@
                 layer.confirm('您确定删除么？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=> {
-                    layer.load(1);
+                    this.loading = true;
                     this.$nextTick(()=>{
                         layer.load(1);
                         this.$axios.post(this.$baseUrl+'/BI/deleteDashboardById.do',this.$qs.stringify({
                             id:row.id
                         }))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 let obj =res.data
                                 if (obj.success == 'true'){
                                     layer.msg(res.data.message,{icon:1})
@@ -147,7 +148,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
 
                             })
                     })

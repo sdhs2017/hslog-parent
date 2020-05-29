@@ -1,6 +1,6 @@
 <template>
     <!--单个资产事件级别数量统计--柱状图-->
-    <div class="eb">
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此为单个资产的报表,缺少必要条件。</div>
         <v-echarts echartType="bar" :echartData = "this.barData" :busName="busName" ></v-echarts>
     </div>
@@ -35,6 +35,7 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
                 barData:{//柱状图数据
                     baseConfig:{
@@ -72,9 +73,11 @@
         methods:{
             //获取数据
             getEchartData(params){
+                this.loading = true;
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/ecsCommon/getCountGroupByParam.do',this.$qs.stringify(params))
                         .then((res) => {
+                            this.loading = false;
                             const obj = res.data[0];
                             const xVal = [];//x轴数据
                             const yVal = [];//y轴数据
@@ -89,6 +92,7 @@
 
                         })
                         .catch((err) => {
+                            this.loading = false;
                             console.log(err)
                         })
                 })

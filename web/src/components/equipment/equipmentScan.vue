@@ -16,7 +16,7 @@
                 <el-button size="mini" type="primary" @click="scanEquipment"><i class="el-icon-search"></i>扫描</el-button>
             </div>
         </div>
-        <div class="scan-table-wapper">
+        <div class="scan-table-wapper" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
             <el-table :data="tableData" stripe fit style="width: 100%" >
                 <el-table-column prop="ip" label="IP地址" ></el-table-column>
                 <el-table-column prop="name" label="资产名称" ></el-table-column>
@@ -73,6 +73,7 @@
         name: "equipmentScan",
         data() {
             return {
+                loading:false,
                 form:{
                     startip:'',
                     endip:''
@@ -123,10 +124,12 @@
             },
             //获取资产数据
             getEquipmentScan(){
+                this.loading = true;
                 this.tableData = [];
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/assets/selectAll.do','')
                         .then(res =>{
+                            this.loading = false;
                             res.data.forEach(item =>{
                                 if(item.type !== null){
                                     let type = '';
@@ -152,7 +155,7 @@
 
                         })
                         .catch(err=>{
-
+                            this.loading = false;
                         })
                 })
             },
@@ -186,7 +189,6 @@
 
                         })
                         .catch(err=>{
-
                         })
                 })
             },
@@ -204,6 +206,7 @@
                         this.$nextTick(()=>{
                             this.$axios.post(this.$baseUrl+'/collector/startMasscanCollector.do',this.$qs.stringify(this.form))
                                 .then(res=>{
+                                    this.loading = false;
                                     if(res.data[0].success == true){
                                         //弹窗提示
                                         layer.msg(res.data[0].msg,{icon:1});
@@ -220,7 +223,7 @@
                                     }
                                 })
                                 .catch(err=>{
-
+                                    this.loading = false;
                                 })
                         })
                     }

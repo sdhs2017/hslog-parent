@@ -1,5 +1,5 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg"  v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title">图表列表</div>
         <div class="tools-wapper">
             <el-button  type="primary" plain @click="addChartsState = true" >添加</el-button>
@@ -43,6 +43,7 @@
         name: "chartsList",
         data() {
             return {
+                loading:false,
                 addChartsState:false,
                 busNames:{},
                 tableHead:[
@@ -127,10 +128,10 @@
             /*获取图表列表*/
             getChartsList(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.loading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getVisualizations.do','')
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             let obj =res.data
                             if (obj.success == 'true'){
                                 this.tableData = obj.data;
@@ -139,7 +140,7 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.loading = false;
                             layer.msg('获取数据失败',{icon:5})
                         })
                 })
@@ -196,12 +197,12 @@
                 }, (index)=> {
                     layer.load(1);
                     this.$nextTick(()=>{
-                        layer.load(1);
+                        this.loading = true;
                         this.$axios.post(this.$baseUrl+'/BI/deleteVisualizationById.do',this.$qs.stringify({
                             id:row.id
                         }))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 let obj =res.data
                                 if (obj.success == 'true'){
                                     layer.msg(res.data.message,{icon:1})
@@ -214,7 +215,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
 
                             })
                     })

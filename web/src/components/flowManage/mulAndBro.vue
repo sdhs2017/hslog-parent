@@ -78,7 +78,6 @@
             /*监听日期改变*/
             bus.$on('mulAndBroTimeBus_n',(obj)=>{
                 this.chartType = 'bar'
-                layer.load(1)
                 this.barParam = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]

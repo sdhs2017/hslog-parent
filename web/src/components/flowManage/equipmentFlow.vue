@@ -85,7 +85,6 @@
             })
             /*监听日期改变*/
             bus.$on('equipmentFlowTimeBus_n',(obj)=>{
-                layer.load(1)
                 this.params = {
                     starttime:obj.dateArr[0],
                     endtime:obj.dateArr[1]

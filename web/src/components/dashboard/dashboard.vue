@@ -944,7 +944,6 @@
                                         this.chartsCount = i;
                                         //判断是否是文字块、系统预设报表还是自定义报表  自定义报表需要获取图表结构
                                         if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
-                                            this.loadingObj[this.layout[i].i] = true;
                                             this.getEchartsConstruction(this.layout[i])
                                                 .then((res)=>{
                                                     //获取图例数据

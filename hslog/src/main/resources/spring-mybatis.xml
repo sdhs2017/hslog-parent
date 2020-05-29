@@ -961,6 +961,7 @@
 				<ref bean="domainJobTrigger" />
 				<ref bean="assetCacheJobTrigger" />
 				<!-- <ref bean="assetsHeartBeatJobTrigger" /> -->
+				<ref bean="forcemergeIndexSegmentsJobTrigger" />
 			</list>
 		</property>
 		<property name="autoStartup" value="true"/>

@@ -926,6 +926,29 @@
 		</property>
 	</bean>
 
+	<!-- 自动合并index的segments任务 -->
+	<bean id="forcemergeIndexSegmentsJob"
+		  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 调用类 -->
+		<property name="targetObject">
+			<ref bean="manageService"/>
+		</property>
+		<!--  调用类方法 -->
+		<property name="targetMethod">
+			<value>indexForceMerge</value>
+		</property>
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="forcemergeIndexSegmentsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="forcemergeIndexSegmentsJob"/>
+		</property>
+		<!-- 设置触发时间，每天晚上1点开始合并昨天生成的index segments -->
+		<property name="cronExpression">
+			<value>0 0 1 * * ?</value>
+		</property>
+	</bean>
+
 	<!-- 触发器启动 -->
 	<bean name="startQuertz" lazy-init="false" autowire="no"
 		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">

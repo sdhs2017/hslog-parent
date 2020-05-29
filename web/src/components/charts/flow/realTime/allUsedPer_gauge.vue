@@ -43,7 +43,12 @@
                 }
             },
             otherParams:{
-                type:Number
+                type:Object,
+                default(){
+                    return {
+                        bandwidth:10
+                    }
+                }
             }
         },
         data() {

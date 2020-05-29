@@ -20,12 +20,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <allUsedPer_timeline :params="param" :setIntervalObj="intervalObj" :otherParams="bandwidth"></allUsedPer_timeline>
+                            <allUsedPer_timeline :params="param" :setIntervalObj="intervalObj" :otherParams="{bandwidth:bandwidth}"></allUsedPer_timeline>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <allUsedPer_gauge :params="param" :setIntervalObj="intervalObj"  :otherParams="bandwidth"></allUsedPer_gauge>
+                            <allUsedPer_gauge :params="param" :setIntervalObj="intervalObj"  :otherParams="{bandwidth:bandwidth}"></allUsedPer_gauge>
                         </div>
                     </el-col>
                 </el-row>

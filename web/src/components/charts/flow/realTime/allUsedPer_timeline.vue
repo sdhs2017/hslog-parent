@@ -43,7 +43,12 @@
                 }
             },
             otherParams:{
-                type:Number
+                type:Object,
+                default(){
+                    return {
+                        bandwidth:10
+                    }
+                }
             }
         },
         data() {
@@ -120,6 +125,7 @@
                         .then((res) => {
                             res.data[0].value[1] = res.data[0].value[1] * 8 * 1000 * 100 / this.setIntervalObj.interval / this.otherParams.bandwidth / 1024;
                             res.data[0].value[1] = res.data[0].value[1].toFixed(2);
+
                             if(this.timeLineData.yAxisArr[0].data.length < 60){
                                 this.timeLineData.yAxisArr[0].data.push(res.data[0])
                             }else{

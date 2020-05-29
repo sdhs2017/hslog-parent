@@ -60,7 +60,7 @@
                         <div class="con-tit">实时流量数据访问包大小</div>
                         <div class="con">
 <!--                            <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>-->
-                            <allflow_timeline :params="param2" :setIntervalObj="intervalObj" :baseConProp="{title:''}" otherParams="10"></allflow_timeline>
+                            <allflow_timeline :params="param2" :setIntervalObj="intervalObj" :baseConProp="{title:''}"></allflow_timeline>
                         </div>
                     </div>
                     <div class="item-con">

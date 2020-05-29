@@ -157,5 +157,5 @@ public interface ILogIndexDao {
      * @return
      * @throws Exception
      */
-    public String[] getIndices(String indexname) throws Exception;
+    public String[] getIndices(String... indexname) throws Exception;
 }

@@ -8,21 +8,27 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class ConfigProperty {
 
+	// 操作系统的用户名（elsearch）
 	@Value("#{prop.host_user}")
 	private String host_user;
-	
+
+	// 操作系统的密码
 	@Value("#{prop.host_passwd}")
-	private String host_passwd;  
-    
+	private String host_passwd;
+
+	// 日志服务器ip
 	@Value("#{prop.host_ip}")
 	private String host_ip;  
-    
+
+	// zookeeper的ip
     @Value("#{prop.zookeeper_ip}")
     private String zookeeper_ip;
-    
+
+	// zookeeper端口
     @Value("#{prop.zookeeper_port}")
     private String zookeeper_port;
-    
+
+	// zookeeper地址
     @Value("#{prop.zookeeper_path}")
     private String zookeeper_path;
     
@@ -32,9 +38,11 @@ public class ConfigProperty {
     @Value("#{prop.es_port}")
     private String es_port;
 
+	// elasticsearch的用户名
 	@Value("#{prop.es_user}")
 	private String es_user;
 
+	// elasticsearch的密码
 	@Value("#{prop.es_password}")
 	private String es_password;
     
@@ -50,12 +58,19 @@ public class ConfigProperty {
 	@Value("#{prop.es_tempalatePattern}")
 	private String es_tempalatePattern;
 
+	// elasticsearch的旧版本index名称
 	@Value("#{prop.es_old_index}")
 	private String es_old_index;
 
+	// elasticsearch的新index名称
     @Value("#{prop.es_index}")
     private String es_index;
 
+	// elasticsearch的生命周期管理名称
+	@Value("#{prop.es_ilm_policy}")
+	private String es_ilm_policy;
+
+	// elasticsearch的索引保留时间
 	@Value("#{prop.es_days_of_log_storage}")
 	private String es_days_of_log_storage;
 
@@ -97,6 +112,10 @@ public class ConfigProperty {
 
 	@Value("#{prop.es_search_max_buckets}")
     private String es_search_max_buckets;
+
+	// 需要合并的index
+	@Value("#{prop.es_merge_index}")
+    private String es_merge_index;
 
 	public String getEs_search_max_buckets() {
 		return es_search_max_buckets;
@@ -336,5 +355,13 @@ public class ConfigProperty {
 
 	public void setEs_days_of_log_storage(String es_days_of_log_storage) {
 		this.es_days_of_log_storage = es_days_of_log_storage;
+	}
+
+	public String getEs_merge_index() {
+		return es_merge_index;
+	}
+
+	public void setEs_merge_index(String es_merge_index) {
+		this.es_merge_index = es_merge_index;
 	}
 }

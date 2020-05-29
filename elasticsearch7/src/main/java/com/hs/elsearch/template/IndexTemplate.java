@@ -12,6 +12,7 @@ import org.elasticsearch.action.admin.indices.open.OpenIndexRequest;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplateRequest;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -25,6 +26,7 @@ import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.engine.SegmentsStats;
 import org.elasticsearch.repositories.fs.FsRepository;
 
 import java.io.IOException;
@@ -435,9 +437,9 @@ public class IndexTemplate {
     public String[] getIndex(String... indexNames) throws Exception {
         GetIndexRequest request = new GetIndexRequest(indexNames);
 
-        GetIndexResponse getTemplatesResponse = restHighLevelClient.indices().get(request, RequestOptions.DEFAULT);
+        GetIndexResponse response = restHighLevelClient.indices().get(request, RequestOptions.DEFAULT);
 
-        String[] indices = getTemplatesResponse.getIndices();
+        String[] indices = response.getIndices();
         return  indices;
     }
     /**
@@ -549,5 +551,17 @@ public class IndexTemplate {
 
         AcknowledgedResponse response = restHighLevelClient.snapshot().deleteRepository(request, RequestOptions.DEFAULT);
         return response.isAcknowledged();
+    }
+
+    public void getSegmentsInfoOfIndex(String indices) throws Exception {
+        GetIndexRequest request = new GetIndexRequest(indices);
+        IndexRequest indexRequest = new IndexRequest(indices);
+        SegmentsStats segmentsStats = new SegmentsStats();
+        segmentsStats.getCount();
+        GetIndexResponse response = restHighLevelClient.indices().get(request, RequestOptions.DEFAULT);
+        restHighLevelClient.index(indexRequest,RequestOptions.DEFAULT).status().getStatus();
+        //restHighLevelClient.index(indexRequest,RequestOptions.DEFAULT).en
+
+
     }
 }

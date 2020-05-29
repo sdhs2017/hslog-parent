@@ -41,6 +41,9 @@
                         interval:5000
                     }
                 }
+            },
+            otherParams:{
+                type:Number
             }
         },
         data() {
@@ -115,8 +118,7 @@
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify(params))
                         .then((res) => {
-                            layer.closeAll('loading');
-                            res.data[0].value[1] = res.data[0].value[1] * 8 * 1000 * 100 / this.refreshIntTime / this.bandwidth / 1024;
+                            res.data[0].value[1] = res.data[0].value[1] * 8 * 1000 * 100 / this.setIntervalObj.interval / this.otherParams.bandwidth / 1024;
                             res.data[0].value[1] = res.data[0].value[1].toFixed(2);
                             if(this.timeLineData.yAxisArr[0].data.length < 60){
                                 this.timeLineData.yAxisArr[0].data.push(res.data[0])

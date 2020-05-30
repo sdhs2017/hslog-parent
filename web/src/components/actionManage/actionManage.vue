@@ -71,7 +71,7 @@
             getActionData(){
                 this.loading = true;
                 this.$nextTick(()=>{
-                    this.$axios.post('/jz/action/selectAll.do','')
+                    this.$axios.post(this.$baseUrl+'/action/selectAll.do','')
                         .then(res =>{
                             this.loading = false;
                             res.data[0].forEach(item =>{

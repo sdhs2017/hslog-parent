@@ -232,10 +232,10 @@
 
                 },
                 winlogEventObj:{
-                    login_successful:"登录成功",
-                    mstsc_successful:"远程登录成功",
-                    mstsc_interrupt:"远程连接中断",
-                    log_off:"用户注销"
+                    'logged-in': '登录成功',
+                    'logon-failed': '登录失败',
+                    'logged-out' :'用户注销',
+                    'reset-password': '重置密码'
                 },
                 dayArr:[
                     {

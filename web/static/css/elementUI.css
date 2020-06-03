@@ -424,3 +424,17 @@
 .el-cascader__suggestion-item:focus, .el-cascader__suggestion-item:hover {
     background: #4c6179;
 }
+/*时间控件*/
+.el-date-picker__time-header{
+    border-bottom: 1px solid #409eff;
+}
+.el-time-panel__content::after, .el-time-panel__content::before{
+    border-top: 1px solid #4c6179;
+    border-bottom: 1px solid #4c6179;
+}
+.el-time-panel__footer{
+    border-top: 1px solid #409eff;
+}
+.el-time-panel{
+    width: 161px;
+}

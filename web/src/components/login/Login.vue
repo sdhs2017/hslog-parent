@@ -11,7 +11,7 @@
                 </el-form-item>
                 <el-form-item prop="password">
                     <el-input type="password" placeholder="密码" v-model="ruleForm.password">
-                        <el-button slot="prepend" icon="fa fa-lock"></el-button>
+                        <el-button slot="prepend" icon="fa fa-lock" style="font-size: 18px;"></el-button>
                     </el-input>
                 </el-form-item>
                 <div class="login-btn">

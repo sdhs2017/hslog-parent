@@ -7,7 +7,7 @@
                     <h5>高危事件</h5>
                 </div>
                 <div class="threat-content">
-                    <div class="threat-item" v-for="(item,index) in higeThreatArr" :key="index">
+                    <div class="threat-item" v-for="(item,index) in higeThreatArr" :key="index" :title="currentEventObj[item.event_type]">
                         <h4 class="threat-item-title">{{currentEventObj[item.event_type]}}</h4>
                         <div class="threat-item-content">
                             <p class="per">实时/阈值：{{Number(item.per)}}%</p>
@@ -25,7 +25,7 @@
                     <h5>中危事件</h5>
                 </div>
                 <div class="threat-content">
-                    <div class="threat-item" v-for="(item,index) in middleThreatArr" :key="index">
+                    <div class="threat-item" v-for="(item,index) in middleThreatArr" :key="index" :title="currentEventObj[item.event_type]">
                         <h4 class="threat-item-title">{{currentEventObj[item.event_type]}}</h4>
                         <div class="threat-item-content">
                             <p class="per">实时/阈值：{{Number(item.per)}}%</p>
@@ -43,7 +43,7 @@
                     <h5>低危事件</h5>
                 </div>
                 <div class="threat-content">
-                    <div class="threat-item" v-for="(item,index) in lowThreatArr" :key="index">
+                    <div class="threat-item" v-for="(item,index) in lowThreatArr" :key="index" :title="currentEventObj[item.event_type]">
                         <h4 class="threat-item-title">{{currentEventObj[item.event_type]}}</h4>
                         <div class="threat-item-content">
                             <p class="per">实时/阈值：{{Number(item.per)}}%</p>
@@ -61,7 +61,7 @@
                     <h5>未设置告警的事件</h5>
                 </div>
                 <div class="threat-content">
-                    <div class="threat-item" v-for="(item,index) in allThreatArr" :key="index">
+                    <div class="threat-item" v-for="(item,index) in allThreatArr" :key="index" :title="currentEventObj[item.event_type]">
                         <h4 class="threat-item-title">{{currentEventObj[item.event_type]}}</h4>
                         <div class="threat-item-content">
                             <p>未设置告警</p>
@@ -107,10 +107,35 @@
 
                 },
                 winlogEventObj:{
-                    'logged-in': '登录成功',
-                    'logon-failed': '登录失败',
-                    'logged-out' :'用户注销',
-                    'reset-password': '重置密码'
+                    'logged-in':"登录成功",
+                    'logon-failed':"登录失败",
+                    'logged-out':"用户注销",
+                    'reset-password':"重置密码",
+                    'System Integrity':"系统完整性",
+                    '身份验证策略更改':"身份验证策略更改",
+                    '事件处理':"事件处理",
+                    'User Account Management':"User Account Management",
+                    'logged-in-special':"logged-in-special",
+                    'Group Membership':"Group Membership",
+                    'group-membership-enumerated':"group-membership-enumerated",
+                    'user-member-enumerated':"user-member-enumerated",
+                    'Group membership information':"Group membership information",
+                    'Audit Policy Change':"Audit Policy Change",
+                    'created-process':"created-process",
+                    'Other System Events':"Other System Events",
+                    'Logon':"Logon",
+                    'Security State Change':"Security State Change",
+                    'modified-user-account':"modified-user-account",
+                    'Other Policy Change Events':"Other Policy Change Events",
+                    'Logoff':"Logoff",
+                    'The event logging service has shut down':"The event logging service has shut down",
+                    'Process Creation':"Process Creation",
+                    'Other Logon/Logoff Events':"Other Logon/Logoff Events",
+                    'The workstation was locked/unlocked':"The workstation was locked/unlocked",
+                    'enabled-user-account':"enabled-user-account",
+                    'disabled-user-account':"disabled-user-account",
+                    'added-group-account-to':"added-group-account-to",
+                    'added-user-account':"added-user-account"
                 },
             }
         },
@@ -216,8 +241,8 @@
         overflow: hidden;
     }
     .threat-item{
-        width: 150px;
-        height: 150px;
+        width: 162px;
+        height: 162px;
         margin: 20px;
         background: #ccc;
         border-radius: 5px;
@@ -232,7 +257,7 @@
         transform: translate3d(0,-2px,0);
     }
     .threat-item-title{
-        height: 50px;
+        height: 62px;
         display: flex;
         justify-content: center;
         align-items: center;

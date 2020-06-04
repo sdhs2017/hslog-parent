@@ -291,10 +291,16 @@ public class KafakaOfBeatsCollector implements Runnable {
                              *  打印入库数据
                              */
                             /*System.out.println(index+" : "+jsonObject.toString());*/
-                            /**
-                             * 批量入库
-                             */
-                            indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+
+                            // 判定应收集的日志级别，通过日志级别进行日志过滤
+                            loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
+                            if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(loglevel)!=-1) {
+                                /**
+                                 * 批量入库
+                                 */
+                                indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                            }
+
                         }else {
                             // 不在资产池中的日志数据不处理
                         }

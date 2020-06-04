@@ -119,15 +119,15 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         // 时间段查询条件处理
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
             indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
@@ -140,6 +140,9 @@ public class LogSearchDaoImpl implements ILogSearchDao {
                 }else if (entry.getKey().equals("event_type")){
                     // 针对syslog日志的事件，该字段不为null
                     boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event_type")));
+                }else if (entry.getKey().equals("event.action")){
+                    // 针对syslog日志的事件，该字段不为null
+                    boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery("event.action")));
                 }/*else if (entry.getKey().equals("application_layer_protocol")) {
 					queryBuilder.must(QueryBuilders.multiMatchQuery(entry.getKey(), "http"));
 				}*/else {
@@ -338,6 +341,8 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }
         return list;
     }
+
+
 
     @Override
     public List<Map<String, Object>> getListByContent(String content, String userid, int page, int size, String[] types, String... indices) throws Exception {

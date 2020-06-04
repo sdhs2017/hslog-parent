@@ -1,9 +1,10 @@
-package com.hs.elsearch.dao.biDao.entity;
+package com.hs.elsearch.entity;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
 
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -16,7 +17,7 @@ public class VisualParam {
     private String y_field;//y轴聚合字段
     private int size = 10;//查询结果条数，默认10条
     private String sort;//排序，正序/倒序
-    private IntervalType intervalType;//间隔类型 enum
+    private String intervalType;//间隔类型（单位）
     private int intervalValue;//间隔值
     private String index_name;//数据源：目前是索引，后期可能会调整
     private String pre_index_name;//索引前缀
@@ -26,7 +27,84 @@ public class VisualParam {
     private String endTime;
     private String dateField;//时间范围查询时对应的字段
     private Map<String,String> queryParam;//查询条件 查询框和时间范围
+    private String errorInfo;//异常信息提示，用于在参数处理时产生异常时进行判定
+    private LinkedList<Bucket> bucketList;//嵌套聚合
 
+    /**
+     * 定义一个X轴bucket涉及的属性
+     */
+    public class Bucket{
+        private String x_agg;//x轴聚合方式
+        private String x_field;//x轴聚合字段
+        private int size = 10;//查询结果条数，默认10条
+        private String sort;//排序，正序/倒序
+        private String intervalType;//间隔类型（单位）
+        private int intervalValue;//间隔值
+        private String label;//别名
+
+        public String getX_agg() {
+            return x_agg;
+        }
+
+        public void setX_agg(String x_agg) {
+            this.x_agg = x_agg;
+        }
+
+        public String getX_field() {
+            return x_field;
+        }
+
+        public void setX_field(String x_field) {
+            this.x_field = x_field;
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            this.size = size;
+        }
+
+        public String getSort() {
+            return sort;
+        }
+
+        public void setSort(String sort) {
+            this.sort = sort;
+        }
+
+        public String getIntervalType() {
+            return intervalType;
+        }
+
+        public void setIntervalType(String intervalType) {
+            this.intervalType = intervalType;
+        }
+
+        public int getIntervalValue() {
+            return intervalValue;
+        }
+
+        public void setIntervalValue(int intervalValue) {
+            this.intervalValue = intervalValue;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+    }
+    public String getErrorInfo() {
+        return errorInfo;
+    }
+
+    public void setErrorInfo(String errorInfo) {
+        this.errorInfo = errorInfo;
+    }
 
     public String getStartTime() {
         return startTime;
@@ -50,17 +128,6 @@ public class VisualParam {
 
     public void setQueryParam(Map<String, String> queryParam) {
         this.queryParam = queryParam;
-    }
-
-    public enum IntervalType{
-        SECOND,//秒
-        MINUTE,//分钟
-        HOURLY,//小时
-        DAILY,//天
-        WEEKLY,//周
-        MONTHLY,//月
-        YEARLY,//年
-        UNKNOWN;
     }
 
     public String getIndex_name() {
@@ -111,11 +178,11 @@ public class VisualParam {
         this.sort = sort;
     }
 
-    public IntervalType getIntervalType() {
+    public String getIntervalType() {
         return intervalType;
     }
 
-    public void setIntervalType(IntervalType intervalType) {
+    public void setIntervalType(String intervalType) {
         this.intervalType = intervalType;
     }
 
@@ -173,17 +240,8 @@ public class VisualParam {
      * @return
      */
     public VisualParam mapToBean(Map<String,String[]> map){
-        //将枚举类的对应进行注册。
-        ConvertUtils.register(new Converter() {
-            public Object convert(Class type, Object value) {
-                if(!"".equals(value)){
-                    return IntervalType.valueOf(((String)value).toUpperCase());
-                }else{
-                    return null;
-                }
-            }
-        }, IntervalType.class);
         try{
+            //其他参数处理
             BeanUtils.populate(this,map);
         }catch(Exception e){
             e.printStackTrace();

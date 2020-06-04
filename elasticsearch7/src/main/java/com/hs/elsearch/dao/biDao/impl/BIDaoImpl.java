@@ -1,28 +1,56 @@
 package com.hs.elsearch.dao.biDao.impl;
 
 import com.hs.elsearch.dao.biDao.IBIDao;
-import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.template.SearchTemplate;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.*;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.ExtendedBounds;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.*;
-import org.elasticsearch.search.sort.SortBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BIDaoImpl implements IBIDao {
     @Autowired
     SearchTemplate searchTemplate;
+
+    /**
+     * bucket聚合查询后进行metric计算
+     * 支持sum count avg max min
+     * @param params
+     * @return 返回聚合结果
+     */
+    @Override
+    public List<Map<String, Object>> getListByAggregation(VisualParam params) throws Exception {
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
+        // 聚合bucket查询group by
+        AggregationBuilder aggregationBuilder = buildAggregation(params);
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
+
+        MultiBucketsAggregation terms  = aggregations.get("aggs");
+
+        List<Map<String, Object>> list = new ArrayList<Map<String,Object>>();
+
+        Map<String, Object> bucketmap = new HashMap<String, Object>();
+
+        for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
+            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(params.getY_agg());
+            //double有INFINITY和NaN两种特殊值，一般情况下都是数据为空时，在这里都转换成0
+            //INFINITY为无穷，NaN为非数
+            bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
+        }
+        list.add(bucketmap);
+        return list;
+    }
+
     @Override
     public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception {
         //查询条件
@@ -39,8 +67,10 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
+            //Sum sum = bucket.getAggregations().get(params.getY_agg());
+            //bucketmap.put(bucket.getKeyAsString(),sum.getValue());
             NumericMetricsAggregation.SingleValue sum = bucket.getAggregations().get(params.getY_agg());
-            bucketmap.put(bucket.getKeyAsString(),sum.value());
+            bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(sum.value())||Double.isNaN(sum.value()))?0:sum.value());
         }
         list.add(bucketmap);
         return list;
@@ -62,8 +92,10 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
+            //ValueCount count = bucket.getAggregations().get(params.getY_agg());
+            //bucketmap.put(bucket.getKeyAsString(),count.getValue());
             NumericMetricsAggregation.SingleValue count = bucket.getAggregations().get(params.getY_agg());
-            bucketmap.put(bucket.getKeyAsString(),count.value());
+            bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(count.value())||Double.isNaN(count.value()))?0:count.value());
         }
         list.add(bucketmap);
         return list;
@@ -85,6 +117,8 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
+            //Avg avg = bucket.getAggregations().get(params.getY_agg());
+            //bucketmap.put(bucket.getKeyAsString(),avg.getValue());
             NumericMetricsAggregation.SingleValue avg = bucket.getAggregations().get(params.getY_agg());
             //double有INFINITY和NaN两种特殊值，一般情况下都是数据为空时，在这里都转换成0
             //INFINITY为无穷，NaN为非数
@@ -110,6 +144,8 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
+            //Max max = bucket.getAggregations().get(params.getY_agg());
+            //bucketmap.put(bucket.getKeyAsString(),max.getValue());
             NumericMetricsAggregation.SingleValue max = bucket.getAggregations().get(params.getY_agg());
             bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(max.value())||Double.isNaN(max.value()))?0:max.value());
         }
@@ -133,6 +169,7 @@ public class BIDaoImpl implements IBIDao {
         Map<String, Object> bucketmap = new LinkedHashMap<String, Object>();
 
         for(MultiBucketsAggregation.Bucket bucket:terms.getBuckets()) {
+            //Min min = bucket.getAggregations().get(params.getY_agg());
             NumericMetricsAggregation.SingleValue min = bucket.getAggregations().get(params.getY_agg());
             //bucketmap.put(bucket.getKeyAsString(),min.getValue());
             bucketmap.put(bucket.getKeyAsString(),(Double.isInfinite(min.value())||Double.isNaN(min.value()))?0:min.value());
@@ -188,32 +225,32 @@ public class BIDaoImpl implements IBIDao {
             //TODO 对聚合方式进行更深度的扩展，可以定义时间间隔
             if(params.getIntervalType()!=null){
 
-                switch(params.getIntervalType()){
-                    case SECOND:
+                switch(params.getIntervalType().toUpperCase()){
+                    case "SECOND":
                         dateHis = DateHistogramInterval.seconds(params.getIntervalValue());
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
                         break;
-                    case MINUTE:
+                    case "MINUTE":
                         dateHis = DateHistogramInterval.minutes(params.getIntervalValue());
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
                         break;
-                    case HOURLY:
+                    case "HOURLY":
                         dateHis = DateHistogramInterval.hours(params.getIntervalValue());
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
                         break;
-                    case DAILY:
+                    case "DAILY":
                         dateHis = DateHistogramInterval.days(params.getIntervalValue());
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).fixedInterval(dateHis);
                         break;
-                    case WEEKLY://ES目前不支持 N周、N月、N年的间隔设置
+                    case "WEEKLY"://ES目前不支持 N周、N月、N年的间隔设置
                         dateHis = DateHistogramInterval.WEEK;
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).calendarInterval(dateHis);
                         break;
-                    case MONTHLY:
+                    case "MONTHLY":
                         dateHis = DateHistogramInterval.MONTH;
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).calendarInterval(dateHis);
                         break;
-                    case YEARLY:
+                    case "YEARLY":
                         dateHis = DateHistogramInterval.YEAR;
                         aggregationBuilder = AggregationBuilders.dateHistogram("aggs").field(params.getX_field()).calendarInterval(dateHis);
                         break;
@@ -223,28 +260,28 @@ public class BIDaoImpl implements IBIDao {
         }else{
             aggregationBuilder = AggregationBuilders.terms("aggs").field(params.getX_field()).order(BucketOrder.compound(BucketOrder.aggregation(params.getY_agg(),asc))).size(params.getSize());
         }
-        switch(params.getY_agg()){
-            case "Sum":
+        switch(params.getY_agg().toUpperCase()){
+            case "SUM":
                 // 在bucket上聚合metric查询sum
                 SumAggregationBuilder sumBuilder = AggregationBuilders.sum(params.getY_agg()).field(params.getY_field());
                 aggregationBuilder.subAggregation(sumBuilder);
                 break;
-            case "Count":
+            case "COUNT":
                 // 在bucket上聚合metric查询count
                 ValueCountAggregationBuilder countBuilder = AggregationBuilders.count(params.getY_agg()).field(params.getX_field());
                 aggregationBuilder.subAggregation(countBuilder);
                 break;
-            case "Average":
+            case "AVERAGE":
                 // 在bucket上聚合metric查询avg
                 AvgAggregationBuilder avgBuilder = AggregationBuilders.avg(params.getY_agg()).field(params.getY_field());
                 aggregationBuilder.subAggregation(avgBuilder);
                 break;
-            case "Max":
+            case "MAX":
                 // 在bucket上聚合metric查询min
                 MaxAggregationBuilder maxBuilder = AggregationBuilders.max(params.getY_agg()).field(params.getY_field());
                 aggregationBuilder.subAggregation(maxBuilder);
                 break;
-            case "Min":
+            case "MIN":
                 // 在bucket上聚合metric查询min
                 MinAggregationBuilder minBuilder = AggregationBuilders.min(params.getY_agg()).field(params.getY_field());
                 aggregationBuilder.subAggregation(minBuilder);
@@ -291,5 +328,273 @@ public class BIDaoImpl implements IBIDao {
             result = 0;
         }
         return result;
+    }
+
+    /**
+     * 嵌套聚合
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public Map<String,LinkedList<Map<String,Object>>> getMultiAggregation_demo(VisualParam params) throws Exception {
+        String dateField = "logdate";//时间轴涉及字段
+        String agg_first = "ipv4_dst_addr";//第一层聚合字段，目的IP
+        String agg_second = "l4_dst_port";//第二层聚合字段，目的端口
+
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
+
+        // 当聚合结果为空时，需要填充0，设置需要填充0的范围
+        ExtendedBounds extendedBounds = new ExtendedBounds(params.getStartTime(),params.getEndTime());
+        //30秒时间隔，时间轴，最外层聚合builder
+        DateHistogramInterval dateHis = DateHistogramInterval.seconds(30);
+        AggregationBuilder aggregationBuilder = AggregationBuilders
+                .dateHistogram(dateField)//别名
+                .field(dateField)//进行时间间隔聚合的时间字段
+                .fixedInterval(dateHis)
+                .minDocCount(0)//为空时填充0
+                // 需要填充0的范围
+                .extendedBounds(extendedBounds);
+        //第一层聚合 目的IP
+        TermsAggregationBuilder termFirst = AggregationBuilders.terms(agg_first).field(agg_first).size(5);
+        //第二层聚合 端口
+        TermsAggregationBuilder termSecond = AggregationBuilders.terms(agg_second).field(agg_second).size(5);
+        //计算count
+        ValueCountAggregationBuilder countBuilder = AggregationBuilders.count("count").field(agg_second);
+        //嵌套逻辑
+        termSecond.subAggregation(countBuilder);
+        termFirst.subAggregation(termSecond);
+        aggregationBuilder.subAggregation(termFirst);
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
+
+        MultiBucketsAggregation terms  = aggregations.get(dateField);
+
+
+        //时间,带排序的，由于返回结果的时间是有序的，set集合也要保证是有序的
+        Set<String> timeSet = new LinkedHashSet<>();
+        //IP+端口作为复合key，用set获取总的集合
+        Set<String> keySet = new HashSet<>();
+        //组装set集合
+        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
+            //时间
+            timeSet.add(timeBucket.getKeyAsString());
+            //一个时间下有N个IP
+            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
+            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
+                //第二层IP地址
+                String ip = ipBucket.getKeyAsString();
+                //一个IP下有N个端口
+                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
+                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
+                    //第三层，端口
+                    String portName = portBucket.getKeyAsString();
+                    //NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
+                    //"ip-端口"组成的key
+                    keySet.add(ip+"-"+portName);
+                }
+            }
+        }
+        return null;
+        /*
+        //IP+端口作为复合key，用set获取总的集合
+        Set<String> keySet = new HashSet<>();
+        //时间,带排序的，由于返回结果的时间是有序的，set集合也要保证是有序的
+        Set<String> timeSet = new LinkedHashSet<>();
+
+        //组装set集合
+        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
+            //时间
+            timeSet.add(timeBucket.getKeyAsString());
+            //一个时间下有N个IP
+            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
+            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
+                //第二层IP地址
+                String ip = ipBucket.getKeyAsString();
+                //一个IP下有N个端口
+                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
+                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
+                    //第三层，端口
+                    String portName = portBucket.getKeyAsString();
+                    //NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
+                    //"ip-端口"组成的key
+                    keySet.add(ip+"-"+portName);
+                    //System.out.println(time+"--"+ip+"--"+protocalName+"--"+value.value());
+                }
+            }
+        }
+        //数据返回集合
+        //map的key代表聚合的字段组合成key，如IP+protocol_name，也就是图表显示的图例
+        //value为该key对应的一条线上点的集合,使用linkedList保证结果有序
+        //每个点为一个Map<String,Object>，存储时间和该时间对应的metric后的值
+        Map<String,LinkedList<Map<String,Object>>> result = new HashMap<>();
+        //将所有set组合成结果集，并初始化值
+        for(String key:keySet){
+            LinkedList<Map<String, Object>> line = new LinkedList<Map<String,Object>>();
+            for(String time:timeSet){
+                Map<String, Object> point = new HashMap<String, Object>();
+                //初始化值
+                point.put("time",time);
+                point.put("value",0);
+                line.add(point);
+            }
+            result.put(key,line);
+        }
+        //时间轴上的点在时间轴的位置,设置了时间聚合时，没有值也会置0，可以确定时间
+        int i=0;
+        //重新遍历并赋值
+        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
+            //时间
+            String time = timeBucket.getKeyAsString();
+            //一个时间下有N个IP
+            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
+            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
+                //第二层IP地址
+                String ip = ipBucket.getKeyAsString();
+                //一个IP下有N个端口
+                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
+                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
+                    //第三层，端口
+                    String portName = portBucket.getKeyAsString();
+                    NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
+                    //替换成有值的点
+                    Map<String,Object> point = new HashMap<>();
+                    point.put("time",time);
+                    point.put("value",value.value());
+                    //替换
+                    result.get(ip+"-"+portName).set(i,point);
+
+                    //去掉初始化为0的点
+                    //result.get(ip+"-"+protocalName).remove(point);
+                    //加入新的点
+                    //point.put("value",value.value());
+                    //result.get(ip+"-"+protocalName).add(point);
+                }
+            }
+            i++;
+        }
+        return result;
+        */
+    }
+
+    /**
+     * 嵌套聚合
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public LinkedHashMap<String,LinkedList<Map<String,Object>>> getMultiDateHistogramAggregation(VisualParam params) throws Exception {
+        String dateField = "logdate";//时间轴涉及字段
+        String agg_first = "ipv4_dst_addr";//第一层聚合字段，目的IP
+        String agg_second = "l4_dst_port";//第二层聚合字段，目的端口
+
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
+
+        // 当聚合结果为空时，需要填充0，设置需要填充0的范围
+        ExtendedBounds extendedBounds = new ExtendedBounds(params.getStartTime(),params.getEndTime());
+        //30秒时间隔，时间轴，最外层聚合builder
+        DateHistogramInterval dateHis = DateHistogramInterval.seconds(30);
+        AggregationBuilder aggregationBuilder = AggregationBuilders
+                .dateHistogram(params.getDateField())//别名
+                .field(params.getDateField())//进行时间间隔聚合的时间字段
+                .fixedInterval(dateHis)
+                .minDocCount(0)//为空时填充0
+                // 需要填充0的范围
+                .extendedBounds(extendedBounds);
+        //第一层聚合 目的IP
+        TermsAggregationBuilder termFirst = AggregationBuilders.terms(agg_first).field(agg_first).size(5);
+        //第二层聚合 端口
+        TermsAggregationBuilder termSecond = AggregationBuilders.terms(agg_second).field(agg_second).size(5);
+        //计算count
+        ValueCountAggregationBuilder countBuilder = AggregationBuilders.count("count").field(agg_second);
+        //嵌套逻辑
+        termSecond.subAggregation(countBuilder);
+        termFirst.subAggregation(termSecond);
+        aggregationBuilder.subAggregation(termFirst);
+        // 返回聚合的内容
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
+
+        MultiBucketsAggregation terms  = aggregations.get(dateField);
+
+        //IP+端口作为复合key，用set获取总的集合
+        Set<String> keySet = new HashSet<>();
+        //时间,带排序的，由于返回结果的时间是有序的，set集合也要保证是有序的
+        Set<String> timeSet = new LinkedHashSet<>();
+
+        //组装set集合
+        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
+            //时间
+            timeSet.add(timeBucket.getKeyAsString());
+            //一个时间下有N个IP
+            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
+            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
+                //第二层IP地址
+                String ip = ipBucket.getKeyAsString();
+                //一个IP下有N个端口
+                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
+                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
+                    //第三层，端口
+                    String portName = portBucket.getKeyAsString();
+                    //NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
+                    //"ip-端口"组成的key
+                    keySet.add(ip+"-"+portName);
+                    //System.out.println(time+"--"+ip+"--"+protocalName+"--"+value.value());
+                }
+            }
+        }
+        //数据返回集合
+        //map的key代表聚合的字段组合成key，如IP+protocol_name，也就是图表显示的图例
+        //value为该key对应的一条线上点的集合,使用linkedList保证结果有序
+        //每个点为一个Map<String,Object>，存储时间和该时间对应的metric后的值
+        Map<String,LinkedList<Map<String,Object>>> result = new HashMap<>();
+        //将所有set组合成结果集，并初始化值
+        for(String key:keySet){
+            LinkedList<Map<String, Object>> line = new LinkedList<Map<String,Object>>();
+            for(String time:timeSet){
+                Map<String, Object> point = new HashMap<String, Object>();
+                //初始化值
+                point.put("time",time);
+                point.put("value",0);
+                line.add(point);
+            }
+            result.put(key,line);
+        }
+        //时间轴上的点在时间轴的位置,设置了时间聚合时，没有值也会置0，可以确定时间
+        int i=0;
+        //重新遍历并赋值
+        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
+            //时间
+            String time = timeBucket.getKeyAsString();
+            //一个时间下有N个IP
+            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
+            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
+                //第二层IP地址
+                String ip = ipBucket.getKeyAsString();
+                //一个IP下有N个端口
+                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
+                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
+                    //第三层，端口
+                    String portName = portBucket.getKeyAsString();
+                    NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
+                    //替换成有值的点
+                    Map<String,Object> point = new HashMap<>();
+                    point.put("time",time);
+                    point.put("value",value.value());
+                    //替换
+                    result.get(ip+"-"+portName).set(i,point);
+
+                    //去掉初始化为0的点
+                    //result.get(ip+"-"+protocalName).remove(point);
+                    //加入新的点
+                    //point.put("value",value.value());
+                    //result.get(ip+"-"+protocalName).add(point);
+                }
+            }
+            i++;
+        }
+        return null;
     }
 }

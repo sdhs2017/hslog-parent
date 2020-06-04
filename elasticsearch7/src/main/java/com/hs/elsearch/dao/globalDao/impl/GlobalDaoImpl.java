@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Map;
 
-public class GlobalDao implements IGlobalDao {
+public class GlobalDaoImpl implements IGlobalDao {
     @Autowired
     GlobalTemplate globalTemplate;
     @Override

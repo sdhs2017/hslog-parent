@@ -1,11 +1,20 @@
 package com.hs.elsearch.dao.biDao;
 
-import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.entity.VisualParam;
 
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public interface IBIDao {
+    /**
+     * bucket聚合查询后进行metric计算
+     * 支持sum count avg max min
+     * @param params
+     * @return 返回聚合结果
+     */
+    public List<Map<String, Object>> getListByAggregation(VisualParam params) throws Exception;
     /**
      * bucket聚合查询后进行metric的sum计算
      * @param params
@@ -54,4 +63,19 @@ public interface IBIDao {
      * @throws Exception
      */
     public long getCount(Map<String,String> map,String indexName)throws Exception;
+
+    /**
+     * 嵌套聚合-demo
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    public Map<String, LinkedList<Map<String,Object>>> getMultiAggregation_demo(VisualParam params) throws Exception;
+    /**
+     * 嵌套聚合 且X轴第一层为时间，其它层聚合为term
+     * @param params
+     * @return
+     * @throws Exception
+     */
+    public LinkedHashMap<String, LinkedList<Map<String,Object>>> getMultiDateHistogramAggregation(VisualParam params) throws Exception;
 }

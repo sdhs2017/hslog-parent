@@ -44,9 +44,20 @@ public interface ILogSearchDao {
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size,
                                                           Map<String, String> map, String... indices) throws Exception;
 
-
+    /**
+     *
+     * @param types idnex types字段，7版本中移除
+     * @param starttime 时间范围-开始时间
+     * @param endtime 时间范围-结束时间
+     * @param dateHistogramField 时间字段
+     * @param map 其他条件
+     * @param indices 索引名称
+     * @return
+     * @throws Exception
+     */
     public List<Map<String, Object>> getListByDateHistogramAggregation(String[] types, String starttime, String endtime, String dateHistogramField,
                                                                        Map<String, String> map, String... indices) throws Exception;
+
 
     /**
      * 全文检索

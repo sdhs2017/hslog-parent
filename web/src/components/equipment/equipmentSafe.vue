@@ -5,7 +5,7 @@
             <el-button type="primary" size="mini" plain @click="addBtn()">添加</el-button>
             <el-button type="danger" size="mini" plain @click="delectEquipmentSafe()">删除</el-button>
         </div>
-        <div class="equipment-safe-table">
+        <div class="equipment-safe-table"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="busName"></v-basetable>
         </div>
         <!--弹出表单-->
@@ -101,6 +101,7 @@
         name: "equipmentSafe",
         data(){
             return{
+                loading:false,
                 busName:{
                     selectionName:'',
                     editSafeName: ''
@@ -231,10 +232,36 @@
 
                 },
                 winlogEventObj:{
-                    login_successful:"登录成功",
-                    mstsc_successful:"远程登录成功",
-                    mstsc_interrupt:"远程连接中断",
-                    log_off:"用户注销"
+                    'logged-in':"登录成功",
+                    'logon-failed':"登录失败",
+                    'logged-out':"用户注销",
+                    'reset-password':"重置密码",
+                    'System Integrity':"系统完整性",
+                    '身份验证策略更改':"身份验证策略更改",
+                    '事件处理':"事件处理",
+                    'User Account Management':"User Account Management",
+                    'logged-in-special':"logged-in-special",
+                    'Group Membership':"Group Membership",
+                    'group-membership-enumerated':"group-membership-enumerated",
+                    'user-member-enumerated':"user-member-enumerated",
+                    'Group membership information':"Group membership information",
+                    'Audit Policy Change':"Audit Policy Change",
+                    'created-process':"created-process",
+                    'Other System Events':"Other System Events",
+                    'Logon':"Logon",
+                    'Security State Change':"Security State Change",
+                    'modified-user-account':"modified-user-account",
+                    'Other Policy Change Events':"Other Policy Change Events",
+                    'Logoff':"Logoff",
+                    'The event logging service has shut down':"The event logging service has shut down",
+                    'Process Creation':"Process Creation",
+                    'Other Logon/Logoff Events':"Other Logon/Logoff Events",
+                    'The workstation was locked/unlocked':"The workstation was locked/unlocked",
+                    'enabled-user-account':"enabled-user-account",
+                    'disabled-user-account':"disabled-user-account",
+                    'added-group-account-to':"added-group-account-to",
+                    'added-user-account':"added-user-account"
+
                 },
                 dayArr:[
                     {
@@ -283,15 +310,15 @@
         methods:{
            /*获取设备的安全策略数据*/
            getEquipmentSafeData(){
-               layer.load(1)
+               this.loading = true
                this.$nextTick(()=>{
                    this.$axios.post(this.$baseUrl+'/safeStrategy/selectByEquipmentId.do',this.$qs.stringify({equipmentId:this.equipmentId}))
                        .then(res =>{
-                           layer.closeAll();
+                           this.loading = false;
                            this.tableData = res.data;
                        })
                        .catch(err =>{
-                           layer.closeAll()
+                           this.loading = false;
                        })
                })
            },

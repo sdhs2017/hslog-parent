@@ -763,7 +763,9 @@
 
 	<bean id="ibiDao" class="com.hs.elsearch.dao.biDao.impl.BIDaoImpl">
 	</bean>
-	<bean id="globalDao" class="com.hs.elsearch.dao.globalDao.impl.GlobalDao">
+	<bean id="globalDao" class="com.hs.elsearch.dao.globalDao.impl.GlobalDaoImpl">
+	</bean>
+	<bean id="commonDao" class="com.hs.elsearch.dao.common.impl.CommonDaoImpl">
 	</bean>
 	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">

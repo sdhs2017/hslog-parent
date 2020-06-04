@@ -704,18 +704,19 @@ public class LogController extends BaseController{
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
 			ConcurrentHashMap<String,String> safemap = new ConcurrentHashMap<>();
-			safemap.put("equipmentid",equipmentid);
-			safemap.put("event_type",event_type);
+			safemap.put("fields.equipmentid",equipmentid);
+			safemap.put("event.action",event_type);
 			//List<Map<String, Object>> loglist = logService.getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
 			List<Map<String, Object>> loglist = null;
 			try {
-				loglist = logService.groupBy(index, types,event_type, 10,starttime, endtime,safemap);
+				loglist = logService.groupBy(index, types,"event.action", 100,starttime, endtime,safemap);
 			} catch (Exception e) {
-				e.printStackTrace();
+				logger.error("统计某时间段内的事件数量"+e.getMessage());
 			}
 
 			if (!loglist.get(0).isEmpty()) {
-				float per = Float.valueOf(loglist.get(0).get(safeStrategy.getEvent_type()).toString())/safeStrategy.getNumber();
+				Object value = loglist.get(0).get(safeStrategy.getEvent_type());
+				float per = Float.valueOf(null==value?"0":value.toString())/safeStrategy.getNumber();
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put("event_type", safeStrategy.getEvent_type());
 				map.put("per",df.format(per*100));

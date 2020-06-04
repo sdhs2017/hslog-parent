@@ -45,5 +45,5 @@ public interface IEquipmentService {
 
 	boolean checkNameUnique(Equipment equipment);
 	boolean checkIpAndLogTypeUnique(Equipment equipment);
-
+	String selectRisk();
 }

@@ -28,7 +28,7 @@
 		resultMap="BaseResultMap">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
 		select  action.id, action.name, action.userId, action.state,action.type,feature,a.`name` AS userName FROM action 
-		LEFT JOIN user AS a on action.userId=a.id 
+		LEFT JOIN HS_User AS a on action.userId=a.id
 		where 1=1 and action.deleteState=1
 		<if test='role=="2"'>
 			 and action.userId=#{userId,jdbcType=VARCHAR}

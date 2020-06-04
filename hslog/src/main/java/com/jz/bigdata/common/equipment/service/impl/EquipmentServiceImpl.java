@@ -419,4 +419,14 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		return false;
 	}
 
+	/**
+	 * 查询高危、中危资产信息
+	 * @return
+	 */
+	@Override
+	public String selectRisk() {
+		List<Equipment> list = equipmentDao.selectRisk();
+		return JSONArray.fromObject(list).toString();
+	}
+
 }

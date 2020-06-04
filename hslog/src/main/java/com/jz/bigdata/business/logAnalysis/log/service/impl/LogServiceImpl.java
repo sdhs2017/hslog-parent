@@ -252,10 +252,10 @@ public class LogServiceImpl implements IlogService {
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
 			ConcurrentHashMap<String,String> safemap = new ConcurrentHashMap<>();
-            safemap.put("equipmentid",equipmentid);
-            safemap.put("event_type",event_type);
+            safemap.put("fields.equipmentid",equipmentid);
+            safemap.put("event.action",event_type);
             //List<Map<String, Object>> loglist = getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
-            List<Map<String, Object>> loglist = this.groupBy(index, types,event_type, 10,starttime, endtime,safemap);
+            List<Map<String, Object>> loglist = this.groupBy(index, types,"event.action", 100,starttime, endtime,safemap);
 
 
 			if (!loglist.get(0).isEmpty()) {

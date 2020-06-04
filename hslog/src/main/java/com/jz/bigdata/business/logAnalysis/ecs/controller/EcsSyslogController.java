@@ -1,6 +1,7 @@
 package com.jz.bigdata.business.logAnalysis.ecs.controller;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.entity.HttpRequestParams;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
@@ -9,7 +10,6 @@ import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
-import com.jz.bigdata.util.HttpRequestParams;
 import com.jz.bigdata.util.HttpRequestUtil;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;

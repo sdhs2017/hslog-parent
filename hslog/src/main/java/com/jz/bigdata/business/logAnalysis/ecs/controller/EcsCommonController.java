@@ -3,6 +3,7 @@ package com.jz.bigdata.business.logAnalysis.ecs.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.entity.HttpRequestParams;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;

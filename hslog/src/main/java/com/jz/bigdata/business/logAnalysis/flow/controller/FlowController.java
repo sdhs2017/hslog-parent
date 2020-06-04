@@ -3,6 +3,8 @@ package com.jz.bigdata.business.logAnalysis.flow.controller;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hs.elsearch.entity.HttpRequestParams;
+import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.business.logAnalysis.flow.service.IflowService;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
@@ -12,7 +14,9 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
 import com.jz.bigdata.util.*;
+import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
+import org.apache.tools.ant.taskdefs.PathConvert;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -20,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import scala.collection.immutable.Stream;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -41,8 +46,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class FlowController {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+    //默认查询或聚合结果的条数
+    private final int size = 10;
     //数据统计默认时间间隔
     private final int basicTimeInterval=-5;
+
 
     @Resource(name="logService")
     private IlogService logService;
@@ -101,6 +109,7 @@ public class FlowController {
                 map.put("endtime",endtime);
             }else{
                 //参数异常，map直接返回
+                //TODO 返回设置时间间隔
             }
             return map;
         }else{
@@ -838,8 +847,9 @@ public class FlowController {
         String source_ip = request.getParameter("source_ip");
         String source_port = request.getParameter("source_port");
         // 时间段
-        String starttime = request.getParameter("startTime");
-        String endtime = request.getParameter("endTime");
+        Map<String,String> timeMap = getStartEndTime(request);
+        //String starttime = request.getParameter("startTime");
+        //String endtime = request.getParameter("endTime");
 
         String ipv4_dst_addr = request.getParameter("ipv4_dst_addr");
         String application_layer_protocol = request.getParameter("application_layer_protocol");
@@ -865,20 +875,20 @@ public class FlowController {
         if (application_layer_protocol!=null&&!application_layer_protocol.equals("")) {
             map.put("application_layer_protocol", application_layer_protocol);
         }
-
+        /*
         if (starttime!=null&&!starttime.equals("")) {
             starttime = starttime+" 00:00:00";
         }
         if (endtime!=null&&!endtime.equals("")) {
             endtime = endtime+" 23:59:59";
-        }
+        }*/
 
         // url 排行榜 TOP10
         int size = 10;
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         //list = logService.groupBy(index, types, groupby, map);
         try {
-            list = flowService.groupBy(index,types,groupby,size,starttime,endtime,map);
+            list = flowService.groupBy(index,types,groupby,size,timeMap.get("starttime"),timeMap.get("endtime"),map);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -1097,7 +1107,83 @@ public class FlowController {
         }
         return JSONArray.fromObject(list).toString();
     }
+    /**
+     * @param request
+     * 嵌套聚合测试
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getCount_test")
+    @DescribeLog(describe="嵌套聚合测试")
+    public String getCount_test(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        params.setIndex_name(configProperty.getEs_old_index());//index
+        try{
+            Map<String, LinkedList<Map<String, Object>>> list = flowService.getListByMultiAggregation(params);
+            return JSONArray.fromObject(list).toString();
+        }catch(Exception e){
+            logger.error("嵌套聚合测试"+e.getMessage());
+            e.printStackTrace();
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/全局实时流量/实时统计流量数据访问包大小
+     * 计算某个时间段内的数据包大小
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getPacketLengthPerSecond_line")
+    @DescribeLog(describe="实时统计流量数据访问包大小")
+    public String getPacketLengthPerSecond_line(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //时间范围参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //索引
+        params.setIndex_name(configProperty.getEs_old_index());
+        params.setDateField("logdate");//时间字段
+        params.setY_field("packet_length");//Y轴聚合字段
+        params.setY_agg("Sum");//Y轴计算方式
+        params.setX_field("logdate");//X轴涉及字段
+        params.setX_agg("Date");//X轴聚合方式
+        params.setSort("asc");//排序
 
+        /**
+         * 如果param的参数需要定制，则通过set方法对params对象进行覆盖
+         * eg:params.setSort("desc");//降序排列
+         */
+
+
+        //结果返回
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        try{
+            list = flowService.getListByAggregation(params);
+        } catch (Exception e) {
+            logger.error("实时统计流量数据访问包大小"+e.getMessage());
+        }
+        List<Map<String,Object>> result = new ArrayList<>();
+        //数据格式处理
+        //TODO 工具类
+        for(Map<String ,Object> map:list){
+            for(Map.Entry<String,Object> entry:map.entrySet()){
+                Map<String,Object> nodeMap = new HashMap<>();
+                nodeMap.put("name",entry.getKey());
+                Object [] value = {entry.getKey(), entry.getValue()};
+                nodeMap.put("value",value);
+                result.add(nodeMap);
+            }
+        }
+        return JSONArray.fromObject(result).toString();
+    }
     /**
      * @param request
      * 流量统计/全局实时流量/实时统计流量数据访问包大小
@@ -1141,6 +1227,31 @@ public class FlowController {
     @RequestMapping("/getSrcIPFlow")
     @DescribeLog(describe="源ip地址流量")
     public String getSrcIPFlow(HttpServletRequest request) {
+        String index = configProperty.getEs_old_index();
+        String groupfield = "ipv4_src_addr";
+        String sumfield = "packet_length";
+        String [] types = {"defaultpacket"};
+        //获取参数
+        Map<String,String> tMap = getStartEndTime(request);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        int size =10;
+        try {
+            list = flowService.groupByThenSum(index,types,groupfield,sumfield,size,tMap.get("starttime"),tMap.get("endtime"),null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 流量统计/IP主机流量/源ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getSrcIPFlow_bar")
+    @DescribeLog(describe="源ip地址流量")
+    public String getSrcIPFlow_bar(HttpServletRequest request) {
         String index = configProperty.getEs_old_index();
         String groupfield = "ipv4_src_addr";
         String sumfield = "packet_length";
@@ -1335,6 +1446,7 @@ public class FlowController {
 
         return JSONArray.fromObject(list).toString();
     }
+
     /**
      * @param request
      * 流量统计/资产流量/资产（ip） 数据包个数，取目的地址IP进行统计
@@ -1629,11 +1741,13 @@ public class FlowController {
         String [] types = {"defaultpacket"};
         List<List<Map<String, Object>>> list = new ArrayList<>();
         //默认获取一周内的数据
-        String oneWeekSecond = "604800";
-        Map<String,String> map = getStartEndTime(oneWeekSecond);
+        //String oneWeekSecond = "86400";
+        //Map<String,String> map = getStartEndTime(oneWeekSecond);
+        Map<String,String> map = getStartEndTime(request);
         int size =10;
         try {
             list = flowService.groupBy(index,types,groupfields,size,map.get("starttime"),map.get("endtime"),null);
+            //list = flowService.groupBy(index,types,groupfields,size,"2020-05-20 00:00:00","2020-05-22 23:59:59",null);
         } catch (Exception e) {
             e.printStackTrace();
         }

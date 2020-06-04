@@ -1,5 +1,9 @@
 package com.jz.bigdata.business.logAnalysis.flow.service;
 
+import com.hs.elsearch.entity.HttpRequestParams;
+import com.hs.elsearch.entity.VisualParam;
+
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -127,4 +131,17 @@ public interface IflowService {
      */
     public List<Map<String, Object>> getFlowListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception;
 
+    /**
+     * @param params 相关参数
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, Object>> getListByAggregation(VisualParam params) throws Exception;
+    /**
+     * 嵌套聚合
+     * @param params 相关参数
+     * @return
+     * @throws Exception
+     */
+    public Map<String, LinkedList<Map<String,Object>>> getListByMultiAggregation(VisualParam params) throws Exception;
 }

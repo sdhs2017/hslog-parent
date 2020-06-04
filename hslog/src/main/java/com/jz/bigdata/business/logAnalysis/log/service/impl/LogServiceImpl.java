@@ -186,6 +186,7 @@ public class LogServiceImpl implements IlogService {
 		return list;
 	}*/
 	/**
+	 * 根据资产的事件策略计算事件占比（事件数/阈值）
 	 * @param index
 	 * @param types
 	 * @param equipmentid
@@ -201,26 +202,26 @@ public class LogServiceImpl implements IlogService {
 		DecimalFormat df = new DecimalFormat("#.00");
 
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
-
+		//获取资产对应的安全策略详情
 		List<SafeStrategy> safelist = safeStrategyService.selectByEquipmentId(equipmentid);
 
 		Integer high_risk = 0;
 		Integer moderate_risk = 0;
 		Integer low_risk = 0;
-
+		//针对每条策略进行处理
 		for (SafeStrategy safeStrategy : safelist) {
-			String dates = safeStrategy.getTime();
-			String event_type = safeStrategy.getEvent_type();
+			String dates = safeStrategy.getTime();//时间间隔，分钟
+			String event_type = safeStrategy.getEvent_type();//告警事件类型
 			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(enddate);
-			calendar.add(Calendar.MINUTE, -Integer.valueOf(dates));
+			calendar.setTime(enddate);//当前时间
+			calendar.add(Calendar.MINUTE, -Integer.valueOf(dates));//当前时间减去时间间隔，形成起始时间
 			Date startdate = calendar.getTime();
 			String starttime = format.format(startdate);
 			ConcurrentHashMap<String,String> safemap = new ConcurrentHashMap<>();
-            safemap.put("equipmentid",equipmentid);
-            safemap.put("event_type",event_type);
+            safemap.put("fields.equipmentid",equipmentid);
+            safemap.put("event.action",event_type);
             //List<Map<String, Object>> loglist = getListGroupByEvent(index, types, equipmentid,event_type,starttime,endtime);
-            List<Map<String, Object>> loglist = this.groupBy(index, types,event_type, 10,starttime, endtime,safemap);
+            List<Map<String, Object>> loglist = this.groupBy(index, types,"event.action", 100,starttime, endtime,safemap);
 
 
 			if (!loglist.get(0).isEmpty()) {
@@ -254,7 +255,7 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		equipmentService.upRiskById(equipmentid, high_risk, moderate_risk, low_risk);
-
+		//TODO 返回数据的意义？
 		return list;
 	}
 

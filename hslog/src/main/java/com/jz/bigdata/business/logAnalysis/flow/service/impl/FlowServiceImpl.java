@@ -1,7 +1,11 @@
 package com.jz.bigdata.business.logAnalysis.flow.service.impl;
 
+import com.hs.elsearch.dao.biDao.IBIDao;
+import com.hs.elsearch.dao.common.ICommonDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.hs.elsearch.dao.flowDao.IFlowSearchDao;
+import com.hs.elsearch.entity.HttpRequestParams;
+import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.business.logAnalysis.flow.service.IflowService;
 import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +28,11 @@ public class FlowServiceImpl implements IflowService {
     @Autowired
     protected IFlowSearchDao flowSearchDao;
 
+    @Autowired
+    protected ICommonDao commonDao;
 
+    @Autowired
+    protected IBIDao biDao;
     @Override
     public long getCount(String index, String[] types, Map<String, String> map) {
         return flowSearchDao.getFlowCount(map,null,null, types,index);
@@ -89,4 +97,16 @@ public class FlowServiceImpl implements IflowService {
         list.addAll(flowSearchDao.getFlowListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
         return list;
     }
+
+    @Override
+    public List<Map<String, Object>> getListByAggregation(VisualParam params) throws Exception {
+        return biDao.getListByAggregation(params);
+    }
+
+    @Override
+    public Map<String,LinkedList<Map<String,Object>>> getListByMultiAggregation(VisualParam params) throws Exception {
+        return biDao.getMultiAggregation_demo(params);
+    }
+
+
 }

@@ -334,7 +334,12 @@
 		from equipment
 		where id=#{id}
 	</select>
-
+	<select id="selectRisk" resultMap="BaseResultMapUserName">
+		select
+		<include refid="Base_Column_List" />
+		from equipment where 1=1 and (high_risk>0 or moderate_risk>0)
+		order by high_risk desc,moderate_risk desc
+	</select>
 	<!-- 分页查询所有数据 -->
 	<select id="selectAllByPage" resultMap="BaseResultMapUserName">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
@@ -414,7 +419,7 @@
 		select
 		<!-- 引用查询字段 -->
 		<include refid="Base_Column_List" />
-		from equipment
+		from equipment where startUp='1'
 
 	</select>
 

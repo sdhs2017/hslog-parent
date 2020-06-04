@@ -419,4 +419,10 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		return false;
 	}
 
+	@Override
+	public String selectRisk() {
+		List<Equipment> list = equipmentDao.selectRisk();
+		return JSONArray.fromObject(list).toString();
+	}
+
 }

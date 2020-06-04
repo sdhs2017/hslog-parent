@@ -1,9 +1,8 @@
 package com.jz.bigdata.common.businessIntelligence.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.*;
 import com.hs.elsearch.dao.biDao.IBIDao;
-import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;

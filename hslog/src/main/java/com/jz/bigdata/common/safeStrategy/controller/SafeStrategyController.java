@@ -82,6 +82,7 @@ public class SafeStrategyController {
 //		判断id是否为空
 		if (safeStrategy.getId() == null || safeStrategy.getId().isEmpty()) {
 			safeStrategy.setId(Uuid.getUUID());
+			//TODO 通过设置唯一键 在insert时对触发异常的进行捕获判定，实现同样的去重效果。并且只访问数据库一次
 			List<SafeStrategy> list=safeStrategyService.selectByequipmentIdEventType(safeStrategy);
 			if(list.size()>0){
 				return Constant.dataMessage();

@@ -271,11 +271,11 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
      * @return
      */
     public String updateRisk() throws Exception {
-
+        //查询所有资产（已启用），
         List<Equipment> list = equipmentService.selectAllEquipmentByRisk();
         String index = configProperty.getEs_index();
         String [] types = null;
-        Date enddate = new Date();
+        Date enddate = new Date();//当前时间作为截止时间
         for(Equipment equipment : list) {
             logService.getEventstypeCountByEquipmentid(index, types, equipment.getId(), enddate);
         }

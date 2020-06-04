@@ -1,6 +1,6 @@
 package com.jz.bigdata.common.businessIntelligence.controller;
 
-import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
@@ -10,7 +10,6 @@ import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.MapUtil;
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.DocWriteResponse;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -366,7 +364,7 @@ public class BIController {
      * @return
      * @throws Exception 如果参数出现异常，统一在上游catch处理
      */
-    private boolean getSearchBuckets(String startTime, String endTime, VisualParam.IntervalType intervalType, int intervalValue) throws Exception {
+    private boolean getSearchBuckets(String startTime, String endTime, String intervalType, int intervalValue) throws Exception {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date dateStart = formatter.parse(startTime);
         Date dateEnd = formatter.parse(endTime);
@@ -374,26 +372,26 @@ public class BIController {
         long difValue = (dateEnd.getTime() - dateStart.getTime())/1000;
         //计算间隔 秒
         long intervalSeconds=1L;
-        switch(intervalType){
-            case SECOND:
+        switch(intervalType.toUpperCase()){
+            case "SECOND":
                 intervalSeconds = intervalValue*1;
                 break;
-            case MINUTE:
+            case "MINUTE":
                 intervalSeconds = intervalValue*60;
                 break;
-            case HOURLY:
+            case "HOURLY":
                 intervalSeconds = intervalValue*60*60;
                 break;
-            case DAILY:
+            case "DAILY":
                 intervalSeconds = intervalValue*60*60*24;
                 break;
-            case WEEKLY:
+            case "WEEKLY":
                 intervalSeconds = intervalValue*60*60*24*7;
                 break;
-            case MONTHLY:
+            case "MONTHLY":
                 intervalSeconds = intervalValue*60*60*24*7*30;
                 break;
-            case YEARLY:
+            case "YEARLY":
                 intervalSeconds = intervalValue*60*60*24*7*30*365;
                 break;
             default:

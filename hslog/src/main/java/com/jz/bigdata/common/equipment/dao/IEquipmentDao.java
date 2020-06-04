@@ -50,4 +50,6 @@ public interface IEquipmentDao {
 
 	List<List<Map<String,String>>> checkIpAndLogTypeUnique(Equipment equipment);
 
+	List<Equipment> selectRisk();
+
 }

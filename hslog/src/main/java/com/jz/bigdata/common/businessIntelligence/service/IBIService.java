@@ -1,11 +1,10 @@
 package com.jz.bigdata.common.businessIntelligence.service;
 
-import com.hs.elsearch.dao.biDao.entity.VisualParam;
+import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
-import org.elasticsearch.action.admin.cluster.settings.ClusterGetSettingsResponse;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;

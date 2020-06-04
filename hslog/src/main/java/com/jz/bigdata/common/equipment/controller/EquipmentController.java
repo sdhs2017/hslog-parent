@@ -103,9 +103,24 @@ public class EquipmentController {
 			logger.error("查询所有资产"+e.getMessage());
 			return Constant.failureMessage();
 		}
-
 	}
-	
+	/**
+	 * @param request
+	 * @param equipment
+	 * @return 查询数据
+	 */
+	@ResponseBody
+//	@RequestMapping("/selectAll")
+	@RequestMapping(value="/selectRisk.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="查询所有存在中、高危事件的资产")
+	public String selectRisk(HttpServletRequest request){
+		try{
+			return equipmentService.selectRisk();
+		}catch (Exception e){
+			logger.error("查询所有存在中、高危事件的资产"+e.getMessage());
+			return Constant.failureMessage();
+		}
+	}
 	/**
 	 * @param request
 	 * @param equipment

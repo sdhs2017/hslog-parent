@@ -1134,6 +1134,31 @@ public class FlowController {
     }
     /**
      * @param request
+     * 嵌套聚合测试，echart的dataset数据加载模式
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping("/getCount_test4dataset")
+    @DescribeLog(describe="嵌套聚合测试2")
+    public String getCount_test4dataset(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        params.setIndex_name(configProperty.getEs_old_index());//index
+        try{
+            Map<String, Object> list = flowService.getListByMultiAggregation4dataset(params);
+            return JSONArray.fromObject(list).toString();
+        }catch(Exception e){
+            logger.error("嵌套聚合测试"+e.getMessage());
+            e.printStackTrace();
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
      * 流量统计/全局实时流量/实时统计流量数据访问包大小
      * 计算某个时间段内的数据包大小
      * @return

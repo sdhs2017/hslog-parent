@@ -695,7 +695,7 @@ public class LogController extends BaseController{
 	@ResponseBody
 	@RequestMapping("/getCountGroupByEventstype")
 	@DescribeLog(describe="统计某时间段内的事件数量")
-	public List<Map<String, Object>> getCountGroupByEventstype(HttpServletRequest request) {
+	public String getCountGroupByEventstype(HttpServletRequest request) {
 		String index = configProperty.getEs_index();
 		String type = request.getParameter("type");
 		String [] types = null;
@@ -728,6 +728,7 @@ public class LogController extends BaseController{
 				loglist = logService.groupBy(index, types,"event.action", 100,starttime, endtime,safemap);
 			} catch (Exception e) {
 				logger.error("统计某时间段内的事件数量"+e.getMessage());
+				return Constant.failureMessage();
 			}
 
 			if (!loglist.get(0).isEmpty()) {
@@ -749,7 +750,7 @@ public class LogController extends BaseController{
 			}
 		}
 
-		return list;
+		return JSONArray.fromObject(list).toString();
 	}
 
 

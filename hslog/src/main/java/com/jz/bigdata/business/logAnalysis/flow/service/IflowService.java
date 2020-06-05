@@ -144,4 +144,11 @@ public interface IflowService {
      * @throws Exception
      */
     public Map<String, LinkedList<Map<String,Object>>> getListByMultiAggregation(VisualParam params) throws Exception;
+    /**
+     * 嵌套聚合
+     * @param params 相关参数
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> getListByMultiAggregation4dataset(VisualParam params) throws Exception;
 }

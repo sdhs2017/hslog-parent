@@ -1,8 +1,11 @@
 package com.hs.elsearch.dao.biDao.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.template.SearchTemplate;
+import net.sf.json.JSONArray;
+import org.apache.commons.collections.map.LinkedMap;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.aggregations.*;
@@ -337,13 +340,13 @@ public class BIDaoImpl implements IBIDao {
      * @throws Exception
      */
     @Override
-    public Map<String,LinkedList<Map<String,Object>>> getMultiAggregation_demo(VisualParam params) throws Exception {
+    public Map<String,Object> getMultiAggregation4dateset(VisualParam params) throws Exception {
         String dateField = "logdate";//时间轴涉及字段
         String agg_first = "ipv4_dst_addr";//第一层聚合字段，目的IP
         String agg_second = "l4_dst_port";//第二层聚合字段，目的端口
 
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),dateField);
 
         // 当聚合结果为空时，需要填充0，设置需要填充0的范围
         ExtendedBounds extendedBounds = new ExtendedBounds(params.getStartTime(),params.getEndTime());
@@ -370,17 +373,32 @@ public class BIDaoImpl implements IBIDao {
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get(dateField);
-
-
+        //
+        /**
+         * 组装报表所需数据格式 eg:
+         * {
+         *  dimensions: ["xAxis","192.168.1.1-8080","192.168.1.1-8443"],
+         *  source: [
+         *   {"xAxis":"2020-02-02 11:00:00","192.168.1.1-8080":200,"192.168.1.1-8443":100},
+         *   {"xAxis":"2020-02-02 11:01:00","192.168.1.1-8080":250,"192.168.1.1-8443":150}
+         *   ]
+         * }
+         *
+         */
+        LinkedList<String> dimensions = new LinkedList<>();
+        dimensions.add("xAxis");//作为X轴显示的信息
+        List<LinkedHashMap<String,Object>> source = new ArrayList<>();
         //时间,带排序的，由于返回结果的时间是有序的，set集合也要保证是有序的
         Set<String> timeSet = new LinkedHashSet<>();
         //IP+端口作为复合key，用set获取总的集合
         Set<String> keySet = new HashSet<>();
         //组装set集合
         for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
-            //时间
-            timeSet.add(timeBucket.getKeyAsString());
-            //一个时间下有N个IP
+            //第一级聚合的结果作为X轴显示
+            String xAxisValue = timeBucket.getKeyAsString();
+            LinkedHashMap<String,Object> xAxisMap = new LinkedHashMap<>();
+            xAxisMap.put("xAxis",xAxisValue);
+            //第2-n级
             ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
             for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
                 //第二层IP地址
@@ -390,13 +408,21 @@ public class BIDaoImpl implements IBIDao {
                 for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
                     //第三层，端口
                     String portName = portBucket.getKeyAsString();
-                    //NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
+                    //metric的值
+                    NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
                     //"ip-端口"组成的key
                     keySet.add(ip+"-"+portName);
+                    //在最后一级的聚合遍历中，生成图例
+                    dimensions.add(ip+"-"+portName);
+                    xAxisMap.put(ip+"-"+portName,value.value());
                 }
             }
+            source.add(xAxisMap);
         }
-        return null;
+        Map<String,Object> result = new HashMap<>();
+        result.put("dimensions",dimensions);
+        result.put("source",source);
+        return result;
         /*
         //IP+端口作为复合key，用set获取总的集合
         Set<String> keySet = new HashSet<>();
@@ -585,16 +611,29 @@ public class BIDaoImpl implements IBIDao {
                     point.put("value",value.value());
                     //替换
                     result.get(ip+"-"+portName).set(i,point);
-
-                    //去掉初始化为0的点
-                    //result.get(ip+"-"+protocalName).remove(point);
-                    //加入新的点
-                    //point.put("value",value.value());
-                    //result.get(ip+"-"+protocalName).add(point);
                 }
             }
             i++;
         }
         return null;
+    }
+    public static void main(String[] args){
+        LinkedList<String> dimensions = new LinkedList<>();
+        dimensions.add("product");
+        dimensions.add("2015");
+        dimensions.add("2016");
+        List<Map<String,Object>> listMap = new ArrayList<>();
+        Map<String,Object> map = new HashMap<>();
+        map.put("product","Matcha Latte");
+        map.put("2015",100);
+        map.put("2016",200);
+        Map<String,Object> map1 = new HashMap<>();
+        map1.put("product","Matcha Latte1");
+        map1.put("2015",150);
+        map1.put("2016",250);
+        listMap.add(map);
+        listMap.add(map1);
+        System.out.println(JSONArray.fromObject(dimensions).toString());
+        System.out.println(JSONArray.fromObject(listMap).toString());
     }
 }

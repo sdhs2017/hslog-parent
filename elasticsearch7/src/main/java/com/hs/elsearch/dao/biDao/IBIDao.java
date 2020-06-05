@@ -70,7 +70,7 @@ public interface IBIDao {
      * @return
      * @throws Exception
      */
-    public Map<String, LinkedList<Map<String,Object>>> getMultiAggregation_demo(VisualParam params) throws Exception;
+    public Map<String, Object> getMultiAggregation4dateset(VisualParam params) throws Exception;
     /**
      * 嵌套聚合 且X轴第一层为时间，其它层聚合为term
      * @param params

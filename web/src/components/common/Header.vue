@@ -5,7 +5,8 @@
             <i class="el-icon-menu"></i>
         </div>
         <div class="logo">
-            <img src="../../../static/img/login_cx.png" alt="">
+<!--            <img src="../../../static/img/login_cx.png" alt="">-->
+            <img src="../../../static/img/logo_ay.png" alt="">
             <span style="position: absolute;top: -7px;left: 320px;font-size: 10px;">V 3.0</span>
 <!--            <img src="../../../static/img/logo_ay.png" alt="">-->
         </div>
@@ -14,21 +15,32 @@
         </ul>
         <div class="header-right">
             <div class="header-user-con">
-                <!-- 全屏显示 -->
-                <div class="btn-fullscreen" @click="handleFullScreen">
-                    <el-tooltip effect="dark" :content="fullscreen?`取消全屏`:`全屏`" placement="bottom">
-                        <i class="el-icon-rank"></i>
-                    </el-tooltip>
-                </div>
                 <!-- 消息中心 -->
                 <!--<div class="btn-bell">
-                    <el-tooltip effect="dark" :content="message?`有${message}条未读消息`:`消息中心`" placement="bottom">
-                        <router-link to="/tabs">
-                            <i class="el-icon-bell"></i>
-                        </router-link>
-                    </el-tooltip>
-                    <span class="btn-bell-badge" v-if="message"></span>
+                    <el-popover
+                        placement="bottom"
+                        width="200"
+                        trigger="click">
+                        <ul class="bell-ul" v-if="bellArr.length">
+                            <li class="bell-li" @click="goToThreat(item)" v-for="(item,index) in bellArr" :key="index" title="点击查看具体信息">
+                                <p class="top-p"><b class="name-b">{{item.name}} : </b></p>
+                                <p class="bottom-p">
+                                    <span v-if="item.high_risk !== 0">高危事件数 <b class="high-b">{{item.high_risk}}</b></span>
+                                    <span  v-if="item.moderate_risk !== 0">    中危事件数 <b class="center-b">{{item.moderate_risk}}</b></span>
+                                </p>
+                            </li>
+                        </ul>
+                        <ul class="bell-ul" v-else>
+                            <li style="text-align: center;">暂无告警事件</li>
+                        </ul>
+                        <el-button slot="reference" class="bell-wapper">
+                            <el-badge :value="bellArr.length" :hidden="bellArr.length === 0" :max="99" class="item">
+                                <i class="el-icon-bell"></i>
+                            </el-badge>
+                        </el-button>
+                    </el-popover>
                 </div>-->
+
                 <!-- 用户头像 -->
                 <!--<div class="user-avator"><img src="static/img/img.jpg"></div>-->
                 <!-- 用户名下拉菜单 -->
@@ -41,6 +53,12 @@
                         <el-dropdown-item command="loginout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
+                <!-- 全屏显示 -->
+                <div class="btn-fullscreen" @click="handleFullScreen">
+                    <el-tooltip effect="dark" :content="fullscreen?`取消全屏`:`全屏`" placement="bottom">
+                        <i class="el-icon-rank"></i>
+                    </el-tooltip>
+                </div>
             </div>
         </div>
         <el-dialog title="修改密码" :visible.sync="passWordForm" width="400px">
@@ -69,10 +87,11 @@
 </template>
 <script>
     import bus from '../common/bus';
-    import {checkStrong} from  '../../../static/js/common.js'
+    import {checkStrong,jumpHtml} from  '../../../static/js/common.js'
     export default {
         data() {
             return {
+                bellArr:[],
                 loading:false,
                 collapse: false,
                 fullscreen: false,
@@ -102,8 +121,16 @@
             }
         },
         created(){
+            //获取系统菜单
             this.getSystem();
+            //获取用户信息
             this.getUserImformation();
+            /*//获取告警数
+            this.getBellData();
+            //每五分钟请求一次数据
+            setInterval(()=>{
+                this.getBellData()
+            },300000)*/
             let user =  JSON.parse(localStorage.getItem('LoginUser'));
             this.phone = user.phone;
         },
@@ -248,6 +275,22 @@
                     },700)
                 }
 
+            },
+            //获取告警信息
+            getBellData(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/equipment/selectRisk.do','')
+                        .then(res=>{
+                            this.bellArr = res.data
+                        })
+                        .catch(err=>{
+
+                        })
+                })
+            },
+            //点击跳转到潜在威胁分析页面
+            goToThreat(item){
+                jumpHtml('equipmentThreat'+item.id,'equipment/equipmentThreat.vue',{ name:item.name,id: item.id ,logType:item.logType},'威胁分析')
             }
         },
         mounted(){
@@ -347,6 +390,9 @@
         line-height: 50px;
         align-items: center;
     }
+    .header-user-con>div:hover,.el-dropdown-link:hover,.el-icon-bell:hover{
+        color: #56a4ef!important;
+    }
     .btn-fullscreen{
         transform: rotate(45deg);
         margin-right: 5px;
@@ -354,7 +400,7 @@
     }
     .btn-bell, .btn-fullscreen{
         position: relative;
-        width: 30px;
+        width: 50px;
         text-align: center;
         border-radius: 15px;
         cursor: pointer;
@@ -362,7 +408,7 @@
     .btn-bell-badge{
         position: absolute;
         right: 0;
-        top: -2px;
+        top: 9px;
         width: 8px;
         height: 8px;
         border-radius: 4px;
@@ -371,6 +417,61 @@
     }
     .btn-bell .el-icon-bell{
         color: #fff;
+    }
+    .bell-wapper{
+        background: 0;
+        border: 0;
+        padding: 0;
+        font-size: 20px;
+    }
+    .bell-wapper /deep/ .el-badge__content{
+        background-color: #F56C6C;
+        border-radius: 10px;
+        color: #FFF;
+        display: inline-block;
+        font-size: 10px;
+        height: 14px;
+        line-height: 14px;
+        padding: 0 4px;
+        text-align: center;
+        white-space: nowrap;
+        border: 1px solid #FFF;
+
+    }
+    .bell-ul{
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    .bell-li{
+        border-bottom: 1px solid #29415a;
+        padding: 2px 10px;
+        padding-bottom: 10px;
+        color: #bfcfe0;
+        background: #304b67;
+    }
+    .bell-li p{
+        padding: 5px;
+        border-bottom: 1px dashed #3e5d7d;
+    }
+    .bell-li .bottom-p{
+        font-size: 10px;
+        padding-left: 10px;
+        text-align: center;
+    }
+    .bell-li:hover{
+        cursor: pointer;
+        background: #406388;
+    }
+    .bell-li .name-b{
+        color: #56a4ef;
+    }
+    .bell-li .high-b{
+        color: #f56c6c;
+        font-size: 12px;
+    }
+    .bell-li .center-b{
+        color: #e6a23c;
+        font-size: 12px;
     }
     .user-name{
         margin-left: 10px;

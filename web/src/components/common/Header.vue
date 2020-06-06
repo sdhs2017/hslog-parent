@@ -5,8 +5,8 @@
             <i class="el-icon-menu"></i>
         </div>
         <div class="logo">
-<!--            <img src="../../../static/img/login_cx.png" alt="">-->
-            <img src="../../../static/img/logo_ay.png" alt="">
+            <img src="../../../static/img/login_cx.png" alt="">
+<!--            <img src="../../../static/img/logo_ay.png" alt="">-->
             <span style="position: absolute;top: -7px;left: 320px;font-size: 10px;">V 3.0</span>
 <!--            <img src="../../../static/img/logo_ay.png" alt="">-->
         </div>

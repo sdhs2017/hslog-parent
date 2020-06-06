@@ -4,8 +4,9 @@
         <div class="b-right">
             <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（阈值设置）</span> </div>
             <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span @click="changIp"></span></div>
-            <div class="company"> 版权所有  © 2019-2020  山东九州信泰信息科技股份有限公司  </div>
-<!--            <div class="company"> 版权所有  © 2018-2019  山东汇数信息科技有限公司  </div>-->
+<!--            <div class="backupConfig">备份时间：<span  @click="backupWapper = true">{{this.backupObj2.backupDate === '' ? '未设置' :this.backupObj2.backupDate}}</span></div>-->
+<!--            <div class="company"> 版权所有  © 2019-2020  山东九州信泰信息科技股份有限公司  </div>-->
+            <div class="company"> 版权所有  © 2019-2020  山东汇数信息科技有限公司  </div>
         </div>
         <el-dialog title="阈值告警数值大小选择" :visible.sync="diskUsedState" width="440px">
             <el-form>
@@ -25,10 +26,35 @@
                 <el-button @click="diskUsedState = false">取 消</el-button>
             </div>
         </el-dialog>
+        <el-dialog title="备份设置" :visible.sync="backupWapper" width="440px">
+            <el-form label-width="120px" label-position="left">
+                <el-form-item label="备份时间:" >
+                    <el-date-picker
+                        v-model="backupObj.backupDate"
+                        type="datetime"
+                        format="yyyy-MM-dd HH:mm:ss"
+                        placeholder="选择日期时间">
+                    </el-date-picker>
+                </el-form-item>
+                <el-form-item label="备份状态:" >
+                    <el-switch
+                        v-model="backupObj.backupState"
+                        active-text="开启"
+                        inactive-text="关闭">
+                    </el-switch>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="saveBackup()">确 定</el-button>
+                <el-button @click="backupWapper = false">取 消</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+    import {dateFormat} from "../../../static/js/common";
+
     export default {
         data(){
             return{
@@ -45,6 +71,15 @@
                     sysUsedDisk	: '',//系统盘已用容量
                     dataAllDisk	: '',//数据盘总容量
                     dataUsedDisk: ''//数据盘已用容量
+                },
+                backupWapper:false,
+                backupObj:{
+                    backupState:false,
+                    backupDate:''
+                },
+                backupObj2:{
+                    backupState:false,
+                    backupDate:''
                 }
             }
         },
@@ -54,6 +89,22 @@
             setInterval(this.getDiskUsed,6000000);
             //获取系统ip
             this.getIp();
+            let obj = localStorage.getItem('backupDate');
+
+            if(obj){
+                this.backupObj = JSON.parse(obj)
+                this.backupObj2 = JSON.parse(obj)
+            }
+            /*setInterval(()=>{
+                let date1 = new Date();
+                let date2 = new Date(this.backupObj2.backupDate);
+                if(date1 > date2 && this.backupObj2.backupState){
+                    this.backup()
+                    this.backupObj2.backupState = false;
+                    this.backupObj.backupState = false;
+                    localStorage.setItem('backupDate',JSON.stringify(this.backupObj))
+                }
+            },10000)*/
         },
         methods:{
             /*获取磁盘使用大小*/
@@ -122,6 +173,36 @@
             /*修改Ip*/
             changIp(){
 
+            },
+            /*备份*/
+            saveBackup(){
+                if(!this.backupObj.backupDate.length){
+                    this.backupObj.backupDate = dateFormat('yyyy-mm-dd HH:MM:SS',this.backupObj.backupDate)
+                }
+                this.backupWapper = false;
+                //this.backupObj2 =  JSON.parse(JSON.stringify(this.backupObj2))
+                let str = JSON.stringify(this.backupObj);
+                this.backupObj2 = JSON.parse(str)
+                localStorage.setItem('backupDate',str)
+            },
+            /*备份方法*/
+            backup(){
+                console.log('sss')
+                /*this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/manage/createSnapshotByIndices.do','')
+                        .then(res=>{
+                            this.loading = false;
+                            if(res.data[0].state === true){
+                                layer.msg(res.data[0].msg,{icon: 1});
+                            }else if(res.data[0].state === false){
+                                layer.msg(res.data[0].msg,{icon: 5});
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                            layer.msg('备份失败',{icon: 5});
+                        })
+                })*/
             }
         }
     }
@@ -167,5 +248,16 @@
     .systemIp{
         float: left;
         margin-left: 20px;
+    }
+    .backupConfig{
+        margin-left: 20px;
+        float: left;
+    }
+    .backupConfig span{
+        color:rgb(26, 179, 148);
+        cursor: pointer;
+    }
+    .backupConfig span:hover{
+        text-decoration: underline;
     }
 </style>

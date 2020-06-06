@@ -364,7 +364,6 @@ public class KafkaCollector implements Runnable {
 							if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
 								equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress+logType);
 								if (equipment!=null) {
-									//TODO 日志级别的判定
 									logstashSyslog.setUserid(equipment.getUserId());
 									logstashSyslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
 									logstashSyslog.setEquipmentname(equipment.getName());
@@ -380,7 +379,10 @@ public class KafkaCollector implements Runnable {
 								json = new Logstash2ECS().toJson(logstashSyslog);
 								dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
 								logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
-								newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName,null,null), LogType.LOGTYPE_SYSLOG, json));
+								// 判定应收集的日志级别，通过日志级别进行日志过滤
+								if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(logstashSyslog.getSeverity_name().toString().toLowerCase())!=-1) {
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, json));
+								}
 							}
 
 						}catch (Exception e){

@@ -6,7 +6,7 @@
             <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span @click="changIp"></span></div>
 <!--            <div class="backupConfig">备份时间：<span  @click="backupWapper = true">{{this.backupObj2.backupDate === '' ? '未设置' :this.backupObj2.backupDate}}</span></div>-->
 <!--            <div class="company"> 版权所有  © 2019-2020  山东九州信泰信息科技股份有限公司  </div>-->
-            <div class="company"> 版权所有  © 2019-2020  山东汇数信息科技有限公司  </div>
+            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>
         </div>
         <el-dialog title="阈值告警数值大小选择" :visible.sync="diskUsedState" width="440px">
             <el-form>

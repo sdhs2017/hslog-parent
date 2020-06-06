@@ -1,8 +1,8 @@
 <template>
     <div class="login-wrap">
         <div class="ms-login">
-<!--            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>-->
-            <div class="ms-title"><img src="../../../static/img/logo_ay.png" alt=""></div>
+            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>
+<!--            <div class="ms-title"><img src="../../../static/img/logo_ay.png" alt=""></div>-->
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
                     <el-input v-model="ruleForm.phone" placeholder="账号">

@@ -4,7 +4,7 @@
         <div class="event-search-condition">
             <v-search-form :formItem="formConditionsArr" busName="eventSearch2"></v-search-form>
         </div>
-        <div class="event-search-content">
+        <div class="event-search-content" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable2 :tableHead="tableHead" :tableData="tableData"></v-basetable2>
             <div class="event-table-page">
                 共检索到事件数为 <b>{{allCounts}}</b>，最大展示
@@ -35,6 +35,7 @@
         name: "eventSearch2",
         data(){
             return{
+                loading:false,
                 baseConfig:{ //弹窗基础配置
                     type:'2',
                     title:'事件详情',
@@ -71,7 +72,7 @@
                         type:'input'
                     },
                     {
-                        label:'IP地址',
+                        label:'IP事件客体',
                         paramName:'fields.ip',
                         itemType:'',
                         model:{
@@ -87,7 +88,17 @@
                             model:''
                         },
                         type:'input'
-                    }
+                    },
+                    {
+                        label:'事件主体',
+                        paramName:'winlog.event_data.SubjectUserName',
+                        itemType:'',
+                        model:{
+                            model:''
+                        },
+                        type:'input'
+                    },
+
                 ],
                 tableHead:[
                     {
@@ -100,14 +111,21 @@
                         label:'事件名称',
                         width:'150'
                     },
-                    // {
-                    //     prop:'event.type',
-                    //     label:'事件类型',
-                    //     width:'120'
-                    // },
+                    {
+                        prop:'winlog.event_data.SubjectUserName',
+                        label:'事件主体',
+                        width:'120',
+                        formatData:(val)=>{
+                            if(val){
+                                return val
+                            }else{
+                                return  ''
+                            }
+                        }
+                    },
                     {
                         prop:'fields.ip',
-                        label:'IP地址',
+                        label:'IP/事件客体',
                         width:'125'
                     },
                     {
@@ -194,6 +212,7 @@
                 'fields.ip':'',
                 'fields.equipmentname':'',
                 'event.action':'',
+                'winlog.event_data.SubjectUserName':'',
                 endtime: endTime,
                 starttime: startTime
             }
@@ -208,6 +227,9 @@
                 this.c_page = 1;
                 this.saveCondition = params;
             })
+        },
+        beforeDestroy(){
+            bus.$off('eventSearch2')
         },
         watch:{
         /*检测弹窗状态*/
@@ -229,7 +251,7 @@
         methods:{
             /*获得事件列表数据*/
             getEventsData(page,params){
-                let loading = layer.load(1);
+                this.loading = true;
                 params.size = this.size;
                 params.page = page;
                 params.exists = 'event.action'
@@ -238,8 +260,16 @@
                         hsData:JSON.stringify(params)
                     }))
                         .then((res)=>{
-                            layer.close(loading);
-                            this.tableData = res.data[0].list;
+                            this.loading = false;
+                            /*this.tableData = res.data[0].list;*/
+                           for (let i in res.data[0].list) {
+                                if(res.data[0].list[i].winlog.event_data){
+                                }else{
+                                    res.data[0].list[i].winlog.event_data = {}
+                                    res.data[0].list[i].winlog.event_data['SubjectUserName'] =''
+                                }
+                            }
+                            this.tableData = res.data[0].list
                             this.allCounts =  res.data[0].count;
                             if(this.allCounts >100000){
                                 this.total = 100000;
@@ -248,7 +278,8 @@
                             }
                         })
                         .catch((err)=>{
-                            layer.close(loading);
+                            this.loading = false;
+                            console.log(err)
                         })
                 })
             },

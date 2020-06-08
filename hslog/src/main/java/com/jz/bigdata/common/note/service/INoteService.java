@@ -20,7 +20,7 @@ public interface INoteService {
 	
 	int delete(String[] ids);
 	
-	int deleteAll();
+	int deleteAll(String time);
 	
 	int backup();
 	

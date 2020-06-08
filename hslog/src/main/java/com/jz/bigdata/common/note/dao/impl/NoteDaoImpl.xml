@@ -185,7 +185,10 @@
 	
 	<!--   删除所有数据 -->
 	<delete id="deleteAll" >
-		delete from note 
+		delete from note where
+		<![CDATA[
+		     time < #{time ,jdbcType=VARCHAR}
+		]]>
 	</delete>
 	<!--   备份 -->
 	<update id="backup">

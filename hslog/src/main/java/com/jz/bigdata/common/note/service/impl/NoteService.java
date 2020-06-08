@@ -90,8 +90,8 @@ public class NoteService implements INoteService {
 	 * 删除所有数据
 	 */
 	@Override
-	public int deleteAll() {
-		return noteDao.deleteAll();
+	public int deleteAll(String time) {
+		return noteDao.deleteAll(time);
 	}
 
 

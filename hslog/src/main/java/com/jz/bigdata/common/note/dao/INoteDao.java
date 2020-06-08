@@ -22,7 +22,7 @@ public interface INoteDao {
 	
 	int delete(String[] ids);
 	
-	int deleteAll();
+	int deleteAll(@Param("time")String time);
 	
 	int backup();
 	

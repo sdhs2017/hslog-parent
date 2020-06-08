@@ -77,5 +77,5 @@ public interface IBIDao {
      * @return
      * @throws Exception
      */
-    public LinkedHashMap<String, LinkedList<Map<String,Object>>> getMultiDateHistogramAggregation(VisualParam params) throws Exception;
+    public Map<String, LinkedList<Map<String,Object>>> getMultiDateHistogramAggregation(VisualParam params) throws Exception;
 }

@@ -373,7 +373,7 @@ public class BIDaoImpl implements IBIDao {
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
 
         MultiBucketsAggregation terms  = aggregations.get(dateField);
-        //
+
         /**
          * 组装报表所需数据格式 eg:
          * {
@@ -385,19 +385,22 @@ public class BIDaoImpl implements IBIDao {
          * }
          *
          */
+        //可定义成全局final变量，具体值对数据无影响，保证dimensions和source中统一即可
+        String xAxis = "xAxis";
+        //dimensions,数据是有序的
         LinkedList<String> dimensions = new LinkedList<>();
-        dimensions.add("xAxis");//作为X轴显示的信息
+        dimensions.add(xAxis);//作为X轴显示的信息
+        //source
+        //List顺序不影响显示
+        //List中的Map顺序也不影响显示
+        // 考虑到不确定前端会不会对有顺序的数据有更快的加载速度，后端使用其他Map也基本不影响效率，因此采用了Linked
         List<LinkedHashMap<String,Object>> source = new ArrayList<>();
-        //时间,带排序的，由于返回结果的时间是有序的，set集合也要保证是有序的
-        Set<String> timeSet = new LinkedHashSet<>();
-        //IP+端口作为复合key，用set获取总的集合
-        Set<String> keySet = new HashSet<>();
-        //组装set集合
+        //填充数据
         for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
             //第一级聚合的结果作为X轴显示
             String xAxisValue = timeBucket.getKeyAsString();
             LinkedHashMap<String,Object> xAxisMap = new LinkedHashMap<>();
-            xAxisMap.put("xAxis",xAxisValue);
+            xAxisMap.put(xAxis,xAxisValue);
             //第2-n级
             ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
             for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
@@ -410,11 +413,9 @@ public class BIDaoImpl implements IBIDao {
                     String portName = portBucket.getKeyAsString();
                     //metric的值
                     NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
-                    //"ip-端口"组成的key
-                    keySet.add(ip+"-"+portName);
                     //在最后一级的聚合遍历中，生成图例
                     dimensions.add(ip+"-"+portName);
-                    xAxisMap.put(ip+"-"+portName,value.value());
+                    xAxisMap.put(ip+"-"+portName,(Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
                 }
             }
             source.add(xAxisMap);
@@ -423,85 +424,6 @@ public class BIDaoImpl implements IBIDao {
         result.put("dimensions",dimensions);
         result.put("source",source);
         return result;
-        /*
-        //IP+端口作为复合key，用set获取总的集合
-        Set<String> keySet = new HashSet<>();
-        //时间,带排序的，由于返回结果的时间是有序的，set集合也要保证是有序的
-        Set<String> timeSet = new LinkedHashSet<>();
-
-        //组装set集合
-        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
-            //时间
-            timeSet.add(timeBucket.getKeyAsString());
-            //一个时间下有N个IP
-            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
-            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
-                //第二层IP地址
-                String ip = ipBucket.getKeyAsString();
-                //一个IP下有N个端口
-                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
-                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
-                    //第三层，端口
-                    String portName = portBucket.getKeyAsString();
-                    //NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
-                    //"ip-端口"组成的key
-                    keySet.add(ip+"-"+portName);
-                    //System.out.println(time+"--"+ip+"--"+protocalName+"--"+value.value());
-                }
-            }
-        }
-        //数据返回集合
-        //map的key代表聚合的字段组合成key，如IP+protocol_name，也就是图表显示的图例
-        //value为该key对应的一条线上点的集合,使用linkedList保证结果有序
-        //每个点为一个Map<String,Object>，存储时间和该时间对应的metric后的值
-        Map<String,LinkedList<Map<String,Object>>> result = new HashMap<>();
-        //将所有set组合成结果集，并初始化值
-        for(String key:keySet){
-            LinkedList<Map<String, Object>> line = new LinkedList<Map<String,Object>>();
-            for(String time:timeSet){
-                Map<String, Object> point = new HashMap<String, Object>();
-                //初始化值
-                point.put("time",time);
-                point.put("value",0);
-                line.add(point);
-            }
-            result.put(key,line);
-        }
-        //时间轴上的点在时间轴的位置,设置了时间聚合时，没有值也会置0，可以确定时间
-        int i=0;
-        //重新遍历并赋值
-        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
-            //时间
-            String time = timeBucket.getKeyAsString();
-            //一个时间下有N个IP
-            ParsedStringTerms ipTerms = timeBucket.getAggregations().get(agg_first);
-            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
-                //第二层IP地址
-                String ip = ipBucket.getKeyAsString();
-                //一个IP下有N个端口
-                ParsedStringTerms portTerms = ipBucket.getAggregations().get(agg_second);
-                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
-                    //第三层，端口
-                    String portName = portBucket.getKeyAsString();
-                    NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count");
-                    //替换成有值的点
-                    Map<String,Object> point = new HashMap<>();
-                    point.put("time",time);
-                    point.put("value",value.value());
-                    //替换
-                    result.get(ip+"-"+portName).set(i,point);
-
-                    //去掉初始化为0的点
-                    //result.get(ip+"-"+protocalName).remove(point);
-                    //加入新的点
-                    //point.put("value",value.value());
-                    //result.get(ip+"-"+protocalName).add(point);
-                }
-            }
-            i++;
-        }
-        return result;
-        */
     }
 
     /**
@@ -511,7 +433,7 @@ public class BIDaoImpl implements IBIDao {
      * @throws Exception
      */
     @Override
-    public LinkedHashMap<String,LinkedList<Map<String,Object>>> getMultiDateHistogramAggregation(VisualParam params) throws Exception {
+    public Map<String,LinkedList<Map<String,Object>>> getMultiDateHistogramAggregation(VisualParam params) throws Exception {
         String dateField = "logdate";//时间轴涉及字段
         String agg_first = "ipv4_dst_addr";//第一层聚合字段，目的IP
         String agg_second = "l4_dst_port";//第二层聚合字段，目的端口
@@ -615,7 +537,7 @@ public class BIDaoImpl implements IBIDao {
             }
             i++;
         }
-        return null;
+        return result;
     }
     public static void main(String[] args){
         LinkedList<String> dimensions = new LinkedList<>();

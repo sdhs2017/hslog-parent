@@ -72,7 +72,7 @@
                         type:'input'
                     },
                     {
-                        label:'IP地址',
+                        label:'事件客体/IP',
                         paramName:'fields.ip',
                         itemType:'',
                         model:{
@@ -88,7 +88,17 @@
                             model:''
                         },
                         type:'input'
-                    }
+                    },
+                    {
+                        label:'事件主体',
+                        paramName:'winlog.event_data.SubjectUserName',
+                        itemType:'',
+                        model:{
+                            model:''
+                        },
+                        type:'input'
+                    },
+
                 ],
                 tableHead:[
                     {
@@ -101,14 +111,21 @@
                         label:'事件名称',
                         width:'150'
                     },
-                    // {
-                    //     prop:'event.type',
-                    //     label:'事件类型',
-                    //     width:'120'
-                    // },
+                    {
+                        prop:'winlog.event_data.SubjectUserName',
+                        label:'事件主体',
+                        width:'120',
+                        formatData:(val)=>{
+                            if(val){
+                                return val
+                            }else{
+                                return  ''
+                            }
+                        }
+                    },
                     {
                         prop:'fields.ip',
-                        label:'IP地址',
+                        label:'事件客体/IP',
                         width:'125'
                     },
                     {
@@ -195,6 +212,7 @@
                 'fields.ip':'',
                 'fields.equipmentname':'',
                 'event.action':'',
+                'winlog.event_data.SubjectUserName':'',
                 endtime: endTime,
                 starttime: startTime
             }
@@ -243,7 +261,15 @@
                     }))
                         .then((res)=>{
                             this.loading = false;
-                            this.tableData = res.data[0].list;
+                            /*this.tableData = res.data[0].list;*/
+                           for (let i in res.data[0].list) {
+                                if(res.data[0].list[i].winlog.event_data){
+                                }else{
+                                    res.data[0].list[i].winlog.event_data = {}
+                                    res.data[0].list[i].winlog.event_data['SubjectUserName'] =''
+                                }
+                            }
+                            this.tableData = res.data[0].list
                             this.allCounts =  res.data[0].count;
                             if(this.allCounts >100000){
                                 this.total = 100000;

@@ -16,7 +16,7 @@
         <div class="header-right">
             <div class="header-user-con">
                 <!-- 消息中心 -->
-                <!--<div class="btn-bell">
+                <div class="btn-bell">
                     <el-popover
                         placement="bottom"
                         width="200"
@@ -39,7 +39,7 @@
                             </el-badge>
                         </el-button>
                     </el-popover>
-                </div>-->
+                </div>
 
                 <!-- 用户头像 -->
                 <!--<div class="user-avator"><img src="static/img/img.jpg"></div>-->
@@ -125,12 +125,12 @@
             this.getSystem();
             //获取用户信息
             this.getUserImformation();
-            /*//获取告警数
+            //获取告警数
             this.getBellData();
             //每五分钟请求一次数据
             setInterval(()=>{
                 this.getBellData()
-            },300000)*/
+            },300000)
             let user =  JSON.parse(localStorage.getItem('LoginUser'));
             this.phone = user.phone;
         },

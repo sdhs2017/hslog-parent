@@ -4,13 +4,13 @@
         <div class="source-content">
             <div class="add-type">
                 <div class="add-item upload" @click="goToUploadFile">
-                    <i class="el-icon-lx-file"></i>
+                    <i class="el-icon-folder"></i>
                     <p class="title">本地上传</p>
                     <p>上传本地日志文件</p>
                     <p class="last">本地日志文件 <br/>本地结构化文件</p>
                 </div>
                 <div class="add-item monitoring" @click="goToMonitoring">
-                    <i class="el-icon-lx-attention"></i>
+                    <i class="el-icon-view"></i>
                     <p class="title">在线监控</p>
                     <p>在此服务上的文件和端口</p>
                     <p class="last">syslog-wmi-snmp-tcp/udp-脚本外部数据源输入</p>
@@ -20,7 +20,7 @@
                 <h3>通用数据来源：</h3>
                 <div class="instruction-ul-wapper">
                     <ul>
-                        <h4><i class="el-icon-printer"></i>网络设备</h4>
+                        <h4><i class="el-icon-receiving"></i>网络设备</h4>
                         <li>交换机</li>
                         <li>路由器</li>
                     </ul>
@@ -32,13 +32,13 @@
                         <li>防火墙</li>
                     </ul>
                     <ul>
-                        <h4><i class="el-icon-mobile-phone"></i>主机</h4>
+                        <h4><i class="el-icon-monitor"></i>主机</h4>
                         <li>Windows</li>
                         <li>Linux</li>
                         <li>虚拟机</li>
                     </ul>
                     <ul>
-                        <h4><i class="el-icon-lx-cascades"></i>应用程序服务</h4>
+                        <h4><i class="el-icon-menu"></i>应用程序服务</h4>
                         <li>Tomcat</li>
                         <li>Apache</li>
                         <li>IIS</li>

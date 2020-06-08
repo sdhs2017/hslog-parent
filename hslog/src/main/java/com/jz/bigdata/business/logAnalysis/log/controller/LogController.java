@@ -693,7 +693,7 @@ public class LogController extends BaseController{
 	 * @return
 	 */
 	@ResponseBody
-	@RequestMapping("/getCountGroupByEventstype")
+	@RequestMapping(value="/getCountGroupByEventstype",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="统计某时间段内的事件数量")
 	public String getCountGroupByEventstype(HttpServletRequest request) {
 		String index = configProperty.getEs_index();

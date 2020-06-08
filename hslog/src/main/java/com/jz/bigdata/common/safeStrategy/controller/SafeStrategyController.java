@@ -117,7 +117,7 @@ public class SafeStrategyController {
 	@DescribeLog(describe="查询资产安全策略")
 	public List<SafeStrategy> selectByEquipmentId(String equipmentId){
 //		String equipmentId = request.getParameter("equipmentId");
-		System.out.println(equipmentId);
+		//System.out.println(equipmentId);
 		return safeStrategyService.selectByEquipmentId(equipmentId);		
 	}
 

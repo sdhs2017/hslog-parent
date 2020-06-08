@@ -714,15 +714,17 @@ public class LogController extends BaseController{
 				logger.error("统计某时间段内的事件数量"+e.getMessage());
 			}
 
-			if (!loglist.get(0).isEmpty()) {
-				Object value = loglist.get(0).get(safeStrategy.getEvent_type());
-				float per = Float.valueOf(null==value?"0":value.toString())/safeStrategy.getNumber();
-				Map<String, Object> map = new HashMap<String, Object>();
-				map.put("event_type", safeStrategy.getEvent_type());
-				map.put("per",df.format(per*100));
-				map.put("starttime",starttime);
-				map.put("endtime", endtime);
-				list.add(map);
+			if (loglist.size()>0) {
+				if (!loglist.get(0).isEmpty()) {
+					Object value = loglist.get(0).get(safeStrategy.getEvent_type());
+					float per = Float.valueOf(null==value?"0":value.toString())/safeStrategy.getNumber();
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put("event_type", safeStrategy.getEvent_type());
+					map.put("per",df.format(per*100));
+					map.put("starttime",starttime);
+					map.put("endtime", endtime);
+					list.add(map);
+				}
 			}else {
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put("event_type", safeStrategy.getEvent_type());

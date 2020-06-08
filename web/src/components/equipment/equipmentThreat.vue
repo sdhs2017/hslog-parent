@@ -1,6 +1,8 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">'{{equipmentName}}' 潜在威胁分析</div>
+        <div class="top-title">'{{equipmentName}}' 潜在威胁分析
+            <div class="seeBox" @click="goToSafe()">查看安全策略</div>
+        </div>
         <div class="equipment-threat-content"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div class="threat-wapper hige-threat-wapper">
                 <div class="threat-top">
@@ -75,6 +77,7 @@
 </template>
 
 <script>
+    import {jumpHtml} from "../../../static/js/common";
     export default {
         name: "equipmentThreat",
         data() {
@@ -171,6 +174,10 @@
                             layer.msg('获取信息失败',{icon: 5});
                         })
                 })
+            },
+            /*跳转到安全策略页面*/
+            goToSafe(){
+                jumpHtml('equipmentSafe'+this.equipmentId,'equipment/equipmentSafe.vue',{ name:this.equipmentName,id: this.equipmentId ,logType:this.logType},'安全策略')
             }
         },
         watch:{
@@ -217,6 +224,17 @@
 </script>
 
 <style scoped>
+    .seeBox{
+        float: right;
+        margin-right: 20px;
+        font-size: 16px;
+        text-shadow: none;
+        color: #ccc;
+        cursor: pointer;
+    }
+    .seeBox:hover{
+        color: #56a4ef;
+    }
     .equipment-threat-content{
         padding: 20px;
     }

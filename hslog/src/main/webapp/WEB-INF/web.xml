@@ -59,7 +59,27 @@
   <listener>
     <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
   </listener>
-
+  <!--errorpage handler -->
+  <error-page>
+    <error-code>404</error-code>
+    <location>/error.html</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/error.html</location>
+  </error-page>
+  <error-page>
+    <error-code>414</error-code>
+    <location>/error.html</location>
+  </error-page>
+  <error-page>
+    <error-code>505</error-code>
+    <location>/error.html</location>
+  </error-page>
+  <error-page>
+    <error-code>400</error-code>
+    <location>/error.html</location>
+  </error-page>
 
   <!-- <context-param> <param-name>contextConfigLocation</param-name> <param-value>classpath:log4j-back.xml</param-value>
       </context-param> -->

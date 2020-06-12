@@ -183,6 +183,7 @@ public class CrudTemplate {
 
         // 判断是否存在错误提交
         if (bulkResponse.hasFailures()){
+            logger.error("批量提交异常"+bulkResponse.toString());
             // 如果存在报错则返回false
             return false;
         }else {

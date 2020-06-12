@@ -4,7 +4,9 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
 import org.apache.commons.beanutils.Converter;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,76 +30,25 @@ public class VisualParam {
     private String dateField;//时间范围查询时对应的字段
     private Map<String,String> queryParam;//查询条件 查询框和时间范围
     private String errorInfo;//异常信息提示，用于在参数处理时产生异常时进行判定
-    private LinkedList<Bucket> bucketList;//嵌套聚合
+    private ArrayList<Bucket> bucketList = new ArrayList<>();//聚合字段（X轴）
+    private ArrayList<Metric> metricList = new ArrayList<>();//指标字段（Y轴）
 
-    /**
-     * 定义一个X轴bucket涉及的属性
-     */
-    public class Bucket{
-        private String x_agg;//x轴聚合方式
-        private String x_field;//x轴聚合字段
-        private int size = 10;//查询结果条数，默认10条
-        private String sort;//排序，正序/倒序
-        private String intervalType;//间隔类型（单位）
-        private int intervalValue;//间隔值
-        private String label;//别名
-
-        public String getX_agg() {
-            return x_agg;
-        }
-
-        public void setX_agg(String x_agg) {
-            this.x_agg = x_agg;
-        }
-
-        public String getX_field() {
-            return x_field;
-        }
-
-        public void setX_field(String x_field) {
-            this.x_field = x_field;
-        }
-
-        public int getSize() {
-            return size;
-        }
-
-        public void setSize(int size) {
-            this.size = size;
-        }
-
-        public String getSort() {
-            return sort;
-        }
-
-        public void setSort(String sort) {
-            this.sort = sort;
-        }
-
-        public String getIntervalType() {
-            return intervalType;
-        }
-
-        public void setIntervalType(String intervalType) {
-            this.intervalType = intervalType;
-        }
-
-        public int getIntervalValue() {
-            return intervalValue;
-        }
-
-        public void setIntervalValue(int intervalValue) {
-            this.intervalValue = intervalValue;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public void setLabel(String label) {
-            this.label = label;
-        }
+    public ArrayList<Bucket> getBucketList() {
+        return bucketList;
     }
+
+    public void setBucketList(ArrayList<Bucket> bucketList) {
+        this.bucketList = bucketList;
+    }
+
+    public ArrayList<Metric> getMetricList() {
+        return metricList;
+    }
+
+    public void setMetricList(ArrayList<Metric> metricList) {
+        this.metricList = metricList;
+    }
+
     public String getErrorInfo() {
         return errorInfo;
     }
@@ -246,6 +197,18 @@ public class VisualParam {
         }catch(Exception e){
             e.printStackTrace();
         }
+        return this;
+    }
+
+    /**
+     * index和日期字段初始化
+     * @param dateField 日期字段
+     * @param index_name 索引名称
+     * @return
+     */
+    public VisualParam initDateFieldAndIndex(String dateField,String index_name){
+        this.dateField = dateField;
+        this.index_name = index_name;
         return this;
     }
 

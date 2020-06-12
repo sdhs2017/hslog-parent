@@ -27,7 +27,7 @@ public enum AssetCache {
     /**
      * 逻辑资产
      */
-    private Map<String, Asset> assetMap;
+    private Map<String, Asset> assetMap;//key ip  value资产对象
     private Set<String> assetIpAddressSet;
 
 

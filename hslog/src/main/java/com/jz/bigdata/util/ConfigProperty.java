@@ -113,9 +113,30 @@ public class ConfigProperty {
 	@Value("#{prop.es_search_max_buckets}")
     private String es_search_max_buckets;
 
+	@Value("#{prop.es_max_shards_per_node}")
+	private String es_max_shards_per_node;
+
+	@Value("#{prop.es_mapping_total_fields_limit}")
+	private String es_mapping_total_fields_limit;
 	// 需要合并的index
 	@Value("#{prop.es_merge_index}")
     private String es_merge_index;
+
+	public String getEs_mapping_total_fields_limit() {
+		return es_mapping_total_fields_limit;
+	}
+
+	public void setEs_mapping_total_fields_limit(String es_mapping_total_fields_limit) {
+		this.es_mapping_total_fields_limit = es_mapping_total_fields_limit;
+	}
+
+	public String getEs_max_shards_per_node() {
+		return es_max_shards_per_node;
+	}
+
+	public void setEs_max_shards_per_node(String es_max_shards_per_node) {
+		this.es_max_shards_per_node = es_max_shards_per_node;
+	}
 
 	public String getEs_search_max_buckets() {
 		return es_search_max_buckets;

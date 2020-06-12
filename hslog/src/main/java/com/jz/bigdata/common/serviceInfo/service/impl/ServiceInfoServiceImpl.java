@@ -59,6 +59,20 @@ public class ServiceInfoServiceImpl implements IServiceInfoService {
 	}
 
 	/**
+	 * 获取服务信息的map，key为url
+	 * @return
+	 */
+	@Override
+	public Map<String, ServiceInfo> selectAll() {
+		Map<String, ServiceInfo> map = new HashMap<>();
+		List<ServiceInfo> list = serviceInfoDao.selectAll(null);
+		for(ServiceInfo serviceInfo:list){
+			map.put(serviceInfo.getUrl(),serviceInfo);
+		}
+		return map;
+	}
+
+	/**
 	 * @param ids
 	 * @return
 	 * @description 删除数据
@@ -69,7 +83,7 @@ public class ServiceInfoServiceImpl implements IServiceInfoService {
 	}
 
 	/**
-	 * @param service
+	 * @param serviceInfo
 	 * @return
 	 * @description 修改数据
 	 */

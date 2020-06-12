@@ -331,7 +331,7 @@ public class LogController extends BaseController{
 			// 索引的生命周期管理
 			settingmap.put("index.lifecycle.name", "hs_policy");
 			// 默认1000，数据字段过多，需要调整配置
-			settingmap.put("mapping.total_fields.limit", "5000");
+			settingmap.put("mapping.total_fields.limit", configProperty.getEs_mapping_total_fields_limit());
 			// elasticsearch7 版本初始化template
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
@@ -346,7 +346,7 @@ public class LogController extends BaseController{
 			// 索引的生命周期管理 hsdata数据不删
 			//settingmap4Hsdata.put("index.lifecycle.name", "hs_policy");
 			// 默认1000，数据字段过多，需要调整配置
-			settingmap4Hsdata.put("mapping.total_fields.limit", "5000");
+			settingmap4Hsdata.put("mapping.total_fields.limit", configProperty.getEs_mapping_total_fields_limit());
 			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap4Hsdata,new HSData().toMapping());
 			//初始化beat template
 
@@ -457,6 +457,8 @@ public class LogController extends BaseController{
 				Map<String, Object> clusterPersistentSetting = new HashMap<>();
 				//查询最大聚合桶数，通过配置文件读取
 				clusterPersistentSetting.put("search.max_buckets",configProperty.getEs_search_max_buckets());
+				//单节点最大分片数
+				clusterPersistentSetting.put("cluster.max_shards_per_node",configProperty.getEs_max_shards_per_node());
 				boolean result = logService.updateClusterSetting(clusterPersistentSetting,null);
 				//配置失败时
 				if(!result){
@@ -1782,7 +1784,6 @@ public class LogController extends BaseController{
 
 		return JSONArray.fromObject(map).toString();
 	}
-
 
 
 

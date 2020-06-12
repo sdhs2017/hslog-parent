@@ -41,7 +41,30 @@ public class MapUtil {
 
         return map;
     }
+    /**
+     * map的value为Object
+     * @param json
+     * @return
+     */
+    public static Map<String, Object> json2mapObject(String json) {
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = new HashMap<>();
 
+        try {
+            map = removeMapEmptyValue(mapper.readValue(json, Map.class));
+        } catch (JsonParseException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+
+        return map;
+    }
     /**
      * 移除map的空key
      * @param map

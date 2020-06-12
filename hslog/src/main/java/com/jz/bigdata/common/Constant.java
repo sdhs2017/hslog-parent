@@ -6,7 +6,14 @@ package com.jz.bigdata.common;
  * @description 系统常量
  */
 public class Constant {
-	
+	//beats的日期字段
+	public static String BEAT_DATE_FIELD = "@timestamp";
+	//系统日志对应的index名称
+	public static String WINLOG_BEAT_INDEX = "winlogbeat-*";
+	//旧流量日期字段
+	public static String PACKET_DATE_FIELD = "logdate";
+	//旧流量index名称
+	public static String PACKET_INDEX = "hslog_packet*";
 	/**
 	 * 	session信息---用户ID
 	 */

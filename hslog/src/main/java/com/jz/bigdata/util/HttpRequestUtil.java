@@ -1,10 +1,14 @@
 package com.jz.bigdata.util;
 
 import com.google.gson.Gson;
+import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.HttpRequestParams;
+import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.util.HSDateUtil;
 import joptsimple.internal.Strings;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
 
 import javax.servlet.http.HttpServletRequest;
@@ -62,6 +66,36 @@ public class HttpRequestUtil {
             Map<String,String> paramMap = MapUtil.json2map(queryParam);
             visualParam.setQueryParam(paramMap);
         }
+        //处理bucket聚合条件（X轴）
+        String buckets = request.getParameter("buckets");
+        if(null!=buckets){
+            //buckets参数包含多个bucket对象
+            JSONArray json = JSONArray.fromObject(buckets);
+            //遍历
+            for(Object beanObj:json.toArray()){
+                //转bean
+                Bucket bucket = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Bucket.class);
+                //转换成功时，写入参数对象中
+                if(null!=bucket){
+                    visualParam.getBucketList().add(bucket);
+                }
+            }
+        }else{}
+        //处理metric聚合条件（Y轴）
+        String metrics = request.getParameter("metrics");
+        if(null!=metrics){
+            //buckets参数包含多个bucket对象
+            JSONArray json = JSONArray.fromObject(metrics);
+            //遍历
+            for(Object beanObj:json.toArray()){
+                //转bean
+                Metric metric = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Metric.class);
+                //转换成功时，写入参数对象中
+                if(null!=metric){
+                    visualParam.getMetricList().add(metric);
+                }
+            }
+        }else{}
         return visualParam;
     }
     /**
@@ -106,8 +140,8 @@ public class HttpRequestUtil {
      */
     private static Map<String,String> getStartEndTimeByLast(String last){
         //今天、这周、本月等时间类型对应的格式化定义
-        String startPattern = "yyyy-MM-dd  00:00:00";
-        String endPattern = "yyyy-MM-dd  23:59:59";
+        String startPattern = "yyyy-MM-dd 00:00:00";
+        String endPattern = "yyyy-MM-dd 23:59:59";
         SimpleDateFormat startSdf = new SimpleDateFormat(startPattern);
         SimpleDateFormat endSdf = new SimpleDateFormat(endPattern);
         Map<String,String> map = new HashMap<>();

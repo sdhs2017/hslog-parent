@@ -1,5 +1,7 @@
 package com.jz.bigdata.business.logAnalysis.ecs.service;
 
+import com.hs.elsearch.entity.VisualParam;
+
 import java.util.List;
 import java.util.Map;
 
@@ -99,5 +101,11 @@ public interface IecsService {
      */
     public List<Map<String, Object>> getCountGroupByEventType(String starttime, String endtime,String groupByDateField,Map<String, String> map, String... indices) throws Exception;
 
-
+    /**
+     * 标准聚合
+     * @param params 相关参数
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception;
 }

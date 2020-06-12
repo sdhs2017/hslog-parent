@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.serviceInfo.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -19,6 +20,7 @@ public interface IServiceInfoService {
 	int insertIgnore(List<ServiceInfo> list);
 
 	List<ServiceInfo> selectAll(ServiceInfo serviceInfo);
+	Map<String,ServiceInfo> selectAll();
 
 	int delete(String[] ids);
 

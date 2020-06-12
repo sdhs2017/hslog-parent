@@ -3,8 +3,11 @@ package com.jz.bigdata.business.logAnalysis.flow.controller;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.HttpRequestParams;
+import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.VisualParam;
+import com.hs.elsearch.util.ElasticConstant;
 import com.jz.bigdata.business.logAnalysis.flow.service.IflowService;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
@@ -13,9 +16,12 @@ import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
+import com.jz.bigdata.common.serviceInfo.service.IServiceInfoService;
 import com.jz.bigdata.util.*;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.tools.ant.taskdefs.PathConvert;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.joda.time.DateTime;
@@ -51,7 +57,6 @@ public class FlowController {
     //数据统计默认时间间隔
     private final int basicTimeInterval=-5;
 
-
     @Resource(name="logService")
     private IlogService logService;
 
@@ -60,7 +65,8 @@ public class FlowController {
 
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
-
+    @Resource(name="ServiceInfoService")
+    private IServiceInfoService serviceInfoService;
     @Resource
     private IEquipmentDao equipmentDao;
 
@@ -1025,6 +1031,42 @@ public class FlowController {
      * @return
      */
     @ResponseBody
+    @RequestMapping(value="/getUserAgentOSGroupByTime_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="通过时间段统计操作系统的种类及数量")
+    public String getUserAgentOSGroupByTime_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //查询条件
+        Map<String,String> queryParam = new HashMap<>();
+        queryParam.put("requestorresponse", "request");
+        queryParam.put("application_layer_protocol", "http");
+        params.setQueryParam(queryParam);
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，用户系统版本（user_agent_os）
+        Bucket bucket = new Bucket("term","user_agent_os.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包个数（count(logdate)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"访问次数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("通过时间段统计操作系统的种类及数量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/User-Agent信息/业务访问用户统计-操作系统
+     * @return
+     */
+    @ResponseBody
     @RequestMapping("/getUserAgentOSGroupByTime")
     @DescribeLog(describe="通过时间段统计操作系统的种类及数量")
     public String getUserAgentOSGroupByTime(HttpServletRequest request) {
@@ -1077,7 +1119,42 @@ public class FlowController {
         return JSONArray.fromObject(list).toString();
     }
 
-
+    /**
+     * @param request
+     * 流量统计/User-Agent信息/业务访问用户统计-浏览器
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getUserAgentBrowserGroupByTime_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="通过时间段统计浏览器的种类及数量")
+    public String getUserAgentBrowserGroupByTime_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //查询条件
+        Map<String,String> queryParam = new HashMap<>();
+        queryParam.put("requestorresponse", "request");
+        queryParam.put("application_layer_protocol", "http");
+        params.setQueryParam(queryParam);
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，浏览器（user_agent_browser）
+        Bucket bucket = new Bucket("term","user_agent_browser.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包个数（count(logdate)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"访问次数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("通过时间段统计浏览器的种类及数量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
 
     /**
      * @param request
@@ -1122,7 +1199,8 @@ public class FlowController {
         if(!Strings.isNullOrEmpty(params.getErrorInfo())){
             return Constant.failureMessage(params.getErrorInfo());
         }
-        params.setIndex_name(configProperty.getEs_old_index());//index
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         try{
             Map<String, LinkedList<Map<String, Object>>> list = flowService.getListByMultiAggregation(params);
             return JSONArray.fromObject(list).toString();
@@ -1147,7 +1225,8 @@ public class FlowController {
         if(!Strings.isNullOrEmpty(params.getErrorInfo())){
             return Constant.failureMessage(params.getErrorInfo());
         }
-        params.setIndex_name(configProperty.getEs_old_index());//index
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         try{
             Map<String, Object> list = flowService.getListByMultiAggregation4dataset(params);
             return JSONArray.fromObject(list).toString();
@@ -1164,7 +1243,7 @@ public class FlowController {
      * @return
      */
     @ResponseBody
-    @RequestMapping("/getPacketLengthPerSecond_line")
+    @RequestMapping(value="/getPacketLengthPerSecond_line",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="实时统计流量数据访问包大小")
     public String getPacketLengthPerSecond_line(HttpServletRequest request) {
         //处理参数
@@ -1173,41 +1252,24 @@ public class FlowController {
         if(!Strings.isNullOrEmpty(params.getErrorInfo())){
             return Constant.failureMessage(params.getErrorInfo());
         }
-        //索引
-        params.setIndex_name(configProperty.getEs_old_index());
-        params.setDateField("logdate");//时间字段
-        params.setY_field("packet_length");//Y轴聚合字段
-        params.setY_agg("Sum");//Y轴计算方式
-        params.setX_field("logdate");//X轴涉及字段
-        params.setX_agg("Date");//X轴聚合方式
-        params.setSort("asc");//排序
-
-        /**
-         * 如果param的参数需要定制，则通过set方法对params对象进行覆盖
-         * eg:params.setSort("desc");//降序排列
-         */
-
-
-        //结果返回
-        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，时间，logdate
+        Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("sum","packet_length","数据包大小");
+        params.getMetricList().add(metric);
         try{
-            list = flowService.getListByAggregation(params);
-        } catch (Exception e) {
-            logger.error("实时统计流量数据访问包大小"+e.getMessage());
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //轮询折线图
+            //将数据进行处理，满足前端显示效果
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString());
+        }catch(Exception e){
+            logger.error("源ip地址流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
         }
-        List<Map<String,Object>> result = new ArrayList<>();
-        //数据格式处理
-        //TODO 工具类
-        for(Map<String ,Object> map:list){
-            for(Map.Entry<String,Object> entry:map.entrySet()){
-                Map<String,Object> nodeMap = new HashMap<>();
-                nodeMap.put("name",entry.getKey());
-                Object [] value = {entry.getKey(), entry.getValue()};
-                nodeMap.put("value",value);
-                result.add(nodeMap);
-            }
-        }
-        return JSONArray.fromObject(result).toString();
     }
     /**
      * @param request
@@ -1242,6 +1304,40 @@ public class FlowController {
         }
 
         return JSONArray.fromObject(result).toString();
+    }
+    /**
+     * @param request
+     * 流量统计/IP主机流量/源ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getSrcIPFlow_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="源ip地址流量")
+    public String getSrcIPFlow_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，源IP（ipv4_src_addr）
+        Bucket bucket = new Bucket("term","ipv4_src_addr",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("sum","packet_length","数据包大小");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //单位换算
+            //该业务模块运算的数据为Byte，前端需要的是MB
+            Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("源ip地址流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
     }
     /**
      * @param request
@@ -1299,6 +1395,40 @@ public class FlowController {
      * @return
      */
     @ResponseBody
+    @RequestMapping(value="/getDstIPFlow_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="目的ip地址流量")
+    public String getDstIPFlow_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，源IP（ipv4_dst_addr）
+        Bucket bucket = new Bucket("term","ipv4_dst_addr",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("sum","packet_length","数据包大小");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //单位换算
+            //该业务模块运算的数据为Byte，前端需要的是MB
+            Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("目的ip地址流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/IP主机流量/目的ip地址流量
+     * @return
+     */
+    @ResponseBody
     @RequestMapping("/getDstIPFlow")
     @DescribeLog(describe="目的ip地址流量")
     public String getDstIPFlow(HttpServletRequest request) {
@@ -1316,6 +1446,41 @@ public class FlowController {
         }
 
         return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 流量统计/协议流量/传输层协议长度排行
+     * Group传输层协议类型计算数据包大小（倒序 MB）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getTransportLength_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="传输层协议长度排行")
+    public String getTransportLength_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，源IP（protocol_name）
+        Bucket bucket = new Bucket("term","protocol_name.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("sum","packet_length","数据包长度");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //单位换算
+            //该业务模块运算的数据为Byte，前端需要的是MB
+            Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("传输层协议长度排行"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
     }
     /**
      * @param request
@@ -1345,6 +1510,40 @@ public class FlowController {
     }
     /**
      * @param request
+     * 流量统计/IP主机流量/源ip地址流量
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getApplicationLength_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="应用层协议长度排行")
+    public String getApplicationLength_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，源IP（ipv4_src_addr）
+        Bucket bucket = new Bucket("term","application_layer_protocol.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("sum","packet_length","数据包长度");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //单位换算
+            //该业务模块运算的数据为Byte，前端需要的是MB
+            Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("应用层协议长度排行"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
      * 流量统计/协议流量/应用层协议长度排行
      * Group应用层协议类型计算数据包大小（倒序）
      * @return
@@ -1367,6 +1566,47 @@ public class FlowController {
             e.printStackTrace();
         }
         return JSONArray.fromObject(list).toString();
+    }
+    /**
+     * @param request
+     * 流量统计/协议流量/综合协议长度排行
+     * 分别Group传输层和应用层协议类型计算数据包大小，并将两组数据合并排序（倒序）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getMultipleLength_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="综合协议长度排行")
+    public String getMultipleLength_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，应用层协议（application_layer_protocol）
+        Bucket bucket = new Bucket("term","application_layer_protocol.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("sum","packet_length","数据包长度");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> resultApp = flowService.getListByMultiAggregation4dataset(params);
+            //X轴，应用层协议（protocol_name）
+            Bucket bucketProtocol = new Bucket("term","protocol_name.raw",null,null,10,"desc");
+            params.getBucketList().clear();
+            params.getBucketList().add(bucketProtocol);
+            Map<String, Object> resultProtocol = flowService.getListByMultiAggregation4dataset(params);
+            //合并数据
+            Map<String, Object> mergeResult = ControllerDataTransUtil.mergeResultBucket(resultApp,resultProtocol,"数据包长度");
+            //换算单位
+            Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(mergeResult);
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("源ip地址流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
     }
     /**
      * @param request
@@ -1471,7 +1711,40 @@ public class FlowController {
 
         return JSONArray.fromObject(list).toString();
     }
-
+    /**
+     * @param request
+     * 流量统计/资产流量/资产（ip） 数据包个数，取目的地址IP进行统计
+     * Group目的地址IP统计数据包的个数，并将IP与资产表中的IP进行对比，获取资产的名称，反馈到前端。
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDstIPPacketCount_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="资产（ip） 数据包个数")
+    public String getDstIPPacketCount_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，目的IP（ipv4_dst_addr）
+        Bucket bucket = new Bucket("term","ipv4_dst_addr",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（count(logdate)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //将 IP替换为逻辑资产名称
+            Map<String, Object> newResult = ControllerDataTransUtil.transAssetName(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("资产（ip） 数据包个数"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
     /**
      * @param request
      * 流量统计/资产流量/资产（ip） 数据包个数，取目的地址IP进行统计
@@ -1522,6 +1795,40 @@ public class FlowController {
      * @return
      */
     @ResponseBody
+    @RequestMapping(value="/getDstUrlPacketCount_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="资产（服务）数据包个数")
+    public String getDstUrlPacketCount_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，域名（domain_url.raw）
+        Bucket bucket = new Bucket("term","domain_url.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //将域名与服务列表中对应，替换为别名
+            Map<String, Object> newResult = ControllerDataTransUtil.transServiceName(result,serviceInfoService.selectAll());
+            return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
+        }catch(Exception e){
+            logger.error("资产（服务） 数据包个数"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/资产流量/资产（服务） 数据包个数
+     * Group domain_url统计数据包的个数，并将url与服务表（流量管理-流量管理-服务列表serviceInfo）中的url进行对比，获取服务的名称，反馈到前端。
+     * @return
+     */
+    @ResponseBody
     @RequestMapping(value="/getDstUrlPacketCount", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="资产（服务） 数据包个数")
     public String getDstUrlPacketCount(HttpServletRequest request,HttpSession session) {
@@ -1561,7 +1868,39 @@ public class FlowController {
     /**
      * @param request
      * 流量统计/端口流量/目的端口总流量
-     * Group 目的端口，计算数据包大小（倒序），转换成KB
+     * Group 目的端口，计算数据包个数（倒序）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDstPortCount_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="目的端口总流量")
+    public String getDstPortCount_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，目的端口（l4_dst_port）
+        Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（count(logdate)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("目的端口总流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/端口流量/目的端口总流量
+     * Group 目的端口，计算数据包个数（倒序）
      * @return
      */
     @ResponseBody
@@ -1654,6 +1993,42 @@ public class FlowController {
     /**
      * @param request
      * 流量统计/端口流量/TCP目的端口总流量
+     * Group 目的端口Where协议类型为TCP，计算数据包个数（倒序）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getTCPDstPortCount_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="TCP目的端口总流量")
+    public String getTCPDstPortCount_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //查询条件，必须是TCP协议
+        Map<String,String> queryParam = new HashMap<>();
+        queryParam.put("protocol_name.raw","TCP");
+        params.setQueryParam(queryParam);
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，目的端口（l4_dst_port）
+        Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（count(logdate)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("TCP目的端口总流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/端口流量/TCP目的端口总流量
      * Group 目的端口Where协议类型为TCP，计算数据包大小（倒序），转换成KB
      * @return
      */
@@ -1688,6 +2063,42 @@ public class FlowController {
     /**
      * @param request
      * 流量统计/端口流量/UDP目的端口总流量
+     * Group 目的端口Where协议类型为UDP，计算数据包个数（倒序）
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getUDPDstPortCount_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="UDP目的端口总流量")
+    public String getUDPDstPortCount_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //查询条件，必须是TCP协议
+        Map<String,String> queryParam = new HashMap<>();
+        queryParam.put("protocol_name.raw","TCP");
+        params.setQueryParam(queryParam);
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，目的端口（l4_dst_port）
+        Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（count(logdate)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("目的端口总流量"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/端口流量/UDP目的端口总流量
      * Group 目的端口Where协议类型为UDP，计算数据包大小（倒序），转换成KB
      * @return
      */
@@ -1718,6 +2129,41 @@ public class FlowController {
             }
         }
         return JSONArray.fromObject(resultList).toString();
+    }
+    /**
+     * @param request
+     * 流量统计/全局实时流量/实时统计流量数据访问包大小
+     * 计算某个时间段内的数据包大小
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getPacketCount_line",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="实时统计流量数据访问包个数")
+    public String getPacketCount_line(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //时间范围参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，时间，logdate
+        Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
+        params.getBucketList().add(bucket);
+        //Y轴，数据包大小（SUM(packet_length)）
+        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //轮询折线图
+            //将数据进行处理，满足前端显示效果
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString());
+        }catch(Exception e){
+            logger.error("实时统计流量数据访问包个数"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
     }
     /**
      * @param request
@@ -1778,7 +2224,37 @@ public class FlowController {
         }
         return JSONArray.fromObject(list).toString();
     }
-
+    /**
+     * @param request
+     * 流量统计/统计应用的平均响应时间
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDomaiUrlAvgResponsetime_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="统计应用的平均响应时间")
+    public String getDomaiUrlAvgResponsetime_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，域名（domain_url）
+        Bucket bucket = new Bucket("term","domain_url.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，平均响应时间（average(responsetime)）
+        Metric metric = new Metric("average","responsetime","平均响应时间");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("统计应用的平均响应时间"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
     /**
      * @param request
      * 统计应用的平均响应时间
@@ -1855,7 +2331,37 @@ public class FlowController {
         }
         return JSONArray.fromObject(llist).toString();
     }
-
+    /**
+     * @param request
+     * 统计单个应用的功能url平均响应时间
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getRequestUrlAvgResponsetime_barAndPie", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="统计单个应用的功能url平均响应时间")
+    public String getRequestUrlAvgResponsetime_barAndPie(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //index 和 日期字段初始化
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        //X轴，全量url（complete_url）
+        Bucket bucket = new Bucket("term","complete_url.raw",null,null,10,"desc");
+        params.getBucketList().add(bucket);
+        //Y轴，平均响应时间（average(responsetime)）
+        Metric metric = new Metric("average","responsetime","平均响应时间");
+        params.getMetricList().add(metric);
+        try{
+            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            return Constant.successData(JSONArray.fromObject(result).toString()) ;
+        }catch(Exception e){
+            logger.error("统计单个应用的功能url平均响应时间"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
     /**
      * @param request
      * 统计单个应用的功能url平均响应时间

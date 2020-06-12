@@ -1,6 +1,8 @@
 package com.jz.bigdata.business.logAnalysis.ecs.service.impl;
 
+import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.dao.ecsDao.IEcsSearchDao;
+import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +20,8 @@ import java.util.Map;
  **/
 @Service(value="ecsService")
 public class EcsServiceImpl implements IecsService {
-
+    @Autowired
+    protected IBIDao biDao;
     @Autowired
     protected IEcsSearchDao ecsSearchDao;
 
@@ -85,6 +88,11 @@ public class EcsServiceImpl implements IecsService {
     @Override
     public List<Map<String, Object>> getCountGroupByEventType(String starttime, String endtime, String groupByDateField,Map<String, String> map, String... indices) throws Exception {
         return ecsSearchDao.getListByDateHistogramAggregation(starttime,endtime,groupByDateField,map,indices);
+    }
+
+    @Override
+    public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception {
+        return biDao.getMultiAggregation4dateset(params);
     }
 
 

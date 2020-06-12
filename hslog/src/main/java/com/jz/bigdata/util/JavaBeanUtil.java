@@ -7,6 +7,8 @@ import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
+import com.hs.elsearch.entity.VisualParam;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cglib.beans.BeanMap;
@@ -93,5 +95,21 @@ public class JavaBeanUtil {
 		}
 		return (T) obj;
 	}
-
+	/**
+	 *  map转bean
+	 * @param map 参数map
+	 * @param bean 要转换的bean类
+	 * @return
+	 */
+	public static <T> T mapToBean(Map<String,String[]> map,Class<T> bean){
+		T result = null;
+		try{
+			result = bean.newInstance();
+			BeanUtils.populate(result,map);
+			return result;
+		}catch(Exception e){
+			logger.error("convertMapToBean Error{}", e);
+		}
+		return result;
+	}
 }

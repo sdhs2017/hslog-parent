@@ -28,7 +28,8 @@
                         <span class="eq-name-span">{{i.name}}</span>
                         <span class="eq-t-span">{{i.type}}</span>
                     </div>
-                    <div class="eq-type"><i class="el-icon-data-line" title="查看资产指标统计" @click="equipmentDashboard(i)"></i></div>
+                    <!-- <div class="eq-type"><i class="el-icon-data-line" title="查看资产指标统计" @click="equipmentDashboard(i)"></i></div> -->
+                    <div class="eq-type"><i class="el-icon-data-line"></i></div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
                         <span class="eq-ip">{{i.ip}}</span>

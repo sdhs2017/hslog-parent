@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div id="dvCompute" style="position:absolute;visibility: hidden"></div>
-        <div class="top-title">虚拟资产管理</div>
+        <div class="top-title">资产管理</div>
         <div class="equipemnt-tools-form">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
@@ -9,7 +9,6 @@
             <div class="equipemnt-tools-btns">
                 <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                 <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
-                <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>
             </div>
         </div>
         <div class="equipment-table-wapper">
@@ -134,7 +133,8 @@
                                 clickFun:(row,index)=>{
                                     this.reviseEquipment(row,index)
                                 }
-                            },
+                            }
+                            /*,
                             {
                                 icon:'el-icon-tickets',
                                 text:'查看资产日志',
@@ -174,7 +174,7 @@
                                     this.theartAnalyse(row,index)
                                 }
                             }
-
+                            */
                         ]
                     },
                     {

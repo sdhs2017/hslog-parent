@@ -331,6 +331,7 @@ public class BIDaoImpl implements IBIDao {
                 aggregationBuilder = AggregationBuilders.terms(bucket.getAggType()+"-"+bucket.getField())
                         .field(bucket.getField())
                         .order(termAggOrder)
+                        .minDocCount(1)//数据量为0的不显示
                         .size(bucket.getSize());
                         //添加排序对应的metric字段
                 aggregationBuilder.subAggregation(orderMetric);

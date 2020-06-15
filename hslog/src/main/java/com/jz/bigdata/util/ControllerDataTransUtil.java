@@ -50,7 +50,7 @@ public class ControllerDataTransUtil {
     }
 
     /**
-     * 将数据转化为轮询动态折线图所需要的数据
+     * 将数据转化为轮询动态折线图所需要的数据,去掉第一个和最后一个点
      * @param oldResult
      * @return
      */
@@ -87,6 +87,10 @@ public class ControllerDataTransUtil {
                     newPoint.put("value",value);
                     newLinePoints.add(newPoint);
                 }
+                //移除最后一个点
+                newLinePoints.remove(newLinePoints.size()-1);
+                //移除第一个点
+                newLinePoints.remove(0);
                 newResult.put(line.toString(),newLinePoints);
             }
         }

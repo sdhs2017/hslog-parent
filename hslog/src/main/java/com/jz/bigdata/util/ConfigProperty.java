@@ -121,6 +121,16 @@ public class ConfigProperty {
 	// 需要合并的index
 	@Value("#{prop.es_merge_index}")
     private String es_merge_index;
+	@Value("#{prop.echart_default_points}")
+	private String echart_default_points;
+
+	public String getEchart_default_points() {
+		return echart_default_points;
+	}
+
+	public void setEchart_default_points(String echart_default_points) {
+		this.echart_default_points = echart_default_points;
+	}
 
 	public String getEs_mapping_total_fields_limit() {
 		return es_mapping_total_fields_limit;

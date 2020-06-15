@@ -655,7 +655,10 @@ public class DefaultPacket {
 				UdpPacket udpPacket = packet.getBuilder().getPayloadBuilder().build().get(UdpPacket.class);
 				this.l4_dst_port = udpPacket.getHeader().getDstPort().valueAsInt()+"";
 				this.l4_src_port = udpPacket.getHeader().getSrcPort().valueAsInt()+"";
+
 				if (udpPacket.getPayload()!=null){
+					//数据包长度
+					this.packet_length = udpPacket.getPayload().length();
 					//this.payload = udpPacket.getPayload().toString();
 				}
 			}catch (ArrayIndexOutOfBoundsException arraye){
@@ -676,6 +679,11 @@ public class DefaultPacket {
 
 			this.protocol="1";
 			this.protocol_name="ICMPv4";
+			if (ip4packet.getPayload()!=null){
+				//数据包长度
+				this.packet_length = ip4packet.getPayload().length();
+				//this.payload = udpPacket.getPayload().toString();
+			}
 			//this.payload = udpPacket.getPayload().toString();
 		}else {
 			System.out.println("协议值："+ip4packet.getHeader().getProtocol());

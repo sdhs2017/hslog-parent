@@ -14,10 +14,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
+import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.service.IAssetService;
@@ -76,7 +78,8 @@ public class LogServiceImpl implements IlogService {
 	private IAssetService assetService;
 	// es 排序方式
 	private SortOrder sortOrder;
-
+	@Autowired
+	protected IBIDao biDao;
 	@Override
 	public List<Map<String, Object>> index(String index,String type) throws Exception {
         String [] types = {type};
@@ -1643,6 +1646,9 @@ public class LogServiceImpl implements IlogService {
     public String[] getIndices(String... indexname) throws Exception {
         return logIndexDao.getIndices(indexname);
     }
-
+	@Override
+	public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception {
+		return biDao.getMultiAggregation4dateset(params);
+	}
 
 }

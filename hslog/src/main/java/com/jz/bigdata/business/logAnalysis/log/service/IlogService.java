@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.hs.elsearch.entity.VisualParam;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
@@ -492,6 +493,12 @@ public interface IlogService {
      * @throws Exception
      */
     public String[] getIndices(String... indexname) throws Exception;
-
+	/**
+	 * 标准聚合
+	 * @param params 相关参数
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception;
 
 }

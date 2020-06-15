@@ -1244,7 +1244,7 @@ public class FlowController {
      */
     @ResponseBody
     @RequestMapping(value="/getPacketLengthPerSecond_line",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="实时统计流量数据访问包大小")
+    @DescribeLog(describe="实时统计流量数据访问包长度")
     public String getPacketLengthPerSecond_line(HttpServletRequest request) {
         //处理参数
         VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
@@ -1254,20 +1254,35 @@ public class FlowController {
         }
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
-        //X轴，时间，logdate
-        Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
-        params.getBucketList().add(bucket);
-        //Y轴，数据包大小（SUM(packet_length)）
-        Metric metric = new Metric("sum","packet_length","数据包大小");
-        params.getMetricList().add(metric);
+
         try{
+            //如果没有传时间间隔和间隔类型
+            if(Strings.isNullOrEmpty(params.getIntervalType())&&params.getIntervalValue()==0){
+                //计算起始和截止时间的秒数
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date starttime = sdf.parse(params.getStartTime());
+                Date endtime = sdf.parse(params.getEndTime());
+                long start = starttime.getTime();
+                long end = endtime.getTime();
+                int areaSeconds = (int)((end - start) / 1000);
+                //通过默认的分隔点数，算出间隔，并取整
+                int intervalValue = areaSeconds/Integer.parseInt(configProperty.getEchart_default_points());
+                params.setIntervalType("second");
+                params.setIntervalValue(intervalValue);
+            }
+            //X轴，时间，logdate
+            Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
+            params.getBucketList().add(bucket);
+            //Y轴，数据包长度（SUM(packet_length)）
+            Metric metric = new Metric("sum","packet_length","百分比(%)");
+            params.getMetricList().add(metric);
             Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
             //轮询折线图
             //将数据进行处理，满足前端显示效果
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString());
         }catch(Exception e){
-            logger.error("源ip地址流量"+e.getMessage());
+            logger.error("实时统计流量数据访问包长度"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1326,7 +1341,7 @@ public class FlowController {
         Bucket bucket = new Bucket("term","ipv4_src_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（SUM(packet_length)）
-        Metric metric = new Metric("sum","packet_length","数据包大小");
+        Metric metric = new Metric("sum","packet_length","数据包长度");
         params.getMetricList().add(metric);
         try{
             Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
@@ -1809,7 +1824,7 @@ public class FlowController {
         //X轴，域名（domain_url.raw）
         Bucket bucket = new Bucket("term","domain_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
-        //Y轴，数据包大小（SUM(packet_length)）
+        //Y轴，数据包个数（SUM(packet_length)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
@@ -1886,7 +1901,7 @@ public class FlowController {
         //X轴，目的端口（l4_dst_port）
         Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
-        //Y轴，数据包大小（count(logdate)）
+        //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
@@ -2015,7 +2030,7 @@ public class FlowController {
         //X轴，目的端口（l4_dst_port）
         Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
-        //Y轴，数据包大小（count(logdate)）
+        //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
@@ -2085,7 +2100,7 @@ public class FlowController {
         //X轴，目的端口（l4_dst_port）
         Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
-        //Y轴，数据包大小（count(logdate)）
+        //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
@@ -2133,7 +2148,7 @@ public class FlowController {
     /**
      * @param request
      * 流量统计/全局实时流量/实时统计流量数据访问包大小
-     * 计算某个时间段内的数据包大小
+     * 计算某个时间段内的数据包个数
      * @return
      */
     @ResponseBody
@@ -2151,7 +2166,7 @@ public class FlowController {
         //X轴，时间，logdate
         Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
         params.getBucketList().add(bucket);
-        //Y轴，数据包大小（SUM(packet_length)）
+        //Y轴，数据包个数（count(packet_length)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{

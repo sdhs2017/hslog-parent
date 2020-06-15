@@ -16,9 +16,13 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.entity.Bucket;
+import com.hs.elsearch.entity.Metric;
+import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.template.GlobalTemplate;
 import com.hs.elsearch.template.IndexTemplate;
 import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
@@ -2071,7 +2075,134 @@ public class LogController extends BaseController{
 //		return result;
 //	}
 //
-
+	/*********************log处理*************************/
+	/**
+	 * @param request
+	 * 统计各时间段的日志数据量
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getLogCountGroupByTime_line", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="统计各时间段的日志数据量")
+	public String getLogCountGroupByTime_line(HttpServletRequest request) {
+		//处理参数
+		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+		//参数异常
+		if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+			return Constant.failureMessage(params.getErrorInfo());
+		}
+		//index 和 日期字段初始化
+		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
+		//X轴，日期，间隔1小时
+		Bucket bucket = new Bucket("Date Histogram",Constant.BEAT_DATE_FIELD,"HOURLY",1,10,null);
+		params.getBucketList().add(bucket);
+		//Y轴，日志个数（count(@timestamp)）
+		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"日志数");
+		params.getMetricList().add(metric);
+		try{
+			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+			return Constant.successData(JSONArray.fromObject(result).toString()) ;
+		}catch(Exception e){
+			logger.error("统计各时间段的日志数据量"+e.getMessage());
+			return Constant.failureMessage("数据查询失败！");
+		}
+	}
+	/**
+	 * @param request
+	 * 统计各时间段的各事件数据量
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getCountGroupByTimeAndEvent_line", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="统计各时间段的各事件数据量")
+	public String getCountGroupByTimeAndEvent_line(HttpServletRequest request) {
+		//处理参数
+		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+		//参数异常
+		if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+			return Constant.failureMessage(params.getErrorInfo());
+		}
+		//index 和 日期字段初始化
+		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
+		//X轴，日期，间隔1小时
+		Bucket bucket = new Bucket("Date Histogram",Constant.BEAT_DATE_FIELD,"HOURLY",1,10,null);
+		params.getBucketList().add(bucket);
+		//X轴  事件类别
+		Bucket eventBucket = new Bucket("term","event.action",null,null,100,"desc");
+		params.getBucketList().add(eventBucket);
+		//Y轴，日志个数（count(@timestamp)）
+		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"");
+		params.getMetricList().add(metric);
+		try{
+			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+			return Constant.successData(JSONArray.fromObject(result).toString()) ;
+		}catch(Exception e){
+			logger.error("统计各时间段的各事件数据量"+e.getMessage());
+			return Constant.failureMessage("数据查询失败！");
+		}
+	}
+	/**
+	 * @param request
+	 * 统计各个日志级别的数据量
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getCountGroupByLogLevel_barAndPie", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="读取日志级别数据量")
+	public String getCountGroupByLogLevel_barAndPie(HttpServletRequest request) {
+		//处理参数
+		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+		//参数异常
+		if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+			return Constant.failureMessage(params.getErrorInfo());
+		}
+		//index 和 日期字段初始化
+		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
+		//X轴，日志级别（log.level）
+		Bucket bucket = new Bucket("term","log.level",null,null,10,"desc");
+		params.getBucketList().add(bucket);
+		//Y轴，日志个数（count(@timestamp)）
+		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"日志数");
+		params.getMetricList().add(metric);
+		try{
+			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+			return Constant.successData(JSONArray.fromObject(result).toString()) ;
+		}catch(Exception e){
+			logger.error("读取日志级别数据量"+e.getMessage());
+			return Constant.failureMessage("数据查询失败！");
+		}
+	}
+	/**
+	 * @param request
+	 * 统计各个日志级别的数据量
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getCountGroupByEventAction_barAndPie", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="读取日志级别数据量")
+	public String getCountGroupByEventAction_barAndPie(HttpServletRequest request) {
+		//处理参数
+		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+		//参数异常
+		if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+			return Constant.failureMessage(params.getErrorInfo());
+		}
+		//index 和 日期字段初始化
+		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
+		//X轴，日志级别（log.level）
+		Bucket bucket = new Bucket("term","event.action",null,null,10,"desc");
+		params.getBucketList().add(bucket);
+		//Y轴，日志个数（count(@timestamp)）
+		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"日志数");
+		params.getMetricList().add(metric);
+		try{
+			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+			return Constant.successData(JSONArray.fromObject(result).toString()) ;
+		}catch(Exception e){
+			logger.error("读取日志级别数据量"+e.getMessage());
+			return Constant.failureMessage("数据查询失败！");
+		}
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		System.out.println(new Syslog().toMapping());

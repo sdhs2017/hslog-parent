@@ -239,6 +239,37 @@ public class HttpRequestUtil {
             return new HashMap<>();
         }
     }
+
+    /**
+     * 处理动态折线图的参数
+     * 在动态折线图中，如果用户停止轮询，选择一个时间范围进行查询时
+     * 通过设置的默认点的个数计算间隔，以此进行聚合查询
+     * @param params 请求参数
+     * @param points 显示数据点的个数
+     */
+    public static void handleDynamicLineParams(VisualParam params,String points){
+        try{
+            //如果没有传时间间隔和间隔类型
+            if(Strings.isNullOrEmpty(params.getIntervalType())&&params.getIntervalValue()==0){
+                //计算起始和截止时间的秒数
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date starttime = sdf.parse(params.getStartTime());
+                Date endtime = sdf.parse(params.getEndTime());
+                long start = starttime.getTime();
+                long end = endtime.getTime();
+                int areaSeconds = (int)((end - start) / 1000);
+                //通过默认的分隔点数，算出间隔，并取整
+                int intervalValue = areaSeconds/Integer.parseInt(points);
+                params.setIntervalType("second");
+                params.setIntervalValue(intervalValue);
+            }else{
+                //不需要进行操作
+            }
+        }catch (Exception e){
+            params.setErrorInfo("请重新设定时间范围！");
+        }
+
+    }
     public static void main(String[] args){
         //Map<String,String> map = HttpRequestUtil.getStartEndTimeByLast("1-day");
         //System.out.println(map.get("starttime"));

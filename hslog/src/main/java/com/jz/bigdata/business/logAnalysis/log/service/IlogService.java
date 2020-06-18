@@ -501,4 +501,24 @@ public interface IlogService {
 	 */
 	public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception;
 
+	/**
+	 * 日志管理-精确查询业务
+	 * @param map 其他条件
+	 * @param starttime 时间范围-开始时间
+	 * @param endtime 时间范围-结束时间
+	 * @param page 页码
+	 * @param size 每页展示数据条数
+	 * @param indices 索引名
+	 * @return 返回详细日志内容
+	 */
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String... indices) throws Exception;
+	/**
+	 * 获取索引数据量通过条件
+	 * @param map 其他条件
+	 * @param starttime 时间范围-开始时间
+	 * @param endtime 时间范围-结束时间
+	 * @param indices 索引名称
+	 * @return
+	 */
+	public long getCount(Map<String, String> map, String starttime,String endtime, String... indices) throws Exception;
 }

@@ -215,8 +215,8 @@
 
 <!--   删除数据 -->
 	<update id="delete" parameterType="java.lang.String">
-		<!-- delete from HS_User where id in  -->
-		update HS_User set state=0 where id in
+		delete from HS_User where id in
+		<!-- update HS_User set state=0 where id in-->
 		<!-- 循环格式化 -->
 		<foreach item="ids" index="index" collection="array" open="(" separator="," close=")">  
 	 		#{ids}

@@ -395,7 +395,7 @@ public class BIServiceImpl implements IBIService {
                 //result = formatFields(list,keywordTypes,true);
                 result = getFieldByIndexAndAgg(indexName,templateName,"Terms");
                 break;
-            case "Date"://获取所有date类型字段信息
+            case "Date Histogram"://获取所有date类型字段信息
                 //result = formatFields(list,dateTypes,false);
                 result = getFieldByIndexAndAgg(indexName,templateName,"Date");
                 break;
@@ -553,5 +553,9 @@ public class BIServiceImpl implements IBIService {
 
         }
         return metadataList;
+    }
+    @Override
+    public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception {
+        return ibiDao.getMultiAggregation4dateset(params);
     }
 }

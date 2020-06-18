@@ -362,14 +362,15 @@ public class EcsCommonController {
     }
 
     /**
+     * old
      * 通过设备id获取该设备日志列表
      * @param request
      * @return
      */
     @ResponseBody
-    @RequestMapping(value="/getLogListByEquipment.do", produces = "application/json; charset=utf-8")
+    @RequestMapping(value="/getLogListByEquipment_old.do", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="条件获取设备日志数据")
-    public String getLogListByEquipment(HttpServletRequest request, Equipment equipment) {
+    public String getLogListByEquipment_old(HttpServletRequest request, Equipment equipment) {
 
         String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
         ObjectMapper mapper = new ObjectMapper();
@@ -516,5 +517,78 @@ public class EcsCommonController {
         }
 
         return list;
+    }
+    /**
+     * 通过设备id获取该资产日志列表（数据格式:ecs）
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getLogListByEquipment.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="条件获取资产日志数据")
+    public String getLogListByEquipment(HttpServletRequest request, Equipment equipment) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //分页参数
+        String page = request.getParameter("page");
+        String size = request.getParameter("size");
+        List<Map<String, Object>> list = null;
+        try {
+            list = ecsService.getLogListByBlend(params.getQueryParam(),params.getStartTime(),params.getEndTime(),page,size,Constant.WINLOG_BEAT_INDEX);
+        } catch (Exception e) {
+            logger.error("资产日志：查询失败");
+        }
+
+        Map<String, Object> allmap = new HashMap<>();
+        allmap = list.get(0);
+        list.remove(0);
+        allmap.put("list", list);
+
+        String result = JSONArray.fromObject(allmap).toString();
+        String replace=result.replace("\\\\005", "<br/>");
+        logger.info("资产日志：查询成功");
+        return replace;
+    }
+    /**
+     * 精确查询日志事件（数据格式:ecs）
+     * @param request
+     * @author jiyourui
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getListByBlend",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="精确查询日志事件")
+    public String getListByBlend(HttpServletRequest request, HttpSession session) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        //分页参数
+        String page = request.getParameter("page");
+        String size = request.getParameter("size");
+        List<Map<String, Object>> list = new ArrayList<>();
+
+        try {
+            list = ecsService.getLogListByBlend(params.getQueryParam(),params.getStartTime(),params.getEndTime(),page,size,Constant.WINLOG_BEAT_INDEX);
+        } catch (Exception e) {
+            logger.error("精确查询日志事件：失败！");
+            logger.error(e.getMessage());
+        }
+
+        Map<String, Object> allmap = new HashMap<>();
+        allmap = list.get(0);
+        list.remove(0);
+        allmap.put("list", list);
+
+        String result = JSONArray.fromObject(allmap).toString();
+        String replace=result.replace("\\\\005", "<br/>");
+
+        return replace;
     }
 }

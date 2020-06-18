@@ -24,29 +24,34 @@ public class ControllerDataTransUtil {
      */
     public static Map<String, Object> calculateMBytes(Map<String, Object> oldResult){
         Map<String, Object> newResult = new HashMap<>();
-        //图例不变
-        newResult.put(ElasticConstant.DIMENSIONS,oldResult.get(ElasticConstant.DIMENSIONS));
-        List<LinkedHashMap<String,Object>> newSource = new ArrayList<>();
-        //获取数据源
-        Object source = oldResult.get(ElasticConstant.SOURCE);
-        //进行遍历 每一个对象为一个X轴坐标对应的N个图例的点的集合
-        JSONArray array = JSONArray.fromObject(source);
-        for(Object xPoints:array){
-            LinkedHashMap<String,Object> newPoint = new LinkedHashMap<>();
-            Map<String,Object> points =  MapUtil.json2mapObject(xPoints.toString());
-            //对每一个点重新进行计算并放入新的数据对象中
-            for(Map.Entry<String,Object> entry:points.entrySet()){
-                if(entry.getKey()==ElasticConstant.XAXIS){
-                    newPoint.put(ElasticConstant.XAXIS,entry.getValue());//X轴信息不进行处理
-                }else{
-                    //Byte转MB
-                    newPoint.put(entry.getKey(),(int)(Double.parseDouble(entry.getValue().toString())/1024/1024));
+        if(oldResult.size()>0){
+            //图例不变
+            newResult.put(ElasticConstant.DIMENSIONS,oldResult.get(ElasticConstant.DIMENSIONS));
+            List<LinkedHashMap<String,Object>> newSource = new ArrayList<>();
+            //获取数据源
+            Object source = oldResult.get(ElasticConstant.SOURCE);
+            //进行遍历 每一个对象为一个X轴坐标对应的N个图例的点的集合
+            JSONArray array = JSONArray.fromObject(source);
+            for(Object xPoints:array){
+                LinkedHashMap<String,Object> newPoint = new LinkedHashMap<>();
+                Map<String,Object> points =  MapUtil.json2mapObject(xPoints.toString());
+                //对每一个点重新进行计算并放入新的数据对象中
+                for(Map.Entry<String,Object> entry:points.entrySet()){
+                    if(entry.getKey()==ElasticConstant.XAXIS){
+                        newPoint.put(ElasticConstant.XAXIS,entry.getValue());//X轴信息不进行处理
+                    }else{
+                        //Byte转MB
+                        newPoint.put(entry.getKey(),(int)(Double.parseDouble(entry.getValue().toString())/1024/1024));
+                    }
                 }
+                newSource.add(newPoint);
             }
-            newSource.add(newPoint);
+            newResult.put(ElasticConstant.SOURCE,newSource);
+            return newResult;
+        }else{
+            return newResult;
         }
-        newResult.put(ElasticConstant.SOURCE,newSource);
-        return newResult;
+
     }
 
     /**
@@ -63,38 +68,42 @@ public class ControllerDataTransUtil {
          * }
          */
         LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = new LinkedHashMap<>();
-
-        Object source = oldResult.get(ElasticConstant.SOURCE);//数据
-        Object dimensions = oldResult.get(ElasticConstant.DIMENSIONS);//图例
-        JSONArray sourceArray = JSONArray.fromObject(source);
-        //遍历图例
-        for(Object line:JSONArray.fromObject(dimensions)){
-            //获取到一个图例名称，并且不是“xAxis”（数据中对X轴的别名，与图例放在一个数组中，需要摘除）
-            if(!line.toString().equals(ElasticConstant.XAXIS)){
-                //一条线上的N个点集合
-                ArrayList<Map<String,Object>> newLinePoints = new ArrayList<>();
-                //遍历源数据，每一个对象为X轴某个时间点对应的N个Y轴的值
-                for(Object xPoints:sourceArray){
-                    //新的数据对象：一条线上的某个点
-                    //eg：{"name":"2020-06-02 09:35:17","value":["2020-06-02 09:35:17",8]}
-                    Map<String,Object> newPoint = new HashMap<>();
-                    //转成Map，方便取值
-                    Map<String,Object> points =  MapUtil.json2mapObject(xPoints.toString());
-                    //X轴坐标
-                    newPoint.put("name",points.get(ElasticConstant.XAXIS));
-                    //X轴坐标&对应的值
-                    Object [] value = {points.get(ElasticConstant.XAXIS), points.get(line.toString())};
-                    newPoint.put("value",value);
-                    newLinePoints.add(newPoint);
+        if(oldResult.size()>0){
+            Object source = oldResult.get(ElasticConstant.SOURCE);//数据
+            Object dimensions = oldResult.get(ElasticConstant.DIMENSIONS);//图例
+            JSONArray sourceArray = JSONArray.fromObject(source);
+            //遍历图例
+            for(Object line:JSONArray.fromObject(dimensions)){
+                //获取到一个图例名称，并且不是“xAxis”（数据中对X轴的别名，与图例放在一个数组中，需要摘除）
+                if(!line.toString().equals(ElasticConstant.XAXIS)){
+                    //一条线上的N个点集合
+                    ArrayList<Map<String,Object>> newLinePoints = new ArrayList<>();
+                    //遍历源数据，每一个对象为X轴某个时间点对应的N个Y轴的值
+                    for(Object xPoints:sourceArray){
+                        //新的数据对象：一条线上的某个点
+                        //eg：{"name":"2020-06-02 09:35:17","value":["2020-06-02 09:35:17",8]}
+                        Map<String,Object> newPoint = new HashMap<>();
+                        //转成Map，方便取值
+                        Map<String,Object> points =  MapUtil.json2mapObject(xPoints.toString());
+                        //X轴坐标
+                        newPoint.put("name",points.get(ElasticConstant.XAXIS));
+                        //X轴坐标&对应的值
+                        Object [] value = {points.get(ElasticConstant.XAXIS), points.get(line.toString())};
+                        newPoint.put("value",value);
+                        newLinePoints.add(newPoint);
+                    }
+                    //移除最后一个点
+                    newLinePoints.remove(newLinePoints.size()-1);
+                    //移除第一个点
+                    newLinePoints.remove(0);
+                    newResult.put(line.toString(),newLinePoints);
                 }
-                //移除最后一个点
-                newLinePoints.remove(newLinePoints.size()-1);
-                //移除第一个点
-                newLinePoints.remove(0);
-                newResult.put(line.toString(),newLinePoints);
             }
+            return newResult;
+        }else{
+            return newResult;
         }
-        return newResult;
+
     }
 
     /**
@@ -136,25 +145,30 @@ public class ControllerDataTransUtil {
      */
     public static Map<String,Object> transAssetName(Map<String, Object> oldResult)throws Exception{
         Map<String,Object> newResult = new HashMap<>();
-        List<LinkedHashMap<String,Object>> newSource = new ArrayList<>();
-        //图例不变
-        newResult.put(ElasticConstant.DIMENSIONS,oldResult.get(ElasticConstant.DIMENSIONS));
-        //获取缓存中的资产列表
-        Map<String, Asset> assetMap = AssetCache.INSTANCE.getAssetMap();
-        //获取数据，并进行遍历
-        List<LinkedHashMap<String,Object>> source = (List<LinkedHashMap<String,Object>>)oldResult.get(ElasticConstant.SOURCE);//数据
-        for(LinkedHashMap<String,Object> xPoints:source){
-            //如果在资产列表中可以找到该IP，将IP替换为资产名称
-            if(assetMap.get(xPoints.get(ElasticConstant.XAXIS).toString())!=null){
-                xPoints.replace(ElasticConstant.XAXIS,assetMap.get(xPoints.get(ElasticConstant.XAXIS).toString()).getName());
-            }else{
-                //数据不需要进行处理
+        if(oldResult.size()>0){
+            List<LinkedHashMap<String,Object>> newSource = new ArrayList<>();
+            //图例不变
+            newResult.put(ElasticConstant.DIMENSIONS,oldResult.get(ElasticConstant.DIMENSIONS));
+            //获取缓存中的资产列表
+            Map<String, Asset> assetMap = AssetCache.INSTANCE.getAssetMap();
+            //获取数据，并进行遍历
+            List<LinkedHashMap<String,Object>> source = (List<LinkedHashMap<String,Object>>)oldResult.get(ElasticConstant.SOURCE);//数据
+            for(LinkedHashMap<String,Object> xPoints:source){
+                //如果在资产列表中可以找到该IP，将IP替换为资产名称
+                if(assetMap.get(xPoints.get(ElasticConstant.XAXIS).toString())!=null){
+                    xPoints.replace(ElasticConstant.XAXIS,assetMap.get(xPoints.get(ElasticConstant.XAXIS).toString()).getName());
+                }else{
+                    //数据不需要进行处理
+                }
+                //将数据放到新的结果集中
+                newSource.add(xPoints);
             }
-            //将数据放到新的结果集中
-            newSource.add(xPoints);
+            newResult.put(ElasticConstant.SOURCE,newSource);
+            return newResult;
+        }else{
+            return newResult;
         }
-        newResult.put(ElasticConstant.SOURCE,newSource);
-        return newResult;
+
     }
 
     /**

@@ -1048,13 +1048,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，用户系统版本（user_agent_os）
-        Bucket bucket = new Bucket("term","user_agent_os.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","user_agent_os.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"访问次数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("通过时间段统计操作系统的种类及数量"+e.getMessage());
@@ -1142,13 +1142,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，浏览器（user_agent_browser）
-        Bucket bucket = new Bucket("term","user_agent_browser.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","user_agent_browser.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"访问次数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("通过时间段统计浏览器的种类及数量"+e.getMessage());
@@ -1228,7 +1228,7 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         try{
-            Map<String, Object> list = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> list = flowService.getMultiAggregationDataSet(params);
             return JSONArray.fromObject(list).toString();
         }catch(Exception e){
             logger.error("嵌套聚合测试"+e.getMessage());
@@ -1248,6 +1248,8 @@ public class FlowController {
     public String getPacketLengthPerSecond_line(HttpServletRequest request) {
         //处理参数
         VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //该折线图默认为动态折线图，需要在用户选择固定时间时，对数据间隔进行计算
+        HttpRequestUtil.handleDynamicLineParams(params,configProperty.getEchart_default_points());
         //时间范围参数异常
         if(!Strings.isNullOrEmpty(params.getErrorInfo())){
             return Constant.failureMessage(params.getErrorInfo());
@@ -1256,27 +1258,13 @@ public class FlowController {
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
 
         try{
-            //如果没有传时间间隔和间隔类型
-            if(Strings.isNullOrEmpty(params.getIntervalType())&&params.getIntervalValue()==0){
-                //计算起始和截止时间的秒数
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                Date starttime = sdf.parse(params.getStartTime());
-                Date endtime = sdf.parse(params.getEndTime());
-                long start = starttime.getTime();
-                long end = endtime.getTime();
-                int areaSeconds = (int)((end - start) / 1000);
-                //通过默认的分隔点数，算出间隔，并取整
-                int intervalValue = areaSeconds/Integer.parseInt(configProperty.getEchart_default_points());
-                params.setIntervalType("second");
-                params.setIntervalValue(intervalValue);
-            }
             //X轴，时间，logdate
             Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
             params.getBucketList().add(bucket);
             //Y轴，数据包长度（SUM(packet_length)）
-            Metric metric = new Metric("sum","packet_length","百分比(%)");
+            Metric metric = new Metric("sum","packet_length","流量");
             params.getMetricList().add(metric);
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //轮询折线图
             //将数据进行处理，满足前端显示效果
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
@@ -1338,13 +1326,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，源IP（ipv4_src_addr）
-        Bucket bucket = new Bucket("term","ipv4_src_addr",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","ipv4_src_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（SUM(packet_length)）
         Metric metric = new Metric("sum","packet_length","数据包长度");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //单位换算
             //该业务模块运算的数据为Byte，前端需要的是MB
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
@@ -1422,13 +1410,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，源IP（ipv4_dst_addr）
-        Bucket bucket = new Bucket("term","ipv4_dst_addr",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","ipv4_dst_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（SUM(packet_length)）
         Metric metric = new Metric("sum","packet_length","数据包大小");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //单位换算
             //该业务模块运算的数据为Byte，前端需要的是MB
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
@@ -1481,13 +1469,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，源IP（protocol_name）
-        Bucket bucket = new Bucket("term","protocol_name.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","protocol_name.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（SUM(packet_length)）
         Metric metric = new Metric("sum","packet_length","数据包长度");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //单位换算
             //该业务模块运算的数据为Byte，前端需要的是MB
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
@@ -1541,13 +1529,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，源IP（ipv4_src_addr）
-        Bucket bucket = new Bucket("term","application_layer_protocol.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","application_layer_protocol.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（SUM(packet_length)）
         Metric metric = new Metric("sum","packet_length","数据包长度");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //单位换算
             //该业务模块运算的数据为Byte，前端需要的是MB
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
@@ -1601,18 +1589,18 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，应用层协议（application_layer_protocol）
-        Bucket bucket = new Bucket("term","application_layer_protocol.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","application_layer_protocol.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（SUM(packet_length)）
         Metric metric = new Metric("sum","packet_length","数据包长度");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> resultApp = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> resultApp = flowService.getMultiAggregationDataSet(params);
             //X轴，应用层协议（protocol_name）
-            Bucket bucketProtocol = new Bucket("term","protocol_name.raw",null,null,10,"desc");
+            Bucket bucketProtocol = new Bucket("terms","protocol_name.raw",null,null,10,"desc");
             params.getBucketList().clear();
             params.getBucketList().add(bucketProtocol);
-            Map<String, Object> resultProtocol = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> resultProtocol = flowService.getMultiAggregationDataSet(params);
             //合并数据
             Map<String, Object> mergeResult = ControllerDataTransUtil.mergeResultBucket(resultApp,resultProtocol,"数据包长度");
             //换算单位
@@ -1685,6 +1673,65 @@ public class FlowController {
      * @return
      */
     @ResponseBody
+    @RequestMapping(value="/getPacketTypeCount_line",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="全局数据包类型及个数")
+    public String getPacketTypeCount_line(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //该折线图默认为动态折线图，需要在用户选择固定时间时，对数据间隔进行计算
+        HttpRequestUtil.handleDynamicLineParams(params,configProperty.getEchart_default_points());
+        //时间范围参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+        try{
+            //index 和 日期字段初始化
+            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+            //X轴，时间，logdate
+            Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
+            params.getBucketList().add(bucket);
+            LinkedList<Map<String,Object>> ranges = new LinkedList<>();
+            //碎片包
+            Map<String,Object> small = new HashMap<>();
+            small.put("key","samll");
+            small.put("from",0);
+            small.put("to",64);
+            //碎片包
+            Map<String,Object> normal = new HashMap<>();
+            normal.put("key","normal");
+            normal.put("from",64);
+            normal.put("to",1460);
+            //碎片包
+            Map<String,Object> big = new HashMap<>();
+            big.put("key","big");
+            big.put("from",1460);
+            big.put("to",9999);
+            ranges.add(small);
+            ranges.add(normal);
+            ranges.add(big);
+            Bucket packetTypeBucket = new Bucket("Range","packet_length",params.getIntervalType(),params.getIntervalValue(),null,"desc",ranges);
+            params.getBucketList().add(packetTypeBucket);
+            //Y轴，数据包个数（count(packet_length)）
+            Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"");
+            params.getMetricList().add(metric);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
+            //轮询折线图
+            //将数据进行处理，满足前端显示效果
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString());
+        }catch(Exception e){
+            logger.error("全局数据包类型及个数"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     * @param request
+     * 流量统计/数据包类型/全局数据包类型及个数
+     * 碎片包（[0,64)字节）、正常包（[64-1519]字节）、特大包（(1519, ~)字节）
+     * 由于目前数据包最大仅取到1460，因此碎片包为[64,1460)，特大包为[1460,~)
+     * @return
+     */
+    @ResponseBody
     @RequestMapping("/getPacketTypeCount")
     @DescribeLog(describe="全局数据包类型及个数")
     public String getPacketTypeCount(HttpServletRequest request) {
@@ -1745,13 +1792,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，目的IP（ipv4_dst_addr）
-        Bucket bucket = new Bucket("term","ipv4_dst_addr",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","ipv4_dst_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包大小（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //将 IP替换为逻辑资产名称
             Map<String, Object> newResult = ControllerDataTransUtil.transAssetName(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
@@ -1822,13 +1869,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，域名（domain_url.raw）
-        Bucket bucket = new Bucket("term","domain_url.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","domain_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包个数（SUM(packet_length)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //将域名与服务列表中对应，替换为别名
             Map<String, Object> newResult = ControllerDataTransUtil.transServiceName(result,serviceInfoService.selectAll());
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
@@ -1899,13 +1946,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，目的端口（l4_dst_port）
-        Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("目的端口总流量"+e.getMessage());
@@ -1944,6 +1991,51 @@ public class FlowController {
             }
         }
         return JSONArray.fromObject(resultList).toString();
+    }
+    /**
+     * @param request
+     * 流量统计/广播包/组播报/组播包数据+广播包数据个数
+     * 组播包—根据目的IP模糊查询
+     * 224.0.0.0-224.0.0.255
+     * 224.0.1.0-224.0.1.255
+     * 224.0.2.0-239.255.255.255
+     * 广播包—根据源及目的IP模糊查询
+     * *.255
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getMulticastAndBroadcastPacketTypeCount_line",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="组播+广播包数据个数")
+    public String getMulticastAndBroadcastPacketTypeCount_line(HttpServletRequest request) {
+        //处理参数
+        VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //该折线图默认为动态折线图，需要在用户选择固定时间时，对数据间隔进行计算
+        HttpRequestUtil.handleDynamicLineParams(params,configProperty.getEchart_default_points());
+        //时间范围参数异常
+        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+            return Constant.failureMessage(params.getErrorInfo());
+        }
+
+        try{
+            //index 和 日期字段初始化
+            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+            //X轴，时间，logdate
+            Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
+            params.getBucketList().add(bucket);
+            Bucket MulticastAndBroadcastBucket = new Bucket("IPv4 Range","ipv4_dst_addr",params.getIntervalType(),params.getIntervalValue(),null,null);
+            params.getBucketList().add(bucket);
+            //Y轴，数据包个数（count(packet_length)）
+            Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+            params.getMetricList().add(metric);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
+            //轮询折线图
+            //将数据进行处理，满足前端显示效果
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
+            return Constant.successData(JSONArray.fromObject(newResult).toString());
+        }catch(Exception e){
+            logger.error("实时统计流量数据访问包个数"+e.getMessage());
+            return Constant.failureMessage("数据查询失败！");
+        }
     }
 
     /**
@@ -2028,13 +2120,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，目的端口（l4_dst_port）
-        Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("TCP目的端口总流量"+e.getMessage());
@@ -2098,13 +2190,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，目的端口（l4_dst_port）
-        Bucket bucket = new Bucket("term","l4_dst_port",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，数据包个数（count(logdate)）
         Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("目的端口总流量"+e.getMessage());
@@ -2157,20 +2249,23 @@ public class FlowController {
     public String getPacketCount_line(HttpServletRequest request) {
         //处理参数
         VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+        //该折线图默认为动态折线图，需要在用户选择固定时间时，对数据间隔进行计算
+        HttpRequestUtil.handleDynamicLineParams(params,configProperty.getEchart_default_points());
         //时间范围参数异常
         if(!Strings.isNullOrEmpty(params.getErrorInfo())){
             return Constant.failureMessage(params.getErrorInfo());
         }
-        //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
-        //X轴，时间，logdate
-        Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
-        params.getBucketList().add(bucket);
-        //Y轴，数据包个数（count(packet_length)）
-        Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
-        params.getMetricList().add(metric);
+
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            //index 和 日期字段初始化
+            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+            //X轴，时间，logdate
+            Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
+            params.getBucketList().add(bucket);
+            //Y轴，数据包个数（count(packet_length)）
+            Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
+            params.getMetricList().add(metric);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //轮询折线图
             //将数据进行处理，满足前端显示效果
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
@@ -2257,13 +2352,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，域名（domain_url）
-        Bucket bucket = new Bucket("term","domain_url.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","domain_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，平均响应时间（average(responsetime)）
         Metric metric = new Metric("average","responsetime","平均响应时间");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("统计应用的平均响应时间"+e.getMessage());
@@ -2364,13 +2459,13 @@ public class FlowController {
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，全量url（complete_url）
-        Bucket bucket = new Bucket("term","complete_url.raw",null,null,10,"desc");
+        Bucket bucket = new Bucket("terms","complete_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
         //Y轴，平均响应时间（average(responsetime)）
         Metric metric = new Metric("average","responsetime","平均响应时间");
         params.getMetricList().add(metric);
         try{
-            Map<String, Object> result = flowService.getListByMultiAggregation4dataset(params);
+            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
             logger.error("统计单个应用的功能url平均响应时间"+e.getMessage());

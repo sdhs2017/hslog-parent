@@ -150,5 +150,5 @@ public interface IflowService {
      * @return
      * @throws Exception
      */
-    public Map<String, Object> getListByMultiAggregation4dataset(VisualParam params) throws Exception;
+    public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception;
 }

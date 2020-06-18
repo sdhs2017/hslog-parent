@@ -21,6 +21,7 @@ import com.google.gson.*;
 import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.entity.Bucket;
+import com.hs.elsearch.entity.HttpRequestParams;
 import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.template.GlobalTemplate;
@@ -168,23 +169,6 @@ public class LogController extends BaseController{
 				e.printStackTrace();
 			}
 		}
-		/*String type = request.getParameter("type");
-		String id = request.getParameter("id");
-		String [] types = type.split(",");
-		String [] ids = id.split(",");
-		String result ="false";
-		if (types.length<2) {
-			for(int i=0;i<ids.length;i++) {
-				result = logService.deleteById(configProperty.getEs_index(), types[0], ids[i]);
-			}
-		}else {
-			for(int i=0;i<ids.length;i++) {
-				result = logService.deleteById(configProperty.getEs_index(), types[i], ids[i]);
-			}
-
-		}*/
-
-
 		return result;
 	}
 
@@ -2075,7 +2059,7 @@ public class LogController extends BaseController{
 //		return result;
 //	}
 //
-	/*********************log处理*************************/
+	/*********************log处理 (syslog、winlog)*************************/
 	/**
 	 * @param request
 	 * 统计各时间段的日志数据量
@@ -2128,7 +2112,7 @@ public class LogController extends BaseController{
 		Bucket bucket = new Bucket("Date Histogram",Constant.BEAT_DATE_FIELD,"HOURLY",1,10,null);
 		params.getBucketList().add(bucket);
 		//X轴  事件类别
-		Bucket eventBucket = new Bucket("term","event.action",null,null,100,"desc");
+		Bucket eventBucket = new Bucket("terms","event.action",null,null,100,"desc");
 		params.getBucketList().add(eventBucket);
 		//Y轴，日志个数（count(@timestamp)）
 		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"");
@@ -2159,7 +2143,7 @@ public class LogController extends BaseController{
 		//index 和 日期字段初始化
 		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
 		//X轴，日志级别（log.level）
-		Bucket bucket = new Bucket("term","log.level",null,null,10,"desc");
+		Bucket bucket = new Bucket("terms","log.level",null,null,10,"desc");
 		params.getBucketList().add(bucket);
 		//Y轴，日志个数（count(@timestamp)）
 		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"日志数");
@@ -2190,7 +2174,7 @@ public class LogController extends BaseController{
 		//index 和 日期字段初始化
 		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
 		//X轴，日志级别（log.level）
-		Bucket bucket = new Bucket("term","event.action",null,null,10,"desc");
+		Bucket bucket = new Bucket("terms","event.action",null,null,10,"desc");
 		params.getBucketList().add(bucket);
 		//Y轴，日志个数（count(@timestamp)）
 		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"日志数");
@@ -2203,6 +2187,10 @@ public class LogController extends BaseController{
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
+
+
+
+
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		System.out.println(new Syslog().toMapping());

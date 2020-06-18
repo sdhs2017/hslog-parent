@@ -8,6 +8,7 @@ import org.elasticsearch.action.DocWriteResponse;
 
 import javax.servlet.http.HttpSession;
 import java.util.List;
+import java.util.Map;
 
 public interface IBIService {
 
@@ -129,4 +130,11 @@ public interface IBIService {
      * @throws Exception
      */
     public int getClusterSearchMaxBuckets() throws Exception;
+    /**
+     * 嵌套聚合
+     * @param params 相关参数
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception;
 }

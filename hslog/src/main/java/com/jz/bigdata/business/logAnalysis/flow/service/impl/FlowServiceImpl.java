@@ -109,7 +109,7 @@ public class FlowServiceImpl implements IflowService {
     }
 
     @Override
-    public Map<String, Object> getListByMultiAggregation4dataset(VisualParam params) throws Exception {
+    public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception {
         return biDao.getMultiAggregation4dateset(params);
     }
 

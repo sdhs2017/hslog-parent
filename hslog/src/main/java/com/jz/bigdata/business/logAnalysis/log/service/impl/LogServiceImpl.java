@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Resource;
 
 import com.hs.elsearch.dao.biDao.IBIDao;
+import com.hs.elsearch.dao.ecsDao.IEcsSearchDao;
 import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
@@ -56,6 +57,8 @@ public class LogServiceImpl implements IlogService {
 	@Autowired
 	protected IGlobalDao globalDao;
 
+	@Autowired
+	protected IEcsSearchDao ecsSearchDao;
 	@Resource(name ="SafeStrategyService")
 	private ISafeStrategyService safeStrategyService;
 
@@ -1650,5 +1653,30 @@ public class LogServiceImpl implements IlogService {
 	public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception {
 		return biDao.getMultiAggregation4dateset(params);
 	}
+	@Override
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String... indices) throws Exception {
+		Integer fromInt = 0;
+		Integer sizeInt = 10;
+		long count = 0;
+		if (page!=null&&size!=null) {
+			fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
+			sizeInt = Integer.parseInt(size);
+		}
 
+		List<Map<String, Object>> list = new ArrayList<>();
+		//日志总量
+		count = ecsSearchDao.getCount(map,starttime,endtime,indices);
+		Map<String, Object> mapcount = new HashMap<String,Object>();
+		mapcount.put("count", count);
+
+		list.add(mapcount);
+
+		list.addAll(ecsSearchDao.getLogListByMap(map,starttime,endtime,fromInt,sizeInt,indices));
+
+		return list;
+	}
+	@Override
+	public long getCount(Map<String, String> map, String starttime, String endtime, String... indices) throws Exception {
+		return ecsSearchDao.getCount(map, starttime, endtime, indices);
+	}
 }

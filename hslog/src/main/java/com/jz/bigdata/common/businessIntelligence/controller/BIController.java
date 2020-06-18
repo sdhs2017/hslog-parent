@@ -1,5 +1,7 @@
 package com.jz.bigdata.common.businessIntelligence.controller;
 
+import com.hs.elsearch.entity.Bucket;
+import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
@@ -8,7 +10,9 @@ import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.HttpRequestUtil;
 import com.jz.bigdata.util.MapUtil;
+import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchStatusException;
@@ -100,6 +104,51 @@ public class BIController {
     @DescribeLog(describe = "通过图表参数获取查询结果，并返回")
     public String getDataByChartParams(HttpServletRequest request){
         try{
+            //处理参数
+            VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+            //时间范围参数异常
+            if(!Strings.isNullOrEmpty(params.getErrorInfo())){
+                return Constant.failureMessage(params.getErrorInfo());
+            }
+            //组装要检索的index的名称： 前缀+后缀
+            params.setIndex_name(params.getPre_index_name()+params.getSuffix_index_name());
+            //查询条件处理,数据格式为json，{key:value,key:value}
+            String queryParam = request.getParameter("queryParam");
+            if(null!=queryParam){
+                Map<String,String> paramMap = MapUtil.json2map(queryParam);
+                params.setQueryParam(paramMap);
+            }
+            //如果x轴是时间聚合类型，进行计算
+            if("Date Histogram".equals(params.getX_agg())){
+                //计算聚合桶数，对超出设置search.max_buckets的，进行返回
+                //计算方式，时间范围/时间间隔
+                if(getSearchBuckets(params.getStartTime(),params.getEndTime(),params.getIntervalType(),params.getIntervalValue())){
+                    //continue
+                }else{
+                    return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
+                }
+            }else{
+                //continue
+            }
+
+
+            //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
+            if(params.getIndex_name().indexOf("hslog")>=0){
+                params.setDateField(Constant.PACKET_DATE_FIELD);
+            }else if(params.getIndex_name().indexOf("beat")>=0){
+                params.setDateField(Constant.BEAT_DATE_FIELD);
+            }else{
+                return Constant.failureMessage("数据源异常，请重新选择！");
+            }
+            /********临时处理******/
+            //X轴
+            Bucket bucket = new Bucket(params.getX_agg(),params.getX_field(),params.getIntervalType(),params.getIntervalValue(),params.getSize(),params.getSort());
+            params.getBucketList().add(bucket);
+            //Y轴
+            Metric metric = new Metric(params.getY_agg(),"COUNT".equals(params.getY_agg().toUpperCase())?params.getDateField():params.getY_field(),null);
+            params.getMetricList().add(metric);
+            Map<String,Object> result = iBIService.getMultiAggregationDataSet(params);
+            /*
             VisualParam vp = new VisualParam();
             Map<String, String[]> params = request.getParameterMap();
             vp.mapToBean(params);
@@ -149,7 +198,9 @@ public class BIController {
                     result = Constant.failureMessage("聚合格式错误");
                     break;
             }
-            return Constant.successData(result);
+            */
+
+            return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(ElasticsearchStatusException e){
             /** 一级异常 ElasticsearchStatusException，通过catch获取*/
 

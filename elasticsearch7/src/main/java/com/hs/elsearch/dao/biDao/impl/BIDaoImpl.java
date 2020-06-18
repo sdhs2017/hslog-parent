@@ -17,6 +17,10 @@ import org.elasticsearch.search.aggregations.*;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.ExtendedBounds;
+import org.elasticsearch.search.aggregations.bucket.range.DateRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.IpRangeAggregationBuilder;
+import org.elasticsearch.search.aggregations.bucket.range.Range;
+import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilder;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
@@ -224,7 +228,7 @@ public class BIDaoImpl implements IBIDao {
      * @param params
      * @return
      */
-    private AggregationBuilder buildAggregationNew(VisualParam params){
+    private AggregationBuilder buildAggregations(VisualParam params){
         AggregationBuilder aggregationBuilder = null;
         AggregationBuilder orderMetric = null;
         //获取排序metric信息
@@ -239,18 +243,20 @@ public class BIDaoImpl implements IBIDao {
             if(i==params.getBucketList().size()-1){
                 //最后一个聚合字段生成的对象
                 aggregationBuilder = getBucketAggregation(params.getBucketList().get(i),aggregationBuilder,orderMetric,params);
+                //生成的聚合对象不为空时
+                if(null!=aggregationBuilder){
+                    //如果最后一个聚合不是terms聚合，因为没有设置排序字段，因此，指标agg未添加到其下一级agg中，需要加上
+                    if(!"TERMS".equals(params.getBucketList().get(i).getAggType().toUpperCase())){
+                        aggregationBuilder.subAggregation(orderMetric);
+                    }
 
-                //如果最后一个聚合是时间类型，因为时间类型没有设置排序字段，因此，指标agg未添加到其下一级agg中，因此需要单独处理
-                if(params.getBucketList().get(i).getAggType().equals("Date Histogram")){
-                    aggregationBuilder.subAggregation(orderMetric);
-                }
-
-                //第一个metric信息已经通过order进行了添加，添加后续的metric
-                for(int j=1;j<params.getMetricList().size();j++){
-                    AggregationBuilder metricBuilder = getMetricAggregation(params.getMetricList().get(j));
-                    //不为空时添加，避免异常
-                    if(metricBuilder!=null){
-                        aggregationBuilder.subAggregation(metricBuilder);
+                    //第一个metric信息已经通过order进行了添加，添加后续的metric
+                    for(int j=1;j<params.getMetricList().size();j++){
+                        AggregationBuilder metricBuilder = getMetricAggregation(params.getMetricList().get(j));
+                        //不为空时添加，避免异常
+                        if(metricBuilder!=null){
+                            aggregationBuilder.subAggregation(metricBuilder);
+                        }
                     }
                 }
             }else{
@@ -272,10 +278,111 @@ public class BIDaoImpl implements IBIDao {
 
         // 聚合bucket查询group by
         AggregationBuilder aggregationBuilder = null;
+        switch(bucket.getAggType().toUpperCase()){
+            case "DATE HISTOGRAM"://日期 直方图
+                //默认1分钟间隔
+                DateHistogramInterval dateHis = DateHistogramInterval.minutes(1);
+                switch(bucket.getIntervalType().toUpperCase()){
+                    case "SECOND":
+                        dateHis = DateHistogramInterval.seconds(bucket.getIntervalValue());
+                        break;
+                    case "MINUTE":
+                        dateHis = DateHistogramInterval.minutes(bucket.getIntervalValue());
+                        break;
+                    case "HOURLY":
+                        dateHis = DateHistogramInterval.hours(bucket.getIntervalValue());
+                        break;
+                    case "DAILY":
+                        dateHis = DateHistogramInterval.days(bucket.getIntervalValue());
+                        break;
+                    case "WEEKLY"://ES目前不支持 N周、N月、N年的间隔设置
+                        dateHis = DateHistogramInterval.WEEK;
+                        break;
+                    case "MONTHLY":
+                        dateHis = DateHistogramInterval.MONTH;
+                        break;
+                    case "YEARLY":
+                        dateHis = DateHistogramInterval.YEAR;
+                        break;
+                }
+                // 当聚合结果为空时，需要填充0，设置需要填充0的范围
+                ExtendedBounds extendedBounds = new ExtendedBounds(params.getStartTime(),params.getEndTime());
+                //聚合的别名使用“aggType-aggField”命名
+                aggregationBuilder = AggregationBuilders
+                        .dateHistogram(bucket.getAggType()+"-"+bucket.getField())
+                        .field(bucket.getField())
+                        .fixedInterval(dateHis)
+                        .format("yyyy-MM-dd HH:mm:ss")
+                        .minDocCount(0)//当数据结果为0时也会显示聚合结果，其他字段该值为1，为了保证只返回值>1的数据
+                        .extendedBounds(extendedBounds);
+                break;
+            case "TERMS"://term级的聚合
+                //term聚合的默认排序是按照count文档数倒叙，再按key正序排列
+                //eg:
+                //order": [{
+                //		"_count": "desc"
+                //		}, {
+                //		"_key": "asc"
+                //		}
+                //	]
+                //BucketOrder defaultTermAggOrder = BucketOrder.compound(BucketOrder.aggregation("_count",false),BucketOrder.aggregation("_key",true));
+                //order字段不为空，并且排序metric也不为空，添加排序信息
+                if(orderMetric!=null&&!Strings.isNullOrEmpty(bucket.getSort())){
+                    //正序为true
+                    boolean order = "asc".equals(bucket.getSort())?true:false;
+                    BucketOrder termAggOrder = BucketOrder.aggregation( orderMetric.getName(),order);
+                    //聚合的别名使用“aggType-aggField”命名
+                    aggregationBuilder = AggregationBuilders.terms(bucket.getAggType()+"-"+bucket.getField())
+                            .field(bucket.getField())
+                            .order(termAggOrder)
+                            .minDocCount(1)//数据量为0的不显示
+                            .size(bucket.getSize());
+                    //添加排序对应的metric字段
+                    aggregationBuilder.subAggregation(orderMetric);
+                }else{
+                    aggregationBuilder = AggregationBuilders.terms(bucket.getAggType()+"-"+bucket.getField())
+                            .field(bucket.getField())
+                            .size(bucket.getSize());
+                }
+                break;
+            case "RANGE"://数字范围
+                RangeAggregationBuilder rangeBuilder = AggregationBuilders.range(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
+                //遍历ranges，依次将范围数据写入聚合对象中
+                for(Map<String,Object> range : bucket.getRanges()){
+                    //根据from 和to参数，判定要设置的范围
+                    if(null!=range.get("from")&&null!=range.get("to")){
+                        rangeBuilder.addRange(range.get("key").toString(),(null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                    }else if(null!=range.get("from")&&null==range.get("to")){
+                        rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("from").toString()));
+                    }else if(null==range.get("from")&&null!=range.get("to")){
+                        rangeBuilder.addUnboundedTo(range.get("key").toString(),Double.valueOf(range.get("to").toString()));
+                    }else{
+                        //不做处理
+                    }
+                }
+                aggregationBuilder = rangeBuilder;
+                break;
+            case "DATE RANGE"://日期范围
+                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField());
+                //遍历ranges，依次将范围数据写入聚合对象中
+                for(Map<String,Object> range : bucket.getRanges()){
+                    dateRangeBuilder.addRange(range.get("from").toString(),range.get("to").toString());
+                }
+                aggregationBuilder = dateRangeBuilder;
+                break;
+            case "IPV4 RANGE"://IP地址范围
+                IpRangeAggregationBuilder ipRangeBuilder = AggregationBuilders.ipRange(bucket.getAggType()+"-"+bucket.getField());
+                //遍历ranges，依次将范围数据写入聚合对象中
+                for(Map<String,Object> range : bucket.getRanges()){
+                    ipRangeBuilder.addRange(range.get("from").toString(),range.get("to").toString());
+                }
+                aggregationBuilder = ipRangeBuilder;
+                break;
+        }
+        /*
         if("Date Histogram".toUpperCase().equals(bucket.getAggType().toUpperCase())){
             //默认1分钟间隔
             DateHistogramInterval dateHis = DateHistogramInterval.minutes(1);
-
             if(bucket.getIntervalType()!=null){
                 switch(bucket.getIntervalType().toUpperCase()){
                     case "SECOND":
@@ -312,6 +419,8 @@ public class BIDaoImpl implements IBIDao {
                         .extendedBounds(extendedBounds);
             }
 
+        }else if(bucket.getAggType().toUpperCase().indexOf("RANGE")>=0){
+            aggregationBuilder = AggregationBuilders.range(bucket.getAggType()+"-"+bucket.getField());
         }else{
             //term聚合的默认排序是按照count文档数倒叙，再按key正序排列
             //eg:
@@ -342,6 +451,7 @@ public class BIDaoImpl implements IBIDao {
             }
 
         }
+         */
         //不为空时，将aggregationBuilderChild添加到新生成的bucket子聚合中。
         if(null!=aggregationBuilderChild){
             aggregationBuilder.subAggregation(aggregationBuilderChild);
@@ -584,7 +694,7 @@ public class BIDaoImpl implements IBIDao {
         BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
 
         //聚合条件
-        AggregationBuilder aggregationBuilder = buildAggregationNew(params);
+        AggregationBuilder aggregationBuilder = buildAggregations(params);
 
         // 返回聚合的内容
         Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
@@ -637,39 +747,6 @@ public class BIDaoImpl implements IBIDao {
 
             }
 
-
-        /*
-
-        //填充数据
-        MultiBucketsAggregation terms  = aggregations.get("Date Histogram-logdate");
-        for(MultiBucketsAggregation.Bucket timeBucket:terms.getBuckets()) {
-            //第一级聚合的结果作为X轴显示
-            String xAxisValue = timeBucket.getKeyAsString();
-            LinkedHashMap<String,Object> xAxisMap = new LinkedHashMap<>();
-            xAxisMap.put(xAxis,xAxisValue);
-            //第2-n级
-            Terms ipTerms = timeBucket.getAggregations().get("term-ipv4_dst_addr");
-            for(MultiBucketsAggregation.Bucket ipBucket:ipTerms.getBuckets()){
-                //第二层IP地址
-                String ip = ipBucket.getKeyAsString();
-                //一个IP下有N个端口
-                Terms portTerms = ipBucket.getAggregations().get("term-l4_dst_port");
-                for(MultiBucketsAggregation.Bucket portBucket:portTerms.getBuckets()){
-                    //第三层，端口
-                    String portName = portBucket.getKeyAsString();
-                    //metric的值
-                    NumericMetricsAggregation.SingleValue value = portBucket.getAggregations().get("count-logdate");
-
-                    String line_name = ip+"-"+portName;
-                    //在最后一级的聚合遍历中，生成图例
-                    dimensions.add(line_name);
-                    xAxisMap.put(line_name,(Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
-                }
-            }
-            source.add(xAxisMap);
-        }
-
-         */
             //补零
             for(LinkedHashMap<String,Object> points:source){//获取某个时间节点上对应的N条线的数据对象
                 for(String line:dimensions){//遍历N条线的名称

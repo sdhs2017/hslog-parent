@@ -404,7 +404,7 @@
                                 localStorage.setItem('exportLogs','true');
                                 //导出请求
                                 this.$nextTick(()=>{
-                                    this.$axios.post('/jz/log/exportLogList.do',this.$qs.stringify(hsObj))
+                                    this.$axios.post(this.$baseUrl+'/log/exportLogList.do',this.$qs.stringify(hsObj))
                                         .then((res)=>{
                                             //console.log(res.data[0].msg)
                                             if(res.data[0].state == 'false'){

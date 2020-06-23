@@ -3,10 +3,7 @@ package com.jz.bigdata.business.logAnalysis.flow.controller;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hs.elsearch.entity.Bucket;
-import com.hs.elsearch.entity.HttpRequestParams;
-import com.hs.elsearch.entity.Metric;
-import com.hs.elsearch.entity.VisualParam;
+import com.hs.elsearch.entity.*;
 import com.hs.elsearch.util.ElasticConstant;
 import com.jz.bigdata.business.logAnalysis.flow.service.IflowService;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
@@ -1693,19 +1690,19 @@ public class FlowController {
             LinkedList<Map<String,Object>> ranges = new LinkedList<>();
             //碎片包
             Map<String,Object> small = new HashMap<>();
-            small.put("key","samll");
+            small.put("key","碎片包");
             small.put("from",0);
             small.put("to",64);
             //碎片包
             Map<String,Object> normal = new HashMap<>();
-            normal.put("key","normal");
+            normal.put("key","正常包");
             normal.put("from",64);
             normal.put("to",1460);
             //碎片包
             Map<String,Object> big = new HashMap<>();
-            big.put("key","big");
+            big.put("key","特大包");
             big.put("from",1460);
-            big.put("to",9999);
+            big.put("to",null);
             ranges.add(small);
             ranges.add(normal);
             ranges.add(big);
@@ -2022,16 +2019,47 @@ public class FlowController {
             //X轴，时间，logdate
             Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
             params.getBucketList().add(bucket);
-            Bucket MulticastAndBroadcastBucket = new Bucket("IPv4 Range","ipv4_dst_addr",params.getIntervalType(),params.getIntervalValue(),null,null);
-            params.getBucketList().add(bucket);
-            //Y轴，数据包个数（count(packet_length)）
-            Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"数据包个数");
-            params.getMetricList().add(metric);
-            Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
-            //轮询折线图
+
+            /****广播包******/
+            //Y轴，数据包个数（count(logdate)）
+            Metric metric4Broadcast = new Metric("count",Constant.PACKET_DATE_FIELD,"广播包");
+            params.getMetricList().add(metric4Broadcast);
+            //查询条件
+            ArrayList<QueryCondition> queryConditions4Broadcast = new ArrayList<>();
+            //源IP 广播包
+            QueryCondition queryConditionSrcIp4Broadcast = new QueryCondition("wildcard","ipv4_src_addr.raw","*.255","must");
+            queryConditions4Broadcast.add(queryConditionSrcIp4Broadcast);
+            //目的IP 广播包
+            QueryCondition queryConditionDstIp4Broadcast = new QueryCondition("wildcard","ipv4_dst_addr.raw","*.255","must");
+            queryConditions4Broadcast.add(queryConditionDstIp4Broadcast);
+            params.setQueryConditions(queryConditions4Broadcast);
+            //以上两个条件用should连接
+            params.setQueryConnectionType("should");
+            Map<String, Object> result4Broadcast = flowService.getMultiAggregationDataSet(params);
+            /****组播包******/
+            //Y轴，数据包个数（count(logdate)）
+            Metric metric4Multicast = new Metric("count",Constant.PACKET_DATE_FIELD,"组播包");
+            params.getMetricList().remove(metric4Broadcast);
+            params.getMetricList().add(metric4Multicast);
+            //查询条件
+            ArrayList<QueryCondition> queryConditions4Multicast = new ArrayList<>();
+            //范围条件
+            ArrayList<QueryRange> rangesDstIp4Multicast = new ArrayList<>();
+            rangesDstIp4Multicast.add(new QueryRange("224.0.0.0",false,"224.0.0.255",true));
+            rangesDstIp4Multicast.add(new QueryRange("224.0.1.0",true,"224.0.1.255",true));
+            rangesDstIp4Multicast.add(new QueryRange("224.0.2.0",true,"239.255.255.255",true));
+            QueryCondition queryConditionDstIp4Multicast = new QueryCondition("range","ipv4_dst_addr",rangesDstIp4Multicast,"should");
+            queryConditions4Multicast.add(queryConditionDstIp4Multicast);
+            //参数赋值到params
+            params.setQueryConditions(queryConditions4Multicast);
+            params.setQueryConnectionType("must");
+            Map<String, Object> result4Multicast = flowService.getMultiAggregationDataSet(params);
+
             //将数据进行处理，满足前端显示效果
-            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
-            return Constant.successData(JSONArray.fromObject(newResult).toString());
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult4Broadcast = ControllerDataTransUtil.convertToDynamicLineData(result4Broadcast);
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult4Multicast = ControllerDataTransUtil.convertToDynamicLineData(result4Multicast);
+
+            return Constant.successData(JSONArray.fromObject(newResult4Broadcast).toString()+","+JSONArray.fromObject(newResult4Multicast).toString());
         }catch(Exception e){
             logger.error("实时统计流量数据访问包个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");

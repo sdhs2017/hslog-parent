@@ -1506,8 +1506,7 @@ public class LogServiceImpl implements IlogService {
 			System.out.println("删除数据条数："+delete_count);
 			indexForceMergeForDelete(1,true,indices);
 
-			boolean startresult = collectorService.startKafkaCollector(equipmentService, assetService, logCrudDao, configProperty,
-					alarmService, usersService);
+			boolean startresult = collectorService.startKafkaCollector();
 
 			if (startresult) {
 				System.out.println("数据采集器开启成功");

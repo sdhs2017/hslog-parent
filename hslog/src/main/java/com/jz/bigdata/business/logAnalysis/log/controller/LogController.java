@@ -1,16 +1,12 @@
 package com.jz.bigdata.business.logAnalysis.log.controller;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -18,42 +14,23 @@ import javax.servlet.http.HttpSession;
 
 import com.google.common.base.Strings;
 import com.google.gson.*;
-import com.hs.elsearch.dao.globalDao.IGlobalDao;
-import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.entity.Bucket;
-import com.hs.elsearch.entity.HttpRequestParams;
 import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.VisualParam;
-import com.hs.elsearch.template.GlobalTemplate;
-import com.hs.elsearch.template.IndexTemplate;
-import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
+import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.business.logAnalysis.log.init.DataVisualInit;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
-import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
-import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFilebeat;
-import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfFirewalls;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfNet;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfSyslog;
 import com.jz.bigdata.util.*;
-import net.sf.json.JSON;
 import net.sf.json.JSONObject;
-import org.apache.commons.io.FileUtils;
-import org.elasticsearch.action.DocWriteResponse;
-import org.elasticsearch.action.bulk.BulkRequest;
-import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.stereotype.Controller;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -64,7 +41,6 @@ import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
-import com.jz.bigdata.common.equipment.EquipmentConstant;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.safeStrategy.entity.SafeStrategy;
@@ -2187,7 +2163,68 @@ public class LogController extends BaseController{
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
+	/**
+	 * @param request
+	 * 统计各个事件的数据量
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getCountGroupByEventType_line", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="统计各个事件的数据量")
+	public String getCountGroupByEventType_line(HttpServletRequest request) {
+		//处理参数
+		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
+		//该折线图默认为动态折线图，需要在用户选择固定时间时，对数据间隔进行计算
+		HttpRequestUtil.handleDynamicLineParams(params,configProperty.getEchart_default_points());
+		//时间范围参数异常
+		if(!joptsimple.internal.Strings.isNullOrEmpty(params.getErrorInfo())){
+			return Constant.failureMessage(params.getErrorInfo());
+		}
+		try{
+			//index 和 日期字段初始化
+			params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
+			//X轴，时间，logdate
+			Bucket bucket = new Bucket("Date Histogram",Constant.BEAT_DATE_FIELD,"HOURLY",1,null,null);
+			params.getBucketList().add(bucket);
+			LinkedList<Map<String,Object>> ranges = new LinkedList<>();
+			//由于range接口数据设定 from 和to形成的范围为 [from,to)，因此在设置数值时要主要进行处理
+			//普通事件
+			Map<String,Object> normal = new HashMap<>();
+			normal.put("key","普通");
+			normal.put("from",6);
+			normal.put("to",7.1);
+			//中危事件
+			Map<String,Object> middleRisk = new HashMap<>();
+			middleRisk.put("key","中危");
+			middleRisk.put("from",4);
+			middleRisk.put("to",5.1);
+			//高危事件
+			Map<String,Object> highRisk = new HashMap<>();
+			highRisk.put("key","高危");
+			highRisk.put("from",0);
+			highRisk.put("to",3.1);
+			//高危事件
+			Map<String,Object> allRisk = new HashMap<>();
+			allRisk.put("key","全部");
+			allRisk.put("from",0);
+			allRisk.put("to",7.1);
+			ranges.add(normal);
+			ranges.add(middleRisk);
+			ranges.add(highRisk);
+			ranges.add(allRisk);
+			Bucket severityBucket = new Bucket("Range","log.syslog.severity.code",params.getIntervalType(),params.getIntervalValue(),null,"desc",ranges);
+			params.getBucketList().add(severityBucket);
+			//Y轴，数据包个数（count(packet_length)）
+			Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"");
+			params.getMetricList().add(metric);
+			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
 
+			return Constant.successData(JSONArray.fromObject(result).toString());
+		}catch(Exception e){
+			logger.error("统计各个事件的数据量"+e.getMessage());
+			return Constant.failureMessage("数据查询失败！");
+		}
+	}
 
 
 

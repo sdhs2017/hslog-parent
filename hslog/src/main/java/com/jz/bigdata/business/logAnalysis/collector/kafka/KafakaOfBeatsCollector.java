@@ -2,15 +2,12 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
+import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.asset.entity.Asset;
-import com.jz.bigdata.common.asset.service.IAssetService;
-import com.jz.bigdata.common.assets_old.entity.Assets;
-import com.jz.bigdata.common.assets_old.service.IAssetsService;
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import com.jz.bigdata.common.equipment.entity.Equipment;
-import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.ContextRoles;
@@ -87,12 +84,10 @@ public class KafakaOfBeatsCollector implements Runnable {
     //Set<String> assetIpAddressSet;
     /**
      *
-     * @param equipmentService
      * @param logCurdDao
      * @param configProperty
      */
-    //public KafakaOfBeatsCollector(IEquipmentService equipmentService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService) {
-    public KafakaOfBeatsCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty) {
+    public KafakaOfBeatsCollector(ILogCrudDao logCurdDao, ConfigProperty configProperty) {
         /**
          * kafka 消费者属性配置
          */
@@ -448,7 +443,8 @@ public class KafakaOfBeatsCollector implements Runnable {
                 /**
                  * 当 indices request中的数据大于等于 配置中设置的批量提交阈值时进行批量提交操作，并清空indicesrequests
                  */
-                if (indicesrequests.size()>=configProperty.getEs_bulk()) {
+                Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+                if (indicesrequests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
                     logCurdDao.bulkInsert(indicesrequests);
                     indicesrequests.clear();
                 }

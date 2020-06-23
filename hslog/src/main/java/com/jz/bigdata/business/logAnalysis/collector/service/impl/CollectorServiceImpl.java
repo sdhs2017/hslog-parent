@@ -16,17 +16,22 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
+import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.common.asset.service.IAssetService;
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
+import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -53,7 +58,7 @@ import net.sf.json.JSONArray;
 
 @Service(value="CollectorService")
 public class CollectorServiceImpl implements ICollectorService{
-
+	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	/**
 	 * *****************************************默认kafka管理器属性****************************8
 	 */
@@ -113,6 +118,11 @@ public class CollectorServiceImpl implements ICollectorService{
 	
 	@Resource(name = "ServiceInfoService")
 	private IServiceInfoService serviceInfoService;
+	@Resource(name = "ConfigurationService")
+	private IConfigurationService configurationService;
+
+	@Autowired
+	protected ILogCrudDao logCurdDao;
 	
 	@Resource
 	private IUrlDao urldao;
@@ -120,6 +130,11 @@ public class CollectorServiceImpl implements ICollectorService{
 	@Resource
 	private IServiceInfoDao serviceInfoDao;
 
+	@Resource(name = "AlarmService")
+	private IAlarmService alarmService;
+
+	@Resource(name = "UserService")
+	private IUserService usersService;
 	/*@Autowired
 	private ehcache cacheManager;*/
 	
@@ -159,15 +174,10 @@ public class CollectorServiceImpl implements ICollectorService{
 
 	/**
 	 * 启动kafka采集器
-	 * @param equipmentService
-	 * @param logCurdDao
-	 * @param configProperty
-	 * @param alarmService
-	 * @param usersService
 	 * @return
 	 */
 	@Override
-	public synchronized boolean startKafkaCollector(IEquipmentService equipmentService,IAssetService assetService,ILogCrudDao logCurdDao,ConfigProperty configProperty,IAlarmService alarmService,IUserService usersService){
+	public synchronized boolean startKafkaCollector(){
 		//TODO 后续考虑使用ReentrantLock实现
 		boolean result = false;
 		//如果为true，则表示已经开启，反之，则为未开启，需要进行kafka的初始化
@@ -296,7 +306,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	/**
 	 * 开启pcap4j
 	 */
-	public String startPcap4jCollector(ILogCrudDao logCurdDao,ConfigProperty configProperty) {
+	public String startPcap4jCollector() {
 		
 		Map<String, Object> map = new HashMap<>();
 		// elasticsearch批量提交缓存区
@@ -401,8 +411,9 @@ public class CollectorServiceImpl implements ICollectorService{
         			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap,httpCache);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
-       				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());
-       				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getMessage());
+					logger.error("new PacketStream-------报错信息:"+e.getMessage());
+        			//System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());
+       				//System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getMessage());
        				e.printStackTrace();
        			}
            }
@@ -482,12 +493,12 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 
 
-	public boolean initKafkaOfBeatsCollector(IEquipmentService equipmentService,IAssetService assetService, ILogCrudDao logCrudDao, ConfigProperty configProperty){
+	public boolean initKafkaOfBeatsCollector(){
 
 		boolean result = false;
 		try{
 			if(!kafkaOfBeatsFlag){
-				kafakaOfBeatsCollector = new KafakaOfBeatsCollector(equipmentService,assetService, logCrudDao, configProperty);
+				kafakaOfBeatsCollector = new KafakaOfBeatsCollector(logCurdDao, configProperty);
 				kafkaOfBeatsFlag = true;
 			}
 			result = true;
@@ -497,10 +508,10 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 
 	@Override
-	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCrudDao, ConfigProperty configProperty) {
+	public boolean startKafkaOfBeatsCollector() {
 		boolean result = false;
 
-		initKafkaOfBeatsCollector(equipmentService, assetService,logCrudDao, configProperty);
+		initKafkaOfBeatsCollector();
 
 		/**
 		 * 如果为非开启状态，则新建kafka线程
@@ -635,9 +646,12 @@ public class CollectorServiceImpl implements ICollectorService{
 	}
 
 	/**
-	 * 资产重新初始化
+	 * cache初始化
+	 * 资产/全局配置项
+	 * //TODO BICache
 	 */
-	public void assetCacheInit(){
+	public void cacheInit(){
+		ConfigurationCache.INSTANCE.init(configurationService);
 		AssetCache.INSTANCE.init(equipmentService,assetService);
 	}
 	/**

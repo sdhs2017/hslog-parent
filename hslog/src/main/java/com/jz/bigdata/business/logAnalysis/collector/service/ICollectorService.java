@@ -25,14 +25,9 @@ public interface ICollectorService {
 
 	/**
 	 * 开启默认kafka采集器
-	 * @param equipmentService
-	 * @param logCurdDao
-	 * @param configProperty
-	 * @param alarmService
-	 * @param usersService
 	 * @return
 	 */
-	public boolean startKafkaCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty, IAlarmService alarmService, IUserService usersService);
+	public boolean startKafkaCollector();
 
 	/**
 	 * 关闭默认kafka采集器
@@ -77,7 +72,7 @@ public interface ICollectorService {
 	 * @param configProperty
 	 * @return
 	 */
-	public String startPcap4jCollector(ILogCrudDao logCurdDao,ConfigProperty configProperty);
+	public String startPcap4jCollector();
 
 	/**
 	 * 监听pcap4j的状态
@@ -102,13 +97,9 @@ public interface ICollectorService {
 	 */
 	/**
 	 * 开启kafka of beats 的采集器
-	 * @param equipmentService 资产service
-	 * @param assetService 逻辑资产service
-	 * @param logCurdDao elasticsearch操作index的Dao
-	 * @param configProperty 配置文件bean
 	 * @return
 	 */
-	public boolean startKafkaOfBeatsCollector(IEquipmentService equipmentService, IAssetService assetService, ILogCrudDao logCurdDao, ConfigProperty configProperty);
+	public boolean startKafkaOfBeatsCollector();
 
 	public boolean stopKafkaOfBeatsCollector()throws InterruptedException;
 

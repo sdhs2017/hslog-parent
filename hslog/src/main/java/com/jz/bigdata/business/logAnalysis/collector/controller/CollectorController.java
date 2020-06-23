@@ -10,24 +10,20 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
-import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
+import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.common.asset.service.IAssetService;
-import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jz.bigdata.business.logAnalysis.collector.service.ICollectorService;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
-import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.assets_old.service.IAssetsService;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 
@@ -54,18 +50,11 @@ public class CollectorController {
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
 
-	@Resource(name = "AlarmService")
-	private IAlarmService alarmService;
 
-	@Resource(name = "UserService")
-	private IUserService usersService;
 	
 	@Resource(name="logService")
 	private IlogService logService;
 
-	@Autowired
-	//protected ClientTemplate clientTemplate;
-    protected ILogCrudDao logCrudDao;
 
 //	@Resource
 //	private MascanCollector mascanCollector;
@@ -111,8 +100,7 @@ public class CollectorController {
 		/**
 		 * 符合上述条件后执行开启kafka采集器
 		 */
-		boolean result = collectorService.startKafkaCollector(equipmentService,assetService, logCrudDao, configProperty,
-				alarmService, usersService);
+		boolean result = collectorService.startKafkaCollector();
 		/**
 		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述
 		 */
@@ -223,19 +211,7 @@ public class CollectorController {
 		Map<String, Object> map = new HashMap<>();
 		// 判断index是否存在，如果不存在提示执行初始化操作
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-		//boolean indexExists = logService.indexExists(configProperty.getEs_index());
-        /*boolean indexExists = false;
-        try {
-            indexExists = logService.indexExists(index);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        if (!indexExists) {
-			map.put("state", false);
-			map.put("msg", "数据包采集器开启失败，请先执行初始化操作");
-			return JSONArray.fromObject(map).toString();
-		}*/
+
 		// 判断index是否存在，如果不存在提示执行初始化操作
 		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
 			map.put("state", false);
@@ -243,98 +219,8 @@ public class CollectorController {
 			return JSONArray.fromObject(map).toString();
 		}
 		
-		String result = collectorService.startPcap4jCollector(logCrudDao,configProperty);
-		/*
-		Map<String, Object> map = new HashMap<>();
-		
-		
-		HashMap<String, TcpStream> tcpStreamList=new HashMap<String, TcpStream>();
-		PcapNetworkInterface nif = getCaptureNetworkInterface(configProperty.getPcap4j_network());
-		
-		if(nif==null)
-        {
-        	map.put("state", false);
-			map.put("msg", "网卡获取失败！数据包采集器开启失败！");
-			return JSONArray.fromObject(map).toString();
-        }
-		
-        // 抓取包长度
-        int snaplen = 64 * 1024;
-        // 超时50ms
-        int timeout = 50;
-        // 初始化抓包器
-        PcapHandle.Builder phb = new PcapHandle.Builder(nif.getName()).snaplen(snaplen)
-            .promiscuousMode(PromiscuousMode.PROMISCUOUS).timeoutMillis(timeout)
-            .bufferSize(1 * 1024 * 1024);
-        PcapHandle handle = null;
-		try {
-			handle = phb.build();
-		} catch (PcapNativeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        // handle = nif.openLive(snaplen, PromiscuousMode.NONPROMISCUOUS, timeout);
+		String result = collectorService.startPcap4jCollector();
 
-        *//** 设置TCP过滤规则 *//*
-        //String filter = "ip and tcp and (port 443)";
-        *//** 设置TCP过滤规则 *//*
-        String filter = "ip and (tcp or udp or icmp)";
-        
-            
-        // 设置过滤器
-        try {
-			handle.setFilter(filter, BpfCompileMode.OPTIMIZE);
-		} catch (PcapNativeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (NotOpenException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        Gson gson = new GsonBuilder()
-				 .setDateFormat("yyyy-MM-dd HH:mm:ss")  
-				 .create(); 
-        
-        List<IndexRequest> requests = new ArrayList<IndexRequest>();
-        
-        //初始化listener
-        PacketListener listener = new PacketListener() {
-        	public void gotPacket(Packet packet) {
-        		try {
-           			PacketStream packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,urlSet);
-            		packetStream.gotPacket(packet);
-       			} catch (Exception e) {
-       				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());
-       				System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getMessage());
-       				e.printStackTrace();
-       			}
-           }
-        };
-		
-		try {
-			td = new Pcap4jCollector(configProperty.getPcap4j_network(),handle,listener);
-			futureTask = new FutureTask<>(td);
-			
-			pcap4jthread = new Thread(futureTask);
-			pcap4jthread.start();
-			
-			if(pcap4jthread.isAlive()==true){
-				map.put("state", pcap4jthread.isAlive());
-				map.put("msg", "数据包采集器开启成功");
-				return JSONArray.fromObject(map).toString();
-			}else{
-				map.put("state", pcap4jthread.isAlive());
-				map.put("msg", "数据包采集器开启失败");
-				return JSONArray.fromObject(map).toString();
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-			map.put("state", false);
-			map.put("msg", "数据包采集器开启失败");
-			return JSONArray.fromObject(map).toString();
-		}
-		
-	*/
 		return result;
 	}
     // 获取caffeine占用内存大小
@@ -444,18 +330,12 @@ public class CollectorController {
 	public String startKafkaOfBeatsCollector() {
 
 		Map<String, Object> map = new HashMap<>();
-		/**
-		 * 判断index或者index的template是否存在，如果不存在提示执行初始化操作
-		 */
-		/*if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
-			map.put("state", false);
-			map.put("msg", "数据采集器开启失败，请先执行初始化操作");
-			return JSONArray.fromObject(map).toString();
-		}*/
-		/**
-		 *更新资产缓存信息
-		 */
+
+
 		try{
+			/**
+			 *更新资产缓存信息
+			 */
 			AssetCache.INSTANCE.init(equipmentService,assetService);
 		}catch (Exception e){
 			e.printStackTrace();
@@ -466,7 +346,7 @@ public class CollectorController {
 		/**
 		 * 符合上述条件后执行开启kafka采集器
 		 */
-		boolean result = collectorService.startKafkaOfBeatsCollector(equipmentService,assetService, logCrudDao, configProperty);
+		boolean result = collectorService.startKafkaOfBeatsCollector();
 		/**
 		 * 判断kafka开启是否正常，给前端页面返回对应的状态信息和描述
 		 */

@@ -1,4 +1,4 @@
-package com.jz.bigdata.business.logAnalysis.collector.cache;
+package com.jz.bigdata.common.asset.cache;
 
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.asset.service.IAssetService;
@@ -49,39 +49,20 @@ public enum AssetCache {
         return equipmentMap;
     }
 
-    public void setEquipmentMap(Map<String, Equipment> equipmentMap) {
-        this.equipmentMap = equipmentMap;
-    }
-
     public synchronized Set<String> getIpAddressSet() {
         return ipAddressSet;
-    }
-
-    public void setIpAddressSet(Set<String> ipAddressSet) {
-        this.ipAddressSet = ipAddressSet;
     }
 
     public synchronized Map<String, String> getEquipmentLogLevel() {
         return equipmentLogLevel;
     }
 
-    public void setEquipmentLogLevel(Map<String, String> equipmentLogLevel) {
-        this.equipmentLogLevel = equipmentLogLevel;
-    }
-
     public synchronized Map<String, Asset> getAssetMap() {
         return assetMap;
-    }
-
-    public void setAssetMap(Map<String, Asset> assetMap) {
-        this.assetMap = assetMap;
     }
 
     public synchronized Set<String> getAssetIpAddressSet() {
         return assetIpAddressSet;
     }
 
-    public void setAssetIpAddressSet(Set<String> assetIpAddressSet) {
-        this.assetIpAddressSet = assetIpAddressSet;
-    }
 }

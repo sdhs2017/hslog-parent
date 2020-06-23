@@ -2,9 +2,7 @@ package com.hs.elsearch.dao.biDao.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.hs.elsearch.dao.biDao.IBIDao;
-import com.hs.elsearch.entity.Bucket;
-import com.hs.elsearch.entity.Metric;
-import com.hs.elsearch.entity.VisualParam;
+import com.hs.elsearch.entity.*;
 import com.hs.elsearch.template.SearchTemplate;
 import com.hs.elsearch.util.ElasticConstant;
 import com.sun.tools.javac.code.Attribute;
@@ -13,6 +11,7 @@ import net.sf.json.JSONArray;
 import org.apache.commons.collections.map.LinkedMap;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.aggregations.*;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
@@ -222,7 +221,87 @@ public class BIDaoImpl implements IBIDao {
 
         return boolQueryBuilder;
     }
+    /**
+     *
+     * @param queryConditions 除时间外的查询条件
+     * @param queryConnectionType 除时间外的查询条件的链接类型
+     * @param startTime 起始时间
+     * @param endTime 截止时间
+     * @param dateField 时间范围对应的字段名
+     * @return
+     */
+    //TODO 查询参数更好的处理方式
+    private BoolQueryBuilder buildQuery(ArrayList<QueryCondition> queryConditions,String queryConnectionType, String startTime, String endTime, String dateField){
+        //时间和其他参数的连接，使用must连接
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        //存在时间类型字段，需要添加时间范围参数查询
+        if(dateField!=null&&!"".equals(dateField)){
+            //时间范围，起始时间和截止时间都不允许为空
+            if (startTime != null && !startTime.equals("") && endTime != null && !endTime.equals("")) {
+                boolQueryBuilder.must(QueryBuilders.rangeQuery(dateField).format("yyyy-MM-dd HH:mm:ss").gte(startTime).lte(endTime));
+            }
+        }
+        //其他查询字段  各个条件用的must
+        //TODO 条件之间的关系  and or 等等
+        if(null!=queryConditions&&queryConditions.size()>0){
+            //除时间外的其他条件的query对象定义，
+            BoolQueryBuilder queriesBuilder = QueryBuilders.boolQuery();
+            for(QueryCondition queryCondition:queryConditions){
+                switch(queryCondition.getSearchType()){
+                    case "term":
+                        if("should".equals(queryConnectionType)){
+                            queriesBuilder.should(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));
+                        }else{
+                            queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));
+                        }
+                        break;
+                    case "range":
+                        BoolQueryBuilder boolQuery = QueryBuilders.boolQuery();
+                        ArrayList<QueryRange> searchValue = (ArrayList<QueryRange>) queryCondition.getSearchValue();
+                        for(QueryRange rangeQuery : searchValue){
+                            RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery(queryCondition.getSearchField());
+                            //左侧范围
+                            if(rangeQuery.getIsGtInclude()&&rangeQuery.getGt()!=null){
+                                rangeQueryBuilder.gte(rangeQuery.getGt());
+                            }else{
+                                rangeQueryBuilder.gt(rangeQuery.getGt());
+                            }
+                            //右侧范围
+                            if(rangeQuery.getIsLtInclude()&&rangeQuery.getLt()!=null){
+                                rangeQueryBuilder.lte(rangeQuery.getLt());
+                            }else{
+                                rangeQueryBuilder.lt(rangeQuery.getLt());
+                            }
 
+                            //多个条件的组装方式  must/should
+                            if("should".equals(queryCondition.getConntectionType())){
+                                boolQuery.should(rangeQueryBuilder);
+                            }else{
+                                boolQuery.must(rangeQueryBuilder);
+                            }
+
+                        }
+                        if("should".equals(queryConnectionType)){
+                            queriesBuilder.should(boolQuery);
+                        }else{
+                            queriesBuilder.must(boolQuery);
+                        }
+                        break;
+                    case "wildcard":
+                        if("should".equals(queryConnectionType)){
+                            queriesBuilder.should(QueryBuilders.wildcardQuery(queryCondition.getSearchField(), queryCondition.getSearchValue().toString()));
+                        }else{
+                            queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue().toString()));
+                        }
+                        break;
+                }
+
+            }
+            boolQueryBuilder.must(queriesBuilder);
+        }
+
+        return boolQueryBuilder;
+    }
     /**
      * 创建聚合对象
      * @param params
@@ -349,7 +428,7 @@ public class BIDaoImpl implements IBIDao {
                 RangeAggregationBuilder rangeBuilder = AggregationBuilders.range(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
-                    //根据from 和to参数，判定要设置的范围
+                    //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
                     if(null!=range.get("from")&&null!=range.get("to")){
                         rangeBuilder.addRange(range.get("key").toString(),(null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
                     }else if(null!=range.get("from")&&null==range.get("to")){
@@ -691,8 +770,8 @@ public class BIDaoImpl implements IBIDao {
 
         */
         //查询条件
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
-
+        //BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
+        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryConditions(),params.getQueryConnectionType(),params.getStartTime(),params.getEndTime(),params.getDateField());
         //聚合条件
         AggregationBuilder aggregationBuilder = buildAggregations(params);
 

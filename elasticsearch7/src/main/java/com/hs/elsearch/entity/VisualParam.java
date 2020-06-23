@@ -1,12 +1,8 @@
 package com.hs.elsearch.entity;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtils;
-import org.apache.commons.beanutils.Converter;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +28,24 @@ public class VisualParam {
     private String errorInfo;//异常信息提示，用于在参数处理时产生异常时进行判定
     private ArrayList<Bucket> bucketList = new ArrayList<>();//聚合字段（X轴）
     private ArrayList<Metric> metricList = new ArrayList<>();//指标字段（Y轴）
+    private ArrayList<QueryCondition> queryConditions;//查询条件
+    private String queryConnectionType;//查询条件的连接类型  should/must
+
+    public String getQueryConnectionType() {
+        return queryConnectionType;
+    }
+
+    public void setQueryConnectionType(String queryConnectionType) {
+        this.queryConnectionType = queryConnectionType;
+    }
+
+    public ArrayList<QueryCondition> getQueryConditions() {
+        return queryConditions;
+    }
+
+    public void setQueryConditions(ArrayList<QueryCondition> queryConditions) {
+        this.queryConditions = queryConditions;
+    }
 
     public ArrayList<Bucket> getBucketList() {
         return bucketList;

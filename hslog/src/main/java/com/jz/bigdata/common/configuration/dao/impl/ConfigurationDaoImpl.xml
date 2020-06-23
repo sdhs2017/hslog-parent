@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.configuration.dao.IConfigurationDao">
+    <!-- 返回结果设置 -->
+    <resultMap id="BaseResultMap"
+               type="com.jz.bigdata.common.configuration.entity.Configuration">
+        <id column="configuration_key" jdbcType="VARCHAR" property="configuration_key" />
+        <result column="configuration_value" jdbcType="VARCHAR" property="configuration_value" />
+    </resultMap>
+
+
+    <resultMap id="ResultOfInteger" type="java.lang.Integer">
+        <result column="budget" property="budget" jdbcType="INTEGER" />
+    </resultMap>
+
+    <!-- 查询所有数据 -->
+    <select id="selectAll" resultMap="BaseResultMap">
+        select
+        configuration_key,configuration_value
+        from configuration
+        where 1=1
+    </select>
+    <!-- 根据key查询配置信息 -->
+    <select id="selectByKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+       select
+        configuration_key,configuration_value
+        from configuration
+        where 1=1 and configuration_key=#{configuration_key}
+    </select>
+
+
+    <!-- 添改数据 -->
+    <insert id="upsert" parameterType="com.jz.bigdata.common.configuration.entity.Configuration">
+        INSERT INTO configuration
+        (configuration_key,configuration_value) VALUES( #{configuration_key} ,  #{configuration_value}  )
+        ON DUPLICATE KEY
+        UPDATE configuration_key=#{configuration_key} , configuration_value=#{configuration_value}
+    </insert>
+
+
+
+</mapper>

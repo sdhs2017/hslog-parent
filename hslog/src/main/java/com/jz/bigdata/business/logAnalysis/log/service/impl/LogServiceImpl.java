@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 
+import com.hs.elsearch.dao.ecsDao.IEcsSearchDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
@@ -49,6 +50,8 @@ public class LogServiceImpl implements IlogService {
     @Autowired protected ILogIndexDao logIndexDao;
 
 	@Autowired protected ILogSearchDao logSearchDao;
+	@Autowired
+	protected IEcsSearchDao ecsSearchDao;
 
 	@Resource(name ="SafeStrategyService")
 	private ISafeStrategyService safeStrategyService;
@@ -1638,6 +1641,27 @@ public class LogServiceImpl implements IlogService {
 	public List<IndexTemplateMetaData> getTemplate(String... templatename) throws Exception {
 		return logIndexDao.getTemplateData(templatename);
 	}
+	@Override
+	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String... indices) throws Exception {
+		Integer fromInt = 0;
+		Integer sizeInt = 10;
+		long count = 0;
+		if (page!=null&&size!=null) {
+			fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
+			sizeInt = Integer.parseInt(size);
+		}
 
+		List<Map<String, Object>> list = new ArrayList<>();
+		//日志总量
+		count = ecsSearchDao.getCount(map,starttime,endtime,indices);
+		Map<String, Object> mapcount = new HashMap<String,Object>();
+		mapcount.put("count", count);
+
+		list.add(mapcount);
+
+		list.addAll(ecsSearchDao.getLogListByMap(map,starttime,endtime,fromInt,sizeInt,indices));
+
+		return list;
+	}
 
 }

@@ -173,6 +173,7 @@ public class EcsWinlogController {
         Object sizeo = map.get("size");
         map.remove("page");
         map.remove("size");
+        map.remove("exportSize");
 
         String page = pageo.toString();
         String size = sizeo.toString();

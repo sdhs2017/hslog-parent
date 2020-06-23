@@ -106,28 +106,40 @@ public class CSVUtil {
         }
         csvWriter.newLine();
     }
-    
+
     /**
      * 写一行数据方法
      * @param row
      * @param csvWriter
      * @throws IOException
      */
-	private static void writeRow(Map<String, Object> row, BufferedWriter csvWriter) throws IOException {
-    	// 写入文件头部
+    private static void writeRow(Map<String, Object> row, BufferedWriter csvWriter) throws IOException {
+        // 写入文件头部
     	/*for (Object data : row) {
     		StringBuffer sb = new StringBuffer();
     		String rowStr = sb.append("\"").append(data).append("\",").toString();
     		csvWriter.write(rowStr);
-    	}*/
-		Object[] head = {"logtime", "type", "operation_level", "equipmentname", "ip", "operation_des" };
+    	}
+		Object[] head = {"@timestamp", "type", "operation_level", "equipmentname", "ip", "operation_des" };
 		for (Object data : head) {
     		StringBuffer sb = new StringBuffer();
     		String rowStr = sb.append("\"").append(row.get(data)).append("\",").toString();
     		csvWriter.write(rowStr);
     	}
-		
-    	csvWriter.newLine();
+		*/
+        //时间
+        csvWriter.write(new StringBuffer().append("\"").append(row.get("@timestamp")).append("\",").toString());
+        //日志类型
+        csvWriter.write(new StringBuffer().append("\"").append(row.get("agent")!=null?(((Map<String,Object>)row.get("agent")).get("type")!=null?((Map<String,Object>)row.get("agent")).get("type").toString():""):"").append("\",").toString());
+        //日志级别
+        csvWriter.write(new StringBuffer().append("\"").append(row.get("log")!=null?(((Map<String,Object>)row.get("log")).get("level")!=null?((Map<String,Object>)row.get("log")).get("level").toString():""):"").append("\",").toString());
+        //资产名称
+        csvWriter.write(new StringBuffer().append("\"").append(row.get("fields")!=null?(((Map<String,Object>)row.get("fields")).get("equipmentname")!=null?((Map<String,Object>)row.get("fields")).get("equipmentname").toString():""):"").append("\",").toString());
+        //资产IP
+        csvWriter.write(new StringBuffer().append("\"").append(row.get("fields")!=null?(((Map<String,Object>)row.get("fields")).get("ip")!=null?((Map<String,Object>)row.get("fields")).get("ip").toString():""):"").append("\",").toString());
+        //日志内容
+        csvWriter.write(new StringBuffer().append("\"").append(row.get("message")).append("\",").toString());
+        csvWriter.newLine();
     }
     
     

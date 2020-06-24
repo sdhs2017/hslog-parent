@@ -142,11 +142,11 @@ public class BIController {
             }
             /********临时处理******/
             //X轴
-            Bucket bucket = new Bucket(params.getX_agg(),params.getX_field(),params.getIntervalType(),params.getIntervalValue(),params.getSize(),params.getSort());
-            params.getBucketList().add(bucket);
+            //Bucket bucket = new Bucket(params.getX_agg(),params.getX_field(),params.getIntervalType(),params.getIntervalValue(),params.getSize(),params.getSort());
+            //params.getBucketList().add(bucket);
             //Y轴
-            Metric metric = new Metric(params.getY_agg(),"COUNT".equals(params.getY_agg().toUpperCase())?params.getDateField():params.getY_field(),null);
-            params.getMetricList().add(metric);
+            //Metric metric = new Metric(params.getY_agg(),"COUNT".equals(params.getY_agg().toUpperCase())?params.getDateField():params.getY_field(),null);
+            //params.getMetricList().add(metric);
             Map<String,Object> result = iBIService.getMultiAggregationDataSet(params);
             /*
             VisualParam vp = new VisualParam();

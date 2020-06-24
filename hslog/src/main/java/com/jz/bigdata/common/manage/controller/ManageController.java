@@ -39,6 +39,24 @@ public class ManageController {
 	}
 
 	@ResponseBody
+	@RequestMapping("/modifyServerIP")
+	@DescribeLog(describe = "修改服务器IP地址")
+	public Map<String, String> modifyServerIP(HttpServletRequest request) {
+
+		/**
+		 * 修改信息
+		 * ipaddr  ip地址
+		 * gateway 网关
+		 * netmask 子网掩码
+		 */
+		String ipaddr = request.getParameter("ipaddr");
+		String gateway = request.getParameter("gateway");
+		String netmask = request.getParameter("netmask");
+
+		return iManageService.doshell("sh motifyip.sh "+ipaddr+" "+gateway+" "+netmask,"");
+	}
+
+	@ResponseBody
 	@RequestMapping(value = "/createRepertory", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "创建备份仓库")
 	public String createRepertory() {

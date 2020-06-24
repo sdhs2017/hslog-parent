@@ -31,6 +31,14 @@ public interface IManageService {
 	 */
 	public Map<String, String> doshell(String url, String host_user, String host_passwd, String host_ip);
 
+	/**
+	 * 直接在本地执行脚本
+	 * @param shell
+	 * @param filepath
+	 * @return
+	 */
+	public Map<String, String> doshell(String shell,String filepath);
+
 	public String indexForceMerge();
 
 }

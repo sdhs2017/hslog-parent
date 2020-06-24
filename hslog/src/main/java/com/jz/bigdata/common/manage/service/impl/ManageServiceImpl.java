@@ -15,6 +15,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.util.ExecuteCmd;
 import org.apache.commons.lang.ArrayUtils;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.quartz.JobExecutionContext;
@@ -225,6 +226,12 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
         Map<String, String> result = ResourceUsage.runDistanceShell(url, user, passwd, host);
         System.out.println(result);
         return result;
+    }
+
+    @Override
+    public Map<String, String> doshell(String shell, String filepath) {
+        ExecuteCmd.execShell(shell,filepath);
+        return null;
     }
 
     /**

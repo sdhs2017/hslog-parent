@@ -331,10 +331,9 @@ public class ExecuteCmd {
 	 * @param filepath 执行命令进程需要的工作目录，null表示与当前主进程工作目录相同
 	 * @return
 	 */
-	public static Map<String, Set<String>> execShell(String shell,String filepath) {
+	public static Map<String, String> execShell(String shell,String filepath) {
 
-		Map<String, Set<String>> result = new HashMap<>();
-		Set<String> list = new HashSet<String>();
+		Map<String, String> result = new HashMap<>();
 		BufferedReader bufrIn = null;
 		Process process = null;
 		File file = null;
@@ -348,21 +347,18 @@ public class ExecuteCmd {
 
 			bufrIn = new BufferedReader(new InputStreamReader(process.getInputStream(), "UTF-8"));
 
-			StringBuilder stringBuffer = new StringBuilder();
+			StringBuilder stringBuilder = new StringBuilder();
 			// 读取输出
 			String line = null;
 			while ((line = bufrIn.readLine()) != null) {
-				//stringBuffer.append(line.trim()).append(LINE_SEPARATO);
-				String ports = getSubUtilSimple(line.trim(), "port\\s+(.*?)[/]");
-				String ip = getSubUtil(shell,"\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}");
-				list.add(ip+"_"+ports);
+				stringBuilder.append(line.trim()).append(LINE_SEPARATO);
 			}
-			//每个命令存储自己返回数据-用于后续对返回数据进行处理
-			//result.put("masscan"+getSubUtil(cmd,"\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}"), stringBuffer.toString());
-			result.put("masscan"+getSubUtil(shell,"\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}"), list);
+			result.put("message", stringBuilder.toString());
+			result.put("state", "success");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			result.put("message", e.getMessage());
+			result.put("state", "failed");
 		}  finally {
 			closeStream(bufrIn);
 			// 销毁进程

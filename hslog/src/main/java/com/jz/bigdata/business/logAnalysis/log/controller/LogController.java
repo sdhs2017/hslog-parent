@@ -1116,8 +1116,8 @@ public class LogController extends BaseController{
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
-				//CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
-				CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 
 				if (i==forsize&&modsize==0) {
 					resultmap.put("state", "finished");
@@ -1147,8 +1147,8 @@ public class LogController extends BaseController{
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
 				// 开始写入csv文件
-				//CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
-				CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 				//  根据导出文件个数返回导出状态
 				if (forsize>0) {
 					resultmap.put("state", "finished");

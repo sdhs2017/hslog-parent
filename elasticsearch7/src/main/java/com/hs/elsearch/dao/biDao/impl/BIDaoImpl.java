@@ -428,13 +428,27 @@ public class BIDaoImpl implements IBIDao {
                 RangeAggregationBuilder rangeBuilder = AggregationBuilders.range(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
+
                     //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
                     if(null!=range.get("from")&&null!=range.get("to")){
-                        rangeBuilder.addRange(range.get("key").toString(),(null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                        //key为自定义范围的别名
+                        if(range.get("key")==null){
+                            rangeBuilder.addRange((null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                        }else{
+                            rangeBuilder.addRange(range.get("key").toString(),(null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                        }
                     }else if(null!=range.get("from")&&null==range.get("to")){
-                        rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("from").toString()));
+                        if(range.get("key")==null){
+                            rangeBuilder.addUnboundedFrom(Double.valueOf(range.get("from").toString()));
+                        }else{
+                            rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("from").toString()));
+                        }
                     }else if(null==range.get("from")&&null!=range.get("to")){
-                        rangeBuilder.addUnboundedTo(range.get("key").toString(),Double.valueOf(range.get("to").toString()));
+                        if(range.get("key")==null){
+                            rangeBuilder.addUnboundedFrom(Double.valueOf(range.get("to").toString()));
+                        }else{
+                            rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("to").toString()));
+                        }
                     }else{
                         //不做处理
                     }
@@ -442,18 +456,67 @@ public class BIDaoImpl implements IBIDao {
                 aggregationBuilder = rangeBuilder;
                 break;
             case "DATE RANGE"://日期范围
-                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField());
+                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
+
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
-                    dateRangeBuilder.addRange(range.get("from").toString(),range.get("to").toString());
+                    //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
+                    if(null!=range.get("from")&&null!=range.get("to")){
+                        //key为自定义范围的别名
+                        if(range.get("key")==null){
+                            dateRangeBuilder.addRange((null==range.get("from"))?null:range.get("from").toString(),range.get("to").toString());
+                        }else{
+                            dateRangeBuilder.addRange(range.get("key").toString(),range.get("from").toString(),range.get("to").toString());
+                        }
+
+                    }else if(null!=range.get("from")&&null==range.get("to")){
+                        if(range.get("key")==null){
+                            dateRangeBuilder.addUnboundedFrom(range.get("from").toString());
+                        }else{
+                            dateRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("from").toString());
+                        }
+
+                    }else if(null==range.get("from")&&null!=range.get("to")){
+                        if(range.get("key")==null){
+                            dateRangeBuilder.addUnboundedFrom(range.get("to").toString());
+                        }else{
+                            dateRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("to").toString());
+                        }
+                    }else{
+                        //不做处理
+                    }
                 }
                 aggregationBuilder = dateRangeBuilder;
                 break;
             case "IPV4 RANGE"://IP地址范围
-                IpRangeAggregationBuilder ipRangeBuilder = AggregationBuilders.ipRange(bucket.getAggType()+"-"+bucket.getField());
+                IpRangeAggregationBuilder ipRangeBuilder = AggregationBuilders.ipRange(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
-                    ipRangeBuilder.addRange(range.get("from").toString(),range.get("to").toString());
+                    //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
+                    if(null!=range.get("from")&&null!=range.get("to")){
+                        //key为自定义范围的别名
+                        if(range.get("key")==null){
+                            ipRangeBuilder.addRange((null==range.get("from"))?null:range.get("from").toString(),range.get("to").toString());
+                        }else{
+                            ipRangeBuilder.addRange(range.get("key").toString(),range.get("from").toString(),range.get("to").toString());
+                        }
+
+                    }else if(null!=range.get("from")&&null==range.get("to")){
+                        if(range.get("key")==null){
+                            ipRangeBuilder.addUnboundedFrom(range.get("from").toString());
+                        }else{
+                            ipRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("from").toString());
+                        }
+
+                    }else if(null==range.get("from")&&null!=range.get("to")){
+                        if(range.get("key")==null){
+                            ipRangeBuilder.addUnboundedFrom(range.get("to").toString());
+                        }else{
+                            ipRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("to").toString());
+                        }
+                    }else{
+                        //不做处理
+                    }
                 }
                 aggregationBuilder = ipRangeBuilder;
                 break;

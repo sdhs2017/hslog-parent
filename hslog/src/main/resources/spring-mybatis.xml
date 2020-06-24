@@ -509,7 +509,18 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 全局配置信息 -->
+	<bean id="configurationSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/configuration/**/*.xml"></property>
 
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -633,7 +644,11 @@
 		<property name="basePackage" value="com.jz.bigdata.common.serviceInfo"/>
 		<property name="sqlSessionFactoryBeanName" value="serviceInfoSqlSessionFactory"></property>
 	</bean>
-
+	<!--全局配置项configuration表配置 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.configuration"/>
+		<property name="sqlSessionFactoryBeanName" value="configurationSqlSessionFactory"></property>
+	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->
 	<!-- 
@@ -843,20 +858,20 @@
 		</property>
 	</bean>
 	<!-- 资产缓存定时刷新任务 -->
-	<bean id="assetCacheJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	<bean id="cacheJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
 		<!-- 调用类 -->
 		<property name="targetObject">
 			<ref bean="CollectorService"/>
 		</property>
 		<!--  调用类方法 -->
 		<property name="targetMethod">
-			<value>assetCacheInit</value>
+			<value>cacheInit</value>
 		</property>
 	</bean>
 	<!-- 调度任务时间配置 -->
-	<bean id="assetCacheJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+	<bean id="cacheJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
 		<property name="jobDetail">
-			<ref bean="assetCacheJob"/>
+			<ref bean="cacheJob"/>
 		</property>
 		<!-- 设置触发时间 -->
 		<property name="cronExpression">
@@ -957,12 +972,17 @@
 		<property name="triggers">
 			<list>
 				<!--<ref bean="createSnapshotJobTrigger"/>-->
+				<!--资产预警：根据当前资产配置的预警信息，计算预警阈值（高危/中危/低危）并更新到资产库  0 */5 * * * ?  5分钟执行一次-->
 				<ref bean="updateRiskJobTrigger"/>
 				<!--<ref bean="CreateIndexJobTrigger"/>-->
+				<!-- url定时入库任务：打开流量后，根据获取的流量包的url信息更新到数据库 服务表（serviceInfo）  0 */6 * * * ?  6分钟执行一次-->
 				<ref bean="urlJobTrigger" />
+				<!-- domain定时入库任务：打开流量后，根据获取的流量包的domain url信息，与资产IP port对应，匹配成功更新资产表的domain字段  0 */2 * * * ?  2分钟执行一次-->
 				<ref bean="domainJobTrigger" />
-				<ref bean="assetCacheJobTrigger" />
+				<!-- 资产信息定时任务：定时查询资产表的相关信息，更新到AssetCache中 0 */2 * * * ? 2分钟执行一次-->
+				<ref bean="cacheJobTrigger" />
 				<!-- <ref bean="assetsHeartBeatJobTrigger" /> -->
+				<!-- 自动合并index的segments任务  0 0 1 * * ? 每天1点钟执行一次-->
 				<ref bean="forcemergeIndexSegmentsJobTrigger" />
 			</list>
 		</property>

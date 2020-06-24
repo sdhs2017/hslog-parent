@@ -1015,7 +1015,7 @@ public class LogController extends BaseController{
 		// 使用手机号作为导出的路径
 		Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
 		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'_'HH:mm:ss");
+		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'_'HHmmss");
 
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 		// 返回結果
@@ -1051,8 +1051,17 @@ public class LogController extends BaseController{
 			endtime = map.get("endtime");
 			map.remove("endtime");
 		}
-
-
+		//参数为  是否完整范式化，false是未完整范式化，对应字段的值为false
+		if(map.get("normalization")!=null&&"false".equals(map.get("normalization"))){
+			// 只有选择范式化失败时，才能查询到范式化失败的数据，否则查询范式化正常的数据
+			map.put("fields.failure","true");
+		}else if(map.get("normalization")!=null&&"true".equals(map.get("normalization"))){
+			map.put("fields.failure","false");
+		}else{
+			//查全部，不需要添加条件
+		}
+		//删除原参数
+		map.remove("normalization");
 		map.remove("page");
 		map.remove("size");
 		map.remove("exportSize");
@@ -1098,17 +1107,8 @@ public class LogController extends BaseController{
 				String page = String.valueOf(i);
 				String size = String.valueOf(sheetsizes);
 
-				ArrayList<String> arrayList = new ArrayList<>();
-				List<Map<String, Object>> list = null;
-				// 判断type是否存在，如果存在使用type值，否则使用默认
-				if (map.get("type")!=null&&!map.get("type").equals("")) {
-					arrayList.add(map.get("type"));
-					String [] types = arrayList.toArray(new String[arrayList.size()]);
-					list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
-				}else {
-					list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
+				List<Map<String, Object>> list = logService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_index());
 
-				}
 
 				// 设置表格头
 				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容"};
@@ -1116,8 +1116,8 @@ public class LogController extends BaseController{
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
-				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 
 				if (i==forsize&&modsize==0) {
 					resultmap.put("state", "finished");
@@ -1136,17 +1136,8 @@ public class LogController extends BaseController{
 				String page = String.valueOf(forsize+1);
 				String size = String.valueOf(modsize);
 
-				ArrayList<String> arrayList = new ArrayList<>();
-				List<Map<String, Object>> list = null;
+				List<Map<String, Object>> list  = logService.getLogListByBlend(map, starttime, endtime, page, size,  configProperty.getEs_index());
 
-				// 判断type是否存在，如果存在使用type值，否则使用默认
-				if (map.get("type")!=null&&!map.get("type").equals("")) {
-					arrayList.add(map.get("type"));
-					String [] types = arrayList.toArray(new String[arrayList.size()]);
-					list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
-				}else {
-					list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
-				}
 
 				// 设置表格头
 				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容" };
@@ -1156,8 +1147,8 @@ public class LogController extends BaseController{
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
 				// 开始写入csv文件
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
-				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+username+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 				//  根据导出文件个数返回导出状态
 				if (forsize>0) {
 					resultmap.put("state", "finished");

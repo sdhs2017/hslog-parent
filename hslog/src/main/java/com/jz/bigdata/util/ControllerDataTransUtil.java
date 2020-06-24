@@ -1,15 +1,12 @@
 package com.jz.bigdata.util;
 
 import com.hs.elsearch.util.ElasticConstant;
-import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
-import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
+import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
-import com.jz.bigdata.common.serviceInfo.service.IServiceInfoService;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 
-import javax.annotation.Resource;
 import java.util.*;
 
 /**

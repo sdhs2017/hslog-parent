@@ -1687,7 +1687,7 @@ public class FlowController {
             //X轴，时间，logdate
             Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
             params.getBucketList().add(bucket);
-            LinkedList<Map<String,Object>> ranges = new LinkedList<>();
+            ArrayList<Map<String,Object>> ranges = new ArrayList<>();
             //碎片包
             Map<String,Object> small = new HashMap<>();
             small.put("key","碎片包");
@@ -2058,8 +2058,10 @@ public class FlowController {
             //将数据进行处理，满足前端显示效果
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult4Broadcast = ControllerDataTransUtil.convertToDynamicLineData(result4Broadcast);
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult4Multicast = ControllerDataTransUtil.convertToDynamicLineData(result4Multicast);
-
-            return Constant.successData(JSONArray.fromObject(newResult4Broadcast).toString()+","+JSONArray.fromObject(newResult4Multicast).toString());
+            LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = new LinkedHashMap<>();
+            newResult.putAll(newResult4Broadcast);
+            newResult.putAll(newResult4Multicast);
+            return Constant.successData(JSONArray.fromObject(newResult).toString());
         }catch(Exception e){
             logger.error("实时统计流量数据访问包个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");

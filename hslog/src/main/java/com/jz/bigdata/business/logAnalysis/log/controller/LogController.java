@@ -2177,7 +2177,7 @@ public class LogController extends BaseController{
 			//X轴，时间，logdate
 			Bucket bucket = new Bucket("Date Histogram",Constant.BEAT_DATE_FIELD,"HOURLY",1,null,null);
 			params.getBucketList().add(bucket);
-			LinkedList<Map<String,Object>> ranges = new LinkedList<>();
+			ArrayList<Map<String,Object>> ranges = new ArrayList<>();
 			//由于range接口数据设定 from 和to形成的范围为 [from,to)，因此在设置数值时要主要进行处理
 			//普通事件
 			Map<String,Object> normal = new HashMap<>();

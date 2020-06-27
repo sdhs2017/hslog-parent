@@ -7,7 +7,9 @@
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
-            <div class="date-wapper"><date-layout  :busName="busName" :refresh="refresh"></date-layout></div>
+            <div class="date-wapper"><!--<date-layout  :busName="busName" :refresh="refresh"></date-layout>-->
+                <dateLayout :busName="busName" :defaultVal = "defaultVal" :refresh="refresh"></dateLayout>
+            </div>
             <div class="tit-eq" v-if="this.equipmentId !== ''">{{this.dashboardTit}}</div>
         </div>
         <!--dashboard-->
@@ -51,10 +53,10 @@
 <!--                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>-->
                         </div>
                         <div class="item-con" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
-                            <component :is="allComps[item.eId]" :params="sysChartParams" :baseConProp="{title:''}" :setIntervalObj="{state:item.intervalState}"> </component>
+                            <component :is="allComps[item.eId]" :params="sysChartParams" :baseConProp="{title:''}" :setIntervalObj="intervalObj"> </component>
                         </div>
                     </div>
-                    <div style="height: 100%;" v-else v-loading="true"  element-loading-background="rgba(48, 62, 78, 0.5)">
+                    <div style="height: 100%;" v-else >
                         <div class="item-tit vue-draggable-handle">
                             <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
@@ -63,7 +65,7 @@
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
-                        <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}"></div>
+                        <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}"></div>
                     </div>
                 </grid-item>
             </grid-layout>
@@ -401,10 +403,10 @@
     import { Quill,quillEditor } from 'vue-quill-editor';
     import { addQuillTitle } from '../../../static/js/quill-title.js';
     import VueGridLayout from 'vue-grid-layout';
-    import dateLayout from '../dashboard/dateLayout'
+    import dateLayout from '../common/dateLayout'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
-    import {dateFormat,jumpHtml} from "../../../static/js/common";
+    import {dateFormat,jumpHtml,setChartParam} from "../../../static/js/common";
     import allComps from '../charts/index'
     const echarts = require('echarts');
     //引入font.css
@@ -422,6 +424,36 @@
         name: "dashboard",
         data() {
             return {
+                interval:'',
+                loading:true,
+                color1 :['#00EABD','#20C1F3','#FC686F','#F9D124','#DE1AFB','#C0D7FC','#A9F4B7','#FF9E96','#75B568','#323A81'],
+                //时间控件参数
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'15-min',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'min',
+                    //‘快速选择’功能参数数值
+                    dateCount:'15',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                },
                 //整个页面遮罩
                 allLoading:false,
                 //自定义列表遮罩
@@ -429,14 +461,29 @@
                 //所有系统预设图表模板
                 allComps:allComps,
                 //系统预设图表参数
-                sysChartParams:{},
+                sysChartParams:{
+                    intervalValue:'',
+                    intervalType:'',
+                    starttime:'',
+                    endtime:'',
+                    last:'15-min'
+                },
+                //轮询参数
+                intervalObj:{
+                    state:false,
+                    interval:'5000'
+                },
                 //资产id
                 equipmentId:'',
                 //标题
                 dashboardTit:'',
                 htmlTitle:'新建',
                 refresh:0,
-                dateArr:[],
+                dateArr:{
+                    starttime:'',//起始时间
+                    endtime:'',//结束时间
+                    last:'15-min',
+                },
                 dashboardId:'',
                 //保存图表的弹窗状态
                 dialogFormVisible:false,
@@ -709,20 +756,19 @@
             //this.getDashboardData();
             this.getChartsList()
             //监听时间改变事件
-            bus.$on(this.busName,(arr)=>{
-                this.dateArr = arr;
+            bus.$on(this.busName,(obj)=>{
+                this.dateArr = new Object();
+                this.dateArr = setChartParam(obj)[0];
+                this.intervalObj = setChartParam(obj)[1];
                 //判断是否是单一资产的仪表盘（参数不同）
                 if (this.equipmentId !== ''){//是
-                    this.sysChartParams = {
-                        starttime:this.dateArr[0],
-                        endtime:this.dateArr[1],
-                        hsData:JSON.stringify({'fields.equipmentid':this.equipmentId})
-                    }
+                    let arr = setChartParam(obj);
+                    this.sysChartParams = arr[0];
+                    this.sysChartParams.hsData = JSON.stringify({'fields.equipmentid':this.equipmentId})
+
                 }else{//否
-                    this.sysChartParams = {
-                        starttime:this.dateArr[0],
-                        endtime:this.dateArr[1]
-                    }
+                    let arr = setChartParam(obj);
+                    this.sysChartParams = arr[0];
                 }
             })
         },
@@ -988,7 +1034,7 @@
                                     //console.log(option)
                                     //填充ecahrt数据
                                     option.title.show = false;
-
+                                    obj.areaShow = JSON.parse(data.data.option).config.graph.areaShow
                                     obj.tit = data.data.title;
                                     obj.opt = option;
                                     let resObj = {
@@ -1012,10 +1058,16 @@
             },
             /*获取echarts数据*/
             getEchartsData(resObj){
+                /*intervalValue:obj.intervalVal,
+                    intervalType:obj.intervalType,
+                    starttime:obj.starttime,
+                    endtime:obj.endtime,
+                    last:obj.lastVal*/
                 let obj = resObj.obj;
                 let param = resObj.param;
-                param.startTime = this.dateArr[0];
-                param.endTime = this.dateArr[1];
+                param.starttime = this.dateArr.starttime;
+                param.endtime = this.dateArr.endtime;
+                param.last = this.dateArr.last;
                 //判断是否是单个资产的统计
                 if (this.equipmentId !== ''){
                     let eqObj = {
@@ -1025,27 +1077,82 @@
                 }
                 return new Promise((resolve,reject)=>{
                     this.$nextTick(()=>{
-                       // layer.load(1);
+                        this.loading = false;
                         this.$axios.post(this.$baseUrl+'/BI/getDataByChartParams.do',this.$qs.stringify(param))
                             .then(res=>{
                                 obj.loading = false;
-                                let xD = res.data.data[0].name;
-                                let yD = res.data.data[0].data;
+                                obj.opt.dataset = res.data.data;
+                                obj.opt.series=[];
                                 //判断图表类型
-                                if(obj.chartType === 'line' || obj.chartType === 'bar'){
-                                    obj.opt.xAxis.data = xD;
-                                    obj.opt.series[0].data = yD;
-                                }else if(obj.chartType === 'pie'){
-                                    let pieData = [];
-                                    for (let i in xD) {
-                                        pieData.push({
-                                            name:xD[i],
-                                            value:yD[i],
-                                            itemStyle: {color:this.color[i]}
-                                        })
+                                if(obj.chartType === 'bar'){
+                                    let xL = res.data.data[0].dimensions.length - 1;//维度
+                                    let colorIndex = 0;//颜色索引
+                                    for(let i=0;i<xL;i++){
+                                        if(colorIndex === this.color1.length){
+                                            colorIndex = 0;
+                                        }
+                                        let dObj = {
+                                            name: '',
+                                            type: 'bar',
+                                            itemStyle: {
+                                                color: this.color1[colorIndex]
+                                            },
+                                        }
+                                        obj.opt.series.push(dObj);
+                                        colorIndex++
                                     }
-                                    obj.opt.series[0].data = pieData;
+                                }else if(obj.chartType === 'line'){
+                                    let xL = res.data.data[0].dimensions.length - 1;//维度
+                                    let colorIndex = 0;//颜色索引
+                                    for(let i=0;i<xL;i++){
+                                        if(colorIndex === this.color1.length){
+                                            colorIndex = 0;
+                                        }
+                                        let dObj = {
+                                            type: 'line',
+                                            smooth: true, //平滑性.
+                                            showSymbol: false,
+                                            hoverAnimation: false,
+                                            areaStyle: {
+                                                normal: {
+                                                    //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+                                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                                        offset: 0,
+                                                        color:  this.color1[colorIndex]
+                                                    }, {
+                                                        offset: 1,
+                                                        color: 'rgba(116,235,213,0.1)'
+                                                    }]),
+                                                    opacity:obj.areaShow
+
+                                                },
+
+                                            },
+                                            itemStyle: {
+                                                normal: {
+                                                    color: this.color1[colorIndex]
+                                                }
+                                            },
+                                        }
+                                        obj.opt.series.push(dObj);
+                                        colorIndex++;
+                                    }
+                                }else if(obj.chartType === 'pie'){
+                                    obj.opt.series.push({
+                                        name: '',
+                                        type: 'pie',
+                                        radius : '55%',
+                                        center: ['50%', '60%'],
+                                        itemStyle: {
+                                            emphasis: {
+                                                shadowBlur: 10,
+                                                shadowOffsetX: 0,
+                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                            }
+                                        }
+                                    })
                                 }
+
                                 resolve(obj);
                             })
                             .catch(err=>{
@@ -1160,6 +1267,7 @@
             },
             //时间范围改变
             'dateArr'(nv,ov){
+                this.loading = true;
                 //获取数据
                 for(let i in this.layout){
                     this.chartsCount += 1;
@@ -1179,6 +1287,45 @@
                     }
 
                 }
+            },
+            intervalObj:{
+                handler(newV,oldV) {
+                    //判断是否启用轮询获取数据
+                    if (this.intervalObj.state){
+                        //判断参数是否合法(是否有刷新间隔时间)
+                        if(this.intervalObj.interval){//合法
+                            clearInterval(this.interval)
+                            this.interval = setInterval(()=>{
+                                for(let i in this.layout){
+                                    this.loading = false;
+                                    this.chartsCount += 1;
+                                    //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                                    if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
+                                        this.getEchartsConstruction(this.layout[i])
+                                            .then((res)=>{
+                                                //获取图例数据
+                                                return this.getEchartsData(res)
+                                            })
+                                            .then((res)=>{
+                                                //加载图例
+                                                return this.creatEcharts(res)
+                                            })
+                                    }else if(this.layout[i].chartType == 'systemChart'){
+
+                                    }
+
+                                }
+                            },this.intervalObj.interval)
+                        }else{//不合法
+                            this.errState = true;
+                        }
+
+                    }else {
+                        clearInterval(this.interval)
+                    }
+                },
+                immediate: true,
+                deep: true
             },
             'wordsState'(){
                 if(this.wordsState){

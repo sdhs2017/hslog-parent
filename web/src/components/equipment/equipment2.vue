@@ -62,7 +62,7 @@
                             </li>
                             <li class="inf-iswork">
                                 <div class="inf-tit">是否启用：</div>
-                                <div class="inf-val">{{i.port == '1' ? '是' : '否'}}</div>
+                                <div class="inf-val">{{i.startUp == '1' ? '是' : '否'}}</div>
                             </li>
                             <li class="inf-starttime">
                                 <div class="inf-tit">创建时间：</div>

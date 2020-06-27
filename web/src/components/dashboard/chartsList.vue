@@ -195,7 +195,6 @@
                 layer.confirm('您确定删除么？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=> {
-                    layer.load(1);
                     this.$nextTick(()=>{
                         this.loading = true;
                         this.$axios.post(this.$baseUrl+'/BI/deleteVisualizationById.do',this.$qs.stringify({

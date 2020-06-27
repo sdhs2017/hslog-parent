@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">User-Agent信息
-            <v-flowchartfrom class="from-wapper" refreshBus="userAgentInfoRefreshBus" dataBus="userAgentInfoDataBus" switchBus="userAgentInfoSwitchBus" timeBus="userAgentInfoTimeBus"></v-flowchartfrom>
+            <dateLayout class="from-wapper" busName="userAgentInfoDataBus" :defaultVal = "defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper system-chart">
-                            <agentSystem_bar :params="params" :setIntervalObj="intervalObj"></agentSystem_bar>
+                            <agentSystem_bar :params="param" :setIntervalObj="intervalObj"></agentSystem_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper system-chart">
-                            <agentSystem_pie :params="params" :setIntervalObj="intervalObj"></agentSystem_pie>
+                            <agentSystem_pie :params="param" :setIntervalObj="intervalObj"></agentSystem_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -25,12 +25,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper browser-chart">
-                            <agentBrowser_bar :params="params" :setIntervalObj="intervalObj"></agentBrowser_bar>
+                            <agentBrowser_bar :params="param" :setIntervalObj="intervalObj"></agentBrowser_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper browser-chart">
-                            <agentBrowser_pie :params="params" :setIntervalObj="intervalObj"></agentBrowser_pie>
+                            <agentBrowser_pie :params="param" :setIntervalObj="intervalObj"></agentBrowser_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -41,55 +41,66 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
-    import vEcharts from '../common/echarts'
+    import dateLayout from '../common/dateLayout'
     import bus from '../common/bus';
     import agentBrowser_bar from '../charts/flow/userAgentInfo/agentBrowser_bar'
     import agentBrowser_pie from '../charts/flow/userAgentInfo/agentBrowser_pie'
     import agentSystem_bar from '../charts/flow/userAgentInfo/agentSystem_bar'
     import agentSystem_pie from '../charts/flow/userAgentInfo/agentSystem_pie'
-    import {dateFormat} from '../../../static/js/common'
+    import {dateFormat,setChartParam} from '../../../static/js/common'
     export default {
         name: "userAgentInfo",
         data() {
             return {
-                params:{
-                    timeInterval:3600
+                //请求参数
+                param:{
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'1-hour'
                 },
+                //轮询参数
                 intervalObj:{
                     state:true,
                     interval:'5000'
                 },
-                dataTime:'3600',
+                //时间控件参数
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'1-hour',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:true,
+                    //轮询数值间隔
+                    intervalVal:'5',
+                    //轮询参数类型
+                    intervalType:'second',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                }
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('userAgentInfoRefreshBus',(val)=>{
-                this.intervalObj.interval = val
-            })
-            /*监听数据时间改变*/
-            bus.$on('userAgentInfoDataBus',(val)=>{
-                this.dataTime = val;
-                this.params = {
-                    timeInterval:val
-                }
-            })
-            /*监听switch改变*/
-            bus.$on('userAgentInfoSwitchBus',(obj)=>{
-                this.intervalObj.state = obj.switchVal;
-                if (obj.switchVal) {
-                    this.params = {
-                        timeInterval:this.dataTime
-                    }
-                }
-            })
             /*监听日期改变*/
-            bus.$on('userAgentInfoTimeBus',(obj)=>{
-                this.params = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
-                }
+            bus.$on('userAgentInfoDataBus',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.param = arr[0];
+                this.intervalObj = arr[1]
             })
 
         },
@@ -98,14 +109,10 @@
         methods:{
         },
         beforeDestroy(){
-            bus.$off('userAgentInfoRefreshBus');
-            bus.$off('userAgentInfoDataBus')
-            bus.$off('userAgentInfoSwitchBus')
-            bus.$off('userAgentInfoTimeBus')
+            bus.$off('userAgentInfoDataBus');
         },
         components:{
-            vFlowchartfrom,
-            vEcharts,
+            dateLayout,
             agentBrowser_bar,
             agentBrowser_pie,
             agentSystem_bar,
@@ -118,7 +125,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 5px;
+        margin-top: 10px;
     }
     .flow-echarts-con{
         padding: 20px;

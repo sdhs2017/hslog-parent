@@ -3,12 +3,12 @@
         <div class="b-left"></div>
         <div class="b-right">
             <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（阈值设置）</span> </div>
-            <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span @click="changIp"></span></div>
+            <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span class="set-rang" @click="editIpWapper = true">（修改IP）</span></div>
 <!--            <div class="backupConfig">备份时间：<span  @click="backupWapper = true">{{this.backupObj2.backupDate === '' ? '未设置' :this.backupObj2.backupDate}}</span></div>-->
             <div class="company"> 版权所有  © 2020-2021  山东九州信泰信息科技股份有限公司  </div>
 <!--            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>-->
         </div>
-        <el-dialog title="阈值告警数值大小选择" :visible.sync="diskUsedState" width="440px">
+        <el-dialog title="系统磁盘及数据批量采集阈值设置" :visible.sync="diskUsedState" width="440px" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-form>
                 <p style="color: #fff;">系统盘阈值大小：{{sysThresholdValue}}%</p>
                 <input type="range" v-model="sysThresholdValue" id="myRange1" style="width: 100%;" min = "0" step="1" max="100">
@@ -21,6 +21,11 @@
                 <p>数据盘 : <span style="color: #1ab394;">{{diskObj.dataAllDisk}}</span>(总) <span style="color: #e4956d;margin-left: 20px;">{{diskObj.dataUsedDisk}}</span>(已用)</p>
             </div>
             <p  style="color: #e4956d;">注：阈值修改会影响数据采集，请慎重选择。</p>
+            <el-form ref="form" label-width="120px" label-position="left" style="border-top: 1px solid #485b71;margin-top: 10px;padding-top: 10px;">
+                <el-form-item label="数据批量采集">
+                    <el-input v-model="es_bulk" size="mini" type="number" min="1"></el-input>
+                </el-form-item>
+            </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="okBtn">确 定</el-button>
                 <el-button @click="diskUsedState = false">取 消</el-button>
@@ -49,6 +54,23 @@
                 <el-button @click="backupWapper = false">取 消</el-button>
             </div>
         </el-dialog>
+        <el-dialog title="修改IP" :visible.sync="editIpWapper" width="440px">
+            <el-form label-width="120px" label-position="left">
+                <el-form-item label="修改后IP:" >
+                    <el-input v-model="changeIpObj.ip" size="mini"  min="1"></el-input>
+                </el-form-item>
+                <el-form-item label="子网掩码:" >
+                    <el-input v-model="changeIpObj.Netmask" size="mini"  min="1"></el-input>
+                </el-form-item>
+                <el-form-item label="网关:" >
+                    <el-input v-model="changeIpObj.gateway" size="mini"  min="1"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="saveIp()" :disabled="!(changeIpObj.ip !== '' && changeIpObj.Netmask !== ''&& changeIpObj.gateway !== '')">确 定</el-button>
+                <el-button @click="editIpWapper = false">取 消</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -58,7 +80,15 @@
     export default {
         data(){
             return{
+                loading:false,
+                es_bulk:1,
                 thresholdText:'状态获取中',
+                editIpWapper:false,//修改IP 状态
+                changeIpObj:{ //ip参数
+                    ip:'',
+                    Netmask:'',
+                    gateway:''
+                },
                 diskUsedState:false,//显示状态-磁盘空间
                 systemIp:'获取中',//系统ip
                 systemIpChangeState:false,
@@ -72,8 +102,8 @@
                     dataAllDisk	: '',//数据盘总容量
                     dataUsedDisk: ''//数据盘已用容量
                 },
-                backupWapper:false,
-                backupObj:{
+                backupWapper:false,//备份状态
+                backupObj:{ //备份参数
                     backupState:false,
                     backupDate:''
                 },
@@ -105,6 +135,17 @@
                     localStorage.setItem('backupDate',JSON.stringify(this.backupObj))
                 }
             },10000)*/
+        },
+        watch:{
+            'editIpWapper'(){
+                if(!this.editIpWapper){
+                    this.changeIpObj={
+                        ip:'',
+                        Netmask:'',
+                        gateway:''
+                    }
+                }
+            }
         },
         methods:{
             /*获取磁盘使用大小*/
@@ -149,11 +190,50 @@
             /*设置阈值*/
             setRang(){
                 this.diskUsedState = true;
+                this.getEsBulk();
+            },
+            /*设置数据批量采集阈值*/
+            getEsBulk(){
+                this.loading = true;
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/configuration/selectByKey.do',this.$qs.stringify({
+                        configuration_key:'es_bulk'
+                    }))
+                        .then(res=>{
+                            this.loading = false;
+                            this.es_bulk = res.data.data;
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
             },
             okBtn(){
-                this.thresholdText = '状态获取中';
-                this.getDiskUsed();
-                this.diskUsedState = false;
+                //设置数据批量采集阈值
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/configuration/upsert.do',this.$qs.stringify({
+                        configuration_key:'es_bulk',
+                        configuration_value:this.es_bulk
+
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            if(res.data.success == "true"){
+                                layer.msg(res.data.message,{icon:1})
+                                this.thresholdText = '状态获取中';
+                                this.getDiskUsed();
+                                this.diskUsedState = false;
+                            }else{
+                                layer.msg(res.data.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
+
             },
             /*获取Ip*/
             getIp(){
@@ -171,8 +251,23 @@
                     })
             },
             /*修改Ip*/
-            changIp(){
+            saveIp(){
+                this.$nextTick(()=>{
+                    layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/manage/modifyServerIP.do',this.$qs.stringify({
+                        ipaddr:this.changeIpObj.ip,
+                        gateway:this.changeIpObj.gateway,
+                        netmask:this.changeIpObj.netmask
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
 
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
             },
             /*备份*/
             saveBackup(){

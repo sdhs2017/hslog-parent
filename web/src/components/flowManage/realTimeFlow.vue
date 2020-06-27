@@ -1,7 +1,8 @@
 <template>
     <div class="content-bg">
         <div class="top-title">全局实时流量
-            <v-flowchartfrom class="from-wapper" refreshBus="realTimeFlowRefreshBus" :refreshObj="refreshObj"></v-flowchartfrom>
+<!--            <v-flowchartfrom class="from-wapper" refreshBus="realTimeFlowRefreshBus" :refreshObj="refreshObj"></v-flowchartfrom>-->
+            <dateLayout class="from-wapper" busName="realTimeFlowRefreshBus" :defaultVal = "defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -49,19 +50,24 @@
 
 <script>
     import vFlowchartfrom from '../common/flowChartsFrom'
-    //import vEcharts from '../common/echarts'
+    import dateLayout from '../common/dateLayout'
+    import {dateFormat,setChartParam} from '../../../static/js/common'
     import allflow_timeline from '../charts/flow/realTime/allflow_timeline'
     import allPacketCount_timeline from '../charts/flow/realTime/allPacketCount_timeline'
     import allUsedPer_gauge from '../charts/flow/realTime/allUsedPer_gauge'
     import allUsedPer_timeline from '../charts/flow/realTime/allUsedPer_timeline'
     import bus from '../common/bus';
-    import {dateFormat} from '../../../static/js/common'
     export default {
         name: "realTimeFlow",
         data() {
             return {
                 param:{
-                    timeInterval:5
+                    //timeInterval:5
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'5-min'
                 },
                 barParam:{},
                 intervalObj:{
@@ -88,8 +94,20 @@
                 refreshIntTime :'5000',
                 chartType:'timeline',
                 //全局利用率百分比
-                bandwidth:10,
+                bandwidth:100,
                 bandwidthArr:[
+                    {
+                        label:'1M',
+                        value:1
+                    },
+                    {
+                        label:'2M',
+                        value:2
+                    },
+                    {
+                        label:'5M',
+                        value:5
+                    },
                     {
                         label:'10M',
                         value:10
@@ -101,15 +119,63 @@
                     {
                         label:'1000M',
                         value:1000
+                    },{
+                        label:'10000M',
+                        value:10000
                     }
                 ],
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:true,
+                    //轮询数值间隔
+                    intervalVal:'5',
+                    //轮询参数类型
+                    intervalType:'second',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'min',
+                    //‘快速选择’功能参数数值
+                    dateCount:'5',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    changeState:true,
+                }
             }
         },
         created(){
             /*监听刷新时间改变*/
-            bus.$on('realTimeFlowRefreshBus',(val)=>{
-                this.intervalObj.interval = val*1000
-                this.refreshIntTime = this.intervalObj.interval
+            bus.$on('realTimeFlowRefreshBus',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.param = arr[0];
+                this.intervalObj = arr[1]
+               /* //赋值参数
+                this.param={
+                    intervalValue:val.intervalVal,
+                    intervalType:val.intervalType,
+                    starttime:val.starttime,
+                    endtime:val.endtime,
+                    last:val.lastVal
+                }
+                this.intervalObj.state = val.intervalState;
+                if(val.intervalState){
+                    if(val.intervalType === 'second'){
+                        this.intervalObj.interval = val.intervalVal * 1000;
+                    }else if(val.intervalType === 'minute'){
+                        this.intervalObj.interval = val.intervalVal * 1000 * 60;
+                    }else{
+                        this.intervalObj.interval = val.intervalVal * 1000 * 60 * 60;
+                    }
+                }*/
             })
 
         },
@@ -122,6 +188,7 @@
         },
         components:{
             vFlowchartfrom,
+            dateLayout,
             allflow_timeline,
             allPacketCount_timeline,
             allUsedPer_gauge,
@@ -134,7 +201,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 5px;
+        margin-top: 10px;
     }
     .flow-echarts-con{
         padding: 20px;

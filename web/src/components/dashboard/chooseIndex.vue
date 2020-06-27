@@ -62,9 +62,7 @@
         data() {
             return {
                 loading:false,
-                /*index:'',
-                inputVal:'',
-                dataArr:[]*/
+                dateField:'',
                 templateVal:'',
                 templateOpt:[],
                 indexFirstVal:'',
@@ -94,6 +92,7 @@
                         this.templateVal = this.arr[0];
                         this.indexFirstVal = this.arr[1];
                         this.indexSecondVal = this.arr[2];
+                        this.dateField = this.arr[3];
                     })
                 },
                 deep: true
@@ -148,7 +147,12 @@
                     this.$axios.post(this.$baseUrl+'/metadata/getTemplates.do',this.$qs.stringify())
                         .then(res=>{
                             this.loading = false;
-                            this.templateOpt = res.data;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.templateOpt = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
                         })
                         .catch(err=>{
                             this.loading = false;
@@ -165,13 +169,13 @@
                         .then(res=>{
                             this.loading = false;
                             //设置index前缀名组
-                            this.indexFirstOpt = res.data;
-                         /*   //判断数组长度是否为1  是 则直接赋值下一级
-                            if(this.indexFirstOpt.length === 1){
-                                this.indexFirstVal = res.data[0].value;
-                                this.indexFirstValChange(this.indexFirstVal)
-                            }*/
-
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.indexFirstOpt = JSON.parse(obj.data.preIndexName);
+                                this.dateField = obj.data.dateField;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
                         })
                         .catch(err=>{
                             this.loading = false;
@@ -190,13 +194,12 @@
                         .then(res=>{
                             this.loading = false;
                             //设置index后缀时间组
-                            this.indexSecondOpt = res.data;
-                          /*  //判断数组长度是否为1  是 则直接赋值下一级
-                            if(this.indexSecondOpt.length === 1){
-                                this.indexSecondVal = res.data[0].value;
-                                this.indexSecondValChange(this.indexSecondVal)
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.indexSecondOpt = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
                             }
-*/
                         })
                         .catch(err=>{
                             this.loading = false;
@@ -214,7 +217,7 @@
                 this.getIndexFirstOpt(val);
                 this.$nextTick(()=>{
                     //绑定事件
-                    let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal]
+                    let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal,this.dateField]
                     bus.$emit(this.busName,arr);
                 })
 
@@ -228,14 +231,14 @@
                 this.getIndexSecondOpt(val);
                 this.$nextTick(()=>{
                     //绑定事件
-                    let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal]
+                    let arr = [this.templateVal,this.indexFirstVal,this.indexSecondVal,this.dateField]
                     bus.$emit(this.busName,arr);
                 })
 
             },
             /*indexSecond改变事件*/
             indexSecondValChange(val){
-                let arr = [this.templateVal,this.indexFirstVal,val]
+                let arr = [this.templateVal,this.indexFirstVal,val,this.dateField]
                 //绑定事件
                 bus.$emit(this.busName,arr);
             },

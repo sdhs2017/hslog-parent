@@ -1,13 +1,13 @@
 <template>
     <!--源ip地址流量统计--柱状图-->
     <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
         <v-echarts v-else echartType="bar" :echartData = "this.barData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
+    import vEcharts from '../../../common/echarts_n'
     import {barDataFunc} from "../../common";
     import bus from '../../../common/bus';
     export default {
@@ -47,16 +47,21 @@
             return {
                 loading:false,
                 errState:false,
+                errText:'此报表为实时报表，与此仪表盘性质不符',
                 barData:{//柱状图数据
                     baseConfig:{
                         title:'',
                         xAxisName:'源IP',
-                        yAxisName:'数据包长度/KB',
+                        yAxisName:'数据包长度/MB',
                         rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
+                        itemColor:[
+                            ['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
+                        ]
                     },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                    data:{
+                        dimensions:[],
+                        source:[]
+                    }
                 },
                 //循环
                 interval:'',
@@ -73,7 +78,9 @@
                 handler(newV,oldV) {
                     //判断值是否有变化
                     if(JSON.stringify(newV) !== '{}' && JSON.stringify(newV) !== JSON.stringify(oldV)){
-                        this.loading = true;
+                        if(!this.setIntervalObj.state){
+                            this.loading = true
+                        }
                         this.getEchartData(this.params)
                     }
                 },
@@ -107,14 +114,18 @@
             //获取数据
             getEchartData(params){
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/flow/getSrcIPFlow.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/flow/getSrcIPFlow_barAndPie.do',this.$qs.stringify(params))
                         .then((res) => {
                             this.loading = false;
-                            const arr = res.data;
-                            //赋值
-                            this.barData.xAxisArr = barDataFunc(arr)[0];
-                            this.barData.yAxisArr = barDataFunc(arr)[1];
-                            //console.log(this.barData(obj)[0])
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.errState = false;
+                                this.barData.data = obj.data[0]
+                            }else{
+                                this.errState = true;
+                                this.errText = obj.message;
+                                clearInterval(this.interval)
+                            }
                         })
                         .catch((err) => {
                             this.loading = false;

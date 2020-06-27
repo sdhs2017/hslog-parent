@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">协议流量
-            <v-flowchartfrom class="from-wapper" refreshBus="protocolFlowRefreshBus" dataBus="protocolFlowDataBus" switchBus="protocolFlowSwitchBus" timeBus="protocolFlowTimeBus"></v-flowchartfrom>
+            <dateLayout class="from-wapper" busName="protocolFlowTimeBus" :defaultVal = "defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <transport_bar :params="params" :setIntervalObj="intervalObj"></transport_bar>
+                            <transport_bar :params="param" :setIntervalObj="intervalObj"></transport_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <transport_pie :params="params" :setIntervalObj="intervalObj"></transport_pie>
+                            <transport_pie :params="param" :setIntervalObj="intervalObj"></transport_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,12 +24,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <application_bar :params="params" :setIntervalObj="intervalObj"></application_bar>
+                            <application_bar :params="param" :setIntervalObj="intervalObj"></application_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <application_pie :params="params" :setIntervalObj="intervalObj"></application_pie>
+                            <application_pie :params="param" :setIntervalObj="intervalObj"></application_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -39,23 +39,23 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <multiple_bar :params="params" :setIntervalObj="intervalObj"></multiple_bar>
+                            <multiple_bar :params="param" :setIntervalObj="intervalObj"></multiple_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <multiple_pie :params="params" :setIntervalObj="intervalObj"></multiple_pie>
+                            <multiple_pie :params="param" :setIntervalObj="intervalObj"></multiple_pie>
                         </div>
                     </el-col>
                 </el-row>
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
+    import dateLayout from '../common/dateLayout'
     import application_bar from '../charts/flow/protocoFlow/application_bar'
     import application_pie from '../charts/flow/protocoFlow/application_pie'
     import multiple_bar from '../charts/flow/protocoFlow/multiple_bar'
@@ -63,63 +63,71 @@
     import transport_bar from '../charts/flow/protocoFlow/transport_bar'
     import transport_pie from '../charts/flow/protocoFlow/transport_pie'
     import bus from '../common/bus';
-    import {dateFormat} from '../../../static/js/common'
+    import {dateFormat,setChartParam} from '../../../static/js/common'
     export default {
-        name: "protocolFlow",
+        name: "protocolFlow2",
         data() {
             return {
-                params:{
-                    timeInterval:3600
+                //请求参数
+                param:{
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'1-hour'
                 },
+                //轮询参数
                 intervalObj:{
                     state:true,
                     interval:'5000'
                 },
-                dataTime:'3600',
+                //时间控件参数
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'1-hour',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:true,
+                    //轮询数值间隔
+                    intervalVal:'5',
+                    //轮询参数类型
+                    intervalType:'second',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                }
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('protocolFlowRefreshBus',(val)=>{
-                this.intervalObj.interval = val
-            })
-            /*监听数据时间改变*/
-            bus.$on('protocolFlowDataBus',(val)=>{
-                this.dataTime = val;
-                this.params = {
-                    timeInterval:val
-                }
-            })
-            /*监听switch改变*/
-            bus.$on('protocolFlowSwitchBus',(obj)=>{
-                this.intervalObj.state = obj.switchVal;
-                if (obj.switchVal) {
-                    this.params = {
-                        timeInterval:this.dataTime
-                    }
-                }
-            })
+
             /*监听日期改变*/
             bus.$on('protocolFlowTimeBus',(obj)=>{
-                this.params = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
-                }
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.param = arr[0];
+                this.intervalObj = arr[1]
             })
         },
-        mounted(){
-        },
+        mounted(){},
         methods:{
-
         },
         beforeDestroy(){
-            bus.$off('protocolFlowRefreshBus');
-            bus.$off('protocolFlowDataBus')
-            bus.$off('protocolFlowSwitchBus')
             bus.$off('protocolFlowTimeBus')
         },
         components:{
-            vFlowchartfrom,
+            dateLayout,
             application_bar,
             application_pie,
             multiple_bar,
@@ -134,7 +142,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 5px;
+        margin-top: 10px;
     }
     .flow-echarts-con{
         padding: 20px;

@@ -1,13 +1,13 @@
 <template>
     <!--广播包、组播包统计--柱状图-->
     <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
         <v-echarts v-else echartType="bar" :echartData = "this.barData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
+    import vEcharts from '../../../common/echarts_n'
     import {barDataFunc} from "../../common";
     import bus from '../../../common/bus';
     export default {
@@ -47,16 +47,19 @@
             return {
                 loading:false,
                 errState:false,
+                errText:'此报表为实时报表，与此仪表盘性质不符',
                 barData:{//柱状图数据
                     baseConfig:{
                         title:'',
                         xAxisName:'类型',
                         yAxisName:'数据包/个数',
                         rotate:'20',
-                        itemColor:['rgba(68,47,148,0.5)','rgba(15,219,243,1)']
+                        itemColor:[['rgba(68,47,148,0.5)','rgba(15,219,243,1)']]
                     },
-                    xAxisArr:['组播包','广播包'],
-                    yAxisArr:[]
+                    data:{
+                        dimensions:[],
+                        source:[]
+                    }
                 },
                 //循环
                 interval:'',

@@ -1,7 +1,8 @@
 <template>
     <div class="content-bg">
         <div class="top-title">IP主机流量
-            <v-flowchartfrom class="from-wapper" refreshBus="IPHostFlowRefreshBus" dataBus="IPHostFlowDataBus" switchBus="IPHostFlowSwitchBus" timeBus="IPHostFlowTimeBus"></v-flowchartfrom>
+            <!--            <v-basedate class="from-wapper" type="datetimerange" busName="IPHostFlowTimeBus2"></v-basedate>-->
+            <dateLayout class="from-wapper" busName="IPHostFlowTimeBus" :defaultVal = "defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -9,12 +10,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <srcIp_bar :params="params" :setIntervalObj="intervalObj"></srcIp_bar>
+                            <srcIp_bar :params="param" :setIntervalObj="intervalObj"></srcIp_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <srcIp_pie :params="params" :setIntervalObj="intervalObj"></srcIp_pie>
+                            <srcIp_pie :params="param" :setIntervalObj="intervalObj"></srcIp_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,87 +25,93 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <dstIp_bar :params="params" :setIntervalObj="intervalObj"></dstIp_bar>
+                            <dstIp_bar :params="param" :setIntervalObj="intervalObj"></dstIp_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <dstIp_pie :params="params" :setIntervalObj="intervalObj"></dstIp_pie>
+                            <dstIp_pie :params="param" :setIntervalObj="intervalObj"></dstIp_pie>
                         </div>
                     </el-col>
                 </el-row>
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
-    import vEcharts from '../common/echarts'
+    import dateLayout from '../common/dateLayout'
     import bus from '../common/bus';
     import dstIp_bar from '../charts/flow/ipHostFlow/dstIp_bar'
     import dstIp_pie from '../charts/flow/ipHostFlow/dstIp_pie'
     import srcIp_bar from '../charts/flow/ipHostFlow/srcIp_bar'
     import srcIp_pie from '../charts/flow/ipHostFlow/srcIp_pie'
-    import {dateFormat} from '../../../static/js/common'
+    import {dateFormat,setChartParam} from '../../../static/js/common'
     export default {
-        name: "IPHostFlow",
+        name: "IPHostFlow2",
         data() {
             return {
-                params:{
-                    timeInterval:3600
+                //请求参数
+                param:{
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'1-hour'
                 },
+                //轮询参数
                 intervalObj:{
                     state:true,
                     interval:'5000'
                 },
-                dataTime:'3600',
+                //时间控件参数
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'1-hour',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:true,
+                    //轮询数值间隔
+                    intervalVal:'5',
+                    //轮询参数类型
+                    intervalType:'second',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                }
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('IPHostFlowRefreshBus',(val)=>{
-                this.intervalObj.interval = val
-            })
-            /*监听数据时间改变*/
-            bus.$on('IPHostFlowDataBus',(val)=>{
-                this.dataTime = val;
-                this.params = {
-                    timeInterval:val
-                }
-            })
-            /*监听switch改变*/
-            bus.$on('IPHostFlowSwitchBus',(obj)=>{
-                this.intervalObj.state = obj.switchVal;
-                if (obj.switchVal) {
-                    this.params = {
-                        timeInterval:this.dataTime
-                    }
-                }
-            })
             /*监听日期改变*/
             bus.$on('IPHostFlowTimeBus',(obj)=>{
-                this.params = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
-                }
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.param = arr[0];
+                this.intervalObj = arr[1]
             })
         },
-        mounted(){
-        },
+        mounted(){},
         methods:{
 
         },
         beforeDestroy(){
-            bus.$off('IPHostFlowRefreshBus');
-            bus.$off('IPHostFlowDataBus')
-            bus.$off('IPHostFlowSwitchBus')
             bus.$off('IPHostFlowTimeBus')
         },
         components:{
-            vFlowchartfrom,
-            vEcharts,
+            dateLayout,
             dstIp_bar,
             dstIp_pie,
             srcIp_bar,
@@ -117,7 +124,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 5px;
+        margin-top: 10px;
     }
     .flow-echarts-con{
         padding: 20px;

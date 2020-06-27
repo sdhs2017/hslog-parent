@@ -55,7 +55,7 @@
                         chartName="eqSyslogHourlyEventCount_moreline"
                         echartType="moreline"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{tableUrl:'ecsCommon/getEventListByBlend.do'}"
+                        :urls="{tableUrl:'ecsCommon/getListByBlend.do'}"
                     ></v-echarts-Table>
                 </el-col>
             </el-row>
@@ -78,7 +78,7 @@
                         echartType="bar-pie"
                         :eventTypeEchart = "true"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{tableUrl:'ecsCommon/getEventListByBlend.do'}"
+                        :urls="{tableUrl:'ecsCommon/getListByBlend.do'}"
                     ></v-echarts-Table>
                 </el-col>
             </el-row>

@@ -1,14 +1,13 @@
 <template>
     <!--协议统计--饼图-->
     <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
         <v-echarts v-else echartType="pie" :echartData = "this.pieData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
-    import {pieDataFunc} from "../../common";
+    import vEcharts from '../../../common/echarts_n'
     import bus from '../../../common/bus';
     export default {
         name: "multiple_pie",
@@ -52,8 +51,10 @@
                         title:'',
                         hoverText:'百分比'
                     },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                    data:{
+                        dimensions:[],
+                        source:[]
+                    }
                 },
                 //循环
                 interval:'',
@@ -70,7 +71,9 @@
                 handler(newV,oldV) {
                     //判断值是否有变化
                     if(JSON.stringify(newV) !== '{}' && JSON.stringify(newV) !== JSON.stringify(oldV)){
-                        this.loading = true;
+                        if(!this.setIntervalObj.state){
+                            this.loading = true
+                        }
                         this.getEchartData(this.params)
                     }
                 },
@@ -102,15 +105,19 @@
         methods:{
             //获取数据
             getEchartData(params){
-
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/flow/getMultipleLength.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/flow/getMultipleLength_barAndPie.do',this.$qs.stringify(params))
                         .then((res) => {
                             this.loading = false;
-                            const arr = res.data;
-                            //赋值
-                            this.pieData.yAxisArr = pieDataFunc(arr);
-                            //console.log(this.barData(obj)[0])
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.errState = false;
+                                this.pieData.data = obj.data[0]
+                            }else{
+                                this.errState = true;
+                                this.errText = obj.message;
+                                clearInterval(this.interval)
+                            }
                         })
                         .catch((err) => {
                             this.loading = false;

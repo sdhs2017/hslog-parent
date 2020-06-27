@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">资产流量
-            <v-flowchartfrom class="from-wapper" refreshBus="equipmentFlowRefreshBus_n" dataBus="equipmentFlowDataBus_n" switchBus="equipmentFlowSwitchBus_n" timeBus="equipmentFlowTimeBus_n"></v-flowchartfrom>
+            <dateLayout class="from-wapper" busName="equipmentFlowTimeBus" :defaultVal = "defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <eqippacketbar :params="params" :setIntervalObj="intervalObj"></eqippacketbar>
+                            <eqippacketbar :params="param" :setIntervalObj="intervalObj"></eqippacketbar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <eqippacketpie :params="params" :setIntervalObj="intervalObj"></eqippacketpie>
+                            <eqippacketpie :params="param" :setIntervalObj="intervalObj"></eqippacketpie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,12 +24,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <eqserverpacketbar :params="params" :setIntervalObj="intervalObj"></eqserverpacketbar>
+                            <eqserverpacketbar :params="param" :setIntervalObj="intervalObj"></eqserverpacketbar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <eqserverpacketpie :params="params" :setIntervalObj="intervalObj"></eqserverpacketpie>
+                            <eqserverpacketpie :params="param" :setIntervalObj="intervalObj"></eqserverpacketpie>
                         </div>
                     </el-col>
                 </el-row>
@@ -40,69 +40,77 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
+    import dateLayout from '../common/dateLayout'
     import vEcharts from '../common/echarts'
-    import bus from '../common/bus';
     import eqippacketbar from '../charts/flow/equipmentFlow/eqIpPacket_bar'
     import eqippacketpie from '../charts/flow/equipmentFlow/eqIpPacket_pie'
     import eqserverpacketbar from '../charts/flow/equipmentFlow/eqServerPacket_bar'
     import eqserverpacketpie from '../charts/flow/equipmentFlow/eqServerPacket_pie'
-    import {dateFormat} from '../../../static/js/common'
+    import bus from '../common/bus';
+    import {dateFormat,setChartParam} from '../../../static/js/common'
     export default {
-        name: "equipmentFlow",
+        name: "equipmentFlow2",
         data() {
             return {
-                params:{
-                    timeInterval:3600
+                //请求参数
+                param:{
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'1-hour'
                 },
+                //轮询参数
                 intervalObj:{
                     state:true,
                     interval:'5000'
                 },
-                dataTime:'3600',
+                //时间控件参数
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'1-hour',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:true,
+                    //轮询数值间隔
+                    intervalVal:'5',
+                    //轮询参数类型
+                    intervalType:'second',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                }
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('equipmentFlowRefreshBus_n',(val)=>{
-                this.intervalObj.interval = val
-            })
-            /*监听数据时间改变*/
-            bus.$on('equipmentFlowDataBus_n',(val)=>{
-                this.dataTime = val;
-                this.params = {
-                    timeInterval:val
-                }
-            })
-            /*监听switch改变*/
-            bus.$on('equipmentFlowSwitchBus_n',(obj)=>{
-                this.intervalObj.state = obj.switchVal;
-                if (obj.switchVal) {
-                    this.params = {
-                        timeInterval:this.dataTime
-                    }
-                }
-            })
             /*监听日期改变*/
-            bus.$on('equipmentFlowTimeBus_n',(obj)=>{
-                this.params = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
-                }
+            bus.$on('equipmentFlowTimeBus',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.param = arr[0];
+                this.intervalObj = arr[1]
             })
         },
-        mounted(){
-        },
+        mounted(){},
         methods:{
         },
         beforeDestroy(){
-            bus.$off('equipmentFlowRefreshBus_n');
-            bus.$off('equipmentFlowDataBus_n')
-            bus.$off('equipmentFlowSwitchBus_n')
-            bus.$off('equipmentFlowTimeBus_n')
+            bus.$off('equipmentFlowTimeBus')
         },
         components:{
-            vFlowchartfrom,
+            dateLayout,
             vEcharts,
             eqippacketbar,
             eqippacketpie,
@@ -116,7 +124,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 5px;
+        margin-top: 10px;
     }
     .flow-echarts-con{
         padding: 20px;

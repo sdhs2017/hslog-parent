@@ -1,13 +1,13 @@
 <template>
     <!--单个资产事件级别数量统计--柱状图-->
     <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此为单个资产的报表,缺少必要条件。</div>
-        <v-echarts echartType="pie" :echartData = "this.pieData" :busName="busName" ></v-echarts>
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
+        <v-echarts v-else echartType="pie" :echartData = "this.pieData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
+    import vEcharts from '../../../common/echarts_n'
     import bus from '../../../common/bus';
     export default {
         name: "eqEventType_pie",
@@ -31,12 +31,22 @@
                         title:'事件类型数量统计',
                     }
                 }
+            },
+            setIntervalObj:{
+                type:Object,
+                default(){
+                    return {
+                        state:false,
+                        interval:5000
+                    }
+                }
             }
         },
         data() {
             return {
                 loading:false,
                 errState:false,
+                errText:'此为单个资产的报表,缺少必要条件。',
                 pieData:{//柱状图数据
                     baseConfig:{
                         title:'',
@@ -44,25 +54,55 @@
                         yAxisName:'数量/条',
                         hoverText:'数量',
                     },
-                    xAxisArr:[],
-                    yAxisArr:[]
+                    data:{
+                        dimensions:[],
+                        source:[]
+                    }
                 },
+                interval:''
             }
         },
         created(){
             this.pieData.baseConfig.title = this.baseConProp.title
+        },
+        beforeDestroy(){
+            clearInterval(this.interval)
         },
         watch:{
             params:{
                 handler(newV,oldV) {
                     if(JSON.stringify(newV) != JSON.stringify(oldV) && JSON.stringify(newV) !== '{}'){
                         //判断条件合法性
-                        if(newV.hsData && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
-                            this.params.groupField='event.action';
+                        if(newV.queryParam && JSON.parse(newV.queryParam)['fields.equipmentid']){//合法 显示正常数据
+                            if(!this.setIntervalObj.state){
+                                this.loading = true
+                            }
                             this.getEchartData(this.params)
                         }else{//显示错误提示
                             this.errState = true
                         }
+                    }
+                },
+                immediate: true,
+                deep: true
+            },
+            setIntervalObj:{
+                handler(newV,oldV) {
+                    //判断是否启用轮询获取数据
+                    if (this.setIntervalObj.state){
+                        //判断参数是否合法(是否有刷新间隔时间)
+                        if(this.setIntervalObj.interval){//合法
+                            this.errState = false;
+                            clearInterval(this.interval)
+                            this.interval = setInterval(()=>{
+                                this.getEchartData(this.params)
+                            },this.setIntervalObj.interval)
+                        }else{//不合法
+                            this.errState = true;
+                        }
+
+                    }else {
+                        clearInterval(this.interval)
                     }
                 },
                 immediate: true,
@@ -72,15 +112,18 @@
         methods:{
             //获取数据
             getEchartData(params){
-                this.loading = true;
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/ecsCommon/getCountGroupByParam.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/log/getCountGroupByEventAction_barAndPie.do',this.$qs.stringify(params))
                         .then((res) => {
                             this.loading = false;
-                            //事件饼图
-                            this.pieData.yAxisArr = [];
-                            for(let i in res.data[0]){
-                                this.pieData.yAxisArr.push({name:i,value:res.data[0][i]});
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.errState = false;
+                                this.pieData.data = obj.data[0]
+                            }else{
+                                this.errState = true;
+                                this.errText = obj.message;
+                                clearInterval(this.interval)
                             }
                         })
                         .catch((err) => {

@@ -1,13 +1,13 @@
 <template>
     <!--数据包类型统计--实时折线-->
-    <div class="eb">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
         <v-echarts v-else echartType="timeline" :echartData = "this.timeLineData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
+    import vEcharts from '../../../common/echarts_n'
     import {barDataFunc} from "../../common";
     import bus from '../../../common/bus';
     export default {
@@ -45,7 +45,9 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
+                errText:'此报表为实时报表，与此仪表盘性质不符',
                 timeLineData:{
                     baseConfig:{
                         title:'',
@@ -53,19 +55,7 @@
                         yAxisName:'数据包/个数',
                         hoverText:'',
                     },
-                    yAxisArr:[{
-                        name:'碎片包',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    },{
-                        name:'正常包',
-                        color:'rgb(9,243,105)',
-                        data:[]
-                    },{
-                        name:'特大包',
-                        color:'rgb(243,220,15)',
-                        data:[]
-                    }]
+                    data:{}
                 },
                 //循环
                 interval:'',
@@ -83,11 +73,10 @@
                     //判断值是否有变化
                     if(JSON.stringify(newV) !== '{}' && JSON.stringify(newV) !== JSON.stringify(oldV)){
                         //判断参数合理性
-                        if(newV.timeInterval){
-                            this.getEchartData(this.params)
-                        }else{
-                            this.errState = true;
+                        if(!this.setIntervalObj.state){
+                            this.loading = true
                         }
+                        this.getEchartData(this.params)
 
                     }
                 },
@@ -121,24 +110,22 @@
             //获取数据
             getEchartData(params){
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/flow/getPacketTypeCount.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/flow/getPacketTypeCount_line.do',this.$qs.stringify(params))
                         .then((res) => {
-                            layer.closeAll('loading');
-                            if(this.timeLineData.yAxisArr[0].data.length < 60){
-                                this.timeLineData.yAxisArr[0].data.push(res.data[0].small);
-                                this.timeLineData.yAxisArr[1].data.push(res.data[0].normal);
-                                this.timeLineData.yAxisArr[2].data.push(res.data[0].big);
+                            this.loading = false;
+                            let allObj = res.data;
+                            if(allObj.success === 'true'){
+                                this.errState = false;
+                                let lineObj = allObj.data[0];
+                                this.timeLineData.data = lineObj;
                             }else{
-                                this.timeLineData.yAxisArr[0].data.shift();
-                                this.timeLineData.yAxisArr[1].data.shift();
-                                this.timeLineData.yAxisArr[2].data.shift();
-                                this.timeLineData.yAxisArr[0].data.push(res.data[0].small);
-                                this.timeLineData.yAxisArr[1].data.push(res.data[0].normal);
-                                this.timeLineData.yAxisArr[2].data.push(res.data[0].big);
+                                this.errState = true;
+                                this.errText = allObj.message;
+                                clearInterval(this.interval)
                             }
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err)
                         })
                 })

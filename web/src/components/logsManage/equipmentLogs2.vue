@@ -3,12 +3,39 @@
         <div class="top-title">'{{equipmentName}}' 日志</div>
         <div class="search-wapper">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
+            <el-switch
+                style="display: block;float: right;margin-left:10px;margin-top: 5px;"
+                v-model="actionState"
+                active-color="#13ce66"
+                inactive-color="#ff4949"
+                active-text="开启动作添加"
+                inactive-text="">
+            </el-switch>
         </div>
         <div class="equipment-table">
             <v-basetable2 :tableHead="equipmentHead" :tableData="equipmentData"></v-basetable2>
         </div>
         <div class="content-wapper">
             <v-logscontent2 :searchConditions="searchConditions" :tableHead="tableHead" :searchUrl="searchUrl" :layerObj="layerObj" ref="logContent" :moreDeleteBtn="true"></v-logscontent2>
+        </div>
+        <div class="action-wapper" ref="actionWapper">
+            <h4>添加动作</h4>
+            <div class="from-reg">
+                <el-form label-width="50px">
+                    <el-form-item label="名称">
+                        <el-input v-model="action.name" size="mini" placeholder="动作名称"></el-input>
+                    </el-form-item>
+                    <el-form-item label="特征">
+                        <div class="keywords-wapper">
+                            <p :title="item" v-for="(item,i) in action.keywords" :key="i">{{item}} <i class="remove-item el-icon-close" @click="removeKeywords(i)"></i></p>
+                        </div>
+                    </el-form-item>
+                </el-form>
+            </div>
+            <div class="btns-reg">
+                <el-button type="primary" size="mini" @click="actionCommit">保存</el-button>
+                <el-button type="info" size="mini" @click="actionState = false">取消</el-button>
+            </div>
         </div>
     </div>
 </template>
@@ -128,7 +155,12 @@
                 logConfig:{},//日志配置信息 （表头等）
                 logType:'',//日志类型
                 logLevel:[],//日志级别
-                levelVal:''//级别内容
+                levelVal:'',//级别内容
+                action:{
+                    name:'',
+                    keywords:[]
+                },
+                actionState:false
             }
         },
         created(){
@@ -157,7 +189,8 @@
                 }
 
             ]
-
+            //鼠标拖选
+            this.mouseSelectText();
         },
         methods:{
             /*获取资产信息*/
@@ -241,6 +274,76 @@
                         })
                 })
 
+            },
+            /*鼠标拖选文本*/
+            mouseSelectText(){
+                let that = this
+                var funcGetSelectText = function(){
+                    var txt = '';//初始化
+                    if(document.selection){//判断是否是ie浏览器
+                        txt =  document.selection.createRange().text;         //ie浏览器
+                    }else{
+                        txt =  document.getSelection();   //其他浏览器
+                    }
+                    return txt.toString();
+                }
+                var container = container || document;
+                container.onmouseup = function(){
+                    var txt = funcGetSelectText();
+                    if(txt)
+                    {
+                        that.action.keywords.push(txt)
+                        window.getSelection().empty()
+                    }
+                }
+            },
+            /*删除选中的动作特征*/
+            removeKeywords(i){
+                this.action.keywords.splice(i,1)
+            },
+            /*提交动作*/
+            actionCommit(){
+                //验证信息
+                if(this.action.name === ''){
+                    layer.msg('动作名称不能为空',{icon:5})
+                }else if(this.action.keywords.length === 0){
+                    layer.msg('为拖选任何特征',{icon:5})
+                }else{
+                    let sendObj = {}
+                    //获取用户ID
+                    sendObj.userId= JSON.parse(localStorage.getItem('LoginUser')).id;
+                    //特征
+                    let feature='';
+
+                    for(let i=0;i < this.action.keywords.length;i++){
+                        feature += this.action.keywords[i]+'@#$' ;
+                    }
+                    sendObj.feature = feature
+                    //日志类型
+                    sendObj.type = this.logType;
+                    //名称
+                    sendObj.name = this.action.name
+                    this.$nextTick(()=>{
+                        layer.load(1);
+                        this.$axios.post(this.$baseUrl+'/action/insert.do',this.$qs.stringify(sendObj))
+                            .then(res=>{
+                                layer.closeAll('loading');
+                                if(res.data.success === "true"){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.action = {
+                                        name:'',
+                                        keywords:[]
+                                    }
+                                }else if(res.data.success == "false"){//失败
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                            })
+                            .catch(err=>{
+                                layer.closeAll('loading');
+
+                            })
+                    })
+                }
             }
 
         },
@@ -258,6 +361,18 @@
             },
             'logType'(newV,oldV){
                 this.setLogConfig(newV);
+            },
+            'actionState'(){
+                //清空数据
+                this.action = {
+                    name:'',
+                    keywords:[]
+                }
+                if(this.actionState){//开启正则拖选
+                    this.$refs.actionWapper.style.top = '0';
+                }else{
+                    this.$refs.actionWapper.style.top = '-305px'
+                }
             }
         },
         beforeRouteEnter(to, from, next) {
@@ -317,5 +432,58 @@
     .content-wapper>div{
         height: 100%;
     }
-
+    .action-wapper{
+        width: 300px;
+        height: 300px;
+        position: fixed;
+        left: 0;
+        top: -305px;
+        background: #303e4e;
+        z-index: 99891019;
+        border: 1px solid #409eff;
+        transition: all 0.3s linear;
+    }
+    .action-wapper h4{
+        text-align: center;
+        height: 50px;
+        line-height: 50px;
+        background: #285c92;
+    }
+    .action-wapper .from-reg{
+        padding: 15px;
+        height: 165px;
+    }
+    .btns-reg{
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        border-top: 1px solid #285c92;
+    }
+    .keywords-wapper{
+        height: 110px;
+        /* width: 100%; */
+        border: 1px solid #409eff;
+        border-radius: 5px;
+        overflow-y: auto;
+        padding: 5px;
+    }
+    .keywords-wapper p {
+        padding: 0 10px;
+        height: 24px;
+        line-height: 24px;
+        font-size: 10px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        word-break: break-all;
+        border-bottom: 1px solid #3f5267;
+        position: relative;
+    }
+    .remove-item{
+        position: absolute;
+        right: 5px;
+        top: 6px;
+        cursor: pointer;
+    }
 </style>

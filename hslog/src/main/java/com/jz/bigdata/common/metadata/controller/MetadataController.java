@@ -1,20 +1,25 @@
 package com.jz.bigdata.common.metadata.controller;
 
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.metadata.custom.TemplateDateField;
 import com.jz.bigdata.common.metadata.entity.Metadata;
 import com.jz.bigdata.common.metadata.service.IMetadataService;
 import com.jz.bigdata.util.ComboxEntity;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import scala.collection.immutable.Stream;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 获取ES的metadata
@@ -28,7 +33,7 @@ public class MetadataController {
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
     @ResponseBody
-    @RequestMapping("/getMedataByTemplate")
+    @RequestMapping(value="/getMedataByTemplate", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取template，结构化返回")
     public String getMedataByTemplate(HttpServletRequest request) {
         try{
@@ -83,7 +88,7 @@ public class MetadataController {
 
     }
     @ResponseBody
-    @RequestMapping("/getMedataByIndex")
+    @RequestMapping(value="/getMedataByIndex", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取index的mapping，结构化返回")
     public String getMedataByIndex(HttpServletRequest request) {
         try{
@@ -100,7 +105,7 @@ public class MetadataController {
         }
     }
     @ResponseBody
-    @RequestMapping("/getIndexTree")
+    @RequestMapping(value="/getIndexTree", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取template/index的tree结构数据")
     public String getIndexTree(HttpServletRequest request){
         try{
@@ -115,44 +120,50 @@ public class MetadataController {
         }
     }
     @ResponseBody
-    @RequestMapping("/getTemplates")
+    @RequestMapping(value="/getTemplates", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取template信息")
-    public List<ComboxEntity> getTemplates(HttpServletRequest request){
+    public String getTemplates(HttpServletRequest request){
         try{
             //根据查询条件对template进行筛选
             //String templates = request.getParameter("templates");
             //读取配置文件.获取Es_tempalatePattern属性值
             String es_tempalatePattern = configProperty.getEs_tempalatePattern();
-            return iMetadataService.getTemplates(es_tempalatePattern);
+            List<ComboxEntity> result = iMetadataService.getTemplates(es_tempalatePattern);
+            return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
             logger.error("template数据获取失败");
-            return null;
+            return Constant.failureMessage("数据获取失败");
         }
     }
     @ResponseBody
-    @RequestMapping("/getPreIndexByTemplate")
+    @RequestMapping(value="/getPreIndexByTemplate", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取index前缀列表信息")
     public String getPreIndexByTemplate(HttpServletRequest request){
         try{
             //根据查询条件对template进行筛选
             String templateName = request.getParameter("templateName");
-            return iMetadataService.getPreIndexByTemplate(templateName);
+            String preIndexName = iMetadataService.getPreIndexByTemplate(templateName);
+            Map<String,Object> result = new HashMap<>();
+            result.put("preIndexName",preIndexName);//根据template获取的index前缀
+            result.put("dateField", TemplateDateField.TemplateDateField.get(templateName));//根据template获取其对应的日期字段
+            return Constant.successData(JSONObject.fromObject(result).toString());
         }catch(Exception e){
             logger.error("template数据获取失败");
-            return null;
+            return Constant.failureMessage("数据获取失败");
         }
     }
     @ResponseBody
-    @RequestMapping("/getSuffixIndexByPre")
+    @RequestMapping(value="/getSuffixIndexByPre", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取index后缀列表信息")
     public String getSuffixIndexByPre(HttpServletRequest request){
         try{
             //根据查询条件对template进行筛选
             String preIndexName = request.getParameter("preIndexName");
-            return iMetadataService.getSuffixIndexByPre(preIndexName);
+            String result = iMetadataService.getSuffixIndexByPre(preIndexName);
+            return Constant.successData(result);
         }catch(Exception e){
             logger.error("template数据获取失败");
-            return null;
+            return Constant.failureMessage("数据获取失败");
         }
     }
 }

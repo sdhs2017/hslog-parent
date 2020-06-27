@@ -10,7 +10,13 @@ public enum TemplateDateField {
     INSTANCE;
     public final static Map<String, String> TemplateDateField = new HashMap<>();
     static{
-        //TemplateDateField.put(0, "emergency");
+        TemplateDateField.put("auditbeat-", "@timestamp");
+        TemplateDateField.put("filebeat-", "@timestamp");
+        TemplateDateField.put("hslog_packet", "logdate");
+        TemplateDateField.put("hslog_syslog", "logdate");
+        TemplateDateField.put("metricbeat-", "@timestamp");
+        TemplateDateField.put("packetbeat-", "@timestamp");
+        TemplateDateField.put("winlogbeat-", "@timestamp");
 
     }
 }

@@ -42,7 +42,7 @@
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="名称">
+                                    <el-form-item label="图例名称">
                                         <el-input v-model="yItem.yAxisName" size="mini"></el-input>
                                     </el-form-item>
                                     <!--<el-form-item label="颜色类型">
@@ -261,6 +261,9 @@
                                 <el-collapse-item title="Y轴" class="tablist" name="6"  v-if="this.chartType !== 'pie'">
                                     <el-form label-position="left" label-width="85px" style="position: relative;">
                                         <div class="from-zz" v-if="operType === 'see'"></div>
+                                        <el-form-item label="名称">
+                                            <el-input v-model="chartsConfig.yNormal.name" size="mini"></el-input>
+                                        </el-form-item>
                                         <el-form-item label="名称颜色">
                                             <el-color-picker v-model="chartsConfig.yNormal.nameTextStyle.color" size="mini"></el-color-picker>
                                         </el-form-item>
@@ -566,6 +569,7 @@
                         }
                     },
                     yNormal:{
+                        name:'',
                         nameTextStyle:{
                             color:'#5bc0de'
                         },
@@ -983,6 +987,7 @@
                 for(let i in this.chartsConfig.yAxisArr){
                     let obj = {};
                     obj.aggType = this.chartsConfig.yAxisArr[i].aggregationType;
+                    obj.aliasName = this.chartsConfig.yAxisArr[i].yAxisName
                     //聚合类型为count的做特殊处理
                     if(obj.aggType === 'Count'){
                         obj.field = this.chartsConfig.datefield
@@ -1035,24 +1040,6 @@
 
                     bucketsArr.push(obj)
                 }
-
-                /*//构建参数
-                let param = {
-                    starttime:this.dateObj.starttime,//起始时间
-                    endtime:this.dateObj.endtime,//结束时间
-                    last:this.dateObj.last,
-                    x_agg:this.chartsConfig.xAxisArr[0].aggregationType,//x轴参数类型
-                    x_field:this.chartsConfig.xAxisArr[0].aggregationParam,//x轴参数
-                    y_field:this.chartsConfig.yAxisArr[0].aggregationParam,//y轴参数
-                    y_agg:this.chartsConfig.yAxisArr[0].aggregationType,//y轴参数类型
-                    pre_index_name:this.chartsConfig.preIndexName,
-                    suffix_index_name:this.chartsConfig.suffixIndexName,
-                    template_name:this.chartsConfig.templateName,
-                    size:this.chartsConfig.xAxisArr[0].topSum,//展示的列个数
-                    sort:this.chartsConfig.xAxisArr[0].orderType,//排序方式
-                    intervalType:this.chartsConfig.xAxisArr[0].timeType,//x轴参数类型为date时 时间间隔类型
-                    intervalValue:this.chartsConfig.xAxisArr[0].timeInterval,//x轴参数类型为date时 时间间隔的数值
-                };*/
                 let param = {
                     starttime:this.dateObj.starttime,//起始时间
                     endtime:this.dateObj.endtime,//结束时间
@@ -1078,6 +1065,7 @@
                             if (obj.success === 'true'){
                                 let xDataArr = obj.data[0].dimensions;
                                 if(xDataArr.length > 1){
+                                   // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
                                     this.sourceData = obj.data;
                                     this.emptyTipState = false;
                                     //this.createChart(obj.data[0]);
@@ -1160,7 +1148,7 @@
                         axisLabel:this.chartsConfig.xNormal.axisLabel,
                     },
                     yAxis: {
-                        name:this.chartsConfig.yAxisArr[0].yAxisName,
+                        name:this.chartsConfig.yNormal.name,
                         nameTextStyle:{
                             color:this.chartsConfig.yNormal.nameTextStyle.color,
                         },
@@ -1318,7 +1306,7 @@
                     }
                 }
                 let myChart =  echarts.init(document.getElementById('charts-wapper'));
-                myChart.setOption(this.opt);
+                myChart.setOption(this.opt,true);
                 window.addEventListener("resize",()=>{
                     myChart.resize();
                 });
@@ -1383,7 +1371,7 @@
                         axisLabel:this.chartsConfig.xNormal.axisLabel,
                     },
                     yAxis: {
-                        name:this.chartsConfig.yAxisArr[0].yAxisName,
+                        name:this.chartsConfig.yNormal.name,
                         nameTextStyle:{
                             color:this.chartsConfig.yNormal.nameTextStyle.color,
                         },
@@ -1623,7 +1611,7 @@
                 }
                 //echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
                 let myChart =  echarts.init(document.getElementById('charts-wapper'));
-                myChart.setOption(this.opt);
+                myChart.setOption(this.opt,true);
                 window.addEventListener("resize",()=>{
                     myChart.resize();
                 });
@@ -1694,7 +1682,7 @@
                 }
                 let myChart =  echarts.init(document.getElementById('charts-wapper'));
                 //console.log(JSON.stringify(this.opt))
-                myChart.setOption(this.opt);
+                myChart.setOption(this.opt,true);
                 window.addEventListener("resize",()=>{
                     myChart.resize();
                 });

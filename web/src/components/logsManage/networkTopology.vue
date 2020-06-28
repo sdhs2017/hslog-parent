@@ -107,8 +107,8 @@
                             var height = $("#cy").height();
                             //定义画布
                             var svg = d3.select("#cy").append("svg")
-                                .attr("width", width)
-                                .attr("height", height)
+                                .attr("width", '100%')
+                                .attr("height", '100%')
                                 .call( d3.zoom().scaleExtent([0.1,10]).on("zoom", ()=> {
                                     if(1){
                                         container.attr("transform", d3.event.transform);

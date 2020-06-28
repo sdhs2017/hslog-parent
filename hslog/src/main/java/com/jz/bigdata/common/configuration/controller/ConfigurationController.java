@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.configuration.controller;
 
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import net.sf.json.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.benmanes.caffeine.cache.*;
@@ -48,6 +49,7 @@ public class ConfigurationController {
 
         try{
             int result = configurationService.upsert(configuration);
+            ConfigurationCache.INSTANCE.init(configurationService);//更新缓存
             if(result>0){
                 return Constant.successMessage();
             }else{

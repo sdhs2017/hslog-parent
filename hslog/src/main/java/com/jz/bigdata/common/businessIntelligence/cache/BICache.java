@@ -70,24 +70,28 @@ public enum BICache {
                 //获取所有字段信息
                 List<MappingField> fieldList = getAllListMetadataBySourceMap(sourceMap);
                 //定义三个类型的list
-                List<MappingField> forSumAvgList = new ArrayList<>();
-                List<MappingField> forMaxMinList = new ArrayList<>();
+                List<MappingField> forNumber = new ArrayList<>();
+                List<MappingField> forNumberOrDate = new ArrayList<>();
                 List<MappingField> forTermsList = new ArrayList<>();
                 List<MappingField> forDateList = new ArrayList<>();
+                List<MappingField> forIpList = new ArrayList<>();
                 //遍历list，放到cache中
                 for(MappingField mf :fieldList){
                     switch(mf.getFieldType()){
                         //number类型
                         case "long":case "integer":case "short":case "byte":case "double":case "float":case "half_float":case "scaled_float":
-                            forSumAvgList.add(mf);
-                            forMaxMinList.add(mf);
+                            forNumber.add(mf);
+                            forNumberOrDate.add(mf);
                             break;
                         case "date":
                             forDateList.add(mf);
-                            forMaxMinList.add(mf);
+                            forNumberOrDate.add(mf);
                             break;
                         case "keyword":
                             forTermsList.add(mf);
+                            break;
+                        case "ip":
+                            forIpList.add(mf);
                             break;
                         default:
                             //其他类型需要对fielddata进行判定，为true时,作为keyword存储
@@ -98,10 +102,11 @@ public enum BICache {
                     }
                 }
                 //放入cache中
-                this.biCache.put(name+"SumAvg",forSumAvgList);
-                this.biCache.put(name+"MaxMin",forMaxMinList);
+                this.biCache.put(name+"Number",forNumber);
+                this.biCache.put(name+"NumberOrDate",forNumberOrDate);
                 this.biCache.put(name+"Terms",forTermsList);
                 this.biCache.put(name+"Date",forDateList);
+                this.biCache.put(name+"Ip",forIpList);
                 result = true;
             }
         }catch(Exception e){

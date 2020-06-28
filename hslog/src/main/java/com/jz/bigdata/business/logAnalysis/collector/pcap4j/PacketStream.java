@@ -13,6 +13,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
@@ -170,9 +171,9 @@ public class PacketStream {
 				//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 				requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 			}
-			
-		
-			if (requests.size()>=configProperty.getEs_bulk()) {
+
+			Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+			if (requests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
 				try {
 					logCurdDao.bulkInsert(requests);
 					//System.out.println("caffine length-----------"+httpCache.asMap().size());

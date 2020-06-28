@@ -294,6 +294,13 @@ public class BIDaoImpl implements IBIDao {
                             queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue().toString()));
                         }
                         break;
+                    default://默认与term同级
+                        if("should".equals(queryConnectionType)){
+                            queriesBuilder.should(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));
+                        }else{
+                            queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));
+                        }
+                        break;
                 }
 
             }
@@ -425,6 +432,7 @@ public class BIDaoImpl implements IBIDao {
                 }
                 break;
             case "RANGE"://数字范围
+
                 RangeAggregationBuilder rangeBuilder = AggregationBuilders.range(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
@@ -456,7 +464,8 @@ public class BIDaoImpl implements IBIDao {
                 aggregationBuilder = rangeBuilder;
                 break;
             case "DATE RANGE"://日期范围
-                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
+
+                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField()).format("yyyy-MM-dd HH:mm:ss");
 
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
@@ -608,7 +617,7 @@ public class BIDaoImpl implements IBIDao {
      */
     private AggregationBuilder getMetricAggregation(Metric metric){
         AggregationBuilder metricBuilder = null;
-        String aliasName = metric.getAggType()+"-"+metric.getField();//别名
+        String aliasName = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField());//别名
         switch(metric.getAggType().toUpperCase()){
             case "SUM":
                 // 在bucket上聚合metric查询sum
@@ -673,9 +682,9 @@ public class BIDaoImpl implements IBIDao {
      */
     public void setData(ArrayList<Metric> metricList,MultiBucketsAggregation.Bucket bucket,LinkedHashMap<String,Object> xAxisMap,LinkedHashSet<String> dimensions,String nextKey){
         for(Metric metric:metricList){
-            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(metric.getAggType()+"-"+metric.getField());
+            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
             //图例名称，如果别名是null 则显示聚合类型名称，否则显示别名
-            String line_name = nextKey+(metric.getAliasName()==null?metric.getAggType():(metric.getAliasName()));
+            String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():(metric.getAliasName()));
             //如果图例名称最后包含“-”，则去掉
             line_name = line_name.matches(".*\\-")?line_name.substring(0,line_name.length()-1):line_name;
             //String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName());

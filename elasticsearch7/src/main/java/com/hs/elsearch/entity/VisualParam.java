@@ -28,7 +28,7 @@ public class VisualParam {
     private String errorInfo;//异常信息提示，用于在参数处理时产生异常时进行判定
     private ArrayList<Bucket> bucketList = new ArrayList<>();//聚合字段（X轴）
     private ArrayList<Metric> metricList = new ArrayList<>();//指标字段（Y轴）
-    private ArrayList<QueryCondition> queryConditions;//查询条件
+    private ArrayList<QueryCondition> queryConditions = new ArrayList<>();//查询条件
     private String queryConnectionType;//查询条件的连接类型  should/must
 
     public String getQueryConnectionType() {

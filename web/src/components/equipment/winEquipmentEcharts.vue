@@ -26,7 +26,7 @@
                             <p><span class="p-t">内核：</span><span class="p-c">{{equipmentInfo.host.os.kernel}}</span></p>
                             <p><span class="p-t">内部版本：</span><span class="p-c">{{equipmentInfo.host.os.build}}</span></p>
                             <p><span class="p-t">系统类型：</span><span class="p-c">{{equipmentInfo.host.architecture}}</span></p>
-                            <h3>argent</h3>
+                            <h3>agent</h3>
                             <p><span class="p-t">名称：</span><span class="p-c"> {{equipmentInfo.agent.type}}</span></p>
                             <p><span class="p-t">版本：</span><span class="p-c">{{equipmentInfo.agent.version}}</span></p>
 <!--                            <p><span class="p-t">ping：</span><span class="p-c">Up(1)</span></p>-->
@@ -56,7 +56,7 @@
                                 chartName="eqHourlyLogCount_line"
                                 echartType="line"
                                 :equipment="{id:equipmentId,type:logType}"
-                                :urls="{echartUrl:'ecsCommon/getLogCountGroupByTime.do',tableUrl:'ecsCommon/getLogListByEquipment.do'}"
+                                :urls="{tableUrl:'ecsCommon/getLogListByEquipment.do'}"
                             ></v-echarts-Table2>
                         </el-col>
                     </el-row>
@@ -71,7 +71,7 @@
                         echartType="bar-pie"
                         :eventTypeEchart = "true"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsWinlog/getCountGroupByEvent.do',tableUrl:'ecsWinlog/getLogListByBlend.do'}"
+                        :urls="{tableUrl:'ecsCommon/getListByBlend.do'}"
                     ></v-echarts-Table2>
                 </el-col>
                 <el-col :span="9">
@@ -81,7 +81,7 @@
                         chartName="eqLogLevel_bar"
                         echartType="bar"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsWinlog/getCountGroupByLevel.do',tableUrl:'ecsCommon/getLogListByEquipment.do'}"
+                        :urls="{tableUrl:'ecsCommon/getLogListByEquipment.do'}"
                     ></v-echarts-Table2>
                 </el-col>
 
@@ -94,7 +94,7 @@
                         chartName="eqWinlogHourlyEventCount_moreline"
                         echartType="moreline"
                         :equipment="{id:equipmentId,type:logType}"
-                        :urls="{echartUrl:'ecsCommon/getCountGroupByTimeAndEvent.do',tableUrl:'ecsWinlog/getLogListByBlend.do'}"
+                        :urls="{tableUrl:'ecsCommon/getListByBlend.do'}"
                     ></v-echarts-Table2>
                 </el-col>
             </el-row>

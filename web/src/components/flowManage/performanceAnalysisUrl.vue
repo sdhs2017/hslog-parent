@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">应用性能分析
-            <dateLayout class="from-wapper" busName="performanceAnalysis" :defaultVal = "defaultVal"></dateLayout>
+        <div class="top-title">{{this.urlName}}
+            <dateLayout class="from-wapper" :busName="busName" :defaultVal="defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -11,7 +11,7 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
                         <div class="chart-wapper ip-chart">
-                            <performanceAnalysis_bar :params="param" :setIntervalObj="intervalObj"></performanceAnalysis_bar>
+                            <performanceAnalysisUrl_bar :params="param" :setIntervalObj="intervalObj"></performanceAnalysisUrl_bar>
                         </div>
                     </el-col>
                 </el-row>
@@ -23,21 +23,19 @@
 
 <script>
     import dateLayout from '../common/dateLayout'
-    import performanceAnalysis_bar from '../charts/flow/performance/performanceAnalysis_bar'
+    import performanceAnalysisUrl_bar from '../charts/flow/performance/performanceAnalysisUrl_bar'
     import bus from '../common/bus'
-    import {dateFormat,setChartParam} from '../../../static/js/common'
+    import {dateFormat,setChartParam,savePath} from '../../../static/js/common'
     export default {
-        name: "performanceAnalysis",
+        name: "performanceAnalysisUrl",
         data() {
             return {
-                chartTitle:'应用平均响应时间统计',
+                chartTitle:'功能URL平均响应时间统计',
+                urlName:'',
+                busName:'',
                 //请求参数
                 param:{
-                    intervalValue:'',
-                    intervalType:'',
-                    starttime:'',
-                    endtime:'',
-                    last:''
+
                 },
                 //轮询参数
                 intervalObj:{
@@ -74,31 +72,57 @@
             }
         },
         created(){
-            //初始时间
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 1);
-            this.defaultVal.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
-            this.defaultVal.starttime = dateFormat('yyyy-mm-dd HH:MM:SS',start);
-            this.param.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
-            this.param.starttime = dateFormat('yyyy-mm-dd HH:MM:SS',start);
-            /*监听日期改变*/
-            bus.$on('performanceAnalysis',(obj)=>{
-                //设置参数对应
-                let arr = setChartParam(obj);
-                this.param = arr[0];
-                this.intervalObj = arr[1]
-            })
+            this.defaultVal.endtime= this.$route.query.endtime;
+            this.defaultVal.starttime =  this.$route.query.starttime;
+            this.param={
+                intervalValue:'',
+                intervalType:'',
+                starttime:this.$route.query.starttime,
+                endtime:this.$route.query.endtime,
+                last:'',
+                queryParam:JSON.stringify({'domain_url.raw':this.$route.query.url})
+            }
         },
-        mounted(){},
-        methods:{
+        watch:{
+            'urlName'(){
+                if(this.urlName !== ''){
+                    bus.$on(this.busName,(obj)=>{
+                        let arr = setChartParam(obj);
+                        this.param = arr[0];
+                        this.param.queryParam = JSON.stringify({'domain_url.raw':this.urlName})
+                        console.log(this.param)
+                        this.intervalObj = arr[1]
+                    })
+                }
+            }
         },
         beforeDestroy(){
-            bus.$off('performanceAnalysis')
+            bus.$off(this.busName)
+        },
+        beforeRouteEnter(to, from, next) {
+            next (vm => {
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                vm.$options.name = 'performanceAnalysisUrl'+ to.query.url;
+                vm.busName = 'performanceAnalysisUrl'+to.query.url;
+                //将路由存放在本地 用来刷新页面时添加路由
+                let obj = {
+                    path:'performanceAnalysisUrl'+to.query.url,
+                    component:'flowManage/performanceAnalysisUrl.vue',
+                    title:'平均响应时间'
+                }
+                //sessionStorage.setItem('/performanceAnalysisUrl'+to.query.url,JSON.stringify(obj))
+                savePath('performanceAnalysisUrl'+to.query.url,'flowManage/performanceAnalysisUrl.vue','平均响应时间')
+                if(vm.urlName === '' || vm.urlName !== to.query.url){
+                    vm.urlName = to.query.url;
+                }
+
+            })
+
         },
         components:{
             dateLayout,
-            performanceAnalysis_bar
+            performanceAnalysisUrl_bar
         }
     }
 </script>
@@ -107,7 +131,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 10px;
+        margin-top: 5px;
     }
     .flow-echarts-con{
         padding: 20px;

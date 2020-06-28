@@ -1,13 +1,13 @@
 <template>
     <!--全局利用率--实时折线-->
-    <div class="eb">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此报表为实时报表，与此仪表盘性质不符</div>
+    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
         <v-echarts v-else echartType="timeline" :echartData = "this.timeLineData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
+    import vEcharts from '../../../common/echarts_n'
     import {barDataFunc} from "../../common";
     import bus from '../../../common/bus';
     export default {
@@ -53,7 +53,9 @@
         },
         data() {
             return {
+                loading:false,
                 errState:false,
+                errText:'此报表为实时报表，与此仪表盘性质不符',
                 timeLineData:{
                     baseConfig:{
                         title:'',
@@ -61,11 +63,7 @@
                         yAxisName:'百分比/%',
                         hoverText:'',
                     },
-                    yAxisArr:[{
-                        name:'',
-                        color:'rgb(15,219,243)',
-                        data:[]
-                    }]
+                    data:{}
                 },
                 //循环
                 interval:'',
@@ -83,18 +81,17 @@
                     //判断值是否有变化
                     if(JSON.stringify(newV) !== '{}' && JSON.stringify(newV) !== JSON.stringify(oldV)){
                         //判断参数合理性
-                        if(newV.timeInterval){
-                            this.getEchartData(this.params)
-                        }else{
-                            this.errState = true;
+                        if(!this.setIntervalObj.state){
+                            this.loading = true
                         }
+                        this.getEchartData(this.params)
 
                     }
                 },
                 immediate: true,
                 deep: true
             },
-            setIntervalObj:{
+           setIntervalObj:{
                 handler(newV,oldV) {
                     //判断是否启用轮询获取数据
                     if (this.setIntervalObj.state){
@@ -121,20 +118,43 @@
             //获取数据
             getEchartData(params){
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/flow/getPacketLengthPerSecond_line.do',this.$qs.stringify(params))
                         .then((res) => {
-                            res.data[0].value[1] = res.data[0].value[1] * 8 * 1000 * 100 / this.setIntervalObj.interval / this.otherParams.bandwidth / 1024;
-                            res.data[0].value[1] = res.data[0].value[1].toFixed(2);
-
-                            if(this.timeLineData.yAxisArr[0].data.length < 60){
-                                this.timeLineData.yAxisArr[0].data.push(res.data[0])
+                            this.loading = false;
+                            let allObj = res.data;
+                            if(allObj.success === 'true'){
+                                this.errState = false;
+                                let lineObj = allObj.data[0];
+                                let newInterval = '';
+                                //判断请求状态
+                                if(!this.setIntervalObj.state) {//非轮询状态
+                                    //计算时间间隔
+                                    let st = lineObj[Object.keys(lineObj)][0].name;
+                                    let et = lineObj[Object.keys(lineObj)][1].name;
+                                    newInterval = new Date(et) -  new Date(st);
+                                }else{ //轮询
+                                    newInterval = this.setIntervalObj.interval;
+                                }
+                                for(let i in lineObj){
+                                    let arr = lineObj[i];
+                                    for(let j in arr){
+                                        let obj = arr[j]
+                                        obj.value[1] = obj.value[1] * 1000 * 100  / newInterval / this.otherParams.bandwidth / 1024/1024;
+                                        obj.value[1] = obj.value[1].toFixed(2);
+                                    }
+                                }
+                                this.timeLineData.data = lineObj;
                             }else{
-                                this.timeLineData.yAxisArr[0].data.shift();
-                                this.timeLineData.yAxisArr[0].data.push(res.data[0])
+                                this.errState = true;
+                                this.errText = allObj.message;
+                                clearInterval(this.interval)
                             }
+
+
+
                         })
                         .catch((err) => {
-                            layer.closeAll('loading');
+                            this.loading = false;
                             console.log(err)
                         })
                 })

@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">全局端口流量
-            <v-flowchartfrom class="from-wapper" refreshBus="portFlowRefreshBus" dataBus="portFlowDataBus" switchBus="portFlowSwitchBus" timeBus="portFlowTimeBus"></v-flowchartfrom>
+            <dateLayout class="from-wapper" busName="portFlowRefreshBus" :defaultVal = "defaultVal"></dateLayout>
         </div>
         <div class="flow-echarts-con">
             <div class="echarts-item">
@@ -9,12 +9,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <dstPortAll_bar :params="params" :setIntervalObj="intervalObj"></dstPortAll_bar>
+                            <dstPortAll_bar :params="param" :setIntervalObj="intervalObj"></dstPortAll_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <dstPortAll_pie :params="params" :setIntervalObj="intervalObj"></dstPortAll_pie>
+                            <dstPortAll_pie :params="param" :setIntervalObj="intervalObj"></dstPortAll_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -24,12 +24,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <tcpDstPort_bar :params="params" :setIntervalObj="intervalObj"></tcpDstPort_bar>
+                            <tcpDstPort_bar :params="param" :setIntervalObj="intervalObj"></tcpDstPort_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <tcpDstPort_pie :params="params" :setIntervalObj="intervalObj"></tcpDstPort_pie>
+                            <tcpDstPort_pie :params="param" :setIntervalObj="intervalObj"></tcpDstPort_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -39,12 +39,12 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <udpDstPort_bar :params="params" :setIntervalObj="intervalObj"></udpDstPort_bar>
+                            <udpDstPort_bar :params="param" :setIntervalObj="intervalObj"></udpDstPort_bar>
                         </div>
                     </el-col>
                     <el-col :span="12">
                         <div class="chart-wapper ip-chart">
-                            <udpDstPort_pie :params="params" :setIntervalObj="intervalObj"></udpDstPort_pie>
+                            <udpDstPort_pie :params="param" :setIntervalObj="intervalObj"></udpDstPort_pie>
                         </div>
                     </el-col>
                 </el-row>
@@ -55,8 +55,7 @@
 </template>
 
 <script>
-    import vFlowchartfrom from '../common/flowChartsFrom'
-    //import vEcharts from '../common/echarts'
+    import dateLayout from '../common/dateLayout'
     import bus from '../common/bus';
     import dstPortAll_bar from '../charts/flow/portFlow/dstPortAll_bar'
     import dstPortAll_pie from '../charts/flow/portFlow/dstPortAll_pie'
@@ -64,47 +63,60 @@
     import tcpDstPort_pie from '../charts/flow/portFlow/tcpDstPort_pie'
     import udpDstPort_bar from '../charts/flow/portFlow/udpDstPort_bar'
     import udpDstPort_pie from '../charts/flow/portFlow/udpDstPort_pie'
+    import {dateFormat,setChartParam} from '../../../static/js/common'
     export default {
         name: "portFlow",
         data() {
             return {
-                params:{
-                    timeInterval:3600
+                //请求参数
+                param:{
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'1-hour'
                 },
+                //轮询参数
                 intervalObj:{
                     state:true,
                     interval:'5000'
                 },
-                dataTime:'3600',
+                //时间控件参数
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'1-hour',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:true,
+                    //轮询数值间隔
+                    intervalVal:'5',
+                    //轮询参数类型
+                    intervalType:'second',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                }
             }
         },
         created(){
-            /*监听刷新时间改变*/
-            bus.$on('portFlowRefreshBus',(val)=>{
-                this.intervalObj.interval = val
-            })
-            /*监听数据时间改变*/
-            bus.$on('portFlowDataBus',(val)=>{
-                this.dataTime = val;
-                this.params = {
-                    timeInterval:val
-                }
-            })
-            /*监听switch改变*/
-            bus.$on('portFlowSwitchBus',(obj)=>{
-                this.intervalObj.state = obj.switchVal;
-                if (obj.switchVal) {
-                    this.params = {
-                        timeInterval:this.dataTime
-                    }
-                }
-            })
             /*监听日期改变*/
-            bus.$on('portFlowTimeBus',(obj)=>{
-                this.params = {
-                    starttime:obj.dateArr[0],
-                    endtime:obj.dateArr[1]
-                }
+            bus.$on('portFlowRefreshBus',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.param = arr[0];
+                this.intervalObj = arr[1]
             })
         },
         mounted(){
@@ -113,12 +125,9 @@
         },
         beforeDestroy(){
             bus.$off('portFlowRefreshBus');
-            bus.$off('portFlowTimeBus')
-            bus.$off('portFlowSwitchBus')
-            bus.$off('portFlowDataBus')
         },
         components:{
-            vFlowchartfrom,
+            dateLayout,
             dstPortAll_bar,
             dstPortAll_pie,
             tcpDstPort_bar,
@@ -133,7 +142,7 @@
     .from-wapper{
         float: right;
         margin-right: 10px;
-        margin-top: 5px;
+        margin-top: 10px;
     }
     .flow-echarts-con{
         padding: 20px;

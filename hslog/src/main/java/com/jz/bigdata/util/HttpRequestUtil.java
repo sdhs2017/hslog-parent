@@ -1,10 +1,7 @@
 package com.jz.bigdata.util;
 
 import com.google.gson.Gson;
-import com.hs.elsearch.entity.Bucket;
-import com.hs.elsearch.entity.HttpRequestParams;
-import com.hs.elsearch.entity.Metric;
-import com.hs.elsearch.entity.VisualParam;
+import com.hs.elsearch.entity.*;
 import com.hs.elsearch.util.HSDateUtil;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
@@ -64,6 +61,12 @@ public class HttpRequestUtil {
         String queryParam = request.getParameter("queryParam");
         if(null!=queryParam){
             Map<String,String> paramMap = MapUtil.json2map(queryParam);
+            //聚合后端用到的参数处理魔石
+            for(Map.Entry<String,String> entity:paramMap.entrySet()){
+                QueryCondition qc = new QueryCondition("term",entity.getKey(),entity.getValue(),"");
+                visualParam.getQueryConditions().add(qc);
+            }
+            //原后端用到的参数处理
             visualParam.setQueryParam(paramMap);
         }
         //处理bucket聚合条件（X轴）
@@ -77,6 +80,14 @@ public class HttpRequestUtil {
                 Bucket bucket = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Bucket.class);
                 //转换成功时，写入参数对象中
                 if(null!=bucket){
+                    //如果聚合类型是range。需要对参数进行再处理
+                    if(bucket.getAggType().indexOf("Range")>=0){
+                        JSONArray rangeArray = JSONObject.fromObject(beanObj).getJSONArray("ranges");
+                        for(Object rangeObj : rangeArray){
+                            Map<String,Object> rangeMap = (Map<String,Object>)rangeObj;
+                            bucket.getRanges().add(rangeMap);
+                        }
+                    }
                     visualParam.getBucketList().add(bucket);
                 }
             }

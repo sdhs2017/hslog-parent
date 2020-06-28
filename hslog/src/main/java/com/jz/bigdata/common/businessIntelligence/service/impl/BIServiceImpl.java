@@ -385,11 +385,11 @@ public class BIServiceImpl implements IBIService {
 
             case "Average":case "Sum"://获取所有number类型字段信息
                 //result = formatFields(list,numberTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"SumAvg");
+                result = getFieldByIndexAndAgg(indexName,templateName,"Number");
                 break;
             case "Max":case "Min"://获取所有number和date类型字段信息
                 //result = formatFields(list,numberTypes+dateTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"MaxMin");
+                result = getFieldByIndexAndAgg(indexName,templateName,"NumberOrDate");
                 break;
             case "Terms"://type为keyword，或者fielddata=true
                 //result = formatFields(list,keywordTypes,true);
@@ -398,6 +398,18 @@ public class BIServiceImpl implements IBIService {
             case "Date Histogram"://获取所有date类型字段信息
                 //result = formatFields(list,dateTypes,false);
                 result = getFieldByIndexAndAgg(indexName,templateName,"Date");
+                break;
+            case "Range"://获取所有number类型字段信息
+                //result = formatFields(list,dateTypes,false);
+                result = getFieldByIndexAndAgg(indexName,templateName,"Number");
+                break;
+            case "Date Range"://获取所有date类型字段信息
+                //result = formatFields(list,dateTypes,false);
+                result = getFieldByIndexAndAgg(indexName,templateName,"Date");
+                break;
+            case "IPv4 Range"://获取所有ip类型字段信息
+                //result = formatFields(list,dateTypes,false);
+                result = getFieldByIndexAndAgg(indexName,templateName,"Ip");
                 break;
             default:
                 break;

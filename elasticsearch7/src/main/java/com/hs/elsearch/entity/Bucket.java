@@ -1,5 +1,6 @@
 package com.hs.elsearch.entity;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class Bucket{
     private String intervalType;//间隔类型（单位）
     private Integer intervalValue;//间隔值
     private String label;//别名，暂不使用
-    private LinkedList<Map<String,Object>> ranges = new LinkedList<>();//范围list，[{from: 0, to: 1000}, {from: 1000, to: 2000}]
+    private ArrayList<Map<String,Object>> ranges = new ArrayList<>();//范围list，[{from: 0, to: 1000}, {from: 1000, to: 2000}]
     public Bucket(){}
 
     /**
@@ -27,7 +28,7 @@ public class Bucket{
      * @param sort
      * @param ranges
      */
-    public Bucket(String aggType, String field, String intervalType, Integer intervalValue, Integer size, String sort,LinkedList<Map<String,Object>> ranges){
+    public Bucket(String aggType, String field, String intervalType, Integer intervalValue, Integer size, String sort,ArrayList<Map<String,Object>> ranges){
         this.aggType = aggType;
         this.field = field;
         this.intervalType = intervalType;
@@ -111,11 +112,11 @@ public class Bucket{
         this.label = label;
     }
 
-    public LinkedList<Map<String, Object>> getRanges() {
+    public ArrayList<Map<String, Object>> getRanges() {
         return ranges;
     }
 
-    public void setRanges(LinkedList<Map<String, Object>> ranges) {
+    public void setRanges(ArrayList<Map<String, Object>> ranges) {
         this.ranges = ranges;
     }
 }

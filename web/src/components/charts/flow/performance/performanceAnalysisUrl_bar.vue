@@ -1,17 +1,17 @@
 <template>
-    <!--应有层协议统计--饼图-->
-    <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+    <!--功能URL平均响应时间统计--柱状图-->
+    <div class="eb"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
-        <v-echarts v-else echartType="pie" :echartData = "this.pieData" :busName="busName" ></v-echarts>
+        <v-echarts v-else echartType="bar" :echartData = "this.barData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
     import vEcharts from '../../../common/echarts_n'
-    import {pieDataFunc} from "../../common";
+    import {barDataFunc} from "../../common";
     import bus from '../../../common/bus';
     export default {
-        name: "application_pie",
+        name: "performanceAnalysis_bar.vue",
         props:{
             params:{
                 type:Object
@@ -45,12 +45,16 @@
         },
         data() {
             return {
-                loading:false,
+                loading:true,
                 errState:false,
-                pieData:{//柱状图数据
+                errText:'此报表为实时报表，与此仪表盘性质不符',
+                barData:{//柱状图数据
                     baseConfig:{
                         title:'',
-                        hoverText:'百分比'
+                        xAxisName:'应用\n名称',
+                        yAxisName:'时间/ms',
+                        rotate:'15',
+                        itemColor:[['rgba(68,47,148,0.5)','rgba(15,219,243,1)']]
                     },
                     data:{
                         dimensions:[],
@@ -62,9 +66,10 @@
             }
         },
         created(){
-            this.pieData.baseConfig.title = this.baseConProp.title
+            this.barData.baseConfig.title = this.baseConProp.title;
         },
         beforeDestroy(){
+            bus.$off(this.busName.clickName)
             clearInterval(this.interval)
         },
         watch:{
@@ -86,12 +91,13 @@
                     //判断是否启用轮询获取数据
                     if (this.setIntervalObj.state){
                         //判断参数是否合法(是否有刷新间隔时间)
-                        if(this.setIntervalObj.interval){
+                        if(this.setIntervalObj.interval){//合法
+                            this.errState = false;
                             clearInterval(this.interval)
                             this.interval = setInterval(()=>{
                                 this.getEchartData(this.params)
                             },this.setIntervalObj.interval)
-                        }else{
+                        }else{//不合法
                             this.errState = true;
                         }
 
@@ -107,13 +113,13 @@
             //获取数据
             getEchartData(params){
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/flow/getApplicationLength_barAndPie.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/flow/getRequestUrlAvgResponsetime_barAndPie.do',this.$qs.stringify(params))
                         .then((res) => {
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success === 'true'){
                                 this.errState = false;
-                                this.pieData.data = obj.data[0]
+                                this.barData.data = obj.data[0]
                             }else{
                                 this.errState = true;
                                 this.errText = obj.message;
@@ -121,12 +127,13 @@
                             }
                         })
                         .catch((err) => {
-                            this.loading = false;
+                            this.loading = false
                             console.log(err)
                         })
                 })
             },
         },
+
         components:{
             vEcharts
         }
@@ -138,5 +145,8 @@
         position: relative;
         width: 100%;
         height: 100%;
+    }
+    .goBack{
+        margin-left: 30px;
     }
 </style>

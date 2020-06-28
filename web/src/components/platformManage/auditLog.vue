@@ -130,7 +130,8 @@
                 pageSize:15,
                 c_page:1,
                 allCounts:0,
-                selectedIds:''
+                selectedIds:'',
+                times:''
             }
         },
         created(){
@@ -165,8 +166,11 @@
             })
             //监听选中的日志
             bus.$on(this.busName.selectionName,params=>{
+                this.times = ''
+                this.selectedIds = ''
                 params.forEach(item =>{
                     this.selectedIds += item.id +',';
+                    this.times += item.time+',';
                 })
             })
             //获取数据
@@ -263,8 +267,13 @@
                         layer.close(index);
                         layer.load(1)
                         this.$nextTick(()=>{
-                            this.$axios.post(this.$baseUrl+'/note/deletes.do',this.$qs.stringify({ids:this.selectedIds}))
+                            console.log(this.times)
+                            this.$axios.post(this.$baseUrl+'/note/deletes.do',this.$qs.stringify({
+                                ids:this.selectedIds,
+                                times:this.times
+                            }))
                                 .then(res=>{
+                                    layer.closeAll();
                                     if(res.data.success === "true"){
                                         layer.msg(res.data.message,{icon: 1});
                                         //获取数据

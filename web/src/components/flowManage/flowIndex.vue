@@ -9,7 +9,6 @@
                     <div class="item-con">
                         <div class="con-tit">资产（IP）数据包个数</div>
                         <div class="con" style="padding: 0 10px;">
-<!--                            <v-echarts echartType="bar" :echartData = "this.chartData1" ></v-echarts>-->
                             <eqIpPacket_bar :params="params" :setIntervalObj="intervalObj"></eqIpPacket_bar>
                         </div>
                     </div>
@@ -59,14 +58,12 @@
                     <div class="item-con">
                         <div class="con-tit">实时流量数据访问包大小</div>
                         <div class="con">
-<!--                            <v-echarts echartType="timeline" :echartData = "this.chartData2" ></v-echarts>-->
                             <allflow_timeline :params="param2" :setIntervalObj="intervalObj" :baseConProp="{title:''}"></allflow_timeline>
                         </div>
                     </div>
                     <div class="item-con">
                         <div class="con-tit">目的端口总流量</div>
                         <div class="con">
-<!--                            <v-echarts echartType="pie" :echartData = "this.chartData3" ></v-echarts>-->
                             <dstPortAll_pie :params="params" :setIntervalObj="intervalObj"></dstPortAll_pie>
                         </div>
                     </div>
@@ -97,11 +94,19 @@
             return {
                 //目的地址、资产ip参数
                 params:{
-                    timeInterval:3600
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'1-hour'
                 },
                 //实时流量参数
                 param2:{
-                    timeInterval:5
+                    intervalValue:'5',
+                    intervalType:'second',
+                    starttime:'',
+                    endtime:'',
+                    last:'5-min'
                 },
                 intervalObj:{
                     state:true,

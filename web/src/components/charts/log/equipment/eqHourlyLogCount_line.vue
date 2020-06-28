@@ -1,13 +1,13 @@
 <template>
     <!--单个资产每小时日志数量统计--折线图-->
     <div class="eb" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">此为单个资产的报表,缺少必要条件。</div>
+        <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;overflow: hidden" v-if="errState">{{errText}}</div>
         <v-echarts echartType="line" :echartData = "this.lineData" :busName="busName" ></v-echarts>
     </div>
 </template>
 
 <script>
-    import vEcharts from '../../../common/echarts'
+    import vEcharts from '../../../common/echarts_n'
     import {dateFormat} from "../../../../../static/js/common";
     import bus from '../../../common/bus';
 
@@ -33,33 +33,53 @@
                         title:'每小时日志数量统计',
                     }
                 }
+            },
+            setIntervalObj:{
+                type:Object,
+                default(){
+                    return {
+                        state:false,
+                        interval:5000
+                    }
+                }
             }
         },
         data() {
             return {
                 loading:false,
                 errState:false,
+                errText:'此为单个资产的报表,缺少必要条件。',
                 lineData:{//折线图数据
                     baseConfig:{
                         title:'',
-                        xAxisName:'时间/时',
+                        xAxisName:'时间',
                         yAxisName:'数量/条',
-                        hoverText:'日志数量'
+                        hoverText:'日志数量',
+                        rotate:'25'
                     },
-                    xAxisArr:[],
-                    yAxisArr:[]
-                }
+                    data:{
+                        dimensions:[],
+                        source:[]
+                    }
+                },
+                interval:''
             }
         },
         created(){
             this.lineData.baseConfig.title = this.baseConProp.title
+        },
+        beforeDestroy(){
+            clearInterval(this.interval)
         },
         watch:{
             params:{
                 handler(newV,oldV) {
                     if(JSON.stringify(newV) != JSON.stringify(oldV) && JSON.stringify(newV) !== '{}'){
                         //判断条件合法性
-                        if(newV.hsData && JSON.parse(newV.hsData)['fields.equipmentid']){//合法 显示正常数据
+                        if(newV.queryParam && JSON.parse(newV.queryParam)['fields.equipmentid']){//合法 显示正常数据
+                            if(!this.setIntervalObj.state){
+                                this.loading = true
+                            }
                             this.getEchartData(this.params)
                         }else{//显示错误提示
                             this.errState = true
@@ -69,25 +89,45 @@
                 },
                 immediate: true,
                 deep: true
+            },
+            setIntervalObj:{
+                handler(newV,oldV) {
+                    //判断是否启用轮询获取数据
+                    if (this.setIntervalObj.state){
+                        //判断参数是否合法(是否有刷新间隔时间)
+                        if(this.setIntervalObj.interval){
+                            clearInterval(this.interval)
+                            this.interval = setInterval(()=>{
+                                this.getEchartData(this.params)
+                            },this.setIntervalObj.interval)
+                        }else{
+                            this.errState = true;
+                        }
+
+                    }else {
+                        clearInterval(this.interval)
+                    }
+                },
+                immediate: true,
+                deep: true
             }
         },
         methods:{
             //获取每小时日志数
             getEchartData(params){
-                this.loading = true;
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/ecsCommon/getLogCountGroupByTime.do',this.$qs.stringify(params))
+                    this.$axios.post(this.$baseUrl+'/log/getLogCountGroupByTime_line.do',this.$qs.stringify(params))
                         .then((res) => {
                             this.loading = false;
-                            let xVal = [];
-                            let yVal = [];
-                            for(let i in res.data){
-                                yVal.push(res.data[i].count)
-                                xVal.push(res.data[i].hour)
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.errState = false;
+                                this.lineData.data = obj.data[0]
+                            }else{
+                                this.errState = true;
+                                this.errText = obj.message;
+                                clearInterval(this.interval)
                             }
-                            //赋值
-                            this.lineData.xAxisArr = xVal;
-                            this.lineData.yAxisArr = yVal;
                         })
                         .catch((err) => {
                             this.loading = false;

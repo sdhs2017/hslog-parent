@@ -35,6 +35,9 @@
 .el-input__inner:hover {
     border-color: #63aaf3;
 }
+.el-input__inner[type=number] {
+    padding-right: 2px;
+}
 .input-fliterlog .el-input__inner{
     height:28px;
     line-height: 28px;
@@ -64,7 +67,10 @@
     align-items: center;
 }
 .el-popper[x-placement^=bottom] .popper__arrow::after{
-    border-bottom-color: #409eff;
+    border-bottom-color: #29415a;
+}
+.el-popper[x-placement^=right] .popper__arrow::after {
+    border-right-color: #29415a;
 }
 .el-range-editor--mini .el-range-input ,.el-range-editor--small .el-range-input{
     background: 0;

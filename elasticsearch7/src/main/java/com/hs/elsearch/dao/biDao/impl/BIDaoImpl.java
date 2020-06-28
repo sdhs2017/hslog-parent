@@ -294,6 +294,13 @@ public class BIDaoImpl implements IBIDao {
                             queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue().toString()));
                         }
                         break;
+                    default://默认与term同级
+                        if("should".equals(queryConnectionType)){
+                            queriesBuilder.should(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));
+                        }else{
+                            queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));
+                        }
+                        break;
                 }
 
             }
@@ -425,16 +432,31 @@ public class BIDaoImpl implements IBIDao {
                 }
                 break;
             case "RANGE"://数字范围
+
                 RangeAggregationBuilder rangeBuilder = AggregationBuilders.range(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
+
                     //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
                     if(null!=range.get("from")&&null!=range.get("to")){
-                        rangeBuilder.addRange(range.get("key").toString(),(null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                        //key为自定义范围的别名
+                        if(range.get("key")==null){
+                            rangeBuilder.addRange((null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                        }else{
+                            rangeBuilder.addRange(range.get("key").toString(),(null==range.get("from"))?null:Double.valueOf(range.get("from").toString()),(null==range.get("to"))?null:Double.valueOf(range.get("to").toString()));
+                        }
                     }else if(null!=range.get("from")&&null==range.get("to")){
-                        rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("from").toString()));
+                        if(range.get("key")==null){
+                            rangeBuilder.addUnboundedFrom(Double.valueOf(range.get("from").toString()));
+                        }else{
+                            rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("from").toString()));
+                        }
                     }else if(null==range.get("from")&&null!=range.get("to")){
-                        rangeBuilder.addUnboundedTo(range.get("key").toString(),Double.valueOf(range.get("to").toString()));
+                        if(range.get("key")==null){
+                            rangeBuilder.addUnboundedFrom(Double.valueOf(range.get("to").toString()));
+                        }else{
+                            rangeBuilder.addUnboundedFrom(range.get("key").toString(),Double.valueOf(range.get("to").toString()));
+                        }
                     }else{
                         //不做处理
                     }
@@ -442,18 +464,68 @@ public class BIDaoImpl implements IBIDao {
                 aggregationBuilder = rangeBuilder;
                 break;
             case "DATE RANGE"://日期范围
-                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField());
+
+                DateRangeAggregationBuilder dateRangeBuilder = AggregationBuilders.dateRange(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField()).format("yyyy-MM-dd HH:mm:ss");
+
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
-                    dateRangeBuilder.addRange(range.get("from").toString(),range.get("to").toString());
+                    //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
+                    if(null!=range.get("from")&&null!=range.get("to")){
+                        //key为自定义范围的别名
+                        if(range.get("key")==null){
+                            dateRangeBuilder.addRange((null==range.get("from"))?null:range.get("from").toString(),range.get("to").toString());
+                        }else{
+                            dateRangeBuilder.addRange(range.get("key").toString(),range.get("from").toString(),range.get("to").toString());
+                        }
+
+                    }else if(null!=range.get("from")&&null==range.get("to")){
+                        if(range.get("key")==null){
+                            dateRangeBuilder.addUnboundedFrom(range.get("from").toString());
+                        }else{
+                            dateRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("from").toString());
+                        }
+
+                    }else if(null==range.get("from")&&null!=range.get("to")){
+                        if(range.get("key")==null){
+                            dateRangeBuilder.addUnboundedFrom(range.get("to").toString());
+                        }else{
+                            dateRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("to").toString());
+                        }
+                    }else{
+                        //不做处理
+                    }
                 }
                 aggregationBuilder = dateRangeBuilder;
                 break;
             case "IPV4 RANGE"://IP地址范围
-                IpRangeAggregationBuilder ipRangeBuilder = AggregationBuilders.ipRange(bucket.getAggType()+"-"+bucket.getField());
+                IpRangeAggregationBuilder ipRangeBuilder = AggregationBuilders.ipRange(bucket.getAggType()+"-"+bucket.getField()).field(bucket.getField());
                 //遍历ranges，依次将范围数据写入聚合对象中
                 for(Map<String,Object> range : bucket.getRanges()){
-                    ipRangeBuilder.addRange(range.get("from").toString(),range.get("to").toString());
+                    //根据from 和to参数，判定要设置的范围，from是包含，to是不包含
+                    if(null!=range.get("from")&&null!=range.get("to")){
+                        //key为自定义范围的别名
+                        if(range.get("key")==null){
+                            ipRangeBuilder.addRange((null==range.get("from"))?null:range.get("from").toString(),range.get("to").toString());
+                        }else{
+                            ipRangeBuilder.addRange(range.get("key").toString(),range.get("from").toString(),range.get("to").toString());
+                        }
+
+                    }else if(null!=range.get("from")&&null==range.get("to")){
+                        if(range.get("key")==null){
+                            ipRangeBuilder.addUnboundedFrom(range.get("from").toString());
+                        }else{
+                            ipRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("from").toString());
+                        }
+
+                    }else if(null==range.get("from")&&null!=range.get("to")){
+                        if(range.get("key")==null){
+                            ipRangeBuilder.addUnboundedFrom(range.get("to").toString());
+                        }else{
+                            ipRangeBuilder.addUnboundedFrom(range.get("key").toString(),range.get("to").toString());
+                        }
+                    }else{
+                        //不做处理
+                    }
                 }
                 aggregationBuilder = ipRangeBuilder;
                 break;
@@ -545,7 +617,7 @@ public class BIDaoImpl implements IBIDao {
      */
     private AggregationBuilder getMetricAggregation(Metric metric){
         AggregationBuilder metricBuilder = null;
-        String aliasName = metric.getAggType()+"-"+metric.getField();//别名
+        String aliasName = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField());//别名
         switch(metric.getAggType().toUpperCase()){
             case "SUM":
                 // 在bucket上聚合metric查询sum
@@ -610,9 +682,9 @@ public class BIDaoImpl implements IBIDao {
      */
     public void setData(ArrayList<Metric> metricList,MultiBucketsAggregation.Bucket bucket,LinkedHashMap<String,Object> xAxisMap,LinkedHashSet<String> dimensions,String nextKey){
         for(Metric metric:metricList){
-            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(metric.getAggType()+"-"+metric.getField());
+            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
             //图例名称，如果别名是null 则显示聚合类型名称，否则显示别名
-            String line_name = nextKey+(metric.getAliasName()==null?metric.getAggType():(metric.getAliasName()));
+            String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():(metric.getAliasName()));
             //如果图例名称最后包含“-”，则去掉
             line_name = line_name.matches(".*\\-")?line_name.substring(0,line_name.length()-1):line_name;
             //String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName());

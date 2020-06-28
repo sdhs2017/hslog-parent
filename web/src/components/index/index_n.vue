@@ -51,44 +51,20 @@
             <el-col :span="10">
                 <div class="grid-content bg-purple wapper-content">
                     <p class="content-title">
-                        <el-date-picker
-                            v-model="dateVal1"
-                            type="daterange"
-                            align="right"
-                            size="mini"
-                            value-format="yyyy-MM-dd"
-                            range-separator="-"
-                            start-placeholder="开始日期"
-                            end-placeholder="结束日期"
-                            @change="changeDate1"
-                            :picker-options="pickerOptions">
-                        </el-date-picker>
+                        <dateLayout class="date-wapper" busName="changeDateBar" :defaultVal="defaultValBar" ></dateLayout>
                     </p>
                     <div class="content-infom">
-<!--                        <v-echarts echartType="bar" :echartData = "this.echartData.barData" @callbackFucnc="clickss"></v-echarts>-->
-                        <logLevel_bar :params="barParam" :busName1="barBusName"></logLevel_bar>
+                        <logLevel_bar  class="date-wapper"  :params="barParam" :busName1="barBusName" :setIntervalObj="intervalObjBar"></logLevel_bar>
                     </div>
                 </div>
             </el-col>
             <el-col :span="7">
                 <div class="grid-content bg-purple wapper-content">
-                    <p class="content-title">
-                        <el-date-picker
-                            v-model="dateVal2"
-                            type="daterange"
-                            align="right"
-                            size="mini"
-                            value-format="yyyy-MM-dd"
-                            range-separator="-"
-                            start-placeholder="开始日期"
-                            end-placeholder="结束日期"
-                            @change="changeDate2"
-                            :picker-options="pickerOptions">
-                        </el-date-picker>
+                    <p class="content-title" style="display: flex;justify-content: flex-end;">
+                        <dateLayout  class="date-wapper"  busName="changeDatePie" :defaultVal="defaultValPie" ></dateLayout>
                     </p>
                     <div class="content-infom">
-<!--                        <v-echarts echartType="pie" :echartData = "this.echartData.pieData"></v-echarts>-->
-                        <logLevel_pie :params="pieParam"></logLevel_pie>
+                        <logLevel_pie :params="pieParam" :setIntervalObj="intervalObjPie"></logLevel_pie>
                     </div>
                 </div>
             </el-col>
@@ -119,11 +95,13 @@
             </el-col>
             <el-col :span="14" style="height: 400px;">
                 <div class="grid-content bg-purple wapper-content" style="height: 400px;">
-                    <p class="content-title">{{todayDate }} 数据量统计</p>
+                    <p class="content-title">数据量统计
+                        <dateLayout  class="date-wapper"  busName="changeDateLine" :defaultVal="defaultValLine"></dateLayout>
+                    </p>
                     <div class="content-infom"  style="height: 350px;">
                         <div class="content-infom"  style="height: 350px;">
 <!--                            <v-echarts echartType="line" :echartData = "this.echartData.lineData"></v-echarts>-->
-                            <hourlyLogCount_line :params="lineParam"></hourlyLogCount_line>
+                            <hourlyLogCount_line :params="lineParam" :setIntervalObj="intervalObjLine"></hourlyLogCount_line>
                         </div>
                     </div>
                 </div>
@@ -138,12 +116,13 @@
 
 <script>
     import vEcharts from '../common/echarts'
+    import dateLayout from '../common/dateLayout'
     import vListdetails2 from '../common/Listdetails2'
     import logLevel_bar from '../charts/log/index/logLevel_bar'
     import logLevel_pie from '../charts/log/index/logLevel_pie'
     import hourlyLogCount_line from '../charts/log/index/hourlyLogCount_line'
     import bus from '../common/bus';
-    import {dateFormat} from "../../../static/js/common";
+    import {dateFormat,setChartParam } from "../../../static/js/common";
 
     const MONTHNAME = [ "01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12" ];
     const DAYNAME = ["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
@@ -153,10 +132,109 @@
         name: "index_n",
         data() {
             return{
+                //时间控件参数 柱状图
+                defaultValBar:{
+                    //具体时间参数
+                    lastVal:'',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:true,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                },
+                //饼图
+                defaultValPie:{
+                    //具体时间参数
+                    lastVal:'',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:true,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                },
+                //折线图
+                defaultValLine:{
+                    //具体时间参数
+                    lastVal:'',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:true,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                },
                 //日志级别柱状图参数
                 barParam:{
+                    intervalValue:'',
+                    intervalType:'',
                     starttime:'',
-                    endtime:''
+                    endtime:'',
+                    last:''
+                },
+                //轮询参数
+                intervalObjBar:{
+                    state:false,
+                    interval:'5000'
+                },
+                //轮询参数
+                intervalObjPie:{
+                    state:false,
+                    interval:'5000'
+                },
+                //轮询参数
+                intervalObjLine:{
+                    state:false,
+                    interval:'5000'
                 },
                 //日志级别柱状图 点击name
                 barBusName:{
@@ -165,13 +243,19 @@
                 },
                 //日志级别饼图图参数
                 pieParam:{
+                    intervalValue:'',
+                    intervalType:'',
                     starttime:'',
-                    endtime:''
+                    endtime:'',
+                    last:''
                 },
                 //今日每小时日志数
                 lineParam:{
+                    intervalValue:'',
+                    intervalType:'',
                     starttime:'',
-                    endtime:''
+                    endtime:'',
+                    last:''
                 },
                 //日常检索遮罩
                 loading:false,
@@ -181,73 +265,11 @@
                 sec:'',//秒
                 starttime:'',
                 todayDate:'',
-                pickerOptions: {
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '全部',
-                        onClick(picker) {
-                            picker.$emit('pick', ['', '']);
-                        }
-                    }]
-                },
                 dateVal1:[],//
                 dateVal2:[],
                 allLogsTotle:0,//总条数
                 errorLogsTotle:0,//错误日志条数
                 flowTotle:0,
-                echartData:{
-                    barData:{//柱状图数据
-                        baseConfig:{
-                            title:'日志级别数量统计',
-                            xAxisName:'级别',
-                            yAxisName:'数量/条',
-                            hoverText:'数量'
-                        },
-                        xAxisArr:[],
-                        yAxisArr:[]
-                    },
-                    pieData:{//饼状图数据
-                        baseConfig:{
-                            title:'日志级别数量统计',
-                            hoverText:'百分比'
-                        },
-                        xAxisArr:[],
-                        yAxisArr:[]
-                    },
-                    lineData:{//折线图数据
-                        baseConfig:{
-                            title:'',
-                            xAxisName:'时间/时',
-                            yAxisName:'数量/条',
-                            hoverText:'日志数量'
-                        },
-                        xAxisArr:[],
-                        yAxisArr:[]
-                    }
-                },
                 errorLogsData:[],//错误日志列表数据
                 interval:'',//定时器
                 activeIndex:0,//当前日志列表索引，用于日志滚动计数
@@ -281,18 +303,42 @@
 
             this.todayDate = dateFormat('yyyy-mm-dd',end)
             this.starttime = dateFormat('yyyy-mm-dd',start)
-            this.barParam = {
-                starttime : dateFormat('yyyy-mm-dd',start)+ ' 00:00:00',
-                endtime : dateFormat('yyyy-mm-dd',end)+ ' 23:59:59'
-            }
-            this.pieParam = {
-                starttime : dateFormat('yyyy-mm-dd',start)+ ' 00:00:00',
-                endtime : dateFormat('yyyy-mm-dd',end)+ ' 23:59:59'
-            }
-            this.lineParam = {
-                starttime : dateFormat('yyyy-mm-dd',end)+ ' 00:00:00',
-                endtime : dateFormat('yyyy-mm-dd',end)+ ' 23:59:59'
-            }
+            //初始时间
+            this.defaultValBar.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.defaultValBar.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
+            this.defaultValPie.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.defaultValPie.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
+
+            this.defaultValLine.starttime= dateFormat('yyyy-mm-dd',end)+ ' 00:00:00';
+            this.defaultValLine.endtime = dateFormat('yyyy-mm-dd',end)+ ' 23:59:59';
+            this.barParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.barParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
+            this.pieParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.pieParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
+
+            this.lineParam.starttime= dateFormat('yyyy-mm-dd',end)+ ' 00:00:00';
+            this.lineParam.endtime = dateFormat('yyyy-mm-dd',end)+ ' 23:59:59';
+            /*监听日期改变*/
+            bus.$on('changeDateBar',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.barParam = arr[0];
+                this.intervalObjBar = arr[1];
+            })
+            /*监听日期改变*/
+            bus.$on('changeDatePie',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.pieParam = arr[0];
+                this.intervalObjPie = arr[1];
+            })
+            /*监听日期改变*/
+            bus.$on('changeDateLine',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.lineParam = arr[0];
+                this.intervalObjLine = arr[1];
+            })
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
             // //获取日志条数方法
@@ -307,7 +353,7 @@
             // //获取流量条数
             // this.getFlowTotle();
             bus.$on(this.barBusName.clickName,(params)=>{
-                this.$router.push({name:'accurateSearch2',params:{logLevel: params.name,dateArr:this.dateVal1}})
+                this.$router.push({name:'accurateSearch2',params:{logLevel: params.name,dateArr:[this.barParam.starttime,this.barParam.endtime]}})
             })
         },
         mounted(){
@@ -351,22 +397,6 @@
                 // 设置秒
                 const seconds = new Date().getSeconds();
                 this.sec =( seconds < 10 ? "0" : "" ) + seconds;
-            },
-            //日期改变
-            changeDate1(){
-                //this.getBarPieEchartData(this.dateVal1[0],this.dateVal1[1],true,false);
-                this.barParam = {
-                    starttime : this.dateVal1[0]+ ' 00:00:00',
-                    endtime : this.dateVal1[1]+ ' 23:59:59'
-                }
-            },
-            //日期改变
-            changeDate2(){
-                //this.getBarPieEchartData(this.dateVal2[0],this.dateVal2[1],false,true);
-                this.pieParam = {
-                    starttime : this.dateVal2[0]+ ' 00:00:00',
-                    endtime : this.dateVal2[1]+ ' 23:59:59'
-                }
             },
             //获取日志条
             getLogsTotle(){
@@ -476,10 +506,14 @@
             }
         },
         beforeDestroy(){
-            bus.$off(this.barBusName.clickName)
+            bus.$off(this.barBusName.clickName);
+            bus.$off('changeDateBar');
+            bus.$off('changeDatePie');
+            bus.$off('changeDateLine');
         },
         components:{
             vEcharts,
+            dateLayout,
             vListdetails2,
             logLevel_bar,
             logLevel_pie,
@@ -493,6 +527,11 @@
         /*height: 100%;*/
         /*background: url("../../../static/img/bigdata3.png");*/
 
+    }
+    .date-wapper{
+        float: right;
+        margin: 5px;
+        margin-right: 0;
     }
     .wapper-top{
         margin-bottom: 20px;

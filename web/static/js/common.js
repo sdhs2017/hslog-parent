@@ -264,6 +264,37 @@ function dateFormat(fmt, date) {
     };
     return fmt;
 }
+/*
+* 通过时间控件对应图表参数
+* obj 通过时间控件返回的obj对象
+* */
+function setChartParam(obj) {
+    //赋值参数
+    let param ={
+        intervalValue:obj.intervalVal,
+        intervalType:obj.intervalType,
+        starttime:obj.starttime,
+        endtime:obj.endtime,
+        last:obj.lastVal
+    }
+    //轮询参数
+    let intervalObj = {
+        state:false,//轮询状态
+        interval:5//轮询间隔数据
+    }
+    intervalObj.state = obj.intervalState;
+    if(obj.intervalState){
+        if(obj.intervalType === 'second'){
+            intervalObj.interval = obj.intervalVal * 1000;
+        }else if(obj.intervalType === 'minute'){
+            intervalObj.interval = obj.intervalVal * 1000 * 60;
+        }else{
+            intervalObj.interval = obj.intervalVal * 1000 * 60 * 60;
+        }
+    }
+    return [param,intervalObj]
+}
+
 
 export {
     downloadToPDF,
@@ -274,5 +305,6 @@ export {
     gresizeW,
     is_has,
     dateFormat,
-    baseUrl
+    baseUrl,
+    setChartParam
 }

@@ -267,6 +267,20 @@
                                         <el-form-item label="名称颜色">
                                             <el-color-picker v-model="chartsConfig.yNormal.nameTextStyle.color" size="mini"></el-color-picker>
                                         </el-form-item>
+                                        <el-form-item label="单位类型" >
+                                            <el-select v-model="chartsConfig.yNormal.unitType" style="width: 100%;" size="mini">
+                                                <el-option label="无" value=""></el-option>
+                                                <el-option label="百分比" value="%"></el-option>
+                                                <el-option label="byte" value="byte"></el-option>
+                                            </el-select>
+                                        </el-form-item>
+                                        <el-form-item label="单位数值" v-if="chartsConfig.yNormal.unitType === 'byte'">
+                                            <el-select v-model="chartsConfig.yNormal.unitValue" style="width: 100%;" size="mini">
+                                                <el-option label="MB" value="MB"></el-option>
+                                                <el-option label="GB" value="GB"></el-option>
+                                                <el-option label="TB" value="TB"></el-option>
+                                            </el-select>
+                                        </el-form-item>
                                         <el-form-item label="轴线颜色">
                                             <el-color-picker v-model="chartsConfig.yNormal.axisLine.lineStyle.color" size="mini"></el-color-picker>
                                         </el-form-item>
@@ -493,6 +507,7 @@
                 indexVal:[],
                 //展开的选项卡
                 configOpened:['1','2','3','4','5','6','7','8','9'],
+                yUnit :'',
                 //图表基本配置
                 chartsConfig:{
                     //templateName
@@ -570,6 +585,8 @@
                     },
                     yNormal:{
                         name:'',
+                        unitType:'',
+                        unitValue:'',
                         nameTextStyle:{
                             color:'#5bc0de'
                         },
@@ -1040,10 +1057,19 @@
 
                     bucketsArr.push(obj)
                 }
+                //单位
+                if(this.chartsConfig.yNormal.unitType === ''){
+                    this.yUnit = ''
+                }else if(this.chartsConfig.yNormal.unitType === '%'){
+                    this.yUnit = '%'
+                }else if(this.chartsConfig.yNormal.unitType === 'byte'){
+                    this.yUnit = this.chartsConfig.yNormal.unitValue
+                }
                 let param = {
                     starttime:this.dateObj.starttime,//起始时间
                     endtime:this.dateObj.endtime,//结束时间
                     last:this.dateObj.last,
+                    unit:this.yUnit,
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
                     template_name:this.chartsConfig.templateName,
@@ -1148,7 +1174,7 @@
                         axisLabel:this.chartsConfig.xNormal.axisLabel,
                     },
                     yAxis: {
-                        name:this.chartsConfig.yNormal.name,
+                        name:this.chartsConfig.yNormal.name+' '+ this.yUnit,
                         nameTextStyle:{
                             color:this.chartsConfig.yNormal.nameTextStyle.color,
                         },
@@ -1371,7 +1397,7 @@
                         axisLabel:this.chartsConfig.xNormal.axisLabel,
                     },
                     yAxis: {
-                        name:this.chartsConfig.yNormal.name,
+                        name:this.chartsConfig.yNormal.name+' '+ this.yUnit,
                         nameTextStyle:{
                             color:this.chartsConfig.yNormal.nameTextStyle.color,
                         },
@@ -1680,6 +1706,7 @@
                         }
                     ]
                 }
+
                 let myChart =  echarts.init(document.getElementById('charts-wapper'));
                 //console.log(JSON.stringify(this.opt))
                 myChart.setOption(this.opt,true);

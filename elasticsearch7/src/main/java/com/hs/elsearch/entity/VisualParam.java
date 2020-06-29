@@ -30,6 +30,15 @@ public class VisualParam {
     private ArrayList<Metric> metricList = new ArrayList<>();//指标字段（Y轴）
     private ArrayList<QueryCondition> queryConditions = new ArrayList<>();//查询条件
     private String queryConnectionType;//查询条件的连接类型  should/must
+    private String unit;//单位，数据换算
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
 
     public String getQueryConnectionType() {
         return queryConnectionType;

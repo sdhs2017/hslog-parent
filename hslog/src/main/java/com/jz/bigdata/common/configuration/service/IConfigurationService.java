@@ -11,7 +11,7 @@ public interface IConfigurationService {
      * @return
      * @throws Exception
      */
-    public int upsert(Configuration configuration) throws Exception;
+    public int update(List<Configuration> list) throws Exception;
     /**
      * 通过key查询对应的值
      * @param configuration_key

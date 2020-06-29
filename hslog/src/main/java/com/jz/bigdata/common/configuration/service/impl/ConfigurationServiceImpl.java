@@ -12,8 +12,8 @@ public class ConfigurationServiceImpl implements IConfigurationService {
     @Resource
     private IConfigurationDao configurationDao;
     @Override
-    public int upsert(Configuration configuration) throws Exception {
-        return configurationDao.upsert(configuration);
+    public int update(List<Configuration> list) throws Exception {
+        return configurationDao.update(list);
     }
 
     @Override

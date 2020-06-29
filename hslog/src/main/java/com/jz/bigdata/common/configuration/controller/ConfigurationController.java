@@ -22,6 +22,7 @@ import scala.collection.immutable.Stream;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,21 +44,29 @@ public class ConfigurationController {
     private IConfigurationService configurationService;
 
     @ResponseBody
-    @RequestMapping(value="/upsert.do", produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="添加或修改配置项")
-    public String upsert(HttpServletRequest request, Configuration configuration) {
-
+    @RequestMapping(value="/update.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="修改配置项")
+    public String update(HttpServletRequest request) {
+        //参数处理
+        Map<String, String[]> params = request.getParameterMap();
+        List<Configuration> list = new ArrayList<>();
+        for(Map.Entry<String,String[]> entity:params.entrySet()){
+            Configuration configuration = new Configuration();
+            configuration.setConfiguration_key(entity.getKey());
+            configuration.setConfiguration_value(entity.getValue()[0]);
+            list.add(configuration);
+        }
         try{
-            int result = configurationService.upsert(configuration);
+            int result = configurationService.update(list);
             ConfigurationCache.INSTANCE.init(configurationService);//更新缓存
             if(result>0){
                 return Constant.successMessage();
             }else{
-                return Constant.failureMessage("调整配置信息失败");
+                return Constant.failureMessage("修改配置信息失败");
             }
         }catch (Exception e){
-            logger.error("调整配置信息失败"+e.getMessage());
-            return Constant.failureMessage("调整配置信息失败");
+            logger.error("修改配置信息失败"+e.getMessage());
+            return Constant.failureMessage("修改配置信息失败");
         }
     }
     @ResponseBody

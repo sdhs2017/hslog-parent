@@ -25,9 +25,12 @@ import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.*;
 import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import scala.collection.immutable.ListSet;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 public class BIDaoImpl implements IBIDao {
@@ -656,7 +659,7 @@ public class BIDaoImpl implements IBIDao {
         //如果是最后一层bucket
         if(i==params.getBucketList().size()){
             //填充数据
-            setData(params.getMetricList(),bucket,xAxisMap,dimensions,nextKey);
+            setData(params.getMetricList(),bucket,xAxisMap,dimensions,nextKey,params.getUnit());
         }else{
 
             //获取这次聚合结果对应的
@@ -679,19 +682,22 @@ public class BIDaoImpl implements IBIDao {
      * @param xAxisMap 数据点
      * @param dimensions 图例数据
      * @param nextKey 所有父级聚合结果组合成的key
+     * @param unit 单位换算
      */
-    public void setData(ArrayList<Metric> metricList,MultiBucketsAggregation.Bucket bucket,LinkedHashMap<String,Object> xAxisMap,LinkedHashSet<String> dimensions,String nextKey){
+    public void setData(ArrayList<Metric> metricList,MultiBucketsAggregation.Bucket bucket,LinkedHashMap<String,Object> xAxisMap,LinkedHashSet<String> dimensions,String nextKey,String unit){
         for(Metric metric:metricList){
             NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
             //图例名称，如果别名是null 则显示聚合类型名称，否则显示别名
-            String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():(metric.getAliasName()));
+            //String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():(metric.getAliasName()));
+            String line_name = nextKey+("".equals(metric.getAliasName())?metric.getAggType():(metric.getAliasName()==null?"":metric.getAliasName()));
             //如果图例名称最后包含“-”，则去掉
             line_name = line_name.matches(".*\\-")?line_name.substring(0,line_name.length()-1):line_name;
             //String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName());
             //在最后一级的聚合遍历中，生成图例
             dimensions.add(line_name);
-            //数据点
-            xAxisMap.put(line_name,(Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
+            Double pointValue = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
+            //数据换算
+            xAxisMap.put(line_name,valueFormatter(pointValue,unit));
         }
     }
     /**
@@ -887,7 +893,7 @@ public class BIDaoImpl implements IBIDao {
                     xAxisMap.put(ElasticConstant.XAXIS,xAxisValue);
                     //如果bucket聚合只有一层
                     if(params.getBucketList().size()==1){
-                        setData(params.getMetricList(),xAxisBucket,xAxisMap,dimensions,"");
+                        setData(params.getMetricList(),xAxisBucket,xAxisMap,dimensions,"",params.getUnit());
                     }else{
                         //2-n层
                         //递归
@@ -905,6 +911,11 @@ public class BIDaoImpl implements IBIDao {
                         points.put(line,0);
                     }
                 }
+            }
+            //如果X轴为时间(bucket第一个为X轴)，且最后一个点的时间与截止时间相同，则去掉最后一个点
+            if("Date Histogram".equals(params.getBucketList().get(0).getAggType())&&source.get(source.size()-1).get(ElasticConstant.XAXIS).equals(params.getEndTime())){
+                //将最后一个点去掉
+                source.remove(source.size()-1);
             }
 
             result.put(ElasticConstant.DIMENSIONS,dimensions);
@@ -1024,6 +1035,51 @@ public class BIDaoImpl implements IBIDao {
             }
             i++;
         }
+        return result;
+    }
+
+    /**
+     * 数据换算
+     * @param value 值
+     * @param unit 换算单位 %/MB/GB/TB
+     * @return
+     */
+    private Object valueFormatter(Double value,String unit){
+        Object result = null;
+        //保留小数点2位
+        DecimalFormat decimalFormat=new DecimalFormat("0.00");
+        if(!Strings.isNullOrEmpty(unit)){
+            try{
+                switch (unit.toUpperCase()){
+                    case "%":
+                        Float folatValue = Float.parseFloat(value.toString());
+                        folatValue = folatValue*100;
+                        result = decimalFormat.format(folatValue);
+                        break;
+                    case "MB":
+                        value = value/1024/1024;//byte -> MB
+                        result = decimalFormat.format(value);
+                        break;
+                    case "GB":
+                        value = value/1024/1024/1024;//byte -> GB
+                        result = decimalFormat.format(value);
+                        break;
+                    case "TB":
+                        value = value/1024/1024/1024/1024;//byte -> TB
+                        result = decimalFormat.format(value);
+                        break;
+                    default:
+                        result = value;
+                        break;
+                }
+            }catch(Exception e){
+                result = value.toString();
+            }
+        }else{
+            result = value;
+        }
+
+
         return result;
     }
     public static void main(String[] args){

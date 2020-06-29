@@ -1087,6 +1087,15 @@
                                 if(obj.chartType === 'bar'){
                                     let xL = res.data.data[0].dimensions.length - 1;//维度
                                     let colorIndex = 0;//颜色索引
+                                    //处理y轴数字刻度单位
+                                    obj.opt.yAxis.axisLabel.formatter= function (value, index) {
+                                        if (value >= 10000 && value < 10000000) {
+                                            value = value / 10000 + "万";
+                                        } else if (value >= 10000000) {
+                                            value = value / 10000000 + "千万";
+                                        }
+                                        return value;
+                                    }
                                     for(let i=0;i<xL;i++){
                                         if(colorIndex === this.color1.length){
                                             colorIndex = 0;
@@ -1104,6 +1113,15 @@
                                 }else if(obj.chartType === 'line'){
                                     let xL = res.data.data[0].dimensions.length - 1;//维度
                                     let colorIndex = 0;//颜色索引
+                                    //处理y轴数字刻度单位
+                                    obj.opt.yAxis.axisLabel.formatter= function (value, index) {
+                                        if (value >= 10000 && value < 10000000) {
+                                            value = value / 10000 + "万";
+                                        } else if (value >= 10000000) {
+                                            value = value / 10000000 + "千万";
+                                        }
+                                        return value;
+                                    }
                                     for(let i=0;i<xL;i++){
                                         if(colorIndex === this.color1.length){
                                             colorIndex = 0;

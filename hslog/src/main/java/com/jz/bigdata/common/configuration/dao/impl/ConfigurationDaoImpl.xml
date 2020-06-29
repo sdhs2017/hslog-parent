@@ -30,13 +30,14 @@
 
 
     <!-- 添改数据 -->
-    <insert id="upsert" parameterType="com.jz.bigdata.common.configuration.entity.Configuration">
+    <insert id="update" parameterType="java.util.List">
         INSERT INTO configuration
-        (configuration_key,configuration_value) VALUES( #{configuration_key} ,  #{configuration_value}  )
+        (configuration_key,configuration_value) VALUES
+        <foreach collection="list" item="item" index="index" separator=",">
+            ( #{item.configuration_key} ,  #{item.configuration_value}  )
+        </foreach>
         ON DUPLICATE KEY
-        UPDATE configuration_key=#{configuration_key} , configuration_value=#{configuration_value}
+        UPDATE configuration_key=values(configuration_key),configuration_value=values(configuration_value)
     </insert>
-
-
 
 </mapper>

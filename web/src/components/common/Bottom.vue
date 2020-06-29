@@ -8,7 +8,7 @@
             <div class="company"> 版权所有  © 2020-2021  山东九州信泰信息科技股份有限公司  </div>
 <!--            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>-->
         </div>
-        <el-dialog title="系统磁盘及数据批量采集阈值设置" :visible.sync="diskUsedState" width="440px" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+        <el-dialog title="阈值设置" :visible.sync="diskUsedState" width="440px" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-form>
                 <p style="color: #fff;">系统盘阈值大小：{{sysThresholdValue}}%</p>
                 <input type="range" v-model="sysThresholdValue" id="myRange1" style="width: 100%;" min = "0" step="1" max="100">
@@ -20,12 +20,12 @@
                 <p>系统盘 : <span style="color: #1ab394;">{{diskObj.sysAllDisk}}</span>(总) <span style="color: #e4956d;margin-left: 20px;">{{diskObj.sysUsedDisk}}</span>(已用)</p>
                 <p>数据盘 : <span style="color: #1ab394;">{{diskObj.dataAllDisk}}</span>(总) <span style="color: #e4956d;margin-left: 20px;">{{diskObj.dataUsedDisk}}</span>(已用)</p>
             </div>
-            <p  style="color: #e4956d;">注：阈值修改会影响数据采集，请慎重选择。</p>
             <el-form ref="form" label-width="120px" label-position="left" style="border-top: 1px solid #485b71;margin-top: 10px;padding-top: 10px;">
                 <el-form-item label="数据批量采集">
                     <el-input v-model="es_bulk" size="mini" type="number" min="1"></el-input>
                 </el-form-item>
             </el-form>
+            <p  style="color: #e4956d;">注：阈值修改会影响数据采集，请慎重选择。</p>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="okBtn">确 定</el-button>
                 <el-button @click="diskUsedState = false">取 消</el-button>
@@ -92,8 +92,8 @@
                 diskUsedState:false,//显示状态-磁盘空间
                 systemIp:'获取中',//系统ip
                 systemIpChangeState:false,
-                sysThresholdValue :92,//系统盘阈值
-                dataThresholdValue:85,//数据盘阈值
+                sysThresholdValue :90,//系统盘阈值
+                dataThresholdValue:80,//数据盘阈值
                 diskObj:{
                     sizeNum	: '',//总容量
                     usedNum	: '',//已用容量
@@ -114,6 +114,7 @@
             }
         },
         created() {
+            this.getEsBulk();
             this.getDiskUsed();
             //定时查看阈值情况  100分钟 查看一次
             setInterval(this.getDiskUsed,6000000);
@@ -169,6 +170,7 @@
                             };
                             this.thresholdText = '';
                             //判断阈值与实际使用大小
+                            console.log(this.sysThresholdValue)
                             if(this.sysThresholdValue <= Number(res.data.sys_per.split('%')[0])){
                                 this.thresholdText += `系统盘空间不足,剩余 ${res.data.sys_avail}`;
                                 $(".threshold").css("color","#d9534f");
@@ -196,12 +198,23 @@
             getEsBulk(){
                 this.loading = true;
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/configuration/selectByKey.do',this.$qs.stringify({
-                        configuration_key:'es_bulk'
-                    }))
+                    this.$axios.post(this.$baseUrl+'/configuration/selectAll.do','')
                         .then(res=>{
                             this.loading = false;
-                            this.es_bulk = res.data.data;
+                            if(res.data.success === 'true'){
+                                let arr = res.data.data;
+                                for(let i in arr){
+                                    if(arr[i].configuration_key === 'disk_data_watermark'){//数据盘阈值
+                                        this.dataThresholdValue = arr[i].configuration_value
+                                    }else if(arr[i].configuration_key === 'disk_system_watermark'){//系统盘阈值
+                                        this.sysThresholdValue = arr[i].configuration_value
+                                    }else if(arr[i].configuration_key === 'es_bulk'){//数据采集
+                                        this.es_bulk = arr[i].configuration_value
+                                    }
+                                }
+                            }else{
+                                layer.msg(res.data.message,{icon:5})
+                            }
                         })
                         .catch(err=>{
                             this.loading = false;
@@ -209,12 +222,13 @@
                 })
             },
             okBtn(){
-                //设置数据批量采集阈值
+                //设置阈值
                 this.$nextTick(()=>{
                     layer.load(1);
-                    this.$axios.post(this.$baseUrl+'/configuration/upsert.do',this.$qs.stringify({
-                        configuration_key:'es_bulk',
-                        configuration_value:this.es_bulk
+                    this.$axios.post(this.$baseUrl+'/configuration/update.do',this.$qs.stringify({
+                        es_bulk:this.es_bulk,
+                        disk_system_watermark:this.sysThresholdValue,
+                        disk_data_watermark:this.dataThresholdValue
 
                     }))
                         .then(res=>{

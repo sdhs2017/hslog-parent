@@ -6,7 +6,7 @@ package com.hs.elsearch.entity;
 public class Metric{
     private String aggType;//y轴聚合方式
     private String field;//y轴聚合字段
-    private String aliasName;//别名
+    private String aliasName;//别名,如果是null，则图例中无聚合名称，“”则显示默认的聚合（count/sum等）
     public Metric(){}
     //构造方法
     public Metric(String aggType, String field,String aliasName){

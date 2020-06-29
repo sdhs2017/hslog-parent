@@ -10,7 +10,7 @@ public interface IConfigurationDao {
      * @param configuration
      * @return
      */
-    int upsert(Configuration configuration);
+    int update(List<Configuration> list);
 
     /**
      * 通过key查询对应的值

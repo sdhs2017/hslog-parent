@@ -2082,7 +2082,7 @@ public class LogController extends BaseController{
 		Bucket eventBucket = new Bucket("terms","event.action",null,null,100,"desc");
 		params.getBucketList().add(eventBucket);
 		//Y轴，日志个数（count(@timestamp)）
-		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"");
+		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,null);
 		params.getMetricList().add(metric);
 		try{
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
@@ -2206,7 +2206,7 @@ public class LogController extends BaseController{
 			Bucket severityBucket = new Bucket("Range","log.syslog.severity.code",params.getIntervalType(),params.getIntervalValue(),null,"desc",ranges);
 			params.getBucketList().add(severityBucket);
 			//Y轴，数据包个数（count(packet_length)）
-			Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"");
+			Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,null);
 			params.getMetricList().add(metric);
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
 

@@ -531,10 +531,6 @@ public class EcsCommonController {
     public String getLogListByEquipment(HttpServletRequest request, Equipment equipment) {
         //处理参数
         VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
-        //参数异常
-        if(!Strings.isNullOrEmpty(params.getErrorInfo())){
-            return Constant.failureMessage(params.getErrorInfo());
-        }
         //分页参数
         String page = request.getParameter("page");
         String size = request.getParameter("size");

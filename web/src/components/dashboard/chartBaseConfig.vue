@@ -147,7 +147,7 @@
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
-                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' && chartType !=='pie'"><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> 添加拆分序列</span></p>
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' "><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> 添加拆分序列</span></p>
                         </el-collapse>
                     </el-tab-pane>
                     <el-tab-pane label="基本设定" name="second">
@@ -866,8 +866,7 @@
                 }
             }
         },
-        methods:
-            {
+        methods:{
             // 初始化
             initialize(){
                 //还原配置

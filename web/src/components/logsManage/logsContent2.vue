@@ -252,11 +252,17 @@
                 let obj = searchObj;
                 obj.page = page;
                 obj.size = this.size;
+                let param = {};
+                /*判断是否是单个资产查询日志*/
+                if(obj['fields.equipmentid']){//单个资产
+                    delete Object['fields.equipmentid']
+                    param = obj
+                }else{
+                    param.hsData = JSON.stringify(obj)
+                }
                 //请求
                 this.$nextTick( ()=> {
-                    this.$axios.post(this.$baseUrl+'/'+this.searchUrl,this.$qs.stringify({
-                        hsData : JSON.stringify(obj)
-                    }))
+                    this.$axios.post(this.$baseUrl+'/'+this.searchUrl,this.$qs.stringify(param))
                         .then((res) => {
                             this.loading = false;
                             let logsData = res.data[0].list;

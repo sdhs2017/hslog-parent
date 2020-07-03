@@ -3,14 +3,14 @@
         <div class="top-title">'{{equipmentName}}' 日志</div>
         <div class="search-wapper">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
-            <el-switch
+           <!-- <el-switch
                 style="display: block;float: right;margin-left:10px;margin-top: 5px;"
                 v-model="actionState"
                 active-color="#13ce66"
                 inactive-color="#ff4949"
                 active-text="开启动作添加"
                 inactive-text="">
-            </el-switch>
+            </el-switch>-->
         </div>
         <div class="equipment-table">
             <v-basetable2 :tableHead="equipmentHead" :tableData="equipmentData"></v-basetable2>
@@ -62,7 +62,7 @@
                     'fields.equipmentid':'',
                     starttime:'',
                     endtime:'',
-                    'log.level':''
+                    queryParam: ''
                 },
                 searchUrl:'ecsCommon/getLogListByEquipment.do',//数据地址
                 formConditionsArr:[],//查询条件
@@ -351,10 +351,11 @@
             'equipmentId'(){
                 //检测搜索条件
                 bus.$on(this.busName,(params)=>{
+                    let queryObj = {'log.level':params['log.level'],'fields.equipmentid':this.equipmentId}
                     this.searchConditions={
                         starttime:params.starttime,
                         endtime:params.endtime,
-                        'log.level':params['log.level'],
+                        queryParam:JSON.stringify(queryObj),
                         'fields.equipmentid':this.equipmentId
                     }
                 })
@@ -394,6 +395,7 @@
                 if(vm.equipmentId === '' || vm.equipmentId !== to.query.id){
                     vm.equipmentId = to.query.id;
                     vm.searchConditions['fields.equipmentid'] = vm.equipmentId;
+                    vm.searchConditions.queryParam = JSON.stringify({'log.level':'','fields.equipmentid':vm.equipmentId})
                    // console.log(vm.searchConditions)
                     vm.getEquipmentData();
                 }

@@ -291,8 +291,8 @@
                 isAndroid = ua.match(/(Android)\s+([\d.]+)/),
                 isMobile = isIphone || isAndroid;
             if(isMobile) {
-                //显示左边栏开关
-                window.location="mobile/index.html"
+                //window.location="mobile/index.html"
+                this.$router.push('/mobile/index_m');
             }
             //填充时间
             const end = new Date();

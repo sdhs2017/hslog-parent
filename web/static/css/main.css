@@ -30,7 +30,13 @@ a {
 li,ol{
     list-style: none;
 }
-
+.mobile-wapper{
+    width: 100vw;
+    height: 100Vh;
+    /*background: #ccc;*/
+    position: fixed;
+    color: #a3b9ec;
+}
 .content-box {
     position: absolute;
     left: 170px;

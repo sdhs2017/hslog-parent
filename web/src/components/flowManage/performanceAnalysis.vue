@@ -11,7 +11,7 @@
                 <el-row :gutter="20" class="flow-row">
                     <el-col :span="24">
                         <div class="chart-wapper ip-chart">
-                            <performanceAnalysis_bar :params="param" :setIntervalObj="intervalObj"></performanceAnalysis_bar>
+                            <performanceAnalysis_bar :params="param" :setIntervalObj="intervalObj" :busName="busName"></performanceAnalysis_bar>
                         </div>
                     </el-col>
                 </el-row>
@@ -25,12 +25,16 @@
     import dateLayout from '../common/dateLayout'
     import performanceAnalysis_bar from '../charts/flow/performance/performanceAnalysis_bar'
     import bus from '../common/bus'
-    import {dateFormat,setChartParam} from '../../../static/js/common'
+    import {dateFormat,setChartParam,jumpHtml} from '../../../static/js/common'
     export default {
         name: "performanceAnalysis",
         data() {
             return {
                 chartTitle:'应用平均响应时间统计',
+                busName:{
+                    clickName:'appAvgResTimeClick',
+                    exportName:''
+                },
                 //请求参数
                 param:{
                     intervalValue:'',
@@ -89,12 +93,19 @@
                 this.param = arr[0];
                 this.intervalObj = arr[1]
             })
+            /*监听点击事件*/
+            bus.$on(this.busName.clickName,(data)=>{
+                if(!this.intervalObj.state){
+                    jumpHtml('performanceAnalysisUrl'+data.name,'flowManage/performanceAnalysisUrl.vue',{ url:data.name,starttime:this.param.starttime,endtime:this.param.endtime},'平均响应时间')
+                }
+            })
         },
         mounted(){},
         methods:{
         },
         beforeDestroy(){
             bus.$off('performanceAnalysis')
+            bus.$off(this.busName.clickName)
         },
         components:{
             dateLayout,

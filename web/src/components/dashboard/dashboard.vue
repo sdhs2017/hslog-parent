@@ -106,178 +106,6 @@
                     <span>系统预设图表</span>
                     <i class="refresh-list el-icon-refresh-right" ></i>
                 </div>
-               <!-- <el-checkbox-group v-model="sysCheckedList" class="drawer-list">
-                    <ul>
-                        <li>
-                            <el-checkbox label="logLevel_bar-日志级别数量统计" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="logLevel_pie-日志级别数量统计" style="width: 260px;overflow:hidden;">日志级别数量统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="hourlyLogCount_line-今日日志数量统计" style="width: 260px;overflow:hidden;">今日日志数量统计</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqIpPacket_bar-资产（IP）数据包个数统计" style="width: 260px;overflow:hidden;">资产（IP）数据包个数统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqIpPacket_pie-资产（IP）数据包个数统计" style="width: 260px;overflow:hidden;">资产（IP）数据包个数统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqServerPacket_bar-资产（服务）数据包个数统计" style="width: 260px;overflow:hidden;">资产（服务）数据包个数统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqServerPacket_pie-资产（服务）数据包个数统计" style="width: 260px;overflow:hidden;">资产（服务）数据包个数统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="dstIp_bar-目的Ip地址流量统计" style="width: 260px;overflow:hidden;">目的Ip地址流量统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="dstIp_pie-目的Ip地址流量统计" style="width: 260px;overflow:hidden;">目的Ip地址流量统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="srcIp_bar-源Ip地址流量统计" style="width: 260px;overflow:hidden;">源Ip地址流量统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="srcIp_pie-源Ip地址流量统计" style="width: 260px;overflow:hidden;">源Ip地址流量统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="mulAndBro_bar-广播包/组播包统计" style="width: 260px;overflow:hidden;">广播包/组播包统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="mulAndBro_timeline-广播包/组播包统计（实时）-实时" style="width: 260px;overflow:hidden;">广播包/组播包统计（实时）</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="packetType_bar-数据包类型统计" style="width: 260px;overflow:hidden;">数据包类型统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="packetType_timeline-数据包类型统计（实时）-实时" style="width: 260px;overflow:hidden;">数据包类型统计（实时）</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="performanceAnalysis_bar-应用平均响应时间统计" style="width: 260px;overflow:hidden;">应用平均响应时间统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="dstPortAll_bar-目的端口总流量统计" style="width: 260px;overflow:hidden;">目的端口总流量统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="dstPortAll_pie-目的端口总流量统计" style="width: 260px;overflow:hidden;">目的端口总流量统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="tcpDstPort_bar-TCP目的端口总流量统计" style="width: 260px;overflow:hidden;">TCP目的端口总流量统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="tcpDstPort_pie-TCP目的端口总流量统计" style="width: 260px;overflow:hidden;">TCP目的端口总流量统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="udpDstPort_bar-UDP目的端口总流量统计" style="width: 260px;overflow:hidden;">UDP目的端口总流量统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="udpDstPort_pie-UDP目的端口总流量统计" style="width: 260px;overflow:hidden;">UDP目的端口总流量统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="application_bar-应用层协议长度统计" style="width: 260px;overflow:hidden;">应用层协议长度统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="application_pie-应用层协议长度统计" style="width: 260px;overflow:hidden;">应用层协议长度统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="multiple_bar-协议长度统计" style="width: 260px;overflow:hidden;">协议长度统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="multiple_pie-协议长度统计" style="width: 260px;overflow:hidden;">协议长度统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="transport_bar-传输层协议长度统计" style="width: 260px;overflow:hidden;">传输层协议长度统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="transport_pie-传输层协议长度统计" style="width: 260px;overflow:hidden;">传输层协议长度统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="allflow_timeline-全局实时流量（实时）-实时" style="width: 260px;overflow:hidden;">全局实时流量（实时）</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="allPacketCount_timeline-全局数据包个数（实时）-实时" style="width: 260px;overflow:hidden;">全局数据包个数（实时）</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="allUsedPer_gauge-全局实时流量（实时）-实时" style="width: 260px;overflow:hidden;">全局实时流量（实时）</el-checkbox>
-                            <span>仪表</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="allUsedPer_timeline-全局利用率（实时）-实时" style="width: 260px;overflow:hidden;">全局利用率（实时）</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="agentBrowser_bar-用户业务系统浏览器统计" style="width: 260px;overflow:hidden;">用户业务系统浏览器统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="agentBrowser_pie-用户业务系统浏览器统计" style="width: 260px;overflow:hidden;">用户业务系统浏览器统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="agentSystem_bar-用户业务系统统计" style="width: 260px;overflow:hidden;">用户业务系统统计</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="agentSystem_pie-用户业务系统统计" style="width: 260px;overflow:hidden;">用户业务系统统计</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqEventType_bar-事件级别数量统计(单一资产)" style="width: 260px;overflow:hidden;">事件级别数量统计(单一资产)</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqEventType_pie-事件级别数量统计(单一资产)" style="width: 260px;overflow:hidden;">事件级别数量统计(单一资产)</el-checkbox>
-                            <span>饼图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqHourlyLogCount_line-每小时日志数量统计(单一资产)" style="width: 260px;overflow:hidden;">每小时日志数量统计(单一资产)</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqLogLevel_bar-日志级别数量统计(单一资产)" style="width: 260px;overflow:hidden;">日志级别数量统计(单一资产)</el-checkbox>
-                            <span>柱状图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqSyslogHourlyEventCount_moreline-每小时事件数量统计(syslog单一资产)" style="width: 260px;overflow:hidden;">每小时事件数量统计(syslog-单一资产)</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                        <li>
-                            <el-checkbox label="eqWinlogHourlyEventCount_moreline-每小时事件数量统计(winlog单一资产)" style="width: 260px;overflow:hidden;">每小时事件数量统计(winlog-单一资产)</el-checkbox>
-                            <span>折线图</span>
-                        </li>
-                    </ul>
-                </el-checkbox-group>-->
                 <div class="drawer-list">
                     <el-input
                         style="margin: 5px;"
@@ -1058,11 +886,12 @@
             },
             /*获取echarts数据*/
             getEchartsData(resObj){
-                /*intervalValue:obj.intervalVal,
-                    intervalType:obj.intervalType,
-                    starttime:obj.starttime,
-                    endtime:obj.endtime,
-                    last:obj.lastVal*/
+                //判断请求的方法
+                let url = '/BI/getDataByChartParams.do';
+                if(resObj.obj.chartType === 'pie'){
+                    url = '/BI/getDataByChartParams_pie.do'
+                }
+
                 let obj = resObj.obj;
                 let param = resObj.param;
                 param.starttime = this.dateArr.starttime;
@@ -1078,7 +907,7 @@
                 return new Promise((resolve,reject)=>{
                     this.$nextTick(()=>{
                         this.loading = false;
-                        this.$axios.post(this.$baseUrl+'/BI/getDataByChartParams.do',this.$qs.stringify(param))
+                        this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                             .then(res=>{
                                 obj.loading = false;
                                 obj.opt.dataset = res.data.data;
@@ -1110,7 +939,8 @@
                                         obj.opt.series.push(dObj);
                                         colorIndex++
                                     }
-                                }else if(obj.chartType === 'line'){
+                                }
+                                else if(obj.chartType === 'line'){
                                     let xL = res.data.data[0].dimensions.length - 1;//维度
                                     let colorIndex = 0;//颜色索引
                                     //处理y轴数字刻度单位
@@ -1155,8 +985,9 @@
                                         obj.opt.series.push(dObj);
                                         colorIndex++;
                                     }
-                                }else if(obj.chartType === 'pie'){
-                                    obj.opt.series.push({
+                                }
+                                else if(obj.chartType === 'pie'){
+                                   /* obj.opt.series.push({
                                         name: '',
                                         type: 'pie',
                                         radius : '55%',
@@ -1168,9 +999,60 @@
                                                 shadowColor: 'rgba(0, 0, 0, 0.5)'
                                             }
                                         }
-                                    })
-                                }
+                                    })*/
+                                   console.log(res.data)
+                                    //饼图圆环个数
+                                    let pieCount = res.data.data.length;
+                                    //圆环间隔
+                                    let pieSpace = 5;
+                                    //最大范围
+                                    let raduisMax = 70;
+                                    //每个环平均的宽度
+                                    let raduisVal = (raduisMax-pieSpace*(pieCount-1))/(pieCount + 1);
+                                    for(let i = 0;i<pieCount;i++){
+                                        if(i === 0){
+                                            let objPie = {
+                                                type: 'pie',
+                                                radius:[0,`${raduisVal*(i+2)}%`],
+                                                itemStyle: {
+                                                    emphasis: {
+                                                        shadowBlur: 10,
+                                                        shadowOffsetX: 0,
+                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                    }
+                                                },
+                                                label:{
+                                                    normal:{
+                                                        show:false
+                                                    }
+                                                },
+                                                data:res.data.data[i]
+                                            }
+                                            obj.opt.series.push(objPie)
+                                        }else{
+                                            let objPie = {
+                                                type: 'pie',
+                                                radius:[`${raduisVal*(i+1)+pieSpace*i}%`,`${raduisVal*(i+2)+pieSpace*i}%`],
+                                                data:res.data.data[i],
+                                                itemStyle: {
+                                                    emphasis: {
+                                                        shadowBlur: 10,
+                                                        shadowOffsetX: 0,
+                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                    }
+                                                },
+                                                label:{
+                                                    normal:{
+                                                        show:false
+                                                    }
+                                                },
 
+                                            }
+                                            obj.opt.series.push(objPie)
+                                        }
+                                    }
+                                }
+                                console.log(obj.opt.series)
                                 resolve(obj);
                             })
                             .catch(err=>{

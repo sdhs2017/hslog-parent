@@ -92,7 +92,7 @@ router.beforeEach((to, from, next) => {
         }
     }*/
    //判断是否是登录/注册页面的路由跳转  是-不进行拦截   不是-验证登录是否过期
-   if(to.path !== '/login' && to.path !== '/resigter'  && to.path !== '/flowLogin'){
+   if(to.path !== '/login' && to.path !== '/resigter'  && to.path !== '/flowLogin'&& to.path !== '/login_m'){
        // let loading = layer.load(1,{
        //     shade: [0.8,'#000'] //0.1透明度的白色背景
        // })
@@ -109,6 +109,18 @@ router.beforeEach((to, from, next) => {
                        }
                    })
                }else{ //登录不过期
+                   //判断是否为手机端
+                   var ua = navigator.userAgent;
+                   var ipad = ua.match(/(iPad).*OS\s([\d_]+)/),
+                       isIphone = !ipad && ua.match(/(iPhone\sOS)\s([\d_]+)/),
+                       isAndroid = ua.match(/(Android)\s+([\d.]+)/),
+                       isMobile = isIphone || isAndroid;
+                  /* if(isMobile) {
+                       //显示左边栏开关
+                       //window.location="mobile/index.html
+                       this.$router.push('/login_m');
+                   }*/
+
                    //获取权限btn
                    /*axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
                        .then((res)=>{
@@ -128,23 +140,38 @@ router.beforeEach((to, from, next) => {
                    //console.log(to.path)
                    //判断是否是刷新页面
                    if(newRouterVal !== null){//是
-                       let newRouters = [{
-                           path:'/',
-                           component: resolve => require(['@/components/common/Home.vue'], resolve),
-                           meta: { title: '自述文件' },
-                           children:[
-                               {
-                                   path:'/'+ newRouterVal.path,
-                                   name:newRouterVal.path,
-                                   component: resolve => require(['@/components/'+ newRouterVal.component], resolve),
-                                   meta: { title: newRouterVal.title }
-                               }
-                           ]
-                       }]
-                       router.addRoutes(newRouters);
-                       next({...to});
-
-
+                       if(isMobile) {
+                           let newRouters = [{
+                               path:'/mobile',
+                               component: resolve => require(['@/components/mobile/common/home'], resolve),
+                               children:[
+                                   {
+                                       path:newRouterVal.path,
+                                       //name:newRouterVal.path,
+                                       component: resolve => require(['@/components/'+ newRouterVal.component], resolve),
+                                       meta: { title: newRouterVal.title }
+                                   }
+                               ]
+                           }]
+                           router.addRoutes(newRouters);
+                           next({...to});
+                       }else{
+                           let newRouters = [{
+                               path:'/',
+                               component: resolve => require(['@/components/common/Home.vue'], resolve),
+                               meta: { title: '自述文件' },
+                               children:[
+                                   {
+                                       path:'/'+ newRouterVal.path,
+                                       name:newRouterVal.path,
+                                       component: resolve => require(['@/components/'+ newRouterVal.component], resolve),
+                                       meta: { title: newRouterVal.title }
+                                   }
+                               ]
+                           }]
+                           router.addRoutes(newRouters);
+                           next({...to});
+                       }
                    }else {
                        next()
                    }

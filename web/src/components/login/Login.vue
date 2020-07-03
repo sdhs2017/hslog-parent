@@ -100,7 +100,8 @@
                 isMobile = isIphone || isAndroid;
             if(isMobile) {
                 //显示左边栏开关
-                window.location="mobile/index.html"
+                //window.location="mobile/index.html
+                this.$router.push('/login_m');
             }
 
 

@@ -69,12 +69,6 @@
         },
         created(){
             this.barData.baseConfig.title = this.baseConProp.title;
-            /*监听点击事件*/
-            bus.$on(this.busName.clickName,(data)=>{
-                if(!this.setIntervalObj.state){
-                    jumpHtml('performanceAnalysisUrl'+data.name,'flowManage/performanceAnalysisUrl.vue',{ url:data.name,starttime:this.params.starttime,endtime:this.params.endtime},'平均响应时间')
-                }
-            })
         },
         beforeDestroy(){
             bus.$off(this.busName.clickName)

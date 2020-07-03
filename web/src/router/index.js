@@ -626,12 +626,82 @@ export default new Router({
             ]
         },
         {
+            path:'/mobile',
+            component: resolve => require(['../components/mobile/common/home'], resolve),
+            children:[
+                {
+                    path: '/mobile/index_m',
+                    name:'index_m',
+                    component: resolve => require(['../components/mobile/index/index_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/flowIndex_m',
+                    name:'index_m',
+                    component: resolve => require(['../components/mobile/index/flowIndex_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/equipmentList',
+                    name:'equipmentList',
+                    component: resolve => require(['../components/mobile/equipment/equipmentList.vue'], resolve)
+                },
+                {
+                    path: '/mobile/equipmentFlow_m',
+                    name:'equipmentFlow_m',
+                    component: resolve => require(['../components/mobile/flowManage/equipmentFlow_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/IPHostFlow_m',
+                    name:'IPHostFlow_m',
+                    component: resolve => require(['../components/mobile/flowManage/IPHostFlow_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/mulAndBro_m',
+                    name:'mulAndBro_m',
+                    component: resolve => require(['../components/mobile/flowManage/mulAndBro_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/packetType_m',
+                    name:'packetType_m',
+                    component: resolve => require(['../components/mobile/flowManage/packetType_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/portFlow_m',
+                    name:'portFlow_m',
+                    component: resolve => require(['../components/mobile/flowManage/portFlow_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/protocolFlow_m',
+                    name:'protocolFlow_m',
+                    component: resolve => require(['../components/mobile/flowManage/protocolFlow_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/realTimeFlow_m',
+                    name:'realTimeFlow_m',
+                    component: resolve => require(['../components/mobile/flowManage/realTimeFlow_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/userAgentInfo_m',
+                    name:'userAgentInfo_m',
+                    component: resolve => require(['../components/mobile/flowManage/userAgentInfo_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/performanceAnalysis_m',
+                    name:'performanceAnalysis_m',
+                    component: resolve => require(['../components/mobile/flowManage/performanceAnalysis_m.vue'], resolve)
+                },
+            ]
+        },
+        {
             path: '/login',
             component: resolve => require(['../components/login/Login.vue'], resolve)
         },
         {
             path: '/flowLogin',
             component: resolve => require(['../components/flowManage/flowLogin.vue'], resolve)
+        },
+        {
+            path: '/login_m',
+            component: resolve => require(['../components/mobile/login/login_m.vue'], resolve)
         },
         /*{
             path: '/bgCanvas',

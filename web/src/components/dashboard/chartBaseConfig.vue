@@ -918,6 +918,7 @@
                 }
             },
             /*y轴聚合类型改变*/
+
             yAggregationChange($event,index){
                 if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
                     layer.msg('请选择数据源',{icon:'5'});
@@ -998,6 +999,11 @@
             },
             /*获取数据*/
             getData(){
+                //判断请求的方法
+                let url = '/BI/getDataByChartParams.do';
+                if(this.chartType === 'pie'){
+                    url = '/BI/getDataByChartParams_pie.do'
+                }
                 //构建metrics（y）参数 [{aggType:"count",field:"logdate"}]
                 let metricsArr = [];
                 for(let i in this.chartsConfig.yAxisArr){
@@ -1076,7 +1082,7 @@
                     buckets:JSON.stringify(bucketsArr)
                 }
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/BI/getDataByChartParams.do',this.$qs.stringify(param))
+                    this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                         .then(res=>{
                             this.loading = false;
                             //存储查询条件
@@ -1088,7 +1094,12 @@
                             //处理数据
                             let obj = res.data;
                             if (obj.success === 'true'){
-                                let xDataArr = obj.data[0].dimensions;
+                                let xDataArr =''
+                                if(this.chartType === 'pie'){
+                                    xDataArr='pie'
+                                }else{
+                                    xDataArr = obj.data[0].dimensions;
+                                }
                                 if(xDataArr.length > 1){
                                    // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
                                     this.sourceData = obj.data;
@@ -1099,7 +1110,7 @@
                                     }else if(this.chartType === 'line'){
                                         this.createLineChart(obj.data[0])
                                     }else if(this.chartType === 'pie'){
-                                        this.createPieChart(obj.data[0])
+                                        this.createPieChart(obj.data)
                                     }
                                 }else{
                                     this.emptyTipState = true;
@@ -1194,65 +1205,6 @@
                     },
                     series: []
                 }
-                // for(let i in this.chartsConfig.yAxisArr){
-                //     if(this.chartsConfig.yAxisArr[i].colorType === 'solidColor'){
-                //         let obj = {
-                //             name: this.chartsConfig.yAxisArr[i].legendName,
-                //             type: 'bar',
-                //             label:{
-                //                 show:this.chartsConfig.yAxisArr[i].label.show,
-                //                 position:'top'
-                //             },
-                //             itemStyle: {
-                //                 color:this.chartsConfig.yAxisArr[i].color1
-                //             },
-                //             data: yDataArr
-                //         }
-                //         this.opt.series.push(obj)
-                //     }else if(this.chartsConfig.yAxisArr[i].colorType === 'tbColor'){
-                //         let obj = {
-                //             name: this.chartsConfig.yAxisArr[i].legendName,
-                //             type: 'bar',
-                //             label:{
-                //                 show:this.chartsConfig.yAxisArr[i].label.show,
-                //                 position:'top',
-                //                 color:`${this.chartsConfig.yAxisArr[i].color2[0]}`
-                //             },
-                //             itemStyle: {
-                //                 color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                //                     offset: 0,
-                //                     color: this.chartsConfig.yAxisArr[i].color2[0]
-                //                 },{
-                //                     offset: 1,
-                //                     color: this.chartsConfig.yAxisArr[i].color2[1]
-                //                 }])
-                //             },
-                //             data: yDataArr
-                //         }
-                //         this.opt.series.push(obj)
-                //     }else if(this.chartsConfig.yAxisArr[i].colorType === 'lrColor'){
-                //         let obj = {
-                //             name: this.chartsConfig.yAxisArr[i].legendName,
-                //             type: 'bar',
-                //             label:{
-                //                 show:this.chartsConfig.yAxisArr[i].label.show,
-                //                 position:'top',
-                //                 color:`${this.chartsConfig.yAxisArr[i].color2[0]}`
-                //             },
-                //             itemStyle: {
-                //                 color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
-                //                     offset: 0,
-                //                     color: this.chartsConfig.yAxisArr[i].color2[0]
-                //                 },{
-                //                     offset: 1,
-                //                     color: this.chartsConfig.yAxisArr[i].color2[1]
-                //                 }])
-                //             },
-                //             data: yDataArr
-                //         }
-                //         this.opt.series.push(obj)
-                //     }
-                // }
                 //循环创建图表的维度
                 let xL = data.dimensions.length - 1;//维度
                 let colorIndex = 0;//颜色索引
@@ -1417,90 +1369,6 @@
                     },
                     series: []
                 }
-                /*for(let i in this.chartsConfig.yAxisArr){
-                    if(this.chartsConfig.yAxisArr[i].colorType === 'solidColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[i].legendName,
-                            type: 'line',
-                            smooth:true,
-                            itemStyle:{
-                                color:this.chartsConfig.yAxisArr[i].color1
-                            },
-                            lineStyle:{
-                                color:this.chartsConfig.yAxisArr[i].color1
-                            },
-                            areaStyle: {
-                                color:this.chartsConfig.yAxisArr[i].color1,
-                                opacity:this.chartsConfig.yAxisArr[i].areaShow
-                            },
-                            //data: [1121,831,432,500,444,600,700,1121,831,432,500,444,600,700,1121,831,432,500,444,600,700,1000,1111,600]
-                            data:yDataArr
-                        }
-                        this.opt.series.push(obj)
-                    }else if(this.chartsConfig.yAxisArr[i].colorType === 'tbColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[i].legendName,
-                            type: 'line',
-                            smooth:true,
-                            itemStyle:{
-                                color: this.chartsConfig.yAxisArr[i].color2[0]
-                            },
-                            lineStyle:{
-                                color: this.chartsConfig.yAxisArr[i].color2[0]
-                            },
-                            areaStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                                    offset: 0,
-                                    color: this.chartsConfig.yAxisArr[i].color2[0]
-                                },{
-                                    offset: 1,
-                                    color: this.chartsConfig.yAxisArr[i].color2[1]
-                                }]),
-                                opacity:this.chartsConfig.yAxisArr[i].areaShow
-                            },
-                            //data: [1121,831,432,500,444,600,700]
-                            data:yDataArr
-                        }
-                        this.opt.series.push(obj)
-                    }else if(this.chartsConfig.yAxisArr[i].colorType === 'lrColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[i].legendName,
-                            type: 'line',
-                            smooth:true,
-                            itemStyle:{
-                                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
-                                    offset: 0,
-                                    color: this.chartsConfig.yAxisArr[i].color2[0]
-                                },{
-                                    offset: 1,
-                                    color: this.chartsConfig.yAxisArr[i].color2[1]
-                                }])
-                            },
-                            lineStyle:{
-                                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
-                                    offset: 0,
-                                    color: this.chartsConfig.yAxisArr[i].color2[0]
-                                },{
-                                    offset: 1,
-                                    color: this.chartsConfig.yAxisArr[i].color2[1]
-                                }])
-                            },
-                            areaStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
-                                    offset: 0,
-                                    color: this.chartsConfig.yAxisArr[i].color2[0]
-                                },{
-                                    offset: 1,
-                                    color: this.chartsConfig.yAxisArr[i].color2[1]
-                                }]),
-                                opacity:this.chartsConfig.yAxisArr[i].areaShow
-                            },
-                            //data: [1121,831,432,500,444,600,700]
-                            data:yDataArr
-                        }
-                        this.opt.series.push(obj)
-                    }
-                }*/
                 let xL = data.dimensions.length - 1;
                 let colorIndex = 0;//颜色索引
                 for(let i=0;i<xL;i++){
@@ -1660,11 +1528,11 @@
                     legend: this.chartsConfig.legend,
                     tooltip : {
                         trigger: 'item',
-                        formatter:function (params,ticket,callback) {
+                        /*formatter:function (params,ticket,callback) {
                             return `${params.value[params.dimensionNames[0]]}:<br>${params.value[params.dimensionNames[1]]}(${params.percent}%)`
-                        }
+                        }*/
                     },
-                    dataset: [pieArr],
+                    //dataset: [pieArr],
                     roseType:this.chartsConfig.roseType.type,
                     toolbox: {
                         show:this.chartsConfig.toolbox.show,
@@ -1687,14 +1555,39 @@
                     color:['#1E73F0','#00D1CE','#33C3F7','#3952D3','#185BFF','#2455AD','#74EE9A','#253479'],
                     grid:this.chartsConfig.grid,
                     series: [
-                        {
+                        /*{
                             name: this.chartsConfig.yAxisArr[0].yAxisName,
                             type: 'pie',
-                            /*radius : '55%',
-                            center: ['50%', '60%'],*/
                             radius:this.chartsConfig.raduis.raduisArr,
-                            //data:pieArr,
-                            // data:this.echartData.yAxisArr,
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }*/
+                    ]
+                }
+                //饼图圆环个数
+                let pieCount = pieArr.length;
+                //圆环间隔
+                let pieSpace = 5;
+                //最大范围
+                let raduisMax = 70;
+                //每个环平均的宽度
+                let raduisVal = (raduisMax-pieSpace*(pieCount-1))/(pieCount + 1);
+                for(let i = 0;i<pieCount;i++){
+                    if(i === 0){
+                        let obj = {
+                            type: 'pie',
+                            radius:[0,`${raduisVal*(i+2)}%`],
+                            data:pieArr[i],
+                            label:{
+                                normal:{
+                                    show:false
+                                }
+                            },
                             itemStyle: {
                                 emphasis: {
                                     shadowBlur: 10,
@@ -1703,9 +1596,28 @@
                                 }
                             }
                         }
-                    ]
+                        this.opt.series.push(obj)
+                    }else{
+                        let obj = {
+                            type: 'pie',
+                            radius:[`${raduisVal*(i+1)+pieSpace*i}%`,`${raduisVal*(i+2)+pieSpace*i}%`],
+                            label:{
+                                normal:{
+                                    show:false
+                                }
+                            },
+                            data:pieArr[i],
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                        this.opt.series.push(obj)
+                    }
                 }
-
                 let myChart =  echarts.init(document.getElementById('charts-wapper'));
                 //console.log(JSON.stringify(this.opt))
                 myChart.setOption(this.opt,true);

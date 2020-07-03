@@ -230,8 +230,8 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
     @Override
     public Map<String, String> doshell(String shell, String filepath) {
-        ExecuteCmd.execShell(shell,filepath);
-        return null;
+
+        return ExecuteCmd.execShell(shell,filepath);
     }
 
     /**

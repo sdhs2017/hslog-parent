@@ -124,6 +124,13 @@ public class ConfigProperty {
 	@Value("#{prop.echart_default_points}")
 	private String echart_default_points;
 
+	// 修改ip地址的脚本路径
+	@Value("#{prop.modifyip_path}")
+	private String modifyip_path;
+	// 修改ip地址的脚本名称
+	@Value("#{prop.modifyip_shell}")
+	private String modifyip_shell;
+
 	public String getEchart_default_points() {
 		return echart_default_points;
 	}
@@ -394,5 +401,29 @@ public class ConfigProperty {
 
 	public void setEs_merge_index(String es_merge_index) {
 		this.es_merge_index = es_merge_index;
+	}
+
+	public String getEs_ilm_policy() {
+		return es_ilm_policy;
+	}
+
+	public void setEs_ilm_policy(String es_ilm_policy) {
+		this.es_ilm_policy = es_ilm_policy;
+	}
+
+	public String getModifyip_path() {
+		return modifyip_path;
+	}
+
+	public void setModifyip_path(String modifyip_path) {
+		this.modifyip_path = modifyip_path;
+	}
+
+	public String getModifyip_shell() {
+		return modifyip_shell;
+	}
+
+	public void setModifyip_shell(String modifyip_shell) {
+		this.modifyip_shell = modifyip_shell;
 	}
 }

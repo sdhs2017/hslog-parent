@@ -53,7 +53,7 @@ public class ManageController {
 		String gateway = request.getParameter("gateway");
 		String netmask = request.getParameter("netmask");
 
-		return iManageService.doshell("sh motifyip.sh "+ipaddr+" "+gateway+" "+netmask,"");
+		return iManageService.doshell("sh "+configProperty.getModifyip_shell()+" "+ipaddr+" "+netmask+" "+gateway,configProperty.getModifyip_path());
 	}
 
 	@ResponseBody

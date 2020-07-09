@@ -2144,9 +2144,13 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //查询条件，必须是TCP协议
-        Map<String,String> queryParam = new HashMap<>();
-        queryParam.put("protocol_name.raw","TCP");
-        params.setQueryParam(queryParam);
+        //Map<String,String> queryParam = new HashMap<>();
+        //queryParam.put("protocol_name.raw","TCP");
+        //params.setQueryParam(queryParam);
+        ArrayList<QueryCondition> queryConditions = new ArrayList<>();
+        QueryCondition qc = new QueryCondition("term","protocol_name.raw","TCP","must");
+        queryConditions.add(qc);
+        params.setQueryConditions(queryConditions);
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，目的端口（l4_dst_port）
@@ -2214,9 +2218,13 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //查询条件，必须是TCP协议
-        Map<String,String> queryParam = new HashMap<>();
-        queryParam.put("protocol_name.raw","TCP");
-        params.setQueryParam(queryParam);
+        //Map<String,String> queryParam = new HashMap<>();
+        //queryParam.put("protocol_name.raw","UDP");
+        //params.setQueryParam(queryParam);
+        ArrayList<QueryCondition> queryConditions = new ArrayList<>();
+        QueryCondition qc = new QueryCondition("term","protocol_name.raw","UDP","must");
+        queryConditions.add(qc);
+        params.setQueryConditions(queryConditions);
         //index 和 日期字段初始化
         params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
         //X轴，目的端口（l4_dst_port）

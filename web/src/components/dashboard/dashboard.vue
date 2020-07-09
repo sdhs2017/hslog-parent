@@ -887,9 +887,13 @@
             /*获取echarts数据*/
             getEchartsData(resObj){
                 //判断请求的方法
-                let url = '/BI/getDataByChartParams.do';
+                let url = '';
                 if(resObj.obj.chartType === 'pie'){
                     url = '/BI/getDataByChartParams_pie.do'
+                }else if(resObj.obj.chartType === 'bar'){
+                    url = '/BI/getDataByChartParams_bar.do'
+                }else if(resObj.obj.chartType === 'line'){
+                    url = '/BI/getDataByChartParams_line.do'
                 }
 
                 let obj = resObj.obj;

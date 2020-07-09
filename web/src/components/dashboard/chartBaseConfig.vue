@@ -18,7 +18,7 @@
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(yItem,i) in chartsConfig.yAxisArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    {{ chartType !=='pie' ? 'Y轴' : 'Metrics'}} {{yItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see' && chartsConfig.yAxisArr.length !== 1"></i>
+                                    {{ chartType !=='pie' ? 'Y轴' : '指标'}} {{yItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see' && chartsConfig.yAxisArr.length !== 1"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
@@ -142,7 +142,7 @@
                                         </p>
                                         <p class="range-btn-p"><span @click="xItem.ipRange.push({start:'',end:''})"> <i class="el-icon-circle-plus"></i> 添加范围</span></p>
                                     </el-form-item>
-                                    <el-form-item label="名称" v-if="i === 0">
+                                    <el-form-item label="名称" v-if="i === 0 && chartType !=='pie'">
                                         <el-input v-model="xItem.xAxisName" size="mini"></el-input>
                                     </el-form-item>
                                 </el-form>
@@ -161,7 +161,7 @@
                                         </el-form-item>
                                     </el-form>
                                 </el-collapse-item>
-                                <el-collapse-item title="形式" class="tablist" name="9" v-if="this.chartType === 'pie'">
+                        <!--        <el-collapse-item title="形式" class="tablist" name="9" v-if="this.chartType === 'pie'">
                                     <el-form label-position="right" label-width="90px" style="position: relative;">
                                         <div class="from-zz" v-if="operType === 'see'"></div>
                                         <el-form-item label="环形显示">
@@ -188,7 +188,7 @@
                                         </el-form-item>
                                         <p class="tip-w"  v-if="chartsConfig.roseType.show">'radius' 扇区圆心角展现数据的百分比，半径展现数据的大小。'area' 所有扇区圆心角相同，仅通过半径展现数据大小。</p>
                                     </el-form>
-                                </el-collapse-item>
+                                </el-collapse-item>-->
                                 <el-collapse-item title="图形" class="tablist" name="8" v-if="this.chartType === 'bar'">
                                     <el-form label-position="left" label-width="80px" style="position: relative">
                                         <div class="from-zz" v-if="operType === 'see'"></div>
@@ -541,11 +541,11 @@
                         show:false,
                         type:'radius'
                     },
-                    //内外环大小
+                   /* //内外环大小
                     raduis:{
                         show:false,
                         raduisArr:['0','70%']
-                    },
+                    },*/
                     //工具栏
                     toolbox: {
                         show:false,
@@ -1000,9 +1000,13 @@
             /*获取数据*/
             getData(){
                 //判断请求的方法
-                let url = '/BI/getDataByChartParams.do';
+                let url = '';
                 if(this.chartType === 'pie'){
                     url = '/BI/getDataByChartParams_pie.do'
+                }else if(this.chartType === 'bar'){
+                    url = '/BI/getDataByChartParams_bar.do'
+                }else if(this.chartType === 'line'){
+                    url = '/BI/getDataByChartParams_line.do'
                 }
                 //构建metrics（y）参数 [{aggType:"count",field:"logdate"}]
                 let metricsArr = [];
@@ -1513,9 +1517,6 @@
             createPieChart(pieArr){
                 if(this.chartsConfig.roseType.show === false){
                     this.chartsConfig.roseType.type = false;
-                }
-                if(!this.chartsConfig.raduis.show){
-                    this.chartsConfig.raduis.raduisArr = ['0','70%']
                 }
                 this.opt = {
                     title: {

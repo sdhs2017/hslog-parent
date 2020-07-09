@@ -271,11 +271,16 @@
                     this.$axios.post(this.$baseUrl+'/manage/modifyServerIP.do',this.$qs.stringify({
                         ipaddr:this.changeIpObj.ip,
                         gateway:this.changeIpObj.gateway,
-                        netmask:this.changeIpObj.netmask
+                        netmask:this.changeIpObj.Netmask
                     }))
                         .then(res=>{
                             layer.closeAll('loading');
-
+                            if(res.data.state === 'success'){
+                                layer.msg(res.data.message)
+                                this.editIpWapper = false;
+                            }else{
+                                layer.msg(res.data.message)
+                            }
                         })
                         .catch(err=>{
                             layer.closeAll('loading');

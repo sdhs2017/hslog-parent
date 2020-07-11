@@ -1553,7 +1553,7 @@
                             borderColor: "#56769a"
                         }
                     },
-                    color:['#1E73F0','#00D1CE','#33C3F7','#3952D3','#185BFF','#2455AD','#74EE9A','#253479'],
+                    color:['#1E73F0','#00D1CE','#33C3F7','#3952D3','#185BFF','#2455AD','#74EE9A','#253479','#3C7FD3','#72B5D3'],
                     grid:this.chartsConfig.grid,
                     series: [
                         /*{

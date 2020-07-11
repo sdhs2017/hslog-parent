@@ -42,7 +42,7 @@
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="图例名称">
+                                    <el-form-item label="图例名称" v-if="chartType !=='pie'">
                                         <el-input v-model="yItem.yAxisName" size="mini"></el-input>
                                     </el-form-item>
                                     <!--<el-form-item label="颜色类型">
@@ -336,9 +336,9 @@
                                         <el-form-item label="工具选择" v-if="chartsConfig.toolbox.show">
                                             <el-checkbox-group v-model="chartsConfig.toolbox.feature">
                                                 <el-checkbox label="dataView" name="type">数据视图</el-checkbox>
-                                                <el-checkbox label="magicType" name="type">类型切换</el-checkbox>
+                                                <el-checkbox label="magicType" name="type" v-if="chartType !=='pie'">类型切换</el-checkbox>
                                                 <!--                                                <el-checkbox label="dataZoom" name="type">区域缩放</el-checkbox>-->
-                                                <el-checkbox label="restore" name="type">还原</el-checkbox>
+                                                <el-checkbox label="restore" name="type" v-if="chartType !=='pie'">还原</el-checkbox>
                                                 <el-checkbox label="saveAsImage" name="type">保存</el-checkbox>
                                             </el-checkbox-group>
                                         </el-form-item>

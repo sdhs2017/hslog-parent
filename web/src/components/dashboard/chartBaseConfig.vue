@@ -344,7 +344,7 @@
                                         </el-form-item>
                                     </el-form>
                                 </el-collapse-item>
-                                <el-collapse-item title="边距" class="tablist" name="4" style="position: relative;">
+                                <el-collapse-item title="边距" class="tablist" name="4" style="position: relative;" v-if="chartType !== 'pie'">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
                                     <el-form label-position="left" label-width="80px">
                                         <el-form-item label="左边距">

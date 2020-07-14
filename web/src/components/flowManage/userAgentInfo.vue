@@ -62,7 +62,7 @@
                 },
                 //轮询参数
                 intervalObj:{
-                    state:true,
+                    state:false,
                     interval:'5000'
                 },
                 //时间控件参数
@@ -78,7 +78,7 @@
                     //是否存在轮询框
                     isIntervalBox:true,
                     //轮询状态
-                    intervalState:true,
+                    intervalState:false,
                     //轮询数值间隔
                     intervalVal:'5',
                     //轮询参数类型

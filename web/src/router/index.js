@@ -452,6 +452,12 @@ export default new Router({
                     component: resolve => require(['../components/equipment/addLogicAssets.vue'], resolve),
                     meta: { title: '添加逻辑资产' }
                 },
+                {
+                    path: '/customChart',
+                    name:'customChart',
+                    component: resolve => require(['../components/common/customChart.vue'], resolve),
+                    meta: { title: 'SEIM(测试)' }
+                },
                /* {
                     path: '/equipmentDashboardy_qMB3IBmkPMjFRE7O-_',
                     name:'equipmentDashboardy_qMB3IBmkPMjFRE7O-_',

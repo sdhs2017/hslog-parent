@@ -188,14 +188,7 @@
             }
         },
         created(){
-            //定义七天时间范围
-            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
-            let startTime= new Date();
-            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
-            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
-            this.timeArr=[startTime,endTime]
-            this.formConditions.endtime= endTime;
-            this.formConditions.starttime= startTime;
+
         },
         watch:{
             'htmlTitle'(){
@@ -225,6 +218,9 @@
                 vm.$options.name = to.name;
                 //判断参数
                 if(!$.isEmptyObject(to.query)){
+                    vm.timeArr=[to.query.starttime,to.query.endtime]
+                    vm.formConditions.endtime= to.query.endtime;
+                    vm.formConditions.starttime= to.query.starttime;
                     //将路由存放在本地 用来刷新页面时添加路由
                     savePath(to.name,'logsManage/flowLogs.vue','日志')
                     //判断参数的类型
@@ -251,8 +247,17 @@
                         }
                     }
                 }else{
+                    //定义七天时间范围
+                    let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+                    let startTime= new Date();
+                    startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+                    startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+                    vm.timeArr=[startTime,endTime]
+                    vm.formConditions.endtime= endTime;
+                    vm.formConditions.starttime= startTime;
                     //调用查询日志方法，模拟检索按钮
                     vm.searchHttpLogs();
+
                 }
 
 

@@ -5,13 +5,13 @@
             <span>日期范围：</span>
             <el-date-picker
                 v-model="timepicker"
-                type="daterange"
+                type="datetimerange"
                 align="right"
                 unlink-panels
                 range-separator="至"
                 start-placeholder="开始日期"
                 end-placeholder="结束日期"
-                value-format="yyyy-MM-dd"
+                value-format="yyyy-MM-dd HH:mm:ss"
                 @change="timepickerChange"
                 :picker-options="pickerOptions">
             </el-date-picker>
@@ -69,13 +69,7 @@
             }
         },
         created(){
-            //设置日期
-            //设置日期
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-
-            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
+            this.timepicker=[this.$route.query.starttime,this.$route.query.endtime]
         },
         beforeDestroy () {
             //销毁绑定的bus点击事件
@@ -88,6 +82,8 @@
                 bus.$on(this.busName,(params)=>{
                     let obj = {};
                     obj.complete_url = params.text;
+                    obj.starttime = this.timepicker[0]
+                    obj.endtime = this.timepicker[1]
                     jumpHtml('funcGraph'+obj.complete_url,'logsManage/funcGraph.vue',obj,'业务流')
                 })
             }
@@ -99,8 +95,8 @@
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getCountGroupByHttpComUrl.do',this.$qs.stringify({
                         domain_url:this.domain_url,
-                        startTime:timeArr[0],
-                        endTime:timeArr[1]
+                        starttime:timeArr[0],
+                        endtime:timeArr[1]
                     }))
                         .then(res=>{
                             this.loading = false;

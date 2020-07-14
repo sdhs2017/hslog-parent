@@ -5,13 +5,13 @@
             <span>日期范围：</span>
             <el-date-picker
                 v-model="timepicker"
-                type="daterange"
+                type="datetimerange"
                 align="right"
                 unlink-panels
                 range-separator="至"
                 start-placeholder="开始日期"
                 end-placeholder="结束日期"
-                value-format="yyyy-MM-dd"
+                value-format="yyyy-MM-dd HH:mm:ss"
                 @change="timepickerChange"
                 :picker-options="pickerOptions">
             </el-date-picker>
@@ -95,7 +95,7 @@
             const start = new Date();
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
 
-            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
+            this.timepicker=[dateFormat('yyyy-mm-dd HH:MM:SS',start),dateFormat('yyyy-mm-dd HH:MM:SS',end)]
             //获取排行榜数据
             this.getRankingData(this.timepicker);
 
@@ -124,8 +124,8 @@
                     this.$axios.post(this.$baseUrl+'/flow/getCountGroupByUrl.do',this.$qs.stringify({
                         application_layer_protocol:this.application_layer_protocol,
                         ipv4_dst_addr:this.ipv4_dst_addr,
-                        startTime:timeArr[0],
-                        endTime:timeArr[1]
+                        starttime:timeArr[0],
+                        endtime:timeArr[1]
                     }))
                         .then(res=>{
                             this.loading = false;
@@ -148,12 +148,16 @@
             rankingMenu(){
                 let obj = {};
                 obj.val = this.currentItemVal;
+                obj.starttime = this.timepicker[0]
+                obj.endtime = this.timepicker[1]
                 jumpHtml('funcRanking'+this.currentItemVal,'logsManage/funcRanking.vue',obj,'排行');
             },
             //菜单-业务流 点击事件
             graphMenu(){
                 let obj = {};
                 obj.val = this.currentItemVal;
+                obj.starttime = this.timepicker[0]
+                obj.endtime = this.timepicker[1]
                 jumpHtml('urlGraph'+this.currentItemVal,'logsManage/urlGraph.vue',obj,'业务流');
             },
             //日期改变事件

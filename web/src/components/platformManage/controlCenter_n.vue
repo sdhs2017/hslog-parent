@@ -173,7 +173,7 @@
             /*开启beats服务*/
             playBeats(){
                 //询问框
-                layer.confirm('是否开启beats采集？', {
+                layer.confirm('是否开启Agent采集？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
@@ -202,7 +202,7 @@
             /*停止beats服务*/
             stopBeats(){
                 //询问框
-                layer.confirm('是否关闭beats采集服务？', {
+                layer.confirm('是否关闭Agent采集服务？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);

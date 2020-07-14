@@ -6,9 +6,9 @@
         </div>
         <div class="logo">
             <img src="../../../static/img/login_cx.png" alt="">
-<!--            <img src="../../../static/img/logo_ay.png" alt="">-->
             <span style="position: absolute;top: -7px;left: 320px;font-size: 10px;">V 3.0</span>
-<!--            <img src="../../../static/img/logo_ay.png" alt="">-->
+<!--            <img src="../../../static/img/qywjcpt.png" alt="" style="margin-top: 4px;">-->
+            <!--            <img src="../../../static/img/logo_ay.png" alt="">-->
         </div>
         <ul class="header-ul">
             <li v-for="(item,index) in this.systemMenu" :class="{ active:index === current}" :key="index" @click="changeSystem(item.id,index)"><i :class="item.icon"></i>{{item.systemName}}</li>

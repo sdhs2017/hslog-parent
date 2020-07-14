@@ -170,7 +170,7 @@
                             };
                             this.thresholdText = '';
                             //判断阈值与实际使用大小
-                            console.log(this.sysThresholdValue)
+                            //console.log(this.sysThresholdValue)
                             if(this.sysThresholdValue <= Number(res.data.sys_per.split('%')[0])){
                                 this.thresholdText += `系统盘空间不足,剩余 ${res.data.sys_avail}`;
                                 $(".threshold").css("color","#d9534f");

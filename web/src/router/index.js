@@ -303,38 +303,9 @@ export default new Router({
                     meta: { title: '流量控制中心' }
                 },
                 {
-                    path: '/versionDescribe',
-                    name:'versionDescribe',
-                    component: resolve => require(['../components/versionManage/versionDescribe.vue'], resolve),
-                    meta: { title: '版本信息' }
-                },
-                {
-                    path: '/test',
-                    name:'test',
-                    component: resolve => require(['../components/common/test.vue'], resolve),
-                    meta: { title: '测试用例' }
-                },
-                {
-                    path: '/icon',
-                    component: resolve => require(['../components/page/Icon.vue'], resolve),
-                    meta: { title: '自定义图标' }
-                },
-                {
-                    path: '/flowEcharts',
-                    name:'flowEcharts',
-                    component: resolve => require(['../components/flowManage/flowEcharts.vue'], resolve),
-                    meta: { title: '流量报表' }
-                },
-                {
                     path: '/userAgentInfo',
                     name:'userAgentInfo',
                     component: resolve => require(['../components/flowManage/userAgentInfo.vue'], resolve),
-                    meta: { title: 'User-Agent信息' }
-                },
-                {
-                    path: '/userAgentInfo2',
-                    name:'userAgentInfo2',
-                    component: resolve => require(['../components/flowManage/userAgentInfo2.vue'], resolve),
                     meta: { title: 'User-Agent信息' }
                 },
                 {
@@ -350,21 +321,9 @@ export default new Router({
                     meta: { title: 'IP主机流量' }
                 },
                 {
-                    path: '/IPHostFlow2',
-                    name:'IPHostFlow2',
-                    component: resolve => require(['../components/flowManage/IPHostFlow2.vue'], resolve),
-                    meta: { title: 'IP主机流量' }
-                },
-                {
                     path: '/protocolFlow',
                     name:'protocolFlow',
                     component: resolve => require(['../components/flowManage/protocolFlow.vue'], resolve),
-                    meta: { title: '协议流量' }
-                },
-                {
-                    path: '/protocolFlow2',
-                    name:'protocolFlow2',
-                    component: resolve => require(['../components/flowManage/protocolFlow2.vue'], resolve),
                     meta: { title: '协议流量' }
                 },
                 {
@@ -374,21 +333,9 @@ export default new Router({
                     meta: { title: '广播包/组播包' }
                 },
                 {
-                    path: '/mulAndBro2',
-                    name:'mulAndBro2',
-                    component: resolve => require(['../components/flowManage/mulAndBro2.vue'], resolve),
-                    meta: { title: '广播包/组播包' }
-                },
-                {
                     path: '/packetType',
                     name:'packetType',
                     component: resolve => require(['../components/flowManage/packetType.vue'], resolve),
-                    meta: { title: '数据包类型' }
-                },
-                {
-                    path: '/packetType2',
-                    name:'packetType2',
-                    component: resolve => require(['../components/flowManage/packetType2.vue'], resolve),
                     meta: { title: '数据包类型' }
                 },
                 {
@@ -398,21 +345,9 @@ export default new Router({
                     meta: { title: '资产流量' }
                 },
                 {
-                    path: '/equipmentFlow2',
-                    name:'equipmentFlow2',
-                    component: resolve => require(['../components/flowManage/equipmentFlow2.vue'], resolve),
-                    meta: { title: '资产流量' }
-                },
-                {
                     path: '/portFlow',
                     name:'portFlow',
                     component: resolve => require(['../components/flowManage/portFlow.vue'], resolve),
-                    meta: { title: '全局端口流量' }
-                },
-                {
-                    path: '/portFlow2',
-                    name:'portFlow2',
-                    component: resolve => require(['../components/flowManage/portFlow2.vue'], resolve),
                     meta: { title: '全局端口流量' }
                 },
                 {
@@ -450,6 +385,12 @@ export default new Router({
                     name:'pieChart',
                     component: resolve => require(['../components/dashboard/pieChart.vue'], resolve),
                     meta: { title: '创建饼图' }
+                },
+                {
+                    path: '/metricChart',
+                    name:'metricChart',
+                    component: resolve => require(['../components/dashboard/metricChart.vue'], resolve),
+                    meta: { title: '创建指标' }
                 },
                 {
                     path: '/property',

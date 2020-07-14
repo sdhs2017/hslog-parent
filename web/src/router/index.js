@@ -456,7 +456,7 @@ export default new Router({
                     path: '/customChart',
                     name:'customChart',
                     component: resolve => require(['../components/common/customChart.vue'], resolve),
-                    meta: { title: 'SEIM(测试)' }
+                    meta: { title: 'SIEM(测试)' }
                 },
                /* {
                     path: '/equipmentDashboardy_qMB3IBmkPMjFRE7O-_',

@@ -1,20 +1,9 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">{{domain_url}} 业务流</div>
-        <div class="datepicker-wapper" style="padding-left: 20px;">
-            <span>日期范围：</span>
-            <el-date-picker
-                v-model="timepicker"
-                type="datetimerange"
-                align="right"
-                unlink-panels
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                @change="timepickerChange"
-                :picker-options="pickerOptions">
-            </el-date-picker>
+        <div class="top-title">{{domain_url}} 业务流
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :busName="this.busName" :defaultVal="this.timepicker"></baseDate>
+            </div>
         </div>
         <div class="content" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basegraph :nodeData="nodeData" :linkData="linkData" :nodeClick="nodeClick" :linkClick="linkClick"></v-basegraph>
@@ -25,6 +14,8 @@
 
 <script>
     import vBasegraph from "@/components/common/baseGraph"
+    import baseDate from '../common/baseDate'
+    import bus from '../common/bus';
     import {savePath,jumpHtml} from "../../../static/js/common";
 
     export default {
@@ -33,45 +24,25 @@
             return {
                 loading:false,
                 domain_url:'',
-                timepicker:'',//日期值
-                pickerOptions: { //日期选择器
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }]
-                },
+                busName:'',
+                timepicker:[],//日期值
                 nodeData:[],
                 linkData:[]
             }
         },
         created(){
             this.timepicker=[this.$route.query.starttime,this.$route.query.endtime]
+            this.domain_url = this.$route.query.val;
+            this.busName = 'urlGraph'+this.$route.query.val;
+            bus.$on(this.busName,(val)=>{
+                this.timepicker=val;
+                this.getUrlGraphData(this.timepicker)
+            })
+        },
+        beforeDestroy(){
+            bus.$off(this.busName)
         },
         watch:{
-            'domain_url'(){
-                this.getUrlGraphData(this.timepicker);
-            }
         },
         methods:{
             //获取数据
@@ -173,14 +144,14 @@
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {
-                vm.domain_url = to.query.val;
                 vm.$options.name = 'urlGraph'+ to.query.val;
                 /*vm.busName = 'urlGraph'+ to.query.val;*/
                 savePath(to.name,'logsManage/urlGraph.vue','业务流');
             })
         },
         components:{
-            vBasegraph
+            vBasegraph,
+            baseDate
         }
     }
 </script>

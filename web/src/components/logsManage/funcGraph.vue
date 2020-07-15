@@ -1,20 +1,9 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">{{complete_url}} 业务流</div>
-        <div class="datepicker-wapper" style="padding-left: 20px;">
-            <span>日期范围：</span>
-            <el-date-picker
-                v-model="timepicker"
-                type="datetimerange"
-                align="right"
-                unlink-panels
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                @change="timepickerChange"
-                :picker-options="pickerOptions">
-            </el-date-picker>
+        <div class="top-title">{{complete_url}} 业务流
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :defaultVal="this.timepicker" :busName="dateBusName"></baseDate>
+            </div>
         </div>
         <div class="content">
             <v-basegraph :nodeData="nodeData" :linkData="linkData" :nodeClick="nodeClick" :linkClick="linkClick"></v-basegraph>
@@ -25,6 +14,8 @@
 
 <script>
     import vBasegraph from "@/components/common/baseGraph"
+    import bus from '../common/bus';
+    import baseDate from '../common/baseDate'
     import {savePath,jumpHtml} from "../../../static/js/common";
 
     export default {
@@ -34,43 +25,22 @@
                 complete_url:'',
                 nodeData:[],
                 linkData:[],
-                timepicker:'',//日期值
-                pickerOptions: { //日期选择器
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }]
-                },
-            }
-        },
-        watch:{
-            'complete_url'(){
-                this.getUrlGraphData(this.timepicker);
+                dateBusName:'',
+                timepicker:[],//日期值
+
             }
         },
         created(){
             this.timepicker=[this.$route.query.starttime,this.$route.query.endtime]
+            this.complete_url = this.$route.query.complete_url;
+            this.dateBusName = 'funcGraph'+this.$route.query.complete_url
+            bus.$on(this.dateBusName,(val)=>{
+                this.timepicker=val;
+                this.getUrlGraphData(this.timepicker)
+            })
+        },
+        beforeDestroy(){
+            bus.$off(this.dateBusName)
         },
         methods:{
             //获取数据
@@ -136,24 +106,18 @@
                 //跳转到流量日志页面
                 jumpHtml('flowLogs'+obj.ipv4_src_addr+'-'+obj.targetVal,'logsManage/flowLogs.vue',obj,'日志')
             },
-            //日期改变事件
-            timepickerChange(){
-                if(this.timepicker === null){
-                    this.timepicker=['','']
-                }
-                this.getUrlGraphData(this.timepicker);
-            }
+
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {
-                vm.complete_url = to.query.complete_url;
                 vm.$options.name = 'funcGraph'+ to.query.complete_url;
                 /*vm.busName = 'urlGraph'+ to.query.val;*/
                 savePath(to.name,'logsManage/funcGraph.vue','业务流');
             })
         },
         components:{
-            vBasegraph
+            vBasegraph,
+            baseDate
         }
     }
 </script>

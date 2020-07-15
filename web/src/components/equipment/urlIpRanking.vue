@@ -1,21 +1,11 @@
 <template>
     <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
-        <div class="top-title">应用资产画像</div>
-        <div class="datepicker-wapper" style="padding-left: 20px;">
-            <span>日期范围：</span>
-            <el-date-picker
-                v-model="timepicker"
-                type="daterange"
-                align="right"
-                unlink-panels
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="yyyy-MM-dd"
-                @change="timepickerChange"
-                :picker-options="pickerOptions">
-            </el-date-picker>
+        <div class="top-title">应用资产画像
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" busName="urlIpRanking"></baseDate>
+            </div>
         </div>
+
         <div class="content">
             <div class="ranking-wapper">
                 <v-ranking :title="rankingTitle" :rankingArr="rankingData" :busName="busName"></v-ranking>
@@ -35,6 +25,7 @@
 <script>
     import vRanking from '../common/ranking';
     import bus from '../common/bus';
+    import baseDate from '../common/baseDate'
     import {jumpHtml,gresizeW,dateFormat} from "../../../static/js/common";
     export default {
         name: "urlIpRanking",
@@ -45,33 +36,6 @@
                 rankingData:[],
                 busName:'urlRanking',
                 timepicker:'',//日期值
-                pickerOptions: { //日期选择器
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }]
-                },
                 currentItemVal:'',//当前点击的列表的值
                 selectedMenuState : false, //菜单是否显示
                 menuLeft:'', //菜单x位置
@@ -87,14 +51,6 @@
             }
         },
         created(){
-            //设置日期
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-
-            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
-            //获取排行榜数据
-            this.getRankingData(this.timepicker);
             //绑定点击事件
             bus.$on(this.busName,(params)=>{
                 this.selectedMenuState = true;
@@ -102,6 +58,10 @@
                 this.menuTop = params.menuTop;
                 this.currentItemVal = params.text;
             })
+           bus.$on('urlIpRanking',(arr)=>{
+               this.timepicker = arr;
+               this.getRankingData(this.timepicker)
+           })
         },
         mounted(){
             gresizeW($('.ranking-wapper'))
@@ -109,6 +69,7 @@
         beforeDestroy () {
             //销毁绑定的bus点击事件
             bus.$off(this.busName);
+            bus.$off('urlIpRanking');
         },
         methods:{
             //获取数据
@@ -118,8 +79,8 @@
                     this.$axios.post(this.$baseUrl+'/flow/getTopGroupByIPOrPort.do',this.$qs.stringify({
                         groupfiled : "ipv4_dst_addr",
                         application_layer_protocol : "http,https",
-                        startTime:timeArr[0],
-                        endTime:timeArr[1]
+                        starttime:timeArr[0],
+                        endtime:timeArr[1]
                     }))
                         .then(res=>{
                             this.loading = false;
@@ -142,6 +103,8 @@
             rankingMenu(){
                 let obj = {};
                 obj.val = this.currentItemVal;
+                obj.starttime = this.timepicker[0]
+                obj.endtime = this.timepicker[1]
                 jumpHtml('urlRanking'+this.currentItemVal,'logsManage/urlRanking.vue',obj,'应用画像');
             },
             //菜单-业务流 点击事件
@@ -149,6 +112,8 @@
                 let obj = {};
                 obj.val = this.currentItemVal;
                 obj.type = 'ip'
+                obj.starttime = this.timepicker[0]
+                obj.endtime = this.timepicker[1]
                 jumpHtml('urlGraph'+this.currentItemVal,'logsManage/urlGraph.vue',obj,'业务流');
             },
             //日期改变事件
@@ -160,7 +125,8 @@
             }
         },
         components:{
-            vRanking
+            vRanking,
+            baseDate
         }
     }
 </script>

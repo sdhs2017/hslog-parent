@@ -1,20 +1,9 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">资产画像</div>
-        <div class="datepicker-wapper" style="padding-left: 20px;">
-            <span>日期范围：</span>
-            <el-date-picker
-                v-model="timepicker"
-                type="datetimerange"
-                align="right"
-                unlink-panels
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                @change="timepickerChange"
-                :picker-options="pickerOptions">
-            </el-date-picker>
+        <div class="top-title">资产画像
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" busName="rankingList"></baseDate>
+            </div>
         </div>
         <div class="ranking-list-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div class="ip-ranking">
@@ -121,39 +110,14 @@
 
 <script>
     import {dateFormat} from "../../../static/js/common";
+    import bus from '../common/bus';
+    import baseDate from '../common/baseDate'
     export default {
         name: "rankingList",
         data() {
             return {
                 loading:false,
                 timepicker:[],//日期值
-                pickerOptions: { //日期选择器
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }]
-                },
                 startIpArr:[],//源ip
                 endIpArr:[],//目的ip
                 startPortArr:[],//源端口
@@ -174,13 +138,14 @@
            }
         },
         created(){
-            //设置日期
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-
-            this.timepicker=[dateFormat('yyyy-mm-dd',start),dateFormat('yyyy-mm-dd',end)]
-            this.getRankingListData(this.timepicker);
+            //绑定点击事件
+            bus.$on('rankingList',(arr)=>{
+                this.timepicker = arr;
+                this.getRankingListData(this.timepicker)
+            })
+        },
+        beforeDestroy(){
+            bus.$off('rankingList')
         },
         methods:{
             /*获取日志信息*/
@@ -188,8 +153,8 @@
                 this.loading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getTopGroupByIPOrPort.do',this.$qs.stringify({
-                        startTime:timeArr[0],
-                        endTime:timeArr[1]
+                        starttime:timeArr[0],
+                        endtime:timeArr[1]
                     }))
                         .then(res =>{
                             this.loading = false;
@@ -284,6 +249,9 @@
                 }
                 this.getRankingListData(this.timepicker);
             }
+        },
+        components:{
+            baseDate
         }
     }
 </script>

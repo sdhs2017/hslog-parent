@@ -1,7 +1,7 @@
 <template>
     <div class="content-bg">
         <div class="top-title">{{ip}} 关系图</div>
-        <div class="graph-wapper">
+        <div class="graph-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div id="graph-content"></div>
         </div>
     </div>
@@ -16,7 +16,8 @@
             return {
                 ip:'',
                 type:'',
-                count:''
+                count:'',
+                loading:false,
             }
         },
         mounted(){
@@ -25,6 +26,7 @@
         methods:{
             /*获得数据*/
             getTopologicalData(){
+                this.loading = true;
                 // 基于准备好的容器(这里的容器是id为chart1的div)，初始化echarts实例
                 var chart = echarts.init(document.getElementById("graph-content"));
                 var option = {
@@ -88,11 +90,10 @@
                 chart.setOption(option);
                 var CIRCLE_SIZE = 100; //节点大小
                 var LINE_SIZE = 10; //线大小
-                layer.load(1);
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/flow/getTopologicalData.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip,count:this.count}))
                         .then(res =>{
-                            layer.closeAll();
+                            this.loading = false;
                             let data = res.data;
                             //关系图节点
                             var echartNodeData = data[0].data;
@@ -159,7 +160,7 @@
                             });
                         })
                         .catch(err =>{
-                            layer.closeAll()
+                            this.loading = false;
                             layer.msg('获取信息失败',{icon:5})
                         })
                 })

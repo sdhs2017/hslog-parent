@@ -1,20 +1,9 @@
 <template>
     <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
-        <div class="top-title">{{ipv4_dst_addr}} 应用画像</div>
-        <div class="datepicker-wapper" style="padding-left: 20px;">
-            <span>日期范围：</span>
-            <el-date-picker
-                v-model="timepicker"
-                type="datetimerange"
-                align="right"
-                unlink-panels
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                @change="timepickerChange"
-                :picker-options="pickerOptions">
-            </el-date-picker>
+        <div class="top-title">{{ipv4_dst_addr}} 应用画像
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :busName="this.dateBusName" :defaultVal="this.timepicker"></baseDate>
+            </div>
         </div>
         <div class="content" >
             <div class="ranking-wapper">
@@ -34,6 +23,7 @@
 
 <script>
     import vRanking from '../common/ranking';
+    import baseDate from '../common/baseDate'
     import bus from '../common/bus';
     import {jumpHtml,savePath,gresizeW,dateFormat} from "../../../static/js/common";
     export default {
@@ -44,36 +34,10 @@
                 rankingTitle:'URL Top10 排行',
                 rankingData:[],
                 busName:'urlRanking',
+                dateBusName:'',
                 application_layer_protocol:'',
                 ipv4_dst_addr:'',
-                timepicker:'',//日期值
-                pickerOptions: { //日期选择器
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }]
-                },
+                timepicker:[],//日期值
                 currentItemVal:'',//当前点击的列表的值
                 selectedMenuState : false, //菜单是否显示
                 menuLeft:'', //菜单x位置
@@ -89,16 +53,20 @@
             }
         },
         created(){
-            //设置日期
-            //设置日期
-            const end = new Date();
-            const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+            if(this.$route.query.val){
+                this.timepicker=[this.$route.query.starttime,this.$route.query.endtime]
+            }else{
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                this.timepicker = [dateFormat('yyyy-mm-dd HH:MM:SS',start),dateFormat('yyyy-mm-dd HH:MM:SS',end)]
+            }
 
-            this.timepicker=[dateFormat('yyyy-mm-dd HH:MM:SS',start),dateFormat('yyyy-mm-dd HH:MM:SS',end)]
-            //获取排行榜数据
-            this.getRankingData(this.timepicker);
-
+            this.dateBusName = 'urlRankingDateBusName'+this.$route.query.val;
+            bus.$on(this.dateBusName,(val)=>{
+                this.timepicker=val;
+                this.getRankingData(this.timepicker)
+            })
         },
         mounted(){
             //console.log('fff')
@@ -107,6 +75,7 @@
         beforeDestroy () {
             //销毁绑定的bus点击事件
             bus.$off(this.busName);
+            bus.$off(this.dateBusName);
         },
         methods:{
             //获取数据
@@ -184,7 +153,8 @@
             })
         },
         components:{
-            vRanking
+            vRanking,
+            baseDate
         }
     }
 </script>

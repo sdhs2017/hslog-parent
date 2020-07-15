@@ -1,20 +1,9 @@
 <template>
     <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
-        <div class="top-title">{{domain_url}} 功能排行</div>
-        <div class="datepicker-wapper" style="padding-left: 20px;">
-            <span>日期范围：</span>
-            <el-date-picker
-                v-model="timepicker"
-                type="datetimerange"
-                align="right"
-                unlink-panels
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                value-format="yyyy-MM-dd HH:mm:ss"
-                @change="timepickerChange"
-                :picker-options="pickerOptions">
-            </el-date-picker>
+        <div class="top-title">{{domain_url}} 功能排行
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :defaultVal="this.timepicker" :busName="dateBusName"></baseDate>
+            </div>
         </div>
         <div class="content">
             <div class="ranking-wapper">
@@ -28,6 +17,7 @@
 <script>
     import vRanking from '../common/ranking';
     import bus from '../common/bus';
+    import baseDate from '../common/baseDate'
     import {jumpHtml,savePath,dateFormat} from "../../../static/js/common";
     export default {
         name: "funcRanking",
@@ -37,56 +27,34 @@
                 domain_url:'',//参数
                 rankingTitle:'功能 URL 排行',
                 rankingData:[],
+                dateBusName:'',
                 busName:'',
-                timepicker:'',//日期值
-                pickerOptions: { //日期选择器
-                    shortcuts: [{
-                        text: '最近一周',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近一个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }, {
-                        text: '最近三个月',
-                        onClick(picker) {
-                            const end = new Date();
-                            const start = new Date();
-                            start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
-                            picker.$emit('pick', [start, end]);
-                        }
-                    }]
-                }
+                timepicker:[],//日期值
             }
         },
         created(){
             this.timepicker=[this.$route.query.starttime,this.$route.query.endtime]
+            this.domain_url = this.$route.query.val;
+            this.busName = 'funcRanking'+ this.$route.query.val;
+            this.dateBusName = 'funcRankingDateBusName' + this.$route.query.val
+            bus.$on(this.dateBusName,(val)=>{
+                this.timepicker=val;
+                this.getfuncRankingData(this.timepicker)
+            })
+            bus.$on(this.busName,(params)=>{
+                let obj = {};
+                obj.complete_url = params.text;
+                obj.starttime = this.timepicker[0]
+                obj.endtime = this.timepicker[1]
+                jumpHtml('funcGraph'+obj.complete_url,'logsManage/funcGraph.vue',obj,'业务流')
+            })
         },
         beforeDestroy () {
             //销毁绑定的bus点击事件
             bus.$off(this.busName);
+            bus.$off(this.dateBusName);
         },
         watch:{
-            'domain_url'(){
-                this.getfuncRankingData(this.timepicker);
-                //绑定点击事件
-                bus.$on(this.busName,(params)=>{
-                    let obj = {};
-                    obj.complete_url = params.text;
-                    obj.starttime = this.timepicker[0]
-                    obj.endtime = this.timepicker[1]
-                    jumpHtml('funcGraph'+obj.complete_url,'logsManage/funcGraph.vue',obj,'业务流')
-                })
-            }
         },
         methods:{
             //获取数据
@@ -125,14 +93,13 @@
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {
-                vm.domain_url = to.query.val;
                 vm.$options.name = 'funcRanking'+ to.query.val;
-                vm.busName = 'funcRanking'+ to.query.val;
                 savePath(to.name,'logsManage/funcRanking.vue','排行')
             })
         },
         components:{
-            vRanking
+            vRanking,
+            baseDate
         }
     }
 </script>

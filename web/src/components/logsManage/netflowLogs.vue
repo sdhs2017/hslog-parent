@@ -113,15 +113,6 @@
         },
         created(){
             this.busName = 'netflowLogs' + this.$route.query.iporport;
-            this.conditions = {
-                type:'defaultpacket',
-                ipv4_src_addr:this.$route.query.ipv4_src_addr,
-                ipv4_dst_addr:this.$route.query.ipv4_dst_addr,
-                l4_src_port:this.$route.query.l4_src_port,
-                l4_dst_port:this.$route.query.l4_dst_port,
-                starttime:this.$route.query.starttime,
-                endtime:this.$route.query.endtime
-            }
             this.timepicker = [this.$route.query.starttime,this.$route.query.endtime]
             bus.$on(this.busName,(arr)=>{
                 this.timepicker = arr;
@@ -137,6 +128,15 @@
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
                 vm.$options.name = 'netflowLogs'+ to.query.iporport;
+                vm.conditions = {
+                    type:'defaultpacket',
+                    ipv4_src_addr:to.query.ipv4_src_addr,
+                    ipv4_dst_addr:to.query.ipv4_dst_addr,
+                    l4_src_port:to.query.l4_src_port,
+                    l4_dst_port:to.query.l4_dst_port,
+                    starttime:to.query.starttime,
+                    endtime:to.query.endtime
+                }
                 savePath(to.name,'logsManage/netflowLogs.vue','日志');
             })
 

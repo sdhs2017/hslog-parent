@@ -196,7 +196,7 @@
                     ]
                 }]
                 this.$router.addRoutes(newRouters);
-                this.$router.push({path:'/rankingListDetail'+this.selectedItem.IpOrPort,query: { iporport:this.selectedItem.IpOrPort,type:this.selectedItemType }})
+                this.$router.push({path:'/rankingListDetail'+this.selectedItem.IpOrPort,query: { iporport:this.selectedItem.IpOrPort,type:this.selectedItemType,starttime:this.timepicker[0],endtime:this.timepicker[1] }})
             },
             /*跳转到排行详情*/
             rankingMenu(){
@@ -214,7 +214,7 @@
                     ]
                 }]
                 this.$router.addRoutes(newRouters);
-                this.$router.push({path:'/rankingListDetail'+this.selectedItem.IpOrPort,query: { iporport:this.selectedItem.IpOrPort,type:this.selectedItemType }})
+                this.$router.push({path:'/rankingListDetail'+this.selectedItem.IpOrPort,query: { iporport:this.selectedItem.IpOrPort,type:this.selectedItemType,starttime:this.timepicker[0],endtime:this.timepicker[1]  }})
                 //关闭菜单
                 this.cancelMenu();
             },
@@ -234,7 +234,7 @@
                     ]
                 }]
                 this.$router.addRoutes(newRouters);
-                this.$router.push({path:'/graph'+this.selectedItem.IpOrPort,query: { iporport:this.selectedItem.IpOrPort,type:this.selectedItemType,count:this.selectedItem.count }})
+                this.$router.push({path:'/graph'+this.selectedItem.IpOrPort,query: { iporport:this.selectedItem.IpOrPort,type:this.selectedItemType,count:this.selectedItem.count,starttime:this.timepicker[0],endtime:this.timepicker[1]  }})
                 //关闭菜单
                 this.cancelMenu();
             },

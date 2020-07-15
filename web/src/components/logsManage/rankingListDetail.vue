@@ -1,6 +1,10 @@
 <template>
     <div class="content-bg" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.1)">
-        <div class="top-title">{{title}}</div>
+        <div class="top-title">{{title}}
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :busName="this.busName" :defaultVal="this.timepicker"></baseDate>
+            </div>
+        </div>
         <div class="detail-content" >
             <div class="list-wapper" v-if="startIpArr">
                 <div class="detail-list-title">源IP排行榜</div>
@@ -89,14 +93,18 @@
 </template>
 
 <script>
+    import baseDate from '../common/baseDate'
+    import bus from '../common/bus';
     import {savePath,jumpHtml} from "../../../static/js/common";
 
     export default {
         name: "rankingListDetail",
         data() {
             return {
+                timepicker:[],
                 loading:false,
                 iporport:'',
+                busName:'',
                 type:'',
                 startIpArr:[],//源ip
                 endIpArr:[],//目的ip
@@ -128,12 +136,30 @@
                 return t;
             }
         },
+        created(){
+            this.iporport = this.$route.query.iporport;
+            this.type = this.$route.query.type;
+            this.busName = 'rankingListDetail' + this.$route.query.iporport
+            this.timepicker = [this.$route.query.starttime,this.$route.query.endtime]
+            bus.$on(this.busName,(arr)=>{
+                this.timepicker = arr;
+                this.getData();
+            })
+        },
+        beforeDestroy(){
+            bus.$off(this.busName)
+        },
         methods:{
             /*获得数据*/
             getData(){
                 this.loading = true;
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getIPAndPortTop.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip}))
+                    this.$axios.post(this.$baseUrl+'/flow/getIPAndPortTop.do',this.$qs.stringify({
+                        groupfiled:this.type,
+                        iporport:this.iporport,
+                        starttime:this.timepicker[0],
+                        endtime:this.timepicker[1]
+                    }))
                         .then(res =>{
                             this.loading = false;
                             this.startIpArr = res.data[0].ipv4_src_addr;
@@ -167,7 +193,7 @@
 
             /*查看日志*/
             readNetflowLogs(){
-                jumpHtml('netflowLogs'+this.iporport,'logsManage/netflowLogs.vue',{iporport:this.iporport,ipv4_src_addr:this.startIpVal,ipv4_dst_addr:this.endIpVal,l4_src_port:this.startPortVal,l4_dst_port:this.endPortVal},"日志");
+                jumpHtml('netflowLogs'+this.iporport,'logsManage/netflowLogs.vue',{iporport:this.iporport,ipv4_src_addr:this.startIpVal,ipv4_dst_addr:this.endIpVal,l4_src_port:this.startPortVal,l4_dst_port:this.endPortVal,starttime:this.timepicker[0],endtime:this.timepicker[1]},"日志");
              }
         },
         beforeRouteEnter(to, from, next) {
@@ -186,13 +212,15 @@
                 }
                 //修改data参数
                 if(vm.iporport === '' || vm.iporport !== to.query.iporport){
-                    vm.iporport = to.query.iporport;
-                    vm.type = to.query.type;
-                    vm.getData();
+
+                   // vm.getData();
                 }
                 savePath(to.name,'logsManage/rankingListDetail.vue','排行');
             })
 
+        },
+        components:{
+            baseDate
         }
     }
 </script>

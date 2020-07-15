@@ -1,6 +1,10 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">日志</div>
+        <div class="top-title">日志
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :busName="this.busName" :defaultVal="this.timepicker"></baseDate>
+            </div>
+        </div>
         <div class="content-wapper">
             <v-logscontent :searchConditions="searchConditions" :tableHead="tableHead" :searchUrl="searchUrl" :layerObj="layerObj"  ref="logContent" ></v-logscontent>
         </div>
@@ -10,12 +14,16 @@
 
 <script>
     import vLogscontent from '@/components/logsManage/logsContent';
+    import baseDate from '../common/baseDate'
+    import bus from '../common/bus';
     import {savePath} from "../../../static/js/common";
 
     export default {
         name: "netflowLogs",
         data() {
             return {
+                busName:'',
+                timepicker:[],//日期值
                 layerObj:{
                     detailData:{},//弹窗数据
                     layerState:false//弹窗状态
@@ -103,24 +111,39 @@
                 return  this.conditions;
             }
         },
+        created(){
+            this.busName = 'netflowLogs' + this.$route.query.iporport;
+            this.conditions = {
+                type:'defaultpacket',
+                ipv4_src_addr:this.$route.query.ipv4_src_addr,
+                ipv4_dst_addr:this.$route.query.ipv4_dst_addr,
+                l4_src_port:this.$route.query.l4_src_port,
+                l4_dst_port:this.$route.query.l4_dst_port,
+                starttime:this.$route.query.starttime,
+                endtime:this.$route.query.endtime
+            }
+            this.timepicker = [this.$route.query.starttime,this.$route.query.endtime]
+            bus.$on(this.busName,(arr)=>{
+                this.timepicker = arr;
+                this.conditions.starttime =  this.timepicker[0]
+                this.conditions.endtime =  this.timepicker[1]
+            })
+        },
+        beforeDestroy(){
+            bus.$off(this.busName)
+        },
         beforeRouteEnter(to, from, next) {
             next (vm => {
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
                 vm.$options.name = 'netflowLogs'+ to.query.iporport;
-                vm.conditions = {
-                    type:'defaultpacket',
-                    ipv4_src_addr:to.query.ipv4_src_addr,
-                    ipv4_dst_addr:to.query.ipv4_dst_addr,
-                    l4_src_port:to.query.l4_src_port,
-                    l4_dst_port:to.query.l4_dst_port
-                }
                 savePath(to.name,'logsManage/netflowLogs.vue','日志');
             })
 
         },
         components:{
-            vLogscontent
+            vLogscontent,
+            baseDate
         }
     }
 </script>

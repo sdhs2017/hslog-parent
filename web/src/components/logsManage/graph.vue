@@ -1,6 +1,10 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">{{ip}} 关系图</div>
+        <div class="top-title">{{ip}} 关系图
+            <div class="datepicker-wapper" style="padding-left: 20px;float: right;margin-right: 10px;">
+                <baseDate type="datetimerange" :busName="this.busName" :defaultVal="this.timepicker"></baseDate>
+            </div>
+        </div>
         <div class="graph-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div id="graph-content"></div>
         </div>
@@ -9,6 +13,8 @@
 </template>
 
 <script>
+    import baseDate from '../common/baseDate'
+    import bus from '../common/bus';
     const echarts = require('echarts');
     export default {
         name: "graph",
@@ -18,14 +24,29 @@
                 type:'',
                 count:'',
                 loading:false,
+                busName:'',
+                timepicker:[],//日期值
             }
         },
+        created(){
+            this.timepicker=[this.$route.query.starttime,this.$route.query.endtime]
+            this.ip = this.$route.query.iporport;
+            this.type = this.$route.query.type;
+            this.count = this.$route.query.count;
+            this.busName = 'graph'+this.$route.query.val;
+        },
         mounted(){
-
+            bus.$on(this.busName,(val)=>{
+                this.timepicker=val;
+                this.getTopologicalData(this.timepicker)
+            })
+        },
+        beforeDestroy(){
+          bus.$off(this.busName)
         },
         methods:{
             /*获得数据*/
-            getTopologicalData(){
+            getTopologicalData(timeArr){
                 this.loading = true;
                 // 基于准备好的容器(这里的容器是id为chart1的div)，初始化echarts实例
                 var chart = echarts.init(document.getElementById("graph-content"));
@@ -91,7 +112,13 @@
                 var CIRCLE_SIZE = 100; //节点大小
                 var LINE_SIZE = 10; //线大小
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/flow/getTopologicalData.do',this.$qs.stringify({groupfiled:this.type,iporport:this.ip,count:this.count}))
+                    this.$axios.post(this.$baseUrl+'/flow/getTopologicalData.do',this.$qs.stringify({
+                        groupfiled:this.type,
+                        iporport:this.ip,
+                        count:this.count,
+                        starttime:timeArr[0],
+                        endtime:timeArr[1],
+                    }))
                         .then(res =>{
                             this.loading = false;
                             let data = res.data;
@@ -172,15 +199,15 @@
                 vm.$options.name = 'graph'+ to.query.iporport;
                 //修改data参数
                 if(vm.ip === '' || vm.ip !== to.query.iporport){
-                    vm.ip = to.query.iporport;
-                    vm.type = to.query.type;
-                    vm.count = to.query.count;
-                    vm.getTopologicalData();
+
                 }
 
             })
 
         },
+        components:{
+            baseDate
+        }
     }
 </script>
 

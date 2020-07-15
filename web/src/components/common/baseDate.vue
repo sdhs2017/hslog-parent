@@ -86,37 +86,15 @@
             }
         },
         mounted(){
-            //this.dateVal = this.defaultVal;
-            let newDate = new Date();
-            let curDate = newDate.toLocaleDateString();
-            let curYear = newDate.getFullYear();
-            let curMonth = newDate.getMonth() + 1;
-            let curDay = newDate.getDate();
-            let curHour = newDate.getHours();
-            let curMin = newDate.getMinutes();
-            let curSec = newDate.getSeconds();
-            if(curMonth < 10){
-                curMonth = '0'+curMonth
+            //有默认值
+            if(this.defaultVal){
+                if(this.type ==='daterange'){
+                    this.dateVal = this.defaultVal
+                }else if(this.type === 'datetimerange'){
+                    this.dateVal2 = this.defaultVal;
+                }
+                return;
             }
-            if(curDay < 10){
-                curDay = '0' + curDay;
-            }
-            if(curHour < 10){
-                curHour = '0' + curHour;
-            }
-            if(curMin < 10){
-                curMin = '0' + curMin;
-            }
-            if(curSec < 10){
-                curSec = '0' + curSec;
-            }
-            let startTime = curYear+'-'+curMonth+'-01';
-            let endTime = curYear+'-'+curMonth+'-'+curDay+' '+curHour+':'+curMin+':'+curSec;
-            /*if(this.type ==='daterange'){
-                this.dateVal = [startTime,endTime];
-            }else if(this.type === 'datetimerange'){
-                this.dateVal2 = [startTime+' 00:00:00',endTime];
-            }*/
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
@@ -135,6 +113,9 @@
                 bus.$emit(this.busName,this.dateVal)
             },
             'dateVal2'(){
+                if(this.dateVal2 === null){
+                    this.dateVal2 = ['','']
+                }
                 bus.$emit(this.busName,this.dateVal2)
             }
         },

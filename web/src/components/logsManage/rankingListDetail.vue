@@ -193,8 +193,8 @@
 
             /*查看日志*/
             readNetflowLogs(){
-                jumpHtml('netflowLogs'+this.iporport,'logsManage/netflowLogs.vue',{iporport:this.iporport,ipv4_src_addr:this.startIpVal,ipv4_dst_addr:this.endIpVal,l4_src_port:this.startPortVal,l4_dst_port:this.endPortVal,starttime:this.timepicker[0],endtime:this.timepicker[1]},"日志");
-             }
+                jumpHtml('netflowLogs'+this.iporport+this.startIpVal+this.endIpVal+this.startPortVal+this.endPortVal,'logsManage/netflowLogs.vue',{iporport:this.iporport,ipv4_src_addr:this.startIpVal,ipv4_dst_addr:this.endIpVal,l4_src_port:this.startPortVal,l4_dst_port:this.endPortVal,starttime:this.timepicker[0],endtime:this.timepicker[1]},"日志");
+            }
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {

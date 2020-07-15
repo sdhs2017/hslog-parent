@@ -127,7 +127,7 @@
             next (vm => {
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
-                vm.$options.name = 'netflowLogs'+ to.query.iporport;
+                vm.$options.name = 'netflowLogs'+ to.fullPath;
                 vm.conditions = {
                     type:'defaultpacket',
                     ipv4_src_addr:to.query.ipv4_src_addr,

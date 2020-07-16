@@ -170,7 +170,7 @@
       getEuquipmentData(page){
         this.fullscreenLoading = true;
         this.searchObj.pageIndex = page;
-        this.$axios.post(this.$baseUrl+'equipment/selectPage.do',this.$qs.stringify(this.searchObj))
+        this.$axios.post(this.$baseUrl+'/equipment/selectPage.do',this.$qs.stringify(this.searchObj))
           .then(res=>{
             this.fullscreenLoading = false;
             this.allCount = res.data[0].count.count;

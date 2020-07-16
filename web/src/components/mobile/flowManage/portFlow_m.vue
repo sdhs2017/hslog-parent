@@ -50,7 +50,7 @@
                     intervalType:'',
                     starttime:'',
                     endtime:'',
-                    last:'7-day'
+                    last:'1-hour'
                 },
                 //轮询参数
                 intervalObj:{
@@ -60,7 +60,7 @@
                 //时间控件参数
                 defaultVal:{
                     //具体时间参数
-                    lastVal:'7-day',
+                    lastVal:'1-hour',
                     //起始时间
                     starttime:'',
                     //结束时间
@@ -76,9 +76,9 @@
                     //轮询参数类型
                     intervalType:'second',
                     //‘快速选择’功能参数类型
-                    dateUnit:'day',
+                    dateUnit:'hour',
                     //‘快速选择’功能参数数值
-                    dateCount:'7',
+                    dateCount:'1',
                     //‘常用’ 时间值
                     commonlyVal:'',
                     //是否可以切换精确日期

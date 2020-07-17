@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import scala.collection.immutable.ListSet;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BIDaoImpl implements IBIDao {
@@ -830,98 +831,110 @@ public class BIDaoImpl implements IBIDao {
      */
     @Override
     public Map<String,Object> getMultiAggregation4dateset(VisualParam params) throws Exception {
+
         Map<String,Object> result = new HashMap<>();
-        /*
-        params.setDateField("logdate");
-        //X轴 bucket 第一层时间轴
-        Bucket bucketDate = new Bucket("Date Histogram","logdate","SECOND",30,5,null);
-        params.getBucketList().add(bucketDate);
-        Bucket bucketIp = new Bucket("term","ipv4_dst_addr",null,null,3,"desc");
-        params.getBucketList().add(bucketIp);
-        Bucket bucketPort = new Bucket("term","l4_dst_port",null,null,3,"desc");
-        params.getBucketList().add(bucketPort);
-        //Y轴
-        Metric metricCount = new Metric("count","logdate",null);
-        Metric metricCount1 = new Metric("max","seqnum",null);
-        params.getMetricList().add(metricCount);
-        params.getMetricList().add(metricCount1);
-
-        */
-        //查询条件
-        //BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
-        BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryConditions(),params.getQueryConnectionType(),params.getStartTime(),params.getEndTime(),params.getDateField());
-        //聚合条件
-        AggregationBuilder aggregationBuilder = buildAggregations(params);
-
-        // 返回聚合的内容
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
-
-        /**
-         * 组装报表所需数据格式 eg:
-         * {
-         *  dimensions: ["xAxis","192.168.1.1-8080","192.168.1.1-8443"],
-         *  source: [
-         *   {"xAxis":"2020-02-02 11:00:00","192.168.1.1-8080":200,"192.168.1.1-8443":100},
-         *   {"xAxis":"2020-02-02 11:01:00","192.168.1.1-8080":250,"192.168.1.1-8443":150}
-         *   ]
-         * }
-         */
-        if(null==aggregations) {
-            //查询能够正常执行，但是存在返回结果为空的情况，为了防止出现异常，进行一次判定
+        //params参数为null的判定
+        if(null==params){
+            return result;
         }else{
+            /*
+            params.setDateField("logdate");
+            //X轴 bucket 第一层时间轴
+            Bucket bucketDate = new Bucket("Date Histogram","logdate","SECOND",30,5,null);
+            params.getBucketList().add(bucketDate);
+            Bucket bucketIp = new Bucket("term","ipv4_dst_addr",null,null,3,"desc");
+            params.getBucketList().add(bucketIp);
+            Bucket bucketPort = new Bucket("term","l4_dst_port",null,null,3,"desc");
+            params.getBucketList().add(bucketPort);
+            //Y轴
+            Metric metricCount = new Metric("count","logdate",null);
+            Metric metricCount1 = new Metric("max","seqnum",null);
+            params.getMetricList().add(metricCount);
+            params.getMetricList().add(metricCount1);
 
-            //dimensions,数据是有序的。保证按照写入顺序排列，使用linked
-            LinkedHashSet<String> dimensions = new LinkedHashSet<>();
-            dimensions.add(ElasticConstant.XAXIS);//作为X轴显示的信息
-            //source
-            //List顺序不影响显示
-            //List中的Map顺序也不影响显示
-            // 考虑到不确定前端会不会对有顺序的数据有更快的加载速度，后端使用其他Map也基本不影响效率，因此采用了Linked
-            List<LinkedHashMap<String,Object>> source = new ArrayList<>();
-            //有聚合字段
-            if(params.getBucketList().size()>0){
-                //获取第一个聚合字段信息，用以组装别名，获取对应数据
-                Bucket bucket = params.getBucketList().get(0);
+            */
+            //查询条件
+            //BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
+            BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryConditions(),params.getQueryConnectionType(),params.getStartTime(),params.getEndTime(),params.getDateField());
+            //聚合条件
+            AggregationBuilder aggregationBuilder = buildAggregations(params);
 
-                //第一层无法使用递归，第一层和2-n层需要：声明一些对象以及相关处理
-                MultiBucketsAggregation terms  = aggregations.get(bucket.getAggType()+"-"+bucket.getField());
-                //第一层也会作为X轴的图标
-                for(MultiBucketsAggregation.Bucket xAxisBucket:terms.getBuckets()) {
-                    //第一级聚合的结果作为X轴显示
-                    String xAxisValue = xAxisBucket.getKeyAsString();
-                    LinkedHashMap<String,Object> xAxisMap = new LinkedHashMap<>();
-                    xAxisMap.put(ElasticConstant.XAXIS,xAxisValue);
-                    //如果bucket聚合只有一层
-                    if(params.getBucketList().size()==1){
-                        setData(params.getMetricList(),xAxisBucket,xAxisMap,dimensions,"",params.getUnit());
-                    }else{
-                        //2-n层
-                        //递归
-                        getResult4DataSet(params,1,xAxisBucket,xAxisMap,dimensions,"");
+            // 返回聚合的内容
+            Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
+
+            /**
+             * 组装报表所需数据格式 eg:
+             * {
+             *  dimensions: ["xAxis","192.168.1.1-8080","192.168.1.1-8443"],
+             *  source: [
+             *   {"xAxis":"2020-02-02 11:00:00","192.168.1.1-8080":200,"192.168.1.1-8443":100},
+             *   {"xAxis":"2020-02-02 11:01:00","192.168.1.1-8080":250,"192.168.1.1-8443":150}
+             *   ]
+             * }
+             */
+            if(null==aggregations) {
+                //查询能够正常执行，但是存在返回结果为空的情况，为了防止出现异常，进行一次判定
+            }else{
+
+                //dimensions,数据是有序的。保证按照写入顺序排列，使用linked
+                LinkedHashSet<String> dimensions = new LinkedHashSet<>();
+                dimensions.add(ElasticConstant.XAXIS);//作为X轴显示的信息
+                //source
+                //List顺序不影响显示
+                //List中的Map顺序也不影响显示
+                // 考虑到不确定前端会不会对有顺序的数据有更快的加载速度，后端使用其他Map也基本不影响效率，因此采用了Linked
+                List<LinkedHashMap<String,Object>> source = new ArrayList<>();
+                //有聚合字段
+                if(params.getBucketList().size()>0){
+                    //获取第一个聚合字段信息，用以组装别名，获取对应数据
+                    Bucket bucket = params.getBucketList().get(0);
+
+                    //第一层无法使用递归，第一层和2-n层需要：声明一些对象以及相关处理
+                    MultiBucketsAggregation terms  = aggregations.get(bucket.getAggType()+"-"+bucket.getField());
+                    //第一层也会作为X轴的图标
+                    for(MultiBucketsAggregation.Bucket xAxisBucket:terms.getBuckets()) {
+                        //第一级聚合的结果作为X轴显示
+                        String xAxisValue = xAxisBucket.getKeyAsString();
+                        LinkedHashMap<String,Object> xAxisMap = new LinkedHashMap<>();
+                        xAxisMap.put(ElasticConstant.XAXIS,xAxisValue);
+                        //如果bucket聚合只有一层
+                        if(params.getBucketList().size()==1){
+                            setData(params.getMetricList(),xAxisBucket,xAxisMap,dimensions,"",params.getUnit());
+                        }else{
+                            //2-n层
+                            //递归
+                            getResult4DataSet(params,1,xAxisBucket,xAxisMap,dimensions,"");
+                        }
+                        source.add(xAxisMap);
                     }
-                    source.add(xAxisMap);
+
+                }else if(params.getBucketList().size()==0){
+                    //TODO 无X轴的数据处理，如：Y轴计算count，返回单一的数字
+                }else{
+
                 }
 
-            }
-
-            //补零
-            for(LinkedHashMap<String,Object> points:source){//获取某个时间节点上对应的N条线的数据对象
-                for(String line:dimensions){//遍历N条线的名称
-                    if(points.get(line)==null){//get不到数据的进行补零
-                        points.put(line,0);
+                //补零
+                for(LinkedHashMap<String,Object> points:source){//获取某个时间节点上对应的N条线的数据对象
+                    for(String line:dimensions){//遍历N条线的名称
+                        if(points.get(line)==null){//get不到数据的进行补零
+                            points.put(line,0);
+                        }
                     }
                 }
-            }
-            //如果X轴为时间(bucket第一个为X轴)，且最后一个点的时间与截止时间相同，则去掉最后一个点
-            if("Date Histogram".equals(params.getBucketList().get(0).getAggType())&&source.get(source.size()-1).get(ElasticConstant.XAXIS).equals(params.getEndTime())){
-                //将最后一个点去掉
-                source.remove(source.size()-1);
-            }
 
-            result.put(ElasticConstant.DIMENSIONS,dimensions);
-            result.put(ElasticConstant.SOURCE,source);
+                //如果X轴为时间(bucket第一个为X轴),且最后一个点的时间与截止时间相同（并且最后一个点的聚合值为0），去掉最后一个点
+                if("Date Histogram".equals(params.getBucketList().get(0).getAggType())&&source.get(source.size()-1).get(ElasticConstant.XAXIS).equals(params.getEndTime())){
+                    //将最后一个点去掉
+                    source.remove(source.size()-1);
+                }
+
+                result.put(ElasticConstant.DIMENSIONS,dimensions);
+                result.put(ElasticConstant.SOURCE,source);
+            }
+            return result;
         }
-        return result;
+
     }
 
     /**
@@ -1078,10 +1091,53 @@ public class BIDaoImpl implements IBIDao {
         }else{
             result = value;
         }
-
-
         return result;
     }
+    /*
+    private boolean checkTimeInterval(String timeX,String timeY,String intervalType,int intervalValue){
+        try{
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            Date dateX = formatter.parse(timeX);
+            Date dateY = formatter.parse(timeY);
+            //差值 秒 取绝对值
+            long difValue = Math.abs((dateX.getTime() - dateY.getTime())/1000);
+            //计算间隔 秒
+            long intervalSeconds=1L;
+            switch(intervalType.toUpperCase()){
+                case "SECOND":
+                    intervalSeconds = intervalValue*1;
+                    break;
+                case "MINUTE":
+                    intervalSeconds = intervalValue*60;
+                    break;
+                case "HOURLY":
+                    intervalSeconds = intervalValue*60*60;
+                    break;
+                case "DAILY":
+                    intervalSeconds = intervalValue*60*60*24;
+                    break;
+                case "WEEKLY":
+                    intervalSeconds = intervalValue*60*60*24*7;
+                    break;
+                case "MONTHLY":
+                    intervalSeconds = intervalValue*60*60*24*7*30;
+                    break;
+                case "YEARLY":
+                    intervalSeconds = intervalValue*60*60*24*7*30*365;
+                    break;
+                default:
+                    intervalSeconds = 1L;
+                    break;
+            }
+
+        }catch (Exception e){
+
+        }
+
+
+
+
+    }*/
     public static void main(String[] args){
         LinkedList<String> dimensions = new LinkedList<>();
         dimensions.add("product");

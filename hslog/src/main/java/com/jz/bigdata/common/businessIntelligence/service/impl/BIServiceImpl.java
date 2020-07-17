@@ -2,10 +2,16 @@ package com.jz.bigdata.common.businessIntelligence.service.impl;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.biDao.IBIDao;
+import com.hs.elsearch.dao.searchDao.ISearchDao;
+import com.hs.elsearch.entity.Bucket;
+import com.hs.elsearch.entity.Metric;
+import com.hs.elsearch.entity.SearchConditions;
 import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
+import com.hs.elsearch.service.ISearchService;
+import com.hs.elsearch.util.ElasticConstant;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.cache.BICache;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
@@ -13,11 +19,15 @@ import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
+import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.cluster.settings.ClusterGetSettingsResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
+import org.elasticsearch.search.aggregations.metrics.NumericMetricsAggregation;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -41,6 +51,10 @@ public class BIServiceImpl implements IBIService {
     protected IBIDao ibiDao;
     @Autowired
     protected IGlobalDao globalDao;
+    @Autowired
+    protected ISearchDao searchDao;
+    @Autowired
+    protected ISearchService searchService;
     @Override
     public List<MappingField> getFieldByXAxisAggregation(String templateName, String indexName, String agg) throws Exception {
         return getMappingFieldByAggType(templateName,indexName,agg);
@@ -51,40 +65,6 @@ public class BIServiceImpl implements IBIService {
         return getMappingFieldByAggType(templateName,indexName,agg);
     }
 
-    @Override
-    public String groupByThenSum(VisualParam params) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListBySumOfAggregation(params);
-        //处理数据
-        return this.dataFormat(list,params);
-    }
-
-    @Override
-    public String groupByThenCount(VisualParam params) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByCountOfAggregation(params);
-        //处理数据
-        return this.dataFormat(list,params);
-    }
-
-    @Override
-    public String groupByThenAvg(VisualParam params) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByAvgOfAggregation(params);
-        //处理数据
-        return this.dataFormat(list,params);
-    }
-
-    @Override
-    public String groupByThenMax(VisualParam params) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByMaxOfAggregation(params);
-        //处理数据
-        return this.dataFormat(list,params);
-    }
-
-    @Override
-    public String groupByThenMin(VisualParam params) throws Exception {
-        List<Map<String, Object>> list = ibiDao.getListByMinOfAggregation(params);
-        //处理数据
-        return this.dataFormat(list,params);
-    }
 
     @Override
     public DocWriteResponse.Result saveVisualization(Visualization visual, String indexName) throws Exception {
@@ -183,40 +163,6 @@ public class BIServiceImpl implements IBIService {
             //处理查询参数
             String params = visualization.get("params").toString();
             visual.setParams(params);
-            //查询数据
-            //1.解析params变成map  params中的数据格式为{a:1,b:2,c:3} json格式
-            //JsonElement jsonElement = new JsonParser().parse(params);
-
-            //JsonObject jsonObject= jsonElement.getAsJsonObject();
-            /*
-            HashMap<String,String[]> result = new ObjectMapper().readValue(params, HashMap.class);
-            VisualParam vp = new VisualParam();
-            vp = vp.mapToBean(result);
-            //返回结果
-            String searchResult;
-            //根据聚合方式调用不同的方法
-            switch (vp.getY_agg()){
-                case "Average":
-                    searchResult = groupByThenAvg(vp);
-                    break;
-                case "Sum":
-                    searchResult = groupByThenSum(vp);
-                    break;
-                case "Max":
-                    searchResult = groupByThenMax(vp);
-                    break;
-                case "Min":
-                    searchResult = groupByThenMin(vp);
-                    break;
-                case "Count":
-                    searchResult = groupByThenCount(vp);
-                    break;
-                default:
-                    searchResult = "";
-                    break;
-            }
-            visual.setData(searchResult);
-            */
 
         }
         return JSONObject.fromObject(visual).toString();
@@ -282,87 +228,6 @@ public class BIServiceImpl implements IBIService {
         return Integer.parseInt(result);
     }
 
-
-    /**
-     * 将ES的聚合结果进行处理返回成前端需要的格式。
-     * [{"data":[7.51308144E8,2.49168344E8],"name":["ZHANGYIYANG","jyr-PC"]}]
-     * 由于返回接口都是统一的List<Map<String, Object>>,但是正常数据中list一般就只有一条记录
-     * 因此在组装数据时，对list和map都遍历，但是逻辑上会将多个list记录视作一类
-     * 保证返回结果在前端是可识别的。
-     * @param list
-     * @return
-     */
-    private String dataFormat(List<Map<String, Object>> list,VisualParam param){
-        String x_type = "";
-        String y_type = "";
-        //X轴为时间，处理时间
-        if("Date".equals(param.getX_agg())){
-            x_type="date";
-        }
-        //Y轴为bytes
-        if(param.getY_field().indexOf("bytes")>=0||param.getY_field().indexOf("system.memory.free")>=0){
-            y_type="bytes";
-        }
-        //Y轴为百分比
-        if(param.getY_field().indexOf("pct")>=0){
-            y_type="pct";
-        }
-        Map<String, Object> tmplist = new HashMap<String, Object>();
-        List<String> name = new ArrayList<>();
-        List<Object> data = new ArrayList<>();
-        for(Map<String, Object> tMap:list){
-            for(Map.Entry<String, Object> key : tMap.entrySet()) {
-                if("date".equals(x_type)){
-                    name.add(this.valueFormatter(key.getKey(),x_type));
-                }else{
-                    name.add(key.getKey());
-                }
-
-                //y轴为pct，*100
-                if("pct".equals(y_type)){
-                    data.add(this.valueFormatter(key.getValue(),y_type));
-                }else if ("bytes".equals(y_type)){
-                    data.add(this.valueFormatter(key.getValue(),y_type));
-                }else{
-                    data.add(key.getValue());
-                }
-
-            }
-        }
-        tmplist.put("name",name);
-        tmplist.put("data",data);
-        return JSONArray.fromObject(tmplist).toString();
-    }
-    private String valueFormatter(Object value,String type){
-        String result = null;
-        DecimalFormat decimalFormat=new DecimalFormat("0.00");
-        try{
-            switch (type){
-                case "pct":
-                    Float folatValue = Float.parseFloat(value.toString());
-                    folatValue = folatValue*100;
-                    result = decimalFormat.format(folatValue);
-                    break;
-                case "date":
-                    DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-                    DateTime dateTime = DateTime.parse(value.toString(), dtf);
-                    result = dateTime.toString("yyyy-MM-dd HH:mm:ss");
-                    break;
-                case "bytes":
-                    Double byteValue = (Double)value;
-                    byteValue = byteValue/1024/1024/1024;//byte -> GB
-                    result = decimalFormat.format(byteValue);
-                    break;
-                default:
-                    result = value.toString();
-                    break;
-            }
-        }catch(Exception e){
-            result = value.toString();
-        }
-
-        return result;
-    }
     /**
      * 根据聚合方式的不同，筛选出符合要求的字段信息
      * @param indexName 索引名称
@@ -435,139 +300,146 @@ public class BIServiceImpl implements IBIService {
         }
         return list;
     }
-    /**
-     * 筛选字段
-     * @param list 源字段（总的）
-     * @param fieldTypes 筛选的字段类型
-     * @param fieldData fielddata=true的情况
-     * @return
-     */
-    private List<MappingField> formatFields(List<MappingField> list,String fieldTypes,boolean fieldData){
-        //筛选后的字段
-        List<MappingField> newList = new ArrayList<>();
-        for(MappingField mappingField:list){
-            //字段类型加上,, 保证准确匹配
-            //先根据类型筛选，再根据fielddata
-            if(fieldTypes.indexOf(","+mappingField.getFieldType()+",")>=0){
-                newList.add(mappingField);
-            }else{
-                //fieldData=true的情况
-                if(fieldData&&mappingField.getFieldData()){
-                    newList.add(mappingField);
-                }
-            }
-        }
-        return newList;
-    }
-    /**
-     * 通过index名称获取所有field
-     * @param indexName
-     * @return
-     */
-    private List<MappingField> getMappingFieldByIndex(String indexName) throws Exception {
-        List<MappingField> metadataList = new ArrayList<MappingField>();
-        //获取template的数据
-        Map<String, MappingMetaData> mapMapping = logIndexDao.getIndexMappingData(indexName);
-        //获取MappingMetaData
-        MappingMetaData mapping = mapMapping.get(indexName);
-        if(mapping!=null){
-            //获取mapping信息
-            Map<String,Object> sourceMap = mapping.getSourceAsMap();
-            return getAllListMetadataBySourceMap(sourceMap);
-        }else{
-            return null;
-        }
-    }
-    /**
-     * mapping对象格式化
-     * @param sourceMap mapping对象列表
-     * @return List<Metadata>
-     */
-    private List<MappingField> getAllListMetadataBySourceMap(Map<String,Object> sourceMap){
-        List<MappingField> mappingFieldList = new ArrayList<MappingField>();
-        //获取mapping下的properties
-        Map<String,Object> propertiesMap = (Map<String, Object>) sourceMap.get("properties");
-        //遍历properties下的数据 每个元素的key为字段名，value为相关的属性和值
-        for(Map.Entry<String, Object> map:propertiesMap.entrySet()){
-            //递归
-            mappingFieldList.addAll(getChildren(map,""));
-        }
-        //排序
-        Collections.sort(mappingFieldList,new Comparator<MappingField>() {
-            //升序排序
-            public int compare(MappingField o1,
-                               MappingField o2) {
-                return o1.getFieldName().toLowerCase().compareTo(o2.getFieldName().toLowerCase());
-            }
-        });
-        return mappingFieldList;
-    }
 
-    /**
-     * 递归模块，循环遍历节点下的信息
-     * @param propertiesMap
-     * @param path
-     * @return
-     */
-    private List<MappingField> getChildren(Map.Entry<String, Object> propertiesMap, String path){
-        List<MappingField> metadataList = new ArrayList<>();
-
-
-        //获取value
-        Map<String,Object> fieldValue = (Map<String, Object>)propertiesMap.getValue();
-        //获取key
-        String fieldName = propertiesMap.getKey();
-        //组装新的路径，上下级之间用.隔开
-        String fieldPathName = ("".equals(path)?fieldName:path+"."+fieldName);
-        //尝试获取其properties属性
-        Object properties = fieldValue.get("properties");
-        if(properties!=null){
-            /**
-             * 如果存在properties，认为这个节点是下一级目录，并不是数据存储字段
-             * 因此只作为一个父级节点来处理，继续找子节点
-             */
-            //遍历properties下的数据 每个元素的key为字段名，value为相关的属性和值
-            for(Map.Entry<String, Object> map:((Map<String,Object>)properties).entrySet()) {
-                metadataList.addAll(getChildren(map,fieldPathName));
-            }
-        }else{
-            /**
-             * 如果不存在，则说明该字段是最终节点，解析信息
-             */
-
-            MappingField mappingField = new MappingField();
-            //字段名
-            mappingField.setFieldName(fieldPathName);
-            //字段类型
-            if(fieldValue.get("type")!=null){
-                mappingField.setFieldType(fieldValue.get("type").toString());
-            }
-            //字段可聚合
-            if(fieldValue.get("fielddata")!=null){
-                mappingField.setFieldData((boolean)fieldValue.get("fielddata"));
-            }
-            metadataList.add(mappingField);
-            //raw信息，也作为一个单独的字段处理
-            if(fieldValue.get("fields")!=null){
-                MappingField fields = new MappingField();
-                //raw存在于fields的值中
-                Map<String, Object> rawField = (Map<String, Object>)fieldValue.get("fields");
-                for(Map.Entry<String, Object> rawEntry:rawField.entrySet()){
-                    Map<String, Object> raw = (Map<String, Object>)rawEntry.getValue();
-                    fields.setFieldName(fieldPathName+"."+rawEntry.getKey());
-                    //数据类型
-                    if(raw.get("type")!=null){
-                        fields.setFieldType(raw.get("type").toString());
-                    }
-                    metadataList.add(fields);
-                }
-            }
-
-        }
-        return metadataList;
-    }
     @Override
     public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception {
         return ibiDao.getMultiAggregation4dateset(params);
     }
+
+    @Override
+    public LinkedList<ArrayList<Map<String,Object>>> getMultiAggregationData_pie(SearchConditions conditions) throws Exception {
+        /**
+         * 数据返回示例：
+         * [
+         *   [{value: 335, name: '192.168.2.1'},{value: 125, name: '192.168.2.2'}...],---内圈
+         *   [{value: 111, name: '8080'},{value: 55, name: '8081'}....],--中圈
+         *   [{value: 50, name: 'TCP'}......]---外圈
+         * ]
+         */
+        LinkedList<ArrayList<Map<String,Object>>> result = new LinkedList<>();
+        //获取聚合结果
+        Aggregations aggregations = searchDao.getAggregation(conditions);
+
+        //根据饼图要求处理数据
+        if(conditions.getBucketList().size()>0){
+            //获取第一个聚合字段信息，用以组装别名，获取对应数据
+            Bucket bucket = conditions.getBucketList().get(0);
+
+            //第一层无法使用递归，第一层和2-n层需要：声明一些对象以及相关处理
+            MultiBucketsAggregation terms  = aggregations.get(bucket.getAggType()+"-"+bucket.getField());
+            //如果无法获取结果集，直接返回空数据
+            if(null==terms||(null!=terms&&null==terms.getBuckets())){
+                //不需要进行其他操作
+            }else{
+                int i=0; //定义遍历到第几层，用于中断递归
+                //第一层也会作为X轴的图标
+                for(MultiBucketsAggregation.Bucket bucketItem:terms.getBuckets()) {
+                    handleAggData4Pie(conditions,i,bucketItem,result,"");
+                }
+            }
+
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getMultiAggregationData_line(SearchConditions conditions) throws Exception {
+        //折线图需要补零操作
+        Map<String, Object> dataSet = searchService.getMultiAggDataSetWithZeroFill(conditions);
+        //数据处理
+        handleLastPoints4DateHistogram(conditions,dataSet);
+        return dataSet;
+    }
+
+    @Override
+    public Map<String, Object> getMultiAggregationData_bar(SearchConditions conditions) throws Exception {
+        //柱状图不需要补零
+        Map<String, Object> dataSet = searchService.getMultiAggDataSet(conditions);
+        //数据处理
+        handleLastPoints4DateHistogram(conditions,dataSet);
+        return dataSet;
+    }
+
+    /**
+     * 针对折线图和柱状图的数据处理，当聚合是以时间序列处理，对最后一个时间点的数据需要进行处理，保证图表显示的友好度
+     * @param conditions
+     * @param dataSet
+     */
+    private void handleLastPoints4DateHistogram(SearchConditions conditions,Map<String, Object> dataSet){
+        List<LinkedHashMap<String,Object>> source = (List<LinkedHashMap<String, Object>>) dataSet.get(ElasticConstant.SOURCE);
+        //折线图需要处理最后一个时间点的数据
+        //如果X轴为时间(bucket第一个为X轴),且最后一个点的时间与截止时间相同（并且最后一个点的聚合值为0），去掉最后一个点
+        if(conditions.getBucketList().size()>0&&"Date Histogram".equals(conditions.getBucketList().get(0).getAggType())&&source.get(source.size()-1).get(ElasticConstant.XAXIS).equals(conditions.getEndTime())){
+            //获取最后一个时间点的数据集
+            LinkedHashMap<String,Object> points = source.get(source.size()-1);
+            //对于折线图，如果最后一个时间点的所有数据都为0，吧最后一个时间点的数据去掉
+            boolean isAllZero = true;
+            for(Map.Entry<String,Object> point:points.entrySet()){
+                if(!ElasticConstant.XAXIS.equals(point.getKey())&&Double.parseDouble(point.getValue().toString())!=0.00){
+                    isAllZero=false;
+                    break;//存在不等于0的，中断执行
+                }
+            }
+            //去掉最后一个点
+            if(isAllZero){
+                source.remove(source.size()-1);
+            }
+        }
+    }
+    /**
+     * 递归方法，循环遍历聚合结果
+     * @param conditions 请求参数
+     * @param i 指处理第i+1次聚合数据
+     * @param bucket 第i次聚合结果的bucket对相同
+     * @return Double metric的值，饼图都是数值类型
+     */
+    private Double handleAggData4Pie(SearchConditions conditions, int i, MultiBucketsAggregation.Bucket bucket,LinkedList<ArrayList<Map<String,Object>>> result,String nextkey){
+        //如果第i+1层聚合的结果没有放到result中，则先创建list。
+        if(i>=result.size()){
+            ArrayList<Map<String,Object>> aggResult = new ArrayList<>();
+            result.add(aggResult);
+        }else{
+            //第i+1层的数据对象已经存在，在后续执行代码中进行数据填充
+        }
+        //每一层都需要进行数据的填充
+        //获取要写入结果的对象
+        ArrayList<Map<String,Object>> tempResult = result.get(i);
+        //定义数据点，包含name和value属性，eg:{value: 335, name: '192.168.2.1'}
+        Map<String,Object> dataPoint = new HashMap<>();
+        //图例名称，eg:第一层IP，第二层port，第一层的图例为：-192.168.1.1，第二层的图例为：-192.168.1.1-8080
+        nextkey = nextkey+"-"+bucket.getKeyAsString();
+        //写入图例名称
+        dataPoint.put("name",nextkey.indexOf("-")==0?nextkey.substring(1):nextkey);
+        //饼图只有一个metric，metric的长度为0的情况已经在生成SearchConditions对象时进行了判定（必须>0）
+        //大于1的情况已经在controller层进行了处理。
+        Metric metric = conditions.getMetricList().get(0);
+        //获取metric对应的值
+        NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
+        //Double pointValue = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
+
+        Double pointValue = 0.00;
+
+        //通过判断终止递归
+        if(i<conditions.getBucketList().size()-1){
+            //获取这次聚合结果对应的
+            Bucket bucketEntity = conditions.getBucketList().get(i+1);
+            //获取聚合结果
+            MultiBucketsAggregation terms = bucket.getAggregations().get(bucketEntity.getAggType()+"-"+bucketEntity.getField());
+            //下一次递归时  i需要+1，进入第i+1层聚合结果的处理中
+            i++;
+            //遍历第i层的结果集
+            for(MultiBucketsAggregation.Bucket aggBucket:terms.getBuckets()){
+                //将其下的每个聚合结果的值返回，由于是数值类型，通过累加得到汇总的值
+                pointValue=pointValue+handleAggData4Pie(conditions,i,aggBucket,result,nextkey);
+            }
+        }else{
+            //递归结束，根据当前点的value值进行赋值
+            pointValue = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
+
+        }
+        dataPoint.put("value",pointValue);
+        tempResult.add(dataPoint);
+        return pointValue;
+    }
+
 }

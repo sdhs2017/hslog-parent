@@ -139,20 +139,15 @@ public class FlowController {
         // 应用协议
         String application_layer_protocol = request.getParameter("application_layer_protocol");
         // 时间段
-        String starttime = request.getParameter("startTime");
-        String endtime = request.getParameter("endTime");
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
 
         Map<String, String> searchmap = new HashMap<>();
         if (application_layer_protocol!=null&&!application_layer_protocol.equals("")) {
             searchmap.put("application_layer_protocol", "http");
             searchmap.put("requestorresponse", "request");
         }
-        if (starttime!=null&&!starttime.equals("")) {
-            starttime = starttime+" 00:00:00";
-        }
-        if (endtime!=null&&!endtime.equals("")) {
-            endtime = endtime+" 23:59:59";
-        }
+
 
         Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
 
@@ -282,7 +277,9 @@ public class FlowController {
         if (groupby!=null&&iporport!=null) {
             searchmap.put(groupby, iporport);
         }
-
+        // 时间段
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
         // top排行榜10
         int size = 10;
         Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
@@ -290,7 +287,7 @@ public class FlowController {
             if (!param.equals(groupby)) {
                 List<Map<String, Object>> list = null;
                 try {
-                    list = flowService.groupBy(index,types,param,size,null,null,searchmap);
+                    list = flowService.groupBy(index,types,param,size,starttime,endtime,searchmap);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -336,18 +333,20 @@ public class FlowController {
         if (groupby!=null&&iporport!=null) {
             searchmap.put(groupby, iporport);
         }
-
+        // 时间段
+        String starttime = request.getParameter("starttime");
+        String endtime = request.getParameter("endtime");
         Map<String, List<Map<String, Object>>> map = new LinkedHashMap<String, List<Map<String, Object>>>();
 
-        //System.out.println(new Date().getTime());
-        long starttime = new Date().getTime();
+        //System.out.println(new Date().getTime()); 测试聚合耗时
+        //long starttime = new Date().getTime();
 
         for(String param:groupbys) {
             if (!param.equals(groupby)) {
                 // 第一层数据结果
                 List<Map<String, Object>> list1 = null;
                 try {
-                    list1 = flowService.groupBy(index,types,param,5,null,null,searchmap);
+                    list1 = flowService.groupBy(index,types,param,5,starttime,endtime,searchmap);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -389,7 +388,7 @@ public class FlowController {
                         searchmap.put(groupby, key1.getKey());
                         List<Map<String, Object>> list2 = null;
                         try {
-                            list2 = flowService.groupBy(index, types, param, 5, null, null, searchmap);
+                            list2 = flowService.groupBy(index, types, param, 5, starttime, endtime, searchmap);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -428,9 +427,9 @@ public class FlowController {
             }
         }
         //System.out.println(new Date().getTime());
-        long endtime = new Date().getTime();
-        long ms = endtime-starttime;
-        long time = (endtime-starttime)/1000;
+        //long endtime = new Date().getTime();
+        //long ms = endtime-starttime;
+        //long time = (endtime-starttime)/1000;
         //System.out.println("----------------------聚合消耗时间："+time+"s ==========="+ms+"ms");
 
         return JSONArray.fromObject(map).toString();
@@ -798,11 +797,12 @@ public class FlowController {
         if ((domain_url!=null&&!domain_url.equals(""))) {
             map.put("domain_url", domain_url);
         }
-
+        // 时间段
+        Map<String,String> timeMap = getStartEndTime(request);
         int size = 10;
         //list = logService.groupBy(index, types, groupby, map);
         try {
-            list = flowService.groupBy(index, types, groupby, size,null,null, map);
+            list = flowService.groupBy(index, types, groupby, size,timeMap.get("starttime"),timeMap.get("endtime"), map);
         } catch (Exception e) {
             e.printStackTrace();
         }

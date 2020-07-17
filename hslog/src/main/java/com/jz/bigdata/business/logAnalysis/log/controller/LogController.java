@@ -405,7 +405,7 @@ public class LogController extends BaseController{
 			 * 初始化工作六：内置基本报表（数据可视化模块）
 			 */
 			try{
-				DataVisualInit.init(logService);
+				//DataVisualInit.init(logService);
 			}catch (Exception e){
 				e.printStackTrace();
 				logger.error("数据可视化内置报表失败！："+e.getMessage());
@@ -2030,6 +2030,7 @@ public class LogController extends BaseController{
 	/**
 	 * @param request
 	 * 统计各时间段的日志数据量
+	 * 日志首页，syslog（中左）/winlog
 	 * @return
 	 */
 	@ResponseBody
@@ -2061,6 +2062,7 @@ public class LogController extends BaseController{
 	/**
 	 * @param request
 	 * 统计各时间段的各事件数据量
+	 * syslog/winlog 时序折线图
 	 * @return
 	 */
 	@ResponseBody
@@ -2095,6 +2097,7 @@ public class LogController extends BaseController{
 	/**
 	 * @param request
 	 * 统计各个日志级别的数据量
+	 * 资产报表syslog/winlog。首页
 	 * @return
 	 */
 	@ResponseBody
@@ -2125,12 +2128,13 @@ public class LogController extends BaseController{
 	}
 	/**
 	 * @param request
-	 * 统计各个日志级别的数据量
+	 * 统计各个日志事件的数据量
+	 * syslog/winlog资产报表-柱状图和饼图
 	 * @return
 	 */
 	@ResponseBody
 	@RequestMapping(value="/getCountGroupByEventAction_barAndPie", produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="读取日志级别数据量")
+	@DescribeLog(describe="读取日志事件数据量")
 	public String getCountGroupByEventAction_barAndPie(HttpServletRequest request) {
 		//处理参数
 		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
@@ -2140,7 +2144,7 @@ public class LogController extends BaseController{
 		}
 		//index 和 日期字段初始化
 		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
-		//X轴，日志级别（log.level）
+		//X轴，事件类型（event.action）
 		Bucket bucket = new Bucket("terms","event.action",null,null,10,"desc");
 		params.getBucketList().add(bucket);
 		//Y轴，日志个数（count(@timestamp)）
@@ -2148,15 +2152,17 @@ public class LogController extends BaseController{
 		params.getMetricList().add(metric);
 		try{
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
-			logger.error("读取日志级别数据量"+e.getMessage());
+			logger.error("读取日志事件数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
 	/**
 	 * @param request
-	 * 统计各个事件的数据量
+	 * 统计各个事件的数据量-折线图
+	 * syslog/winlog 资产报表
 	 * @return
 	 */
 	@ResponseBody

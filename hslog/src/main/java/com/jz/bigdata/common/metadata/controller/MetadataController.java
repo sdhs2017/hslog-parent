@@ -145,7 +145,7 @@ public class MetadataController {
             String preIndexName = iMetadataService.getPreIndexByTemplate(templateName);
             Map<String,Object> result = new HashMap<>();
             result.put("preIndexName",preIndexName);//根据template获取的index前缀
-            result.put("dateField", TemplateDateField.TemplateDateField.get(templateName));//根据template获取其对应的日期字段
+            result.put("dateField", TemplateDateField.getDateField(templateName));//根据template获取其对应的日期字段
             return Constant.successData(JSONObject.fromObject(result).toString());
         }catch(Exception e){
             logger.error("template数据获取失败");

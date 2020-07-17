@@ -189,8 +189,11 @@ public class MetadataServiceImpl implements IMetadataService {
         String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";
         for(String index:indices){
             Matcher m =Pattern.compile(regex).matcher(index);
-            //将匹配的日期替换为空字符串
-            preIndexName.add(m.replaceAll(""));
+            if(m.find()){
+                //获取日期之前的数据
+                preIndexName.add(index.substring(0,m.start()));
+            }
+
         }
         //组装适用前端数据
         List<ComboxEntity> comboxEntityList = new ArrayList<>();
@@ -214,8 +217,8 @@ public class MetadataServiceImpl implements IMetadataService {
         for(String index:indices){
             Matcher m =Pattern.compile(regex).matcher(index);
             if(m.find()){
-                //将匹配的日期替换为空字符串
-                suffixIndexName.add(m.group());
+                //将匹配到日期及之后的数据放入下拉菜单
+                suffixIndexName.add(index.substring(m.start()));
             }
         }
         List<ComboxEntity> comboxEntityList = new ArrayList<>();

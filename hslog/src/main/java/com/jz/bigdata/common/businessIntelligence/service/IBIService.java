@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.businessIntelligence.service;
 
+import com.hs.elsearch.entity.SearchConditions;
 import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
@@ -7,6 +8,8 @@ import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -29,36 +32,6 @@ public interface IBIService {
      */
     public List<MappingField> getFieldByYAxisAggregation(String templateName, String indexName,String agg) throws Exception;
 
-    /**
-     * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param params 统计相关的参数
-     * @return
-     */
-    public String groupByThenSum(VisualParam params) throws Exception;
-    /**
-     * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param params 统计相关的参数
-     * @return
-     */
-    public String groupByThenCount(VisualParam params) throws Exception;
-    /**
-     * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param params 统计相关的参数
-     * @return
-     */
-    public String groupByThenAvg(VisualParam params) throws Exception;
-    /**
-     * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param params 统计相关的参数
-     * @return
-     */
-    public String groupByThenMax(VisualParam params) throws Exception;
-    /**
-     * 实现类sql的group by并进行sum求和计算的功能,包含时间范围、条件等
-     * @param params 统计相关的参数
-     * @return
-     */
-    public String groupByThenMin(VisualParam params) throws Exception;
 
     /**
      * 保存图表信息
@@ -137,4 +110,25 @@ public interface IBIService {
      * @throws Exception
      */
     public Map<String, Object> getMultiAggregationDataSet(VisualParam params) throws Exception;
+    /**
+     * 嵌套聚合，数据返回echart饼图格式
+     * @param conditions 相关参数
+     * @return
+     * @throws Exception
+     */
+    public LinkedList<ArrayList<Map<String,Object>>> getMultiAggregationData_pie(SearchConditions conditions) throws Exception;
+    /**
+     * 嵌套聚合，数据返回echart dataset格式并针对折线图做了处理
+     * @param conditions 相关参数
+     * @return
+     * @throws Exception
+     */
+    public Map<String,Object> getMultiAggregationData_line(SearchConditions conditions) throws Exception;
+    /**
+     * 嵌套聚合，数据返回echart dataset格式并针对柱状图做了处理
+     * @param conditions 相关参数
+     * @return
+     * @throws Exception
+     */
+    public Map<String,Object> getMultiAggregationData_bar(SearchConditions conditions) throws Exception;
 }

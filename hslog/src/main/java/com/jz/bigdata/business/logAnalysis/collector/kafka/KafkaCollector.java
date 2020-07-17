@@ -375,7 +375,7 @@ public class KafkaCollector implements Runnable {
 									logstashSyslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
 									logstashSyslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
 									logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-									logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN);
+									//logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN); ip类型不能设置为unknown
 								}
 								json = new Logstash2ECS().toJson(logstashSyslog);
 								dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);

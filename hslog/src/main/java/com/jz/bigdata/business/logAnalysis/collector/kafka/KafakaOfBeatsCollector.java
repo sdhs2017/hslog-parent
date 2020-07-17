@@ -244,7 +244,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                                     jsonObject.getAsJsonObject("log").addProperty("level","error");
                                     break;
                                 default:
-                                    logger.info("日志级别符合标准");
+                                    //logger.info("日志级别符合标准");
                             }
                             /**
                              * 打标签，认为beats的数据都是正常的，设置fields.failure=false

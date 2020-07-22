@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
+import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.common.asset.cache.AssetCache;
@@ -177,6 +178,7 @@ public class KafakaOfBeatsCollector implements Runnable {
              */
             Equipment equipment;
             String ipadress;
+            String module;// 所属模块
             Asset asset;//逻辑资产
 
             List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
@@ -199,6 +201,11 @@ public class KafakaOfBeatsCollector implements Runnable {
                     if(beat_type.equals(ContextRoles.WINLOGBEAT)){
                         //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        try {
+                            module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                        }catch (Exception e){
+                            module = null;
+                        }
                         //如果IP在逻辑资产列表中，加上逻辑资产标签
                         asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
                         if(asset!=null){
@@ -282,6 +289,9 @@ public class KafakaOfBeatsCollector implements Runnable {
                              */
                             //String index = beat_type+"-"+version+"-"+date;
                             String index = beat_type+"-"+date;
+                            if (!Strings.isNullOrEmpty(module)){
+                                index = beat_type+"-"+module+"-"+date;
+                            }
                             /**
                              *  打印入库数据
                              */
@@ -303,6 +313,12 @@ public class KafakaOfBeatsCollector implements Runnable {
                     }else if(beat_type.equals(ContextRoles.PACKETBEAT)){
                         //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        try {
+                            module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                        }catch (Exception e){
+                            module = null;
+                        }
+
                         //如果IP在逻辑资产列表中，加上逻辑资产标签
                         asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
                         if(asset!=null){
@@ -354,6 +370,9 @@ public class KafakaOfBeatsCollector implements Runnable {
                              */
                             String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
                             String index = beat_type+"-"+date;
+                            if (!Strings.isNullOrEmpty(module)){
+                                index = beat_type+"-"+module+"-"+date;
+                            }
                             /**
                              * 批量入库
                              */
@@ -364,6 +383,11 @@ public class KafakaOfBeatsCollector implements Runnable {
                     }else if(beat_type.equals(ContextRoles.METRICBEAT)){
                         //获取数据IP
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
+                        try {
+                            module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                        }catch (Exception e){
+                            module = null;
+                        }
                         //如果IP在逻辑资产列表中，加上逻辑资产标签
                         asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
                         if(asset!=null){
@@ -415,6 +439,9 @@ public class KafakaOfBeatsCollector implements Runnable {
                              */
                             String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
                             String index = beat_type+"-"+date;
+                            if (!Strings.isNullOrEmpty(module)){
+                                index = beat_type+"-"+module+"-"+date;
+                            }
                             /**
                              * 批量入库
                              */

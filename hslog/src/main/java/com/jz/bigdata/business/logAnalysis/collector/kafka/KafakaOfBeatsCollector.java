@@ -399,7 +399,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                                 //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
                         }else{
-                            logger.info("该跳数据不属于packet/metric/winlog Beat！");
+                            logger.info("该条数据不属于packet/metric/winlog Beat！");
                         }
                     }else{
                         logger.info("数据不在资产池中，IP:"+ipadress);

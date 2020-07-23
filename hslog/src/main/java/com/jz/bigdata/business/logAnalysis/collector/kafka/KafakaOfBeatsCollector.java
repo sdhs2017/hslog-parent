@@ -1,5 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
+import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
@@ -172,16 +173,12 @@ public class KafakaOfBeatsCollector implements Runnable {
 
         try {
 
-            Gson gson = new GsonBuilder()
-                    .setDateFormat("yyyy-MM-dd HH:mm:ss")
-                    .create();
-            String json;
-
             /*
              * 	资产、ip地址
              */
             Equipment equipment;
             String ipadress;
+            String module;// 所属模块
             Asset asset;//逻辑资产
 
             List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
@@ -197,237 +194,217 @@ public class KafakaOfBeatsCollector implements Runnable {
                      */
                     JsonElement jsonElement = new JsonParser().parse(log);
                     JsonObject jsonObject= jsonElement.getAsJsonObject();
-                    /**
-                     * 判断日志是否为windows日志
-                     */
-                    String beat_type = jsonObject.getAsJsonObject("agent").get("type").getAsString().replaceAll("\"","");
-                    if(beat_type.equals(ContextRoles.WINLOGBEAT)){
-                        //获取数据IP
+
+                    //获取数据IP
+                    try{
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
-                        //如果IP在逻辑资产列表中，加上逻辑资产标签
-                        asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
-                        if(asset!=null){
-                            jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
-                            jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
+                    }catch (Exception e){
+                        ipadress = null;
+                    }
+
+                    //判断IP是否在虚拟资产中
+                    //TODO 目前资产对外都是通过虚拟资产功能进行录入，逻辑资产还未体现。后续资产的判定条件还会根据资产关联性进行调整。
+                    if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+
+                        //获取日志类型
+                        String beat_type;
+                        try{
+                            beat_type = jsonObject.getAsJsonObject("agent").get("type").getAsString().replaceAll("\"","");
+                        }catch (Exception e){
+                            beat_type = null;
                         }
-                        //判断是否在资产ip地址池里
-                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+                        //日志类型的判定
+                        if(beat_type.equals(ContextRoles.WINLOGBEAT)){
                             //判断是否在已识别资产里————日志类型可识别
                             equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_WINLOG);
-                            if (null != equipment) {
-                                // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
-                                //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
-                                // 补全资产信息
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
-                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
-                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
-                            }else {
-                                // TODO 之前版本对IP地址匹配但是资产未匹配的数据设置为unknow
-                                /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
-                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
-                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());*/
+                            //如果该资产在虚拟资产列表中
+                            if(null != equipment){
+                                // 判定应收集的日志级别，通过日志级别进行日志过滤
+                                String loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
+                                if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(loglevel)!=-1) {
+                                    //补全虚拟资产信息
+                                    jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                    jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                    jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                    jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
+                                    //如果IP在逻辑资产列表中，加上逻辑资产标签
+                                    asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
+                                    if(asset!=null){
+                                        jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                                        jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
+                                    }
+                                    /**
+                                     * 判断日志级别是否是中文，如果是中文改成英文
+                                     */
+                                    switch (loglevel){
+                                        case ContextRoles.LOG_LEVEL_INFO:
+                                            jsonObject.getAsJsonObject("log").addProperty("level","information");
+                                            break;
+                                        case ContextRoles.LOG_LEVEL_WARN:
+                                            jsonObject.getAsJsonObject("log").addProperty("level","warning");
+                                            break;
+                                        case ContextRoles.LOG_LEVEL_ERROR:
+                                            jsonObject.getAsJsonObject("log").addProperty("level","error");
+                                            break;
+                                    }
+                                    /**
+                                     * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                                     */
+                                    jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+                                    /**
+                                     * 判断windows日志事件event.action字段是否是中文，如果是中文改成英文
+                                     */
+                                    String event_action = jsonObject.getAsJsonObject("event").get("action").toString().replaceAll("\"","");
+                                    if (Cn2En.event_cn.get(event_action)!=null){
+                                        jsonObject.getAsJsonObject("event").addProperty("action",Cn2En.event_cn.get(event_action));
+                                    }
+                                    /**
+                                     * 增加event.action_cn字段，作为event.action的中文对照,没有找到的情况下存""
+                                     */
+                                    jsonObject.getAsJsonObject("event").addProperty("action_cn",(Cn2En.event_en.get(event_action)!=null?Cn2En.event_en.get(event_action):""));
+                                    /**
+                                     * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                                     */
+                                    String beatdate = jsonObject.get("@timestamp").getAsString();
+                                    try {
+                                        Date date = format.parse(beatdate);
+                                        Calendar cal = Calendar.getInstance();
+                                        cal.setTime(date);
+                                        cal.add(Calendar.HOUR_OF_DAY, +8);
+                                        date = cal.getTime();
+                                        jsonObject.addProperty("@timestamp",format.format(date));
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+                                    /**
+                                     * index名称设置
+                                     */
+                                    String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                                    //获取所属模块，该字段信息不一定存在
+                                    try {
+                                        module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                                    }catch (Exception e){
+                                        module = null;
+                                    }
+                                    //组装index信息,存在module字段时，index名称中插入module
+                                    String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
+                                    //批量入库
+                                    indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                }else{
+                                    //数据的日志级别不在需收集的级别列表中，直接舍弃。
+                                }
+                            }else{
+                                //虚拟资产中改ip对应资产不包含winlogbeat，数据暂时不入库
                             }
-                            /**
-                             * 判断日志级别是否是中文，如果是中文改成英文
-                             */
-                            String loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
-                            switch (loglevel){
-                                case ContextRoles.LOG_LEVEL_INFO:
-                                    jsonObject.getAsJsonObject("log").addProperty("level","information");
-                                    break;
-                                case ContextRoles.LOG_LEVEL_WARN:
-                                    jsonObject.getAsJsonObject("log").addProperty("level","warning");
-                                    break;
-                                case ContextRoles.LOG_LEVEL_ERROR:
-                                    jsonObject.getAsJsonObject("log").addProperty("level","error");
-                                    break;
-                                default:
-                                    //logger.info("日志级别符合标准");
-                            }
-                            /**
-                             * 打标签，认为beats的数据都是正常的，设置fields.failure=false
-                             */
-                            jsonObject.getAsJsonObject("fields").addProperty("failure",false);
-                            /**
-                             * 判断windows日志事件event.action字段是否是中文，如果是中文改成英文
-                             */
-                            String event_action = jsonObject.getAsJsonObject("event").get("action").toString().replaceAll("\"","");
-                            if (Cn2En.event_cn.get(event_action)!=null){
-                                jsonObject.getAsJsonObject("event").addProperty("action",Cn2En.event_cn.get(event_action));
-                            }
-                            /**
-                             * 增加event.action_cn字段，作为event.action的中文对照,没有找到的情况下存""
-                             */
-                            jsonObject.getAsJsonObject("event").addProperty("action_cn",(Cn2En.event_en.get(event_action)!=null?Cn2En.event_en.get(event_action):""));
-                            /**
-                             * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
-                             */
-                            String beatdate = jsonObject.get("@timestamp").getAsString();
-
-                            try {
-                                Date date = format.parse(beatdate);
-                                Calendar cal = Calendar.getInstance();
-                                cal.setTime(date);
-                                cal.add(Calendar.HOUR_OF_DAY, +8);
-                                date = cal.getTime();
-                                jsonObject.addProperty("@timestamp",format.format(date));
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            /**
-                             * index名称设置
-                             *
-                             */
-                            String version = jsonObject.getAsJsonObject("agent").get("version").getAsString().replaceAll("\"","");
-                            String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
-                            /**
-                             * index 名称不体现版本信息，但是版本数据依然在数据中存储
-                             */
-                            //String index = beat_type+"-"+version+"-"+date;
-                            String index = beat_type+"-"+date;
-                            /**
-                             *  打印入库数据
-                             */
-                            /*System.out.println(index+" : "+jsonObject.toString());*/
-                            // 判定应收集的日志级别，通过日志级别进行日志过滤
-                            loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
-                            if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(loglevel)!=-1) {
-                                /**
-                                 * 批量入库
-                                 */
-                                indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
-                            }
-                        }else {
-                            // 不在资产池中的日志数据不处理
-                        }
-
-                    }else if(beat_type.equals(ContextRoles.PACKETBEAT)){
-                        //获取数据IP
-                        ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
-                        //如果IP在逻辑资产列表中，加上逻辑资产标签
-                        asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
-                        if(asset!=null){
-                            jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
-                            jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
-                        }
-                        //判断是否在资产ip地址池里
-                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+                        }else if(beat_type.equals(ContextRoles.PACKETBEAT)){
                             //判断是否在已识别资产里————日志类型可识别
                             equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_PACKET);
-                            if (null != equipment) {
-                                // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
-                                //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
-                                // 补全资产信息
+                            //如果该资产在虚拟资产列表中
+                            if(null != equipment){
+                                //补全虚拟资产信息
                                 jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
                                 jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
                                 jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
                                 jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
-                            }else {
-                                // TODO 之前版本对IP地址匹配但是资产未匹配的数据设置为unknow
-                                /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
-                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
-                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());*/
+                                //如果IP在逻辑资产列表中，加上逻辑资产标签
+                                asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
+                                if(asset!=null){
+                                    jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                                    jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
+                                }
+                                /**
+                                 * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                                 */
+                                jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+                                /**
+                                 * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                                 */
+                                String beatdate = jsonObject.get("@timestamp").getAsString();
+                                try {
+                                    Date date = format.parse(beatdate);
+                                    Calendar cal = Calendar.getInstance();
+                                    cal.setTime(date);
+                                    cal.add(Calendar.HOUR_OF_DAY, +8);
+                                    date = cal.getTime();
+                                    jsonObject.addProperty("@timestamp",format.format(date));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                /**
+                                 * index名称设置
+                                 */
+                                String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                                //获取所属模块，该字段信息不一定存在
+                                try {
+                                    module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                                }catch (Exception e){
+                                    module = null;
+                                }
+                                //组装index信息,存在module字段时，index名称中插入module
+                                String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
+                                //批量入库
+                                indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                            }else{
+                                //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
-
-                            /**
-                             * 打标签，认为beats的数据都是正常的，设置fields.failure=false
-                             */
-                            jsonObject.getAsJsonObject("fields").addProperty("failure",false);
-                            /**
-                             * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
-                             */
-                            String beatdate = jsonObject.get("@timestamp").getAsString();
-
-                            try {
-                                Date date = format.parse(beatdate);
-                                Calendar cal = Calendar.getInstance();
-                                cal.setTime(date);
-                                cal.add(Calendar.HOUR_OF_DAY, +8);
-                                date = cal.getTime();
-                                jsonObject.addProperty("@timestamp",format.format(date));
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            /**
-                             * index名称设置
-                             * 名称不体现版本信息，但是版本数据依然在数据中存储
-                             */
-                            String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
-                            String index = beat_type+"-"+date;
-                            /**
-                             * 批量入库
-                             */
-                            indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
-                        }else {
-                            // 不在资产池中的日志数据不处理
-                        }
-                    }else if(beat_type.equals(ContextRoles.METRICBEAT)){
-                        //获取数据IP
-                        ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
-                        //如果IP在逻辑资产列表中，加上逻辑资产标签
-                        asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
-                        if(asset!=null){
-                            jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
-                            jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
-                        }
-                        //判断是否在资产ip地址池里
-                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+                        }else if(beat_type.equals(ContextRoles.METRICBEAT)){
                             //判断是否在已识别资产里————日志类型可识别
                             equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_METRIC);
-                            if (null != equipment) {
-                                // TODO 资产添加的时候选择收集的日志级别需要和ECS进行对应
-                                //if (equipmentLogLevel.get(equipment.getId()).indexOf(winlog.getOperation_level().toLowerCase())!=-1) {}
-                                // 补全资产信息
+                            //如果该资产在虚拟资产列表中
+                            if(null != equipment){
+                                //补全虚拟资产信息
                                 jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
                                 jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
                                 jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
                                 jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
-                            }else {
-                                // TODO 之前版本对IP地址匹配但是资产未匹配的数据设置为unknow
-                                /*jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
-                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
-                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());*/
+                                //如果IP在逻辑资产列表中，加上逻辑资产标签
+                                asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
+                                if(asset!=null){
+                                    jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                                    jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
+                                }
+                                /**
+                                 * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                                 */
+                                jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+                                /**
+                                 * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                                 */
+                                String beatdate = jsonObject.get("@timestamp").getAsString();
+                                try {
+                                    Date date = format.parse(beatdate);
+                                    Calendar cal = Calendar.getInstance();
+                                    cal.setTime(date);
+                                    cal.add(Calendar.HOUR_OF_DAY, +8);
+                                    date = cal.getTime();
+                                    jsonObject.addProperty("@timestamp",format.format(date));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                /**
+                                 * index名称设置
+                                 */
+                                String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                                //获取所属模块，该字段信息不一定存在
+                                try {
+                                    module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                                }catch (Exception e){
+                                    module = null;
+                                }
+                                //组装index信息,存在module字段时，index名称中插入module
+                                String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
+                                //批量入库
+                                indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                            }else{
+                                //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
-
-                            /**
-                             * 打标签，认为beats的数据都是正常的，设置fields.failure=false
-                             */
-                            jsonObject.getAsJsonObject("fields").addProperty("failure",false);
-                            /**
-                             * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
-                             */
-                            String beatdate = jsonObject.get("@timestamp").getAsString();
-
-                            try {
-                                Date date = format.parse(beatdate);
-                                Calendar cal = Calendar.getInstance();
-                                cal.setTime(date);
-                                cal.add(Calendar.HOUR_OF_DAY, +8);
-                                date = cal.getTime();
-                                jsonObject.addProperty("@timestamp",format.format(date));
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            /**
-                             * index名称设置
-                             * 名称不体现版本信息，但是版本数据依然在数据中存储
-                             */
-                            String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
-                            String index = beat_type+"-"+date;
-                            /**
-                             * 批量入库
-                             */
-                            indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
-                        }else {
-                            // 不在资产池中的日志数据不处理
+                        }else{
+                            logger.info("该跳数据不属于packet/metric/winlog Beat！");
                         }
                     }else{
-                        String a= "1";
+                        logger.info("数据不在资产池中，IP:"+ipadress);
                     }
+
                 }catch (NullPointerException e){
                     e.printStackTrace();
                     logger.error("kafka范式化：获取数据出现空指针情况");
@@ -437,6 +414,8 @@ public class KafakaOfBeatsCollector implements Runnable {
                     logger.error("范式化失败！！！！");
                     continue;
                 }
+
+
 
 
                 /**

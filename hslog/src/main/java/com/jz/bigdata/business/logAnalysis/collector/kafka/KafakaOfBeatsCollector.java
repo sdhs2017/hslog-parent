@@ -221,6 +221,23 @@ public class KafakaOfBeatsCollector implements Runnable {
                             if(null != equipment){
                                 // 判定应收集的日志级别，通过日志级别进行日志过滤
                                 String loglevel = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
+                                /**
+                                 * 判断日志级别是否是中文，如果是中文改成英文
+                                 */
+                                switch (loglevel){
+                                    case ContextRoles.LOG_LEVEL_INFO:
+                                        loglevel = "information";
+                                        jsonObject.getAsJsonObject("log").addProperty("level","information");
+                                        break;
+                                    case ContextRoles.LOG_LEVEL_WARN:
+                                        loglevel = "warning";
+                                        jsonObject.getAsJsonObject("log").addProperty("level","warning");
+                                        break;
+                                    case ContextRoles.LOG_LEVEL_ERROR:
+                                        loglevel = "error";
+                                        jsonObject.getAsJsonObject("log").addProperty("level","error");
+                                        break;
+                                }
                                 if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(loglevel)!=-1) {
                                     //补全虚拟资产信息
                                     jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
@@ -232,20 +249,6 @@ public class KafakaOfBeatsCollector implements Runnable {
                                     if(asset!=null){
                                         jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
                                         jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
-                                    }
-                                    /**
-                                     * 判断日志级别是否是中文，如果是中文改成英文
-                                     */
-                                    switch (loglevel){
-                                        case ContextRoles.LOG_LEVEL_INFO:
-                                            jsonObject.getAsJsonObject("log").addProperty("level","information");
-                                            break;
-                                        case ContextRoles.LOG_LEVEL_WARN:
-                                            jsonObject.getAsJsonObject("log").addProperty("level","warning");
-                                            break;
-                                        case ContextRoles.LOG_LEVEL_ERROR:
-                                            jsonObject.getAsJsonObject("log").addProperty("level","error");
-                                            break;
                                     }
                                     /**
                                      * 打标签，认为beats的数据都是正常的，设置fields.failure=false

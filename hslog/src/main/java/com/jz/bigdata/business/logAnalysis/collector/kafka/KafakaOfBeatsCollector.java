@@ -10,6 +10,7 @@ import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.assets_old.entity.Assets;
 import com.jz.bigdata.common.assets_old.service.IAssetsService;
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
@@ -428,7 +429,8 @@ public class KafakaOfBeatsCollector implements Runnable {
                 /**
                  * 当 indices request中的数据大于等于 配置中设置的批量提交阈值时进行批量提交操作，并清空indicesrequests
                  */
-                if (indicesrequests.size()>=configProperty.getEs_bulk()) {
+                Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+                if (indicesrequests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
                     logCurdDao.bulkInsert(indicesrequests);
                     indicesrequests.clear();
                 }

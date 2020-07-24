@@ -12,6 +12,7 @@ import com.jz.bigdata.business.logAnalysis.collector.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.asset.service.IAssetService;
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -821,7 +822,8 @@ public class KafkaCollector implements Runnable {
 					template.bulk(requests);
 					requests.clear();
 				}*/
-					if (newrequests.size()==configProperty.getEs_bulk()) {
+					Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+					if (newrequests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
 						logCurdDao.bulkInsert(newrequests);
 						newrequests.clear();
 					}

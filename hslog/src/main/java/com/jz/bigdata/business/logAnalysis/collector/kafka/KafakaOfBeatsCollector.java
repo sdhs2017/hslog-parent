@@ -372,7 +372,7 @@ public class KafakaOfBeatsCollector implements Runnable {
                             logger.info("该跳数据不属于packet/metric/winlog Beat！");
                         }
                     }else{
-                        logger.info("数据不在资产池中，IP:"+ipadress);
+                        logger.info("数据不在资产池中，IP:"+ipadress+"--"+log);
                     }
 
                 }catch (NullPointerException e){

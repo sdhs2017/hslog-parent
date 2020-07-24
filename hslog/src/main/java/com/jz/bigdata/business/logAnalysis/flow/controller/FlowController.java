@@ -1709,7 +1709,7 @@ public class FlowController {
             Bucket packetTypeBucket = new Bucket("Range","packet_length",params.getIntervalType(),params.getIntervalValue(),null,"desc",ranges);
             params.getBucketList().add(packetTypeBucket);
             //Y轴，数据包个数（count(packet_length)）
-            Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,"");
+            Metric metric = new Metric("count",Constant.PACKET_DATE_FIELD,null);
             params.getMetricList().add(metric);
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             //轮询折线图

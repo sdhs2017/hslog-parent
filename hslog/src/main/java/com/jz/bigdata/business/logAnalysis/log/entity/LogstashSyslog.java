@@ -29,6 +29,7 @@ public class LogstashSyslog {
     private Boolean failure;// logstash范式化是否失败，失败true，成功false
     private String assetname;//逻辑资产名称
     private String assetid;//逻辑资产id
+    private Object module;//资产业务模块
 
     public String getAssetid() {
         return assetid;
@@ -209,6 +210,15 @@ public class LogstashSyslog {
 
     public void setFailure(Boolean failure) {
         this.failure = failure;
+    }
+
+    @JSONField(name ="module")
+    public Object getModule() {
+        return module;
+    }
+    @JSONField(name ="module")
+    public void setModule(Object module) {
+        this.module = module;
     }
 
     public static void main(String [] args){

@@ -14,6 +14,7 @@ import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
+import joptsimple.internal.Strings;
 import org.elasticsearch.action.index.IndexRequest;
 
 import com.google.gson.Gson;
@@ -377,7 +378,17 @@ public class KafkaCollector implements Runnable {
 								}
 								json = new Logstash2ECS().toJson(logstashSyslog);
 								dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
-								logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
+
+								// TODO 后期需要把module字段补全到资产信息中，nodule数据将不再从日志数据中获取
+								// 判断syslog的module是否为空，不为空的情况下索引名称拼接module字段信息
+								if(!Strings.isNullOrEmpty(logstashSyslog.getModule().toString())){
+									logstashIndexName = "winlogbeat-"+logstashSyslog.getModule().toString()+"-"+ dateTime.toString("yyyy.MM.dd");
+								}else {
+									// module信息为空的情况下使用标准索引名称
+									logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
+								}
+
+
 								//如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
 								if(logstashSyslog.getSeverity_name()==null||(logstashSyslog.getSeverity_name()!=null&&"".equals(logstashSyslog.getSeverity_name().toString()))){
 									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, json));

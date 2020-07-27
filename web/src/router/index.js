@@ -386,12 +386,12 @@ export default new Router({
                     component: resolve => require(['../components/dashboard/pieChart.vue'], resolve),
                     meta: { title: '创建饼图' }
                 },
-                {
+                /*{
                     path: '/metricChart',
                     name:'metricChart',
                     component: resolve => require(['../components/dashboard/metricChart.vue'], resolve),
                     meta: { title: '创建指标' }
-                },
+                },*/
                 {
                     path: '/property',
                     name:'property',

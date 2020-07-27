@@ -386,12 +386,12 @@ export default new Router({
                     component: resolve => require(['../components/dashboard/pieChart.vue'], resolve),
                     meta: { title: '创建饼图' }
                 },
-                /*{
+                {
                     path: '/metricChart',
                     name:'metricChart',
                     component: resolve => require(['../components/dashboard/metricChart.vue'], resolve),
                     meta: { title: '创建指标' }
-                },*/
+                },
                 {
                     path: '/property',
                     name:'property',
@@ -583,7 +583,7 @@ export default new Router({
                 },
                 {
                     path: '/mobile/flowIndex_m',
-                    name:'index_m',
+                    name:'flowIndex_m',
                     component: resolve => require(['../components/mobile/index/flowIndex_m.vue'], resolve)
                 },
                 {
@@ -635,6 +635,16 @@ export default new Router({
                     path: '/mobile/performanceAnalysis_m',
                     name:'performanceAnalysis_m',
                     component: resolve => require(['../components/mobile/flowManage/performanceAnalysis_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/dashboardList_m',
+                    name:'dashboardList_m',
+                    component: resolve => require(['../components/mobile/dashboard/dashboardList_m.vue'], resolve)
+                },
+                {
+                    path: '/mobile/chartList_m',
+                    name:'chartList_m',
+                    component: resolve => require(['../components/mobile/dashboard/chartList_m.vue'], resolve)
                 },
             ]
         },

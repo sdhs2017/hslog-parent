@@ -338,7 +338,7 @@ public class Logstash2ECS {
         this.timestamp = timestamp;
     }
 
-    public String toJson(LogstashSyslog logstashSyslog){
+    public Logstash2ECS build(LogstashSyslog logstashSyslog){
         //处理日志级别
         String severityName = Severity.get(logstashSyslog.getSeverity());
         //log.level
@@ -456,7 +456,10 @@ public class Logstash2ECS {
         fields.setAssetid(logstashSyslog.getAssetid());
         fields.setAssetname(logstashSyslog.getAssetname());
         this.setFields(fields);
-
+        return this;
+        //return JSON.toJSON(this).toString();
+    }
+    public String toJson(){
         return JSON.toJSON(this).toString();
     }
 }

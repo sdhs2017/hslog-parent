@@ -236,7 +236,7 @@ public class LogstashSyslog {
             logstashSyslog.setFailure(false);
         }
 
-        String json = new Logstash2ECS().toJson(logstashSyslog);
-        System.out.println(json);
+        //String json = new Logstash2ECS().toJson(logstashSyslog);
+        //System.out.println(json);
     }
 }

@@ -57,16 +57,15 @@
                         .then((res) => {
                             //关闭进度条
                             this.fullscreenLoading = false;
-                            if (res.data.success === 'true'){
+                            if (res.data.success == 'true'){
                                 localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                 this.$router.push('/mobile/index_m');
-                            }else if(res.data.success==="false"){
-                                this.$Message.error(res.data.message)
+                            }else if(res.data.success == "false"){
+                                layer.msg(res.data.message,{icon:5})
                             }
                         })
                         .catch((err) => {
                             //关闭进度条
-                            layer.closeAll(index1);
                             console.log(err)
                         })
                 })

@@ -11,14 +11,19 @@
             <div class="menu-wapper">
                 <div class="inf-wapper"></div>
                 <ul class="menu-ul">
-                    <li data-link="/mobile/index_m" @click="menuLiClick($event)">
+                    <li data-link="/mobile/index_m" @click="menuLiClick($event)" v-if="logSys">
                         <span>--</span>
                         <b>日志系统</b>
                         <span>--</span>
                     </li>
-                    <li data-link="/mobile/flowIndex_m" @click="menuLiClick($event)">
+                    <li data-link="/mobile/flowIndex_m" @click="menuLiClick($event)" v-if="flowSys">
                         <span>--</span>
                         <b>流量系统</b>
+                        <span>--</span>
+                    </li>
+                    <li data-link="/mobile/chartList_m" @click="menuLiClick($event)" v-if="BISys">
+                        <span>--</span>
+                        <b>数据可视化</b>
                         <span>--</span>
                     </li>
                 </ul>
@@ -56,9 +61,10 @@
         <div class="router-wapper">
             <!--<router-view></router-view>-->
             <transition name="move" mode="out-in">
-                <keep-alive >
+                <!--<keep-alive >
                     <router-view></router-view>
-                </keep-alive>
+                </keep-alive>-->
+                <router-view></router-view>
             </transition>
         </div>
         <!--底部菜单-->
@@ -79,7 +85,7 @@
                 </li>
             </ul>
         </div>
-        <div class="bottom-menu" v-else>
+        <div class="bottom-menu" v-else-if="systemName === 'flowSystem'">
             <ul class="b-ul">
                 <li class="b-li"><div data-link="/mobile/flowIndex_m" @click="menuLiClick($event)">流量首页</div></li>
                 <!--<li class="b-sys-name" @click="menuClick">流量</li>-->
@@ -120,6 +126,12 @@
                 </li>-->
             </ul>
         </div>
+        <div class="bottom-menu" v-else>
+            <ul class="b-ul log-menu-ul">
+                <li class="b-li"><div data-link="/mobile/chartList_m" @click="menuLiClick($event)">图表列表</div></li>
+                <li class="b-li"><div data-link="/mobile/dashboardList_m" @click="menuLiClick($event)">仪表盘</div></li>
+            </ul>
+        </div>
     </div>
 
 </template>
@@ -137,7 +149,10 @@
                 loginOutLoading:false,
                 menuPosition:'-100vh',//菜单初始位置
                 userPosition:'-100vh', //用户页初始位置
-                activedLink:'' //当前正在访问的页面
+                activedLink:'', //当前正在访问的页面
+                logSys:false,
+                flowSys:false,
+                BISys:false,
             }
         },
         computed:{
@@ -154,7 +169,6 @@
                         email:''
                     }
                 }
-
             }
         },
         // 使用watch 监听$router的变化,
@@ -172,8 +186,30 @@
             //获得存放在本地的用户信息
             //this.userInf = JSON.parse(sessionStorage.getItem('LoginUser'));
             this.getUserImformation();
+            this.getSystem();
         },
         methods:{
+            /*获得系统*/
+            getSystem(){
+                this.$nextTick(()=>{
+                   // this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/menu/selectSystem.do','')
+                        .then(res=>{
+                            for(let i in res.data){
+                                if(res.data[i].systemName === '日志系统'){
+                                    this.logSys = true
+                                }else if(res.data[i].systemName === '流量管理'){
+                                    this.flowSys = true
+                                }else if(res.data[i].systemName === '数据可视化'){
+                                    this.BISys = true
+                                }
+                            }
+                        })
+                        .catch(err=>{
+                            //this.loading = false;
+                        })
+                })
+            },
             /*获取登录角色信息*/
             getUserImformation(){
                 this.$nextTick(()=>{
@@ -202,6 +238,8 @@
                 }else if (linkVal === '/mobile/flowIndex_m'){
                     this.systemName='flowSystem';
                     // this.systemTitle = '流量分析系统'
+                }else if(linkVal === '/mobile/chartList_m'){
+                    this.systemName='dashboard';
                 }
                 //跳转
                 this.$router.push(linkVal);
@@ -239,12 +277,14 @@
         },
         beforeRouteEnter(to, from, next){
             next(vm =>{
-                if(to.path === '/mobile/index_m'){
+                if(to.path === '/mobile/index_m' || to.path === '/mobile/equipmentList'){
                     vm.systemName='logSystem';
                     // vm.systemTitle = '宸析日志分析系统'
                 }else if (to.path === '/mobile/flowIndex_m' || to.path === '/mobile/equipmentFlow_m' || to.path === '/mobile/IPHostFlow_m' || to.path === '/mobile/mulAndBro_m' || to.path === '/mobile/packetType_m' || to.path === '/mobile/portFlow_m' || to.path === '/mobile/protocolFlow_m' || to.path === '/mobile/realTimeFlow_m' || to.path === '/mobile/userAgentInfo_m' || to.path === '/mobile/userAgentInfo2' || to.path === '/mobile/IPHostFlow2' || to.path === '/mobile/protocolFlow2' || to.path === '/mobile/mulAndBro2'|| to.path === '/mobile/packetType2' || to.path === '/mobile/equipmentFlow2' || to.path ==='/mobile/portFlow2' || to.path === '/mobile/performanceAnalysis_m'|| to.path === '/mobile/performanceAnalysisUrl_m'){
                     vm.systemName='flowSystem';
                     // vm.systemTitle = '流量分析系统'
+                }else if(to.path === '/mobile/chartList_m' || to.path === '/mobile/dashboardList_m'){
+                    vm.systemName='dashboard';
                 }
             });
         }

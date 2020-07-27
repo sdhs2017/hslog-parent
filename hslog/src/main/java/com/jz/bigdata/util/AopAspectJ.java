@@ -235,29 +235,29 @@ public class AopAspectJ {
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:失败";
 				note.setDescribe(describeSrt);
 				noteService.insert(note);
+			} else if (result.toString().contains("{\"success\":\"true\",\"message\":\"登录成功\"")) {
 				// 登陆成功
-			} else if (result.toString().equals("{\"success\":\"true\",\"message\":\"登录成功\"}")) {
 				note.setResult(1);
 				// note.setError("登录成功");
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:成功";
 				note.setDescribe(describeSrt);
 				noteService.insert(note);
-				// 账号暂停
-			}else if (result.toString().equals("{\"success\":\"false\",\"message\":\"账号暂停服务\"}")){
+			}else if (result.toString().contains("{\"success\":\"false\",\"message\":\"账号暂停服务\"}")) {
+				//账号暂停服务
 				note.setResult(0);
-				note.setError("账号暂停服务");
+				note.setError("登录失败，账号暂停服务");
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:失败";
 				note.setDescribe(describeSrt);
 				noteService.insert(note);
-
-			}else if (result.toString().equals("{\"success\":\"false\",\"message\":\"您已连续5次输入密码错误，账号已被锁定\"}")){
-				//账号锁定{"success":"false","message":"您已连续5次输入密码错误，账号已被锁定"}
+			}else if (result.toString().contains("{\"success\":\"false\",\"message\":\"您已连续5次输入密码错误，账号已被锁定\"}")) {
+				//5次输入密码错误，账号已被锁定
 				note.setResult(0);
-				note.setError("账号已锁定");
+				note.setError("连续5次输入密码错误，账号已被锁定");
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:失败";
 				note.setDescribe(describeSrt);
 				noteService.insert(note);
 			}else {
+				//一般为登录抛出异常
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:失败";
 				note.setResult(0);
 				note.setError("登录失败");

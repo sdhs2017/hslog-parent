@@ -3,6 +3,7 @@
         <div class="top-title">虚拟资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
+                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                     <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
@@ -94,6 +95,16 @@
             <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="allCounts"></el-pagination>
         </div>
         <div class="zz-box" :style="{zIndex:zzIndex}"></div>
+        <el-dialog title="资产导入" :visible.sync="importState" width="680px" height="550px" class="dialog-wapper">
+            <p>通过浏览本地文件或将文件拖到下面指定区域，上传资产文件。</p>
+            <p>文件支持的类型：<span class="txtColor">.xlsx</span> <span class="txtColor">.xls</span></p>
+            <div style="padding-right: 30px;">
+                <input type="file" multiple id="ssi-upload"/>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="importState = false">取 消</el-button>
+            </div>
+        </el-dialog>
     </div>
     
 </template>
@@ -106,6 +117,7 @@
 		name: "device2",
 		data() {
 			return {
+                importState:false,
 			    loading:false,
                 checkList:[],
 			    zzIndex:-2,
@@ -433,14 +445,28 @@
                 $(ce).next().css({"zIndex":"-1","opacity":"0","right":"-240px"});
             }
         },
-        watch: {
-            /*'$route' (to, from) {
-                if(from.name === 'addEquipment2'|| from.name.indexOf('reviseEquipment2') !== -1){
-                    this.getEquipmentType();
-                    this.getData(this.searchConditions,1);
-                    this.c_page = 1;
+        watch:{
+            'importState'(){
+                if(this.importState === true){
+                    setTimeout(()=>{
+                        $('#ssi-upload').ssi_uploader({
+                            url:this.$baseUrl+'/equipment/equipmentUpload.do',//地址
+                            maxNumberOfFiles:1,
+                            allowed:['xlsx','xls'],//允许上传文件的类型
+                            ajaxOptions: {
+                                success: function(data) {
+                                    layer.msg(data,{icon:1})
+                                },
+                                error:function(data){
+                                    layer.msg("上传失败",{icon: 5});
+                                    $(".ssi-abortUpload").click()
+                                }
+                            }
+                        })
+                    },100)
+
                 }
-            }*/
+            }
         },
         beforeRouteEnter(to, from, next) {
             next (vm => {
@@ -719,6 +745,13 @@
         position: relative;
         display: none;
         z-index: 6;
+    }
+    .dialog-wapper p{
+        color: #fff;
+        line-height: 30px;
+    }
+    .dialog-wapper p span{
+        color: #4da5ff;
     }
     .tools-ul li{
         overflow: hidden;

@@ -212,7 +212,7 @@ public class UserServiceImpl implements IUserService {
 					//session.setAttribute(Constant.SESSION_USERROLE, userInfo.getRole());
 					session.setAttribute(Constant.SESSION_USERROLE, "1");
 					map.put("success", "true");
-					map.put("message", "登陆成功");
+					map.put("message", "登录成功");
 					map.put("user", _user);
 					return JSONObject.fromObject(map).toString();
 				}

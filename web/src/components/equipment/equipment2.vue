@@ -98,6 +98,7 @@
         <el-dialog title="资产导入" :visible.sync="importState" width="680px" height="550px" class="dialog-wapper">
             <p>通过浏览本地文件或将文件拖到下面指定区域，上传资产文件。</p>
             <p>文件支持的类型：<span class="txtColor">.xlsx</span> <span class="txtColor">.xls</span></p>
+            <p>文件的名称必须为：<span class="txtColor">资产清单</span>  (例:资产清单.xlsx)</p>
             <div style="padding-right: 30px;">
                 <input type="file" multiple id="ssi-upload"/>
             </div>

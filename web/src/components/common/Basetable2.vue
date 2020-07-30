@@ -42,6 +42,9 @@
 
 
 <script>
+    /*
+    * 说明 此组件与Basetable区别 在于处理表格prop的参数多级问题 例如：a.b.c
+    * */
     import vListdetails from '../common/Listdetails';
     import bus from '../common/bus';
     export default {
@@ -89,7 +92,12 @@
                 let arr = prop.split('.');
                 let currentData = obj;
                 for (let i in arr){
-                    currentData = currentData[arr[i]];
+                    if(currentData[arr[i]]){
+                        currentData = currentData[arr[i]];
+                    }else{
+                       return ''
+                    }
+
                 }
                 return  currentData;
             },

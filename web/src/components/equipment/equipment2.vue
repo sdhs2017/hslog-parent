@@ -3,7 +3,7 @@
         <div class="top-title">虚拟资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
-                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
+<!--                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>-->
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                     <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
@@ -96,6 +96,13 @@
         </div>
         <div class="zz-box" :style="{zIndex:zzIndex}"></div>
         <el-dialog title="资产导入" :visible.sync="importState" width="680px" height="550px" class="dialog-wapper">
+            <div class="state" v-if="backState">
+                <p class="i-box"><i class="el-icon-success" v-if="this.backStateObj.state === 'true'" style="color:#279e72;"></i><i class="el-icon-error" v-else style="color:#e27145;"></i></p>
+                <h3 class="back-h3" v-if="this.backStateObj.state === 'true'"  style="color:#279e72;">导入成功</h3>
+                <h3 class="back-h3" v-else style="color:#e27145;">导入失败</h3>
+                <p class="back-text">{{this.backStateObj.text}}</p>
+                <p class="back-btn"><el-button type="primary" size="mini" @click="backState = false">返回导入界面</el-button></p>
+            </div>
             <p>通过浏览本地文件或将文件拖到下面指定区域，上传资产文件。</p>
             <p>文件支持的类型：<span class="txtColor">.xlsx</span> <span class="txtColor">.xls</span></p>
             <p>文件的名称必须为：<span class="txtColor">资产清单</span>  (例:资产清单.xlsx)</p>
@@ -118,7 +125,12 @@
 		name: "device2",
 		data() {
 			return {
-                importState:false,
+                backState:true,//导入结果状态框显示与否
+                backStateObj:{
+                    text:'',
+                    state:'true'
+                },//结果状态参数集合
+                importState:false,//导入框状态
 			    loading:false,
                 checkList:[],
 			    zzIndex:-2,
@@ -455,11 +467,16 @@
                             maxNumberOfFiles:1,
                             allowed:['xlsx','xls'],//允许上传文件的类型
                             ajaxOptions: {
-                                success: function(data) {
-                                    layer.msg(data,{icon:1})
+                                success: function(res) {
+                                    //layer.msg(data,{icon:1})
+                                    if(res.success === 'true'){
+                                        layer.msg(res.message,{icon:1})
+                                    }else if(res.success === 'false'){
+                                        layer.msg(res.message,{icon:5})
+                                    }
                                 },
                                 error:function(data){
-                                    layer.msg("上传失败",{icon: 5});
+                                    layer.msg("导入失败",{icon: 5});
                                     $(".ssi-abortUpload").click()
                                 }
                             }
@@ -781,5 +798,37 @@
         top: 0;
         z-index: -1;
         transition: all 0.1s linear;
+    }
+    .state{
+        width: 100%;
+        height: 82%;
+        background: #303e4e;
+        position: absolute;
+        left: 0;
+        top: 55px;
+    }
+    .i-box{
+        text-align: center;
+        font-size: 50px;
+        padding: 35px;
+        padding-bottom: 5px;
+    }
+    .back-h3{
+        text-align: center;
+        font-size: 38px;
+    }
+    .back-text{
+        height: 275px;
+        margin: 0 20px;
+        border: 1px solid #5e738c;
+        margin-top: 10px;
+        padding: 10px;
+    }
+    .back-btn{
+        width: 100%;
+        height: 50px;
+        text-align: center;
+        position: absolute;
+        bottom: 0;
     }
 </style>

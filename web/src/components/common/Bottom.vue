@@ -3,7 +3,7 @@
         <div class="b-left"></div>
         <div class="b-right">
             <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（阈值设置）</span> </div>
-            <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span class="set-rang" @click="editIpWapper = true">（修改IP）</span></div>
+            <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <!--<span class="set-rang" @click="editIpWapper = true">（修改IP）</span>--></div>
 <!--            <div class="backupConfig">备份时间：<span  @click="backupWapper = true">{{this.backupObj2.backupDate === '' ? '未设置' :this.backupObj2.backupDate}}</span></div>-->
             <div class="company"> 版权所有  © 2020-2021  山东九州信泰信息科技股份有限公司  </div>
 <!--            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>-->
@@ -66,6 +66,7 @@
                     <el-input v-model="changeIpObj.gateway" size="mini"  min="1"></el-input>
                 </el-form-item>
             </el-form>
+            <p style="color: #e4956d;">注：修改IP成功后，会重启服务器，请谨慎使用。</p>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="saveIp()" :disabled="!(changeIpObj.ip !== '' && changeIpObj.Netmask !== ''&& changeIpObj.gateway !== '')">确 定</el-button>
                 <el-button @click="editIpWapper = false">取 消</el-button>

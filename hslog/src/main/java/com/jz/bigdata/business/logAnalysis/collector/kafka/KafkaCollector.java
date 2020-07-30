@@ -378,18 +378,23 @@ public class KafkaCollector implements Runnable {
 									logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
 									//logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN); ip类型不能设置为unknown
 								}
-								json = new Logstash2ECS().toJson(logstashSyslog);
+								Logstash2ECS logstash2ECS = new Logstash2ECS().build(logstashSyslog);
+								//json = new Logstash2ECS().toJson(logstashSyslog);
 								dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
 								logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
-                                //如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
-                                if(logstashSyslog.getSeverity_name()==null||(logstashSyslog.getSeverity_name()!=null&&"".equals(logstashSyslog.getSeverity_name().toString()))){
-                                    newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, json));
-                                }else{
-                                    // 判定应收集的日志级别，通过日志级别进行日志过滤
-                                    if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(logstashSyslog.getSeverity_name().toString().toLowerCase())!=-1) {
-                                        newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, json));
-                                    }
-                                }
+								//日志级别
+								Object severityName = logstash2ECS.getLog().getSyslog().getSeverity().getName();
+								//json = logstash2ECS.toJson();
+								//如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
+								if(severityName==null||(severityName!=null&&"".equals(severityName.toString()))){
+									newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, logstash2ECS.toJson()));
+								}else{
+									// 判定应收集的日志级别，通过日志级别进行日志过滤
+									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1) {
+										newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, logstash2ECS.toJson()));
+									}
+								}
+
 							}
 
 						}catch (Exception e){

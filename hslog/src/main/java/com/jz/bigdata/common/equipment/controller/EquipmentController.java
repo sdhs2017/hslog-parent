@@ -1,6 +1,9 @@
 package com.jz.bigdata.common.equipment.controller;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -8,11 +11,19 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.base.Strings;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.util.BASE64Util;
+import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.POI.ReadExcel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -23,6 +34,8 @@ import com.jz.bigdata.components.kafka.logAnalysis.SysLogKafkaConsumer;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.DescribeLog;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 /**
@@ -40,7 +53,32 @@ public class EquipmentController {
 	
 	@Autowired protected ILogCrudDao logCrudDao;
 
+	@Resource(name = "configProperty")
+	private ConfigProperty configProperty;
+
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
+
+	public final static HashMap<String,String> equipment_type = new HashMap<>();
+	static{
+		equipment_type.put("交换机", "0101");
+		equipment_type.put("路由器", "0102");
+		equipment_type.put("IPS", "0201");
+		equipment_type.put("IDS", "0202");
+		equipment_type.put("抗DDOS", "0203");
+		equipment_type.put("防火墙", "0204");
+		equipment_type.put("Windows", "0301");
+		equipment_type.put("Linux", "0302");
+		equipment_type.put("虚拟机", "0303");
+		equipment_type.put("Tomcat", "0401");
+		equipment_type.put("Apache", "0402");
+		equipment_type.put("IIS", "0403");
+		equipment_type.put("Weblogic", "0404");
+		equipment_type.put("Mysql", "0405");
+		equipment_type.put("Oracle", "0406");
+		equipment_type.put("Sqlserver", "0407");
+		equipment_type.put("Db2", "0408");
+		equipment_type.put("Nginx", "0409");
+	}
 
 	/**
 	 * @param request
@@ -106,7 +144,6 @@ public class EquipmentController {
 	}
 	/**
 	 * @param request
-	 * @param equipment
 	 * @return 查询数据
 	 */
 	@ResponseBody
@@ -331,6 +368,190 @@ public class EquipmentController {
 //		t.start();
 //		return null;
 		
+	}
+
+	@ResponseBody
+	@RequestMapping(value="equipmentUpload")
+	@DescribeLog(describe="资产文件上传")
+	public String equipmentUpload(MultipartHttpServletRequest request,HttpSession session) {
+
+		Iterator<String> fileNames = request.getFileNames();
+		String filePath ="";
+		while (fileNames.hasNext()) {
+
+			//把fileNames集合中的值打出来
+			String fileName=fileNames.next();
+
+			/*
+			 * request.getFiles(fileName)方法即通过fileName这个Key, 得到对应的文件
+			 * 集合列表. 只是在这个Map中, 文件被包装成MultipartFile类型
+			 */
+			List<MultipartFile> fileList=request.getFiles(fileName);
+
+			if (fileList.size()>0) {
+
+				//遍历文件列表
+				Iterator<MultipartFile> fileIte=fileList.iterator();
+
+				while (fileIte.hasNext()) {
+
+					//获得每一个文件
+					MultipartFile multipartFile=fileIte.next();
+
+					//获得原文件名
+					String originalFilename = multipartFile.getOriginalFilename();
+                    System.out.println("originalFilename: "+originalFilename);
+					if(!originalFilename.equals("资产清单.xlsx")&&!originalFilename.equals("资产清单.xls")){
+						return "文件名称或者文件类型有误，请确认！文件名称：资产清单，文件类型为Excel";
+					}
+					//设置保存路径.
+					String path =getClass().getClassLoader().getResource("").getFile();
+                    System.out.println(path);
+
+					//检查该路径对应的目录是否存在. 如果不存在则创建目录
+					File dir=new File(path);
+					if (!dir.exists()) {
+						dir.mkdirs();
+					}
+
+					filePath = path + originalFilename;
+                    System.out.println("filePath: "+filePath);
+
+					//保存文件
+					File dest = new File(filePath);
+					if (!(dest.exists())) {
+						/*
+						 * MultipartFile提供了void transferTo(File dest)方法,
+						 * 将获取到的文件以File形式传输至指定路径.
+						 */
+						try {
+							multipartFile.transferTo(dest);
+						} catch (Exception e) {
+							// TODO: handle exception
+							return "资产清单上传失败！";
+						}
+
+					} else {
+						if(dest.delete()) {
+							try {
+								multipartFile.transferTo(dest);
+							} catch (IllegalStateException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								return "资产清单上传失败！";
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+								return "资产清单上传失败！";
+							}
+						}
+					}
+
+					//MultipartFile也提供了其他一些方法, 用来获取文件的部分属性
+
+					//获取文件contentType
+					String contentType=multipartFile.getContentType();
+//                    System.out.println("contentType: "+contentType);
+
+					/*
+					 * 获取name
+					 * 其实这个name跟上面提到的getFileName值是一样的,
+					 * 就是Map中Key的值. 即前台页面<input>中name=""
+					 * 属性. 但是上面的getFileName只是得到这个Map的Key,
+					 * 而Spring在处理上传文件的时候会把这个值以name属性
+					 * 记录到对应的每一个文件. 如果需要从文件层面获取这个
+					 * 值, 则可以使用该方法
+					 */
+					String name=multipartFile.getName();
+//                    System.out.println("name: "+name);
+
+					//获取文件大小, 单位为字节
+					long size=multipartFile.getSize();
+//                    System.out.println("size: "+size);
+
+				}
+			}
+		}
+		return importExcel(session,filePath);
+	}
+
+	@ResponseBody
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
+	@RequestMapping(value="importExcel")
+	@DescribeLog(describe="导入excel")
+	public String importExcel(HttpSession session,String filepath) {
+
+		HashMap<String, String> result = new HashMap<>();
+		if (Strings.isNullOrEmpty(filepath)){
+			return Constant.failureMessage("资产清单文件为空，请确认！");
+		}
+		ReadExcel readExcel= new ReadExcel();
+
+		//String filepath = "D:\\Computer_Science\\Java\\hslog-parent\\hslog\\target\\hslog\\WEB-INF\\classes\\资产清单.xlsx";
+		List<List<String>> equipments = readExcel.getExcelInfo(filepath);
+
+		boolean commit = true;
+		BASE64Util base64Util = new BASE64Util();
+		if (equipments.size()>Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())){
+			return Constant.failureMessage("导入失败，资产清单中资产数超过了单节点支撑的300台资产，实际资产数为"+equipments.size());
+		}
+		for (List<String> list : equipments){
+			Equipment equipment =new Equipment();
+			equipment.setName(list.get(0));
+			equipment.setIp(list.get(1));
+			equipment.setHostName(list.get(2));
+			equipment.setLogType(list.get(3));
+			equipment.setLog_level(list.get(4));
+			//主机类型
+			if (!Strings.isNullOrEmpty(equipment_type.get(list.get(5)))){
+				equipment.setType(equipment_type.get(list.get(5)));
+			}else {
+				// 直接退出，回滚操作
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				return Constant.failureMessage("导入失败，资产类型错误："+list);
+			}
+			// 是否启用，默认启用1
+			if (list.get(6).equals("否")){
+				equipment.setStartUp(0);
+			}else {
+				equipment.setStartUp(1);
+			}
+
+			try {
+				switch (equipmentService.batchInsert(equipment,session)){
+					case 1:
+						break;
+					case 0:
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						return Constant.failureMessage("资产导入失败，失败资产信息："+list);
+					case 3:
+						TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+						return Constant.failureMessage("资产达到上限300，无法添加！");
+				}
+
+			} catch (DataAccessException e) {
+				e.printStackTrace();
+				//异常类型
+				if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
+					//根据异常信息判定是否存在唯一索引重复
+					if(e.getMessage().indexOf("nameUnique")>=0){
+						return Constant.failureMessage("资产名称重复，请重新编辑该资产"+ list);
+					}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
+						return Constant.failureMessage("资产“IP+日志类型”重复，请重新编辑该资产！"+ list);
+					}else{
+						logger.error(e.getMessage());
+						return Constant.failureMessage("资产导入batchInsert MySQLIntegrityConstraintViolationException的其他情况！"+list);
+					}
+				}else{
+					logger.error(e.getMessage());
+					return Constant.failureMessage("资产导入batchInsert 其他异常情况！"+list);
+				}
+			}catch (Exception e) {
+				e.printStackTrace();
+				return Constant.failureMessage("其他异常情况！"+list);
+			}
+		}
+		return result.toString();
 	}
 
 }

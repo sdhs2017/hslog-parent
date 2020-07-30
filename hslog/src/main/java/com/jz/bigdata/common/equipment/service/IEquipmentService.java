@@ -17,6 +17,16 @@ public interface IEquipmentService {
 
 	int insert(Equipment equipment, HttpSession session);
 	String upsert(Equipment equipment, HttpSession session) throws Exception;
+
+	/**
+	 * 批量插入资产
+	 * @param equipment
+	 * @param session
+	 * @return
+	 * @throws Exception
+	 */
+	int batchInsert(Equipment equipment, HttpSession session) throws Exception;
+
 	String selectAll(Equipment equipment, HttpSession session);
 	
 	int updateById(Equipment equipment, HttpSession session);

@@ -164,6 +164,44 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		}
 	}
 
+	@Override
+	public int batchInsert(Equipment equipment, HttpSession session) throws Exception {
+		// 获取总数
+		List<Object> count = equipmentDao.count_Number();
+		// 默认返回值
+		int result = 0;
+		List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+		resultList = (List<Map<String, Object>>) count.get(0);
+
+		BASE64Util base64Util = new BASE64Util();
+		// 判断资产数是否超过限定
+		if (Integer.valueOf((String) resultList.get(0).get("count")) < Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())) {
+
+			//id不为空，说明是资产的update
+			if(equipment.getId()!=null&&!"".equals(equipment.getId())){
+				// 设置日期格式
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				// 获取日期
+				equipment.setUpDateTime(df.format(new Date()));
+				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+				return equipmentDao.updateById(equipment);
+			}else{
+				equipment.setId(Uuid.getUUID());
+				//id为空，为新增资产
+				User user = userDao.selectById(session.getAttribute(Constant.SESSION_USERID).toString());
+				equipment.setDepartmentId(user.getDepartmentId());
+				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
+				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+				// 获取日期
+				equipment.setCreateTime(df.format(new Date()));
+				return equipmentDao.insert(equipment);
+			}
+		} else {
+			return 3;
+		}
+	}
+
 	/**
 	 * @param equipment
 	 * @return 查询数据

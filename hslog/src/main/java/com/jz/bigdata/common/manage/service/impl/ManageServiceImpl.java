@@ -84,20 +84,38 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
             		/*for(String content : strings[i].toString().split("\\s+")) {
             			System.out.println("--- "+content);
             		};*/
-                    diskinfo.put("sys_size", content[0]);
-                    diskinfo.put("sys_used", content[1]);
-                    diskinfo.put("sys_avail", content[2]);
-                    diskinfo.put("sys_per", content[3]);
-                    diskinfo.put("sys", content[4]);
+                    if (content[0].contains("/")){
+                        diskinfo.put("sys_size", content[1]);
+                        diskinfo.put("sys_used", content[2]);
+                        diskinfo.put("sys_avail", content[3]);
+                        diskinfo.put("sys_per", content[4]);
+                        diskinfo.put("sys", content[5]);
+                    }else {
+                        diskinfo.put("sys_size", content[0]);
+                        diskinfo.put("sys_used", content[1]);
+                        diskinfo.put("sys_avail", content[2]);
+                        diskinfo.put("sys_per", content[3]);
+                        diskinfo.put("sys", content[4]);
+                    }
+
 
                 }
                 if (datamatcher.find()) {
                     String[] content = strings[i].toString().split("\\s+");
-                    diskinfo.put("data_size", content[0]);
-                    diskinfo.put("data_used", content[1]);
-                    diskinfo.put("data_avail", content[2]);
-                    diskinfo.put("data_per", content[3]);
-                    diskinfo.put("data", content[4]);
+                    if (content[0].contains("/")){
+                        diskinfo.put("data_size", content[1]);
+                        diskinfo.put("data_used", content[2]);
+                        diskinfo.put("data_avail", content[3]);
+                        diskinfo.put("data_per", content[4]);
+                        diskinfo.put("data", content[5]);
+                    }else {
+                        diskinfo.put("data_size", content[0]);
+                        diskinfo.put("data_used", content[1]);
+                        diskinfo.put("data_avail", content[2]);
+                        diskinfo.put("data_per", content[3]);
+                        diskinfo.put("data", content[4]);
+                    }
+
                 }
                 if (stringBuilder.length()<1) {
                     for (String s : strings[i].split("\\s+")) {

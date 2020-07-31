@@ -470,6 +470,7 @@
             'importState'(){
                 if(this.importState === true){
                     setTimeout(()=>{
+                        let $that = this;
                         $('#ssi-upload').ssi_uploader({
                             url:this.$baseUrl+'/equipment/insertEquipmentUpload.do',//地址
                             maxNumberOfFiles:1,
@@ -477,8 +478,8 @@
                             ajaxOptions: {
                                 success: function(res) {
                                     let obj = JSON.parse(res)
-                                    this.backState = true;
-                                    this.backStateObj ={
+                                    $that.backState = true;
+                                    $that.backStateObj ={
                                         state:obj.success,
                                         text:obj.message
                                     }

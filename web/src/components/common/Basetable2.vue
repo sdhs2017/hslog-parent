@@ -20,7 +20,7 @@
                 </el-table-column>
                 <el-table-column v-else-if ="item.prop === 'tools'" show-overflow-tooltip   :prop="item.prop"  :label="item.label" :width="item.width" :key="index">
                     <template slot-scope="scope">
-                        <el-button v-for="(ic, ind) in item.btns" :key="ind"  @click.native.prevent="ic.clickFun(scope.row,scope.$index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#D6DFEB;">
+                        <el-button v-for="(ic, ind) in item.btns" :key="ind"  @click.native.prevent="ic.clickFun(scope.row,scope.$index)" v-if="!ic.formatData ? true : tableFormatter(scope.row,ic.formatData,scope.row)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#D6DFEB;">
                             <i :class="ic.icon" :title="ic.text"></i>
                         </el-button>
                     </template>

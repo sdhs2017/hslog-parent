@@ -3,7 +3,7 @@
         <div class="top-title">虚拟资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
-<!--                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>-->
+                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                     <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
@@ -125,10 +125,10 @@
 		name: "device2",
 		data() {
 			return {
-                backState:true,//导入结果状态框显示与否
+                backState:false,//导入结果状态框显示与否
                 backStateObj:{
                     text:'',
-                    state:'true'
+                    state:'false'
                 },//结果状态参数集合
                 importState:false,//导入框状态
 			    loading:false,
@@ -469,6 +469,11 @@
                             ajaxOptions: {
                                 success: function(res) {
                                     //layer.msg(data,{icon:1})
+                                    this.backState = true;
+                                    this.backStateObj ={
+                                        state:res.success,
+                                        text:res.message
+                                    }
                                     if(res.success === 'true'){
                                         layer.msg(res.message,{icon:1})
                                     }else if(res.success === 'false'){

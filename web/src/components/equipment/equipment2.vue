@@ -3,6 +3,7 @@
         <div class="top-title">虚拟资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
+                    <el-button type="info" size="mini" plain @click="downLoadEq">模板下载</el-button>
                     <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
@@ -456,6 +457,18 @@
                 this.zzIndex = -2;
                 let ce = event.currentTarget;
                 $(ce).next().css({"zIndex":"-1","opacity":"0","right":"-240px"});
+            },
+            /*下载资产模板*/
+            downLoadEq(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/equipment/equipmentDownload.do','')
+                        .then(res=>{
+
+                        })
+                        .catch(err=>{
+
+                        })
+                })
             }
         },
         watch:{

@@ -3,7 +3,7 @@
         <div class="top-title">虚拟资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
-                    <el-button type="info" size="mini" plain @click="downLoadEq">模板下载</el-button>
+                    <el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
                     <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
@@ -460,15 +460,10 @@
             },
             /*下载资产模板*/
             downLoadEq(){
-                this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/equipment/equipmentDownload.do','')
-                        .then(res=>{
-
-                        })
-                        .catch(err=>{
-
-                        })
-                })
+                console.log('ddd')
+                let ahtml = document.getElementById('eqDownload');
+                ahtml.href = this.$baseUrl+'/equipment/equipmentDownload.do';
+                ahtml.click();
             }
         },
         watch:{
@@ -482,6 +477,7 @@
                             ajaxOptions: {
                                 success: function(res) {
                                     //layer.msg(data,{icon:1})
+                                    console.log(res)
                                     this.backState = true;
                                     this.backStateObj ={
                                         state:res.success,
@@ -494,6 +490,7 @@
                                     }
                                 },
                                 error:function(data){
+                                    console.log(data)
                                     layer.msg("导入失败",{icon: 5});
                                     $(".ssi-abortUpload").click()
                                 }

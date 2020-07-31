@@ -98,8 +98,8 @@
         <div class="zz-box" :style="{zIndex:zzIndex}"></div>
         <el-dialog title="资产导入" :visible.sync="importState" width="680px" height="550px" class="dialog-wapper">
             <div class="state" v-if="backState">
-                <p class="i-box"><i class="el-icon-success" v-if="this.backStateObj.state === 'true'" style="color:#279e72;"></i><i class="el-icon-error" v-else style="color:#e27145;"></i></p>
-                <h3 class="back-h3" v-if="this.backStateObj.state === 'true'"  style="color:#279e72;">导入成功</h3>
+                <p class="i-box"><i class="el-icon-success" v-if="this.backStateObj.state == 'true'" style="color:#279e72;"></i><i class="el-icon-error" v-else style="color:#e27145;"></i></p>
+                <h3 class="back-h3" v-if="this.backStateObj.state == 'true'"  style="color:#279e72;">导入成功</h3>
                 <h3 class="back-h3" v-else style="color:#e27145;">导入失败</h3>
                 <p class="back-text">{{this.backStateObj.text}}</p>
                 <p class="back-btn"><el-button type="primary" size="mini" @click="backState = false">返回导入界面</el-button></p>
@@ -471,26 +471,25 @@
                 if(this.importState === true){
                     setTimeout(()=>{
                         $('#ssi-upload').ssi_uploader({
-                            url:this.$baseUrl+'/equipment/equipmentUpload.do',//地址
+                            url:this.$baseUrl+'/equipment/insertEquipmentUpload.do',//地址
                             maxNumberOfFiles:1,
                             allowed:['xlsx','xls'],//允许上传文件的类型
                             ajaxOptions: {
                                 success: function(res) {
-                                    //layer.msg(data,{icon:1})
-                                    console.log(res)
+                                    let obj = JSON.parse(res)
                                     this.backState = true;
                                     this.backStateObj ={
-                                        state:res.success,
-                                        text:res.message
+                                        state:obj.success,
+                                        text:obj.message
                                     }
+                            /*
                                     if(res.success === 'true'){
                                         layer.msg(res.message,{icon:1})
                                     }else if(res.success === 'false'){
                                         layer.msg(res.message,{icon:5})
-                                    }
+                                    }*/
                                 },
                                 error:function(data){
-                                    console.log(data)
                                     layer.msg("导入失败",{icon: 5});
                                     $(".ssi-abortUpload").click()
                                 }

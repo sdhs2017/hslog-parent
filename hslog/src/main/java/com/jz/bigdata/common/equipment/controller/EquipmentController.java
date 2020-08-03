@@ -1,14 +1,11 @@
 package com.jz.bigdata.common.equipment.controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.google.common.base.Strings;
@@ -370,10 +367,65 @@ public class EquipmentController {
 		
 	}
 
+    @RequestMapping(value="/equipmentDownload")
+    @DescribeLog(describe="资产清单模板下载")
+    public String equipmentDownload(HttpSession session, HttpServletRequest request,
+                                   HttpServletResponse response) throws UnsupportedEncodingException {
+        //String dataDirectory = request.getServletContext().getRealPath("/WEB-INF/data");
+        //System.out.println(dataDirectory);
+        //设置模板下载路径.
+        String path =getClass().getClassLoader().getResource("/download/").getFile();
+        String fileName="资产清单.xlsm";
+
+        File file = new File(path, fileName);
+
+        if (file.exists()) {
+            //设置响应类型，这里是下载pdf文件
+            response.setContentType("application/xlsm");
+            //设置Content-Disposition，设置attachment，浏览器会激活文件下载框；filename指定下载后默认保存的文件名
+            //不设置Content-Disposition的话，文件会在浏览器内打卡，比如txt、img文件
+            //为了解决中文名称乱码问题
+            fileName = new String(fileName.getBytes("utf-8"),"iso-8859-1");
+            response.addHeader("Content-Disposition", "attachment; filename="+fileName);
+            byte[] buffer = new byte[1024];
+            FileInputStream fis = null;
+            BufferedInputStream bis = null;
+            // if using Java 7, use try-with-resources
+            try {
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis);
+                OutputStream os = response.getOutputStream();
+                int i = bis.read(buffer);
+                while (i != -1) {
+                    os.write(buffer, 0, i);
+                    i = bis.read(buffer);
+                }
+            } catch (IOException ex) {
+                // do something,
+                // probably forward to an Error page
+            } finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    } catch (IOException e) {
+                    }
+                }
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    } catch (IOException e) {
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+
 	@ResponseBody
-	@RequestMapping(value="equipmentUpload")
-	@DescribeLog(describe="资产文件上传")
-	public String equipmentUpload(MultipartHttpServletRequest request,HttpSession session) {
+	@RequestMapping(value="insertEquipmentUpload")
+	@DescribeLog(describe="资产文件上传并导入到数据库")
+	public String insertEquipmentUpload(MultipartHttpServletRequest request,HttpSession session) {
 
 		Iterator<String> fileNames = request.getFileNames();
 		String filePath ="";
@@ -389,34 +441,28 @@ public class EquipmentController {
 			List<MultipartFile> fileList=request.getFiles(fileName);
 
 			if (fileList.size()>0) {
-
 				//遍历文件列表
 				Iterator<MultipartFile> fileIte=fileList.iterator();
-
 				while (fileIte.hasNext()) {
 
 					//获得每一个文件
 					MultipartFile multipartFile=fileIte.next();
-
 					//获得原文件名
 					String originalFilename = multipartFile.getOriginalFilename();
                     System.out.println("originalFilename: "+originalFilename);
-					if(!originalFilename.equals("资产清单.xlsx")&&!originalFilename.equals("资产清单.xls")){
-						return "文件名称或者文件类型有误，请确认！文件名称：资产清单，文件类型为Excel";
+					if(!originalFilename.equals("资产清单.xlsm")&&!originalFilename.equals("资产清单.xlsx")){
+						return Constant.failureMessage("文件名称或者文件类型有误，请确认！文件名称：资产清单，文件类型为Excel");
 					}
 					//设置保存路径.
 					String path =getClass().getClassLoader().getResource("").getFile();
-                    System.out.println(path);
-
+                    /*System.out.println(path);*/
 					//检查该路径对应的目录是否存在. 如果不存在则创建目录
 					File dir=new File(path);
 					if (!dir.exists()) {
 						dir.mkdirs();
 					}
-
 					filePath = path + originalFilename;
                     System.out.println("filePath: "+filePath);
-
 					//保存文件
 					File dest = new File(filePath);
 					if (!(dest.exists())) {
@@ -427,10 +473,10 @@ public class EquipmentController {
 						try {
 							multipartFile.transferTo(dest);
 						} catch (Exception e) {
+						    e.printStackTrace();
 							// TODO: handle exception
-							return "资产清单上传失败！";
+							return Constant.failureMessage("资产清单上传失败！");
 						}
-
 					} else {
 						if(dest.delete()) {
 							try {
@@ -438,70 +484,54 @@ public class EquipmentController {
 							} catch (IllegalStateException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
-								return "资产清单上传失败！";
+								return Constant.failureMessage("资产清单上传失败！");
 							} catch (IOException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
-								return "资产清单上传失败！";
+								return Constant.failureMessage("资产清单上传失败！");
 							}
 						}
 					}
-
-					//MultipartFile也提供了其他一些方法, 用来获取文件的部分属性
-
-					//获取文件contentType
-					String contentType=multipartFile.getContentType();
-//                    System.out.println("contentType: "+contentType);
-
-					/*
-					 * 获取name
-					 * 其实这个name跟上面提到的getFileName值是一样的,
-					 * 就是Map中Key的值. 即前台页面<input>中name=""
-					 * 属性. 但是上面的getFileName只是得到这个Map的Key,
-					 * 而Spring在处理上传文件的时候会把这个值以name属性
-					 * 记录到对应的每一个文件. 如果需要从文件层面获取这个
-					 * 值, 则可以使用该方法
-					 */
-					String name=multipartFile.getName();
-//                    System.out.println("name: "+name);
-
-					//获取文件大小, 单位为字节
-					long size=multipartFile.getSize();
-//                    System.out.println("size: "+size);
-
 				}
 			}
 		}
-		return importExcel(session,filePath);
-	}
+        ReadExcel readExcel= new ReadExcel();
 
-	@ResponseBody
-	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
-	@RequestMapping(value="importExcel")
-	@DescribeLog(describe="导入excel")
-	public String importExcel(HttpSession session,String filepath) {
-
-		HashMap<String, String> result = new HashMap<>();
-		if (Strings.isNullOrEmpty(filepath)){
-			return Constant.failureMessage("资产清单文件为空，请确认！");
+		List<List<String>> equipments = null;
+		try {
+			equipments = readExcel.getExcelInfo(filePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return Constant.failureMessage("导入失败，资产清单有误，请确认");
 		}
-		ReadExcel readExcel= new ReadExcel();
 
-		//String filepath = "D:\\Computer_Science\\Java\\hslog-parent\\hslog\\target\\hslog\\WEB-INF\\classes\\资产清单.xlsx";
-		List<List<String>> equipments = readExcel.getExcelInfo(filepath);
-
-		boolean commit = true;
 		BASE64Util base64Util = new BASE64Util();
-		if (equipments.size()>Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())){
-			return Constant.failureMessage("导入失败，资产清单中资产数超过了单节点支撑的300台资产，实际资产数为"+equipments.size());
-		}
+        if (equipments.size()>Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())){
+            return Constant.failureMessage("导入失败，资产清单中资产数超过了单节点支撑的300台资产，实际资产数为"+equipments.size());
+        }
+		List<Equipment> equipmentList = new ArrayList<>();
 		for (List<String> list : equipments){
 			Equipment equipment =new Equipment();
+			// 资产名称
 			equipment.setName(list.get(0));
+			// 资产IP
 			equipment.setIp(list.get(1));
+			// 资产主机名
 			equipment.setHostName(list.get(2));
+			// 资产日志类型
 			equipment.setLogType(list.get(3));
-			equipment.setLog_level(list.get(4));
+			// 判断需要收集的日志级别，不为空设置获取的数据
+			if (!Strings.isNullOrEmpty(list.get(4))){
+				if (list.get(4).equals("全选")){
+					equipment.setLog_level("emergency,alert,critical,error,warning,notice,information,debug,");
+				}else{
+					equipment.setLog_level(list.get(4));
+				}
+			}else {
+				// 为空设置全选
+				equipment.setLog_level("emergency,alert,critical,error,warning,notice,information,debug,");
+			}
+
 			//主机类型
 			if (!Strings.isNullOrEmpty(equipment_type.get(list.get(5)))){
 				equipment.setType(equipment_type.get(list.get(5)));
@@ -516,9 +546,106 @@ public class EquipmentController {
 			}else {
 				equipment.setStartUp(1);
 			}
+			// 根域名
+			if (!Strings.isNullOrEmpty(list.get(7))){
+				equipment.setDomain(list.get(7));
+			}
+			// 端口
+			if (!Strings.isNullOrEmpty(list.get(8))){
+				equipment.setDomain(list.get(8));
+			}
+			// 系统
+			if (!Strings.isNullOrEmpty(list.get(9))){
+				equipment.setDomain(list.get(9));
+			}
+			// 系统版本号
+			if (!Strings.isNullOrEmpty(list.get(10))){
+				equipment.setDomain(list.get(10));
+			}
+			// 资产编号
+			if (!Strings.isNullOrEmpty(list.get(11))){
+				equipment.setDomain(list.get(11));
+			}
+			// 序列号
+			if (!Strings.isNullOrEmpty(list.get(12))){
+				equipment.setDomain(list.get(12));
+			}
+			// MAC地址
+			if (!Strings.isNullOrEmpty(list.get(13))){
+				equipment.setDomain(list.get(13));
+			}
+			// 描述
+			if (!Strings.isNullOrEmpty(list.get(14))){
+				equipment.setDomain(list.get(14));
+			}
+			// 资产价值
+			if (!Strings.isNullOrEmpty(list.get(15))){
+				equipment.setDomain(list.get(15));
+			}
 
-			try {
-				switch (equipmentService.batchInsert(equipment,session)){
+
+			equipmentList.add(equipment);
+		}
+		return equipmentService.insertBatch(equipmentList,session);
+	}
+
+	@ResponseBody
+	@RequestMapping(value="insertByImportExcel")
+	//@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
+	@DescribeLog(describe="导入excel")
+	public String insertByImportExcel(HttpSession session,String filepath) {
+        filepath = "D:\\Computer_Science\\Java\\hslog-parent\\hslog\\target\\hslog\\WEB-INF\\classes\\资产清单.xlsx";
+		if (Strings.isNullOrEmpty(filepath)){
+			return Constant.failureMessage("资产清单文件为空，请确认！");
+		}
+		ReadExcel readExcel= new ReadExcel();
+
+
+		List<List<String>> equipments = null;
+		try {
+			equipments = readExcel.getExcelInfo(filepath);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return Constant.failureMessage("导入失败，资产清单文件有误，请确认");
+		}
+
+		BASE64Util base64Util = new BASE64Util();
+		if (equipments.size()>Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())){
+			return Constant.failureMessage("导入失败，资产清单中资产数超过了单节点支撑的300台资产，实际资产数为"+equipments.size());
+		}
+
+		List<Equipment> equipmentList = new ArrayList<>();
+		for (List<String> list : equipments){
+			Equipment equipment =new Equipment();
+			equipment.setName(list.get(0));
+			equipment.setIp(list.get(1));
+			equipment.setHostName(list.get(2));
+			equipment.setLogType(list.get(3));
+			// 判断需要收集的日志级别，不为空设置获取的数据
+			if (!Strings.isNullOrEmpty(list.get(4))){
+                equipment.setLog_level(list.get(4));
+            }else {
+			    // 为空设置全选
+                equipment.setLog_level("emergency,alert,critical,error,warning,notice,information,debug,");
+            }
+
+			//主机类型
+			if (!Strings.isNullOrEmpty(equipment_type.get(list.get(5)))){
+				equipment.setType(equipment_type.get(list.get(5)));
+			}else {
+				// 直接退出，回滚操作
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				return Constant.failureMessage("导入失败，资产类型错误："+list);
+			}
+			// 是否启用，默认启用1
+			if (list.get(6).equals("否")){
+				equipment.setStartUp(0);
+			}else {
+				equipment.setStartUp(1);
+			}
+			equipmentList.add(equipment);
+			/*try {
+				switch (equipmentService.insertBatch(equipment,session)){
 					case 1:
 						break;
 					case 0:
@@ -549,9 +676,10 @@ public class EquipmentController {
 			}catch (Exception e) {
 				e.printStackTrace();
 				return Constant.failureMessage("其他异常情况！"+list);
-			}
+			}*/
 		}
-		return result.toString();
+		return equipmentService.insertBatch(equipmentList,session);
+
 	}
 
 }

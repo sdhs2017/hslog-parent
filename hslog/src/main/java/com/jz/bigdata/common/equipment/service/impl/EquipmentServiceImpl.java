@@ -28,6 +28,9 @@ import com.jz.bigdata.util.JavaBeanUtil;
 import com.jz.bigdata.util.Uuid;
 
 import net.sf.json.JSONArray;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 /**
  * @author shichengyu
@@ -165,7 +168,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	}
 
 	@Override
-	public int batchInsert(Equipment equipment, HttpSession session) throws Exception {
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
+	public int insertBatch(Equipment equipment, HttpSession session){
 		// 获取总数
 		List<Object> count = equipmentDao.count_Number();
 		// 默认返回值
@@ -200,6 +204,69 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		} else {
 			return 3;
 		}
+	}
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
+	public String insertBatch(List<Equipment> equipmentList, HttpSession session){
+		// 获取总数
+		List<Object> count = equipmentDao.count_Number();
+		// 默认返回值
+		int result = 0;
+		List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+		resultList = (List<Map<String, Object>>) count.get(0);
+
+		BASE64Util base64Util = new BASE64Util();
+		for (Equipment equipment : equipmentList){
+			// 判断资产数是否超过限定
+			if (Integer.valueOf((String) resultList.get(0).get("count")) < Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())) {
+
+				equipment.setId(Uuid.getUUID());
+				//id为空，为新增资产
+				User user = userDao.selectById(session.getAttribute(Constant.SESSION_USERID).toString());
+				equipment.setDepartmentId(user.getDepartmentId());
+				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
+				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+				// 获取日期
+				equipment.setCreateTime(df.format(new Date()));
+				try {
+					switch (equipmentDao.insert(equipment)){
+						case 1:
+							break;
+						case 0:
+							return Constant.failureMessage("insert 结果 0！");
+					}
+				} catch (DataAccessException e) {
+					e.printStackTrace();
+					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+					//异常类型
+					if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
+						//根据异常信息判定是否存在唯一索引重复
+						if(e.getMessage().indexOf("nameUnique")>=0){
+							return Constant.failureMessage("资产名称重复，请重新编辑该资产："+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
+						}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
+							return Constant.failureMessage("资产“IP+日志类型”重复，请重新编辑该资产："+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
+						}else{
+							logger.error(e.getMessage());
+							return Constant.failureMessage("资产导入batchInsert MySQLIntegrityConstraintViolationException的其他情况: "+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
+						}
+					}else{
+						logger.error(e.getMessage());
+						return Constant.failureMessage("资产导入batchInsert 其他异常情况: "+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
+					}
+				}catch (Exception e){
+					e.printStackTrace();
+					TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+					return Constant.failureMessage("其他异常情况！");
+				}
+			} else {
+				TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+				// 超过300条报3
+				return Constant.failureMessage("资产达到上限300，无法添加！");
+			}
+		}
+		return Constant.successMessage("资产导入成功！");
 	}
 
 	/**

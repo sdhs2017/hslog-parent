@@ -25,7 +25,8 @@ public interface IEquipmentService {
 	 * @return
 	 * @throws Exception
 	 */
-	int batchInsert(Equipment equipment, HttpSession session) throws Exception;
+	int insertBatch(Equipment equipment, HttpSession session);
+	String insertBatch(List<Equipment> equipmentList, HttpSession session);
 
 	String selectAll(Equipment equipment, HttpSession session);
 	

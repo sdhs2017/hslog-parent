@@ -58,17 +58,18 @@ public class ReadExcel {
      * @param filePath
      * @return
      */
-    public List<List<String>> getExcelInfo(String filePath){
+    public List<List<String>> getExcelInfo(String filePath) throws IOException {
         //初始化集合
         List<List<String>> lList=new ArrayList<List<String>>();
         //初始化输入流
         InputStream is = null;
         try{
-            //根据文件名判断文件是2003版本（xls）还是2007版本（xlsx）
+            //根据文件名判断文件是2003版本（xls）还是2007版本（xlsx,xlsm）
             boolean isExcel2003 = true;
-            if(filePath.matches("^.+\\.(?i)(xlsx)$")){
+            if(filePath.matches("^.+\\.(?i)(xlsx)$")||filePath.matches("^.+\\.(?i)(xlsm)$")){
                 isExcel2003 = false;
             }
+
             //根据新建的文件实例化输入流
             is = new FileInputStream(filePath);
             Workbook wb = null;
@@ -84,6 +85,7 @@ public class ReadExcel {
             is.close();
         }catch(Exception e){
             e.printStackTrace();
+            throw e;
         } finally{
             if(is !=null)
             {
@@ -131,6 +133,8 @@ public class ReadExcel {
                 if (cell != null){
                     cell.setCellType(CellType.STRING);
                     sList.add(cell.getStringCellValue());
+                }else {
+                    sList.add("");
                 }
             }
 

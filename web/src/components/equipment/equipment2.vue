@@ -97,7 +97,7 @@
         </div>
         <div class="zz-box" :style="{zIndex:zzIndex}"></div>
         <el-dialog title="资产导入" :visible.sync="importState" width="680px" height="550px" class="dialog-wapper">
-            <div class="state" v-if="backState">
+            <div class="back-state" v-if="backState">
                 <p class="i-box"><i class="el-icon-success" v-if="this.backStateObj.state == 'true'" style="color:#279e72;"></i><i class="el-icon-error" v-else style="color:#e27145;"></i></p>
                 <h3 class="back-h3" v-if="this.backStateObj.state == 'true'"  style="color:#279e72;">导入成功</h3>
                 <h3 class="back-h3" v-else style="color:#e27145;">导入失败</h3>
@@ -474,7 +474,7 @@
                         $('#ssi-upload').ssi_uploader({
                             url:this.$baseUrl+'/equipment/insertEquipmentUpload.do',//地址
                             maxNumberOfFiles:1,
-                            allowed:['xlsx','xls'],//允许上传文件的类型
+                            allowed:['xlsx','xls','xlsm'],//允许上传文件的类型
                             ajaxOptions: {
                                 success: function(res) {
                                     let obj = JSON.parse(res)
@@ -814,13 +814,14 @@
         z-index: -1;
         transition: all 0.1s linear;
     }
-    .state{
+    .back-state{
         width: 100%;
         height: 82%;
         background: #303e4e;
         position: absolute;
         left: 0;
         top: 55px;
+        z-index: 100;
     }
     .i-box{
         text-align: center;

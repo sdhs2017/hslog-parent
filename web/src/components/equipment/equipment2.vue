@@ -105,7 +105,7 @@
                 <p class="back-btn"><el-button type="primary" size="mini" @click="backState = false">返回导入界面</el-button></p>
             </div>
             <p>通过浏览本地文件或将文件拖到下面指定区域，上传资产文件。</p>
-            <p>文件支持的类型：<span class="txtColor">.xlsx</span> <span class="txtColor">.xls</span></p>
+            <p>文件支持的类型：<span class="txtColor">.xlsx</span> <span class="txtColor">.xls</span> <span class="txtColor">.xlsm</span></p>
             <p>文件的名称必须为：<span class="txtColor">资产清单</span>  (例:资产清单.xlsx)</p>
             <div style="padding-right: 30px;">
                 <input type="file" multiple id="ssi-upload"/>

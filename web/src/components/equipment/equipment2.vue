@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">虚拟资产概览
+        <div class="top-title">资产管理
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
 <!--                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>-->
@@ -29,7 +29,7 @@
                         <span class="eq-name-span">{{i.name}}</span>
                         <span class="eq-t-span">{{i.type}}</span>
                     </div>
-                    <div class="eq-type"><i class="el-icon-data-line" title="查看资产指标统计" @click="equipmentDashboard(i)"></i></div>
+                    <div class="eq-type"><i class="el-icon-data-line" ></i></div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
                         <span class="eq-ip">{{i.ip}}</span>
@@ -496,8 +496,12 @@
                     vm.selectEquipment();
                     vm.c_page = 1;
                 }else {
-                    vm.getData(vm.searchConditions,1)
-                    vm.c_page = 1;
+                    if(vm.selectEquipmentId !== ''){
+                        vm.selectEquipment();
+                        vm.c_page = 1;
+                    }else{
+                        vm.getData(vm.searchConditions,vm.c_page)
+                    }
                 }
             })
         },

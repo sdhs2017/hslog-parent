@@ -84,7 +84,7 @@ export default new Router({
                     path: '/equipment',
                     name:'equipment',
                     component: resolve => require(['../components/equipment/equipment.vue'], resolve),
-                    meta: { title: '虚拟资产管理' }
+                    meta: { title: '资产管理' }
                 },
                 {
                     path: '/equipmentScan',
@@ -132,7 +132,7 @@ export default new Router({
                     path: '/equipment2',
                     name:'equipment2',
                     component: resolve => require(['../components/equipment/equipment2.vue'], resolve),
-                    meta: { title: '虚拟资产概览' }
+                    meta: { title: '资产管理' }
                 },
                 {
                     path: '/allEquipmentMonitor',
@@ -426,7 +426,7 @@ export default new Router({
                     path: '/addEquipment2',
                     name:'addEquipment2',
                     component: resolve => require(['../components/equipment/addEquipment2.vue'], resolve),
-                    meta: { title: '添加虚拟资产' }
+                    meta: { title: '添加资产' }
                 },
                 {
                     path: '/dashboardList',

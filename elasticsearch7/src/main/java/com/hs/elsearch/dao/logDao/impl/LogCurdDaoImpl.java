@@ -38,6 +38,11 @@ public class LogCurdDaoImpl implements ILogCrudDao {
     }
 
     @Override
+    public void bulkInsert(BulkRequest bulkRequest) throws Exception {
+        crudTemplate.bulkInsert(bulkRequest);
+    }
+
+    @Override
     public void insert(String index, String type, String json) throws Exception {
         crudTemplate.insert(index,json);
     }

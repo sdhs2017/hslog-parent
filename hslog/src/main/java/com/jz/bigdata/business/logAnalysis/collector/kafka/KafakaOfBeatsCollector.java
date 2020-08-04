@@ -19,8 +19,11 @@ import kafka.javaapi.consumer.ConsumerConnector;
 import kafka.serializer.StringDecoder;
 import kafka.utils.VerifiableProperties;
 import org.apache.log4j.Logger;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.common.xcontent.XContentType;
 
+import javax.sound.midi.Soundbank;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -151,7 +154,10 @@ public class KafakaOfBeatsCollector implements Runnable {
             String module;// 所属模块
             Asset asset;//逻辑资产
 
-            List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
+            //List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
+            // 使用原生的批量提交方式
+            BulkRequest bulkRequest = new BulkRequest();
+            IndexRequest request = new IndexRequest();
             /**
              * 判断迭代器中是否有数据，且kafka的状态为开启中
              */
@@ -262,8 +268,12 @@ public class KafakaOfBeatsCollector implements Runnable {
                                     }
                                     //组装index信息,存在module字段时，index名称中插入module
                                     String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
+                                    // TODO 将index名称和json 直接写入到IndexRequest，将原有的list替换成原生的BulkRequest
                                     //批量入库
-                                    indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                    //indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                    request.index(index);
+                                    request.source(jsonObject.toString(), XContentType.JSON);
+                                    bulkRequest.add(request);
                                 }else{
                                     //数据的日志级别不在需收集的级别列表中，直接舍弃。
                                 }
@@ -317,7 +327,10 @@ public class KafakaOfBeatsCollector implements Runnable {
                                 //组装index信息,存在module字段时，index名称中插入module
                                 String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
                                 //批量入库
-                                indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                //indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                request.index(index);
+                                request.source(jsonObject.toString(), XContentType.JSON);
+                                bulkRequest.add(request);
                             }else{
                                 //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
@@ -368,7 +381,10 @@ public class KafakaOfBeatsCollector implements Runnable {
                                 //组装index信息,存在module字段时，index名称中插入module
                                 String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
                                 //批量入库
-                                indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                //indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                request.index(index);
+                                request.source(jsonObject.toString(), XContentType.JSON);
+                                bulkRequest.add(request);
                             }else{
                                 //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
@@ -398,10 +414,16 @@ public class KafakaOfBeatsCollector implements Runnable {
                  * 当 indices request中的数据大于等于 配置中设置的批量提交阈值时进行批量提交操作，并清空indicesrequests
                  */
                 Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
-                if (indicesrequests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
+                /*if (indicesrequests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
                     logCurdDao.bulkInsert(indicesrequests);
                     indicesrequests.clear();
+                }*/
+                // TODO 使用原生批量提交
+                System.out.println("提交前数量："+bulkRequest.numberOfActions());
+                if(bulkRequest.numberOfActions()>(es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)){
+                    logCurdDao.bulkInsert(bulkRequest);
                 }
+                System.out.println("提交后数量："+bulkRequest.numberOfActions());
             }
 
         } catch (Exception e) {

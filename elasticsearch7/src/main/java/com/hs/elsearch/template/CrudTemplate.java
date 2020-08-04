@@ -192,6 +192,33 @@ public class CrudTemplate {
         }
     }
 
+    /**
+     * 批量提交，不兼容elasticsearch5版本
+     * @param bulkRequest
+     * @return
+     * @throws Exception
+     *
+    curl -X POST "IP:9200/_bulk?pretty" -H 'Content-Type: application/json' -d'
+    { "index" : { "_index" : "test", "_id" : "1" } }
+    { "create" : { "_index" : "test", "_id" : "2" } }
+    { "create" : { "_index" : "test", "_id" : "3" } }
+    '
+     */
+    public boolean bulkInsert(BulkRequest bulkRequest) throws Exception {
+
+        BulkResponse bulkResponse = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+
+        // 判断是否存在错误提交
+        if (bulkResponse.hasFailures()){
+            logger.error("批量提交异常"+bulkResponse.toString());
+            // 如果存在报错则返回false
+            return false;
+        }else {
+            // 正常提交返回true
+            return true;
+        }
+    }
+
 
 
     /**

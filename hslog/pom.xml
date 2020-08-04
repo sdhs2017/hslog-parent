@@ -115,6 +115,7 @@
                     <include>**/**/*.xml</include>
                     -->
                     <include>**/*.xml</include>
+                    <include>**/*.xlsm</include>
                     <include>**/*.json</include>
                     <include>**/*.properties</include>
                     <include>*.properties</include>

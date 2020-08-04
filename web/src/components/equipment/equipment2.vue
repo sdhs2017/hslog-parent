@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">虚拟资产概览
+        <div class="top-title">资产管理
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
                     <el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
@@ -30,7 +30,7 @@
                         <span class="eq-name-span">{{i.name}}</span>
                         <span class="eq-t-span">{{i.type}}</span>
                     </div>
-                    <div class="eq-type"><i class="el-icon-data-line" title="查看资产指标统计" @click="equipmentDashboard(i)"></i></div>
+                    <div class="eq-type"><i class="el-icon-data-line" ></i></div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
                         <span class="eq-ip">{{i.ip}}</span>

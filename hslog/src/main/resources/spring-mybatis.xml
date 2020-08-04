@@ -722,7 +722,7 @@
 	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
-				<entry key="es_ip" value="192.168.2.181"/>
+				<entry key="es_ip" value="xxx.xxx.xxx.xxx"/>
 				<entry key="es_port" value="9200"/>
 				<entry key="es_user" value="elastic"/>
 				<entry key="es_password" value="hsdata.123"/>

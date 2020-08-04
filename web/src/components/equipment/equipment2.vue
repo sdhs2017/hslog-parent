@@ -280,6 +280,7 @@
 		    /*获取数据*/
             getData(searchObj,page){
                 this.$nextTick(()=>{
+                    this.selectEquipmentId = '';
                     this.loading = true;
                     let obj = searchObj;
                     obj.pageIndex = page;//当前页
@@ -511,8 +512,12 @@
                     vm.selectEquipment();
                     vm.c_page = 1;
                 }else {
-                    vm.getData(vm.searchConditions,1)
-                    vm.c_page = 1;
+                    if(vm.selectEquipmentId !== ''){
+                        vm.selectEquipment();
+                        vm.c_page = 1;
+                    }else{
+                        vm.getData(vm.searchConditions,vm.c_page)
+                    }
                 }
             })
         },

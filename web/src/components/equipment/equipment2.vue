@@ -4,7 +4,7 @@
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
                     <el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
-                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
+                    <el-button type="warning" size="mini" plain @click="importEquipment()">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                     <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
@@ -355,6 +355,17 @@
             /*跳转到所有资产报表*/
             goToAllEcharts(){
                 this.$router.push({path:'allEcharts'})
+            },
+            /*资产导入*/
+            importEquipment(){
+                layer.confirm('此功能适用于实施人员，请谨慎操作。', {
+                        btn: ['确定导入','取消'] //按钮
+                    }, (index)=> {
+                        layer.close(index);
+                        this.importState = true
+                    }, function(){
+                        layer.close();
+                    })
             },
             /*删除资产*/
             removeEquipment(){

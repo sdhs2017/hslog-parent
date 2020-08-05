@@ -1,14 +1,14 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">资产管理
+        <div class="top-title">资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
                     <el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
-                    <el-button type="warning" size="mini" plain @click="importState = true">资产导入</el-button>
+                    <el-button type="warning" size="mini" plain @click="importEquipment()">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                     <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
-<!--                    <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>-->
+                    <!--                    <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>-->
                 </div>
             </div>
         </div>
@@ -17,78 +17,78 @@
         </div>
         <div class="eq-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-checkbox-group v-model="checkList">
-            <ul class="eq-ul">
-                <li v-for="(i,index) in equipmentList"  :key="index"  class="eq-li" @mouseenter="liMouseenter($event)" @mouseleave="liMouseleave($event)" @>
-                    <div class="eq-tools-01">
-                        <i class="el-icon-edit " title="修改资产" @click="reviseEquipment(i)"></i>
-                        <span>
+                <ul class="eq-ul">
+                    <li v-for="(i,index) in equipmentList"  :key="index"  class="eq-li" @mouseenter="liMouseenter($event)" @mouseleave="liMouseleave($event)" @>
+                        <div class="eq-tools-01">
+                            <i class="el-icon-edit " title="修改资产" @click="reviseEquipment(i)"></i>
+                            <span>
                             今日: <b title="今日日志数">{{i.log_count}}</b>
                         </span>
-                        <el-checkbox :label="i.id"></el-checkbox>
-                    </div>
-                    <div class="eq-name">
-                        <span class="eq-name-span">{{i.name}}</span>
-                        <span class="eq-t-span">{{i.type}}</span>
-                    </div>
-                    <div class="eq-type"><i class="el-icon-data-line" ></i></div>
-                    <div class="eq-inf">
-                        <span class="eq-logtype">{{i.logType}}</span>
-                        <span class="eq-ip">{{i.ip}}</span>
-                        <span class="eq-more" @mouseenter="spanMouseenter($event)" @mouseleave="spanMouseleave($event)">
+                            <el-checkbox :label="i.id"></el-checkbox>
+                        </div>
+                        <div class="eq-name">
+                            <span class="eq-name-span">{{i.name}}</span>
+                            <span class="eq-t-span">{{i.type}}</span>
+                        </div>
+                        <div class="eq-type"><i class="el-icon-data-line"></i></div>
+                        <div class="eq-inf">
+                            <span class="eq-logtype">{{i.logType}}</span>
+                            <span class="eq-ip">{{i.ip}}</span>
+                            <span class="eq-more" @mouseenter="spanMouseenter($event)" @mouseleave="spanMouseleave($event)">
                             <i class="el-icon-arrow-right"></i>
                         </span>
-                        <ul class="inf-ul">
-                            <li class="inf-logtype">
-                                <div class="inf-tit">日志类型：</div>
-                                <div class="inf-val">{{i.logType}}</div>
-                            </li>
-                            <li class="inf-ip">
-                                <div class="inf-tit">IP地址：</div>
-                                <div class="inf-val">{{i.ip}}</div>
-                            </li>
-                            <li class="inf-hostname">
-                                <div class="inf-tit">主机名：</div>
-                                <div class="inf-val">{{i.hostName}}</div>
-                            </li>
-                            <li class="inf-type">
-                                <div class="inf-tit">资产类型：</div>
-                                <div class="inf-val">{{i.type}}</div>
-                            </li>
-                            <li class="inf-domain">
-                                <div class="inf-tit">根域名：</div>
-                                <div class="inf-val">{{i.domain}}</div>
-                            </li>
-                            <li class="inf-port">
-                                <div class="inf-tit">端口：</div>
-                                <div class="inf-val">{{i.port}}</div>
-                            </li>
-                            <li class="inf-iswork">
-                                <div class="inf-tit">是否启用：</div>
-                                <div class="inf-val">{{i.startUp == '1' ? '是' : '否'}}</div>
-                            </li>
-                            <li class="inf-starttime">
-                                <div class="inf-tit">创建时间：</div>
-                                <div class="inf-val">{{i.createTime}}</div>
-                            </li>
-                            <li class="inf-updatetime">
-                                <div class="inf-tit">更新时间：</div>
-                                <div class="inf-val">{{i.updateTime}}</div>
-                            </li>
-                            <li class="inf-endtime">
-                                <div class="inf-tit">停用时间：</div>
-                                <div class="inf-val">{{i.endTime}}</div>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="eq-tools-02">
-                        <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>
-                        <i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i>
-                        <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
-                        <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
-                        <i class="el-icon-view" title="潜在威胁分析" :style="{color:i.high_risk !== 0 ? '#f55446' : i.moderate_risk !== 0 ? '#f1ae09' : '#4995bb'}" @click="theartAnalyse(i)"></i>
-                    </div>
-                </li>
-            </ul>
+                            <ul class="inf-ul">
+                                <li class="inf-logtype">
+                                    <div class="inf-tit">日志类型：</div>
+                                    <div class="inf-val">{{i.logType}}</div>
+                                </li>
+                                <li class="inf-ip">
+                                    <div class="inf-tit">IP地址：</div>
+                                    <div class="inf-val">{{i.ip}}</div>
+                                </li>
+                                <li class="inf-hostname">
+                                    <div class="inf-tit">主机名：</div>
+                                    <div class="inf-val">{{i.hostName}}</div>
+                                </li>
+                                <li class="inf-type">
+                                    <div class="inf-tit">资产类型：</div>
+                                    <div class="inf-val">{{i.type}}</div>
+                                </li>
+                                <li class="inf-domain">
+                                    <div class="inf-tit">根域名：</div>
+                                    <div class="inf-val">{{i.domain}}</div>
+                                </li>
+                                <li class="inf-port">
+                                    <div class="inf-tit">端口：</div>
+                                    <div class="inf-val">{{i.port}}</div>
+                                </li>
+                                <li class="inf-iswork">
+                                    <div class="inf-tit">是否启用：</div>
+                                    <div class="inf-val">{{i.startUp == '1' ? '是' : '否'}}</div>
+                                </li>
+                                <li class="inf-starttime">
+                                    <div class="inf-tit">创建时间：</div>
+                                    <div class="inf-val">{{i.createTime}}</div>
+                                </li>
+                                <li class="inf-updatetime">
+                                    <div class="inf-tit">更新时间：</div>
+                                    <div class="inf-val">{{i.updateTime}}</div>
+                                </li>
+                                <li class="inf-endtime">
+                                    <div class="inf-tit">停用时间：</div>
+                                    <div class="inf-val">{{i.endTime}}</div>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="eq-tools-02">
+                            <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>
+                            <i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+                            <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
+                            <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
+                            <i class="el-icon-view" title="潜在威胁分析" :style="{color:i.high_risk !== 0 ? '#f55446' : i.moderate_risk !== 0 ? '#f1ae09' : '#4995bb'}" @click="theartAnalyse(i)"></i>
+                        </div>
+                    </li>
+                </ul>
             </el-checkbox-group>
         </div>
         <div class="equipment-table-page">
@@ -115,7 +115,7 @@
             </div>
         </el-dialog>
     </div>
-    
+
 </template>
 
 <script>
@@ -123,18 +123,18 @@
     import bus from '../common/bus';
     import {jumpHtml} from "../../../static/js/common";
     export default {
-		name: "device2",
-		data() {
-			return {
+        name: "device2",
+        data() {
+            return {
                 backState:false,//导入结果状态框显示与否
                 backStateObj:{
                     text:'',
                     state:'false'
                 },//结果状态参数集合
                 importState:false,//导入框状态
-			    loading:false,
+                loading:false,
                 checkList:[],
-			    zzIndex:-2,
+                zzIndex:-2,
                 busName:'searchEquipment2',
                 size:15,
                 c_page:1,
@@ -152,7 +152,7 @@
                 equipmentList:[],
                 formConditionsArr:[]
             }
-		},
+        },
         created(){
             //获取日志类型数据
             this.getLogType();
@@ -277,7 +277,7 @@
                         })
                 })
             },
-		    /*获取数据*/
+            /*获取数据*/
             getData(searchObj,page){
                 this.$nextTick(()=>{
                     this.selectEquipmentId = '';
@@ -295,14 +295,14 @@
                             //判断资产类型是否已经加载
                             this.getEquipmentType(data);
 
-/*                            this.$nextTick(()=>{
-                                $(".tools-more").wheelmenu({
-                                    trigger: "hover",
-                                    animation: "fly",
-                                    animationSpeed: "fast",
-                                    angle: "all",
-                                });
-                            })*/
+                            /*                            this.$nextTick(()=>{
+                                                            $(".tools-more").wheelmenu({
+                                                                trigger: "hover",
+                                                                animation: "fly",
+                                                                animationSpeed: "fast",
+                                                                angle: "all",
+                                                            });
+                                                        })*/
 
                         })
                         .catch(err=>{
@@ -346,7 +346,7 @@
                 //获取数据
                 this.getData(this.saveCondition,page);
                 //改变标识
-               // this.firstGetData = false;
+                // this.firstGetData = false;
             },
             /*跳转到添加资产页面*/
             goToAddEquipment(){
@@ -355,6 +355,17 @@
             /*跳转到所有资产报表*/
             goToAllEcharts(){
                 this.$router.push({path:'allEcharts'})
+            },
+            /*资产导入*/
+            importEquipment(){
+                layer.confirm('此功能适用于实施人员，请谨慎操作。', {
+                    btn: ['确定导入','取消'] //按钮
+                }, (index)=> {
+                    layer.close(index);
+                    this.importState = true
+                }, function(){
+                    layer.close();
+                })
             },
             /*删除资产*/
             removeEquipment(){
@@ -484,12 +495,12 @@
                                         state:obj.success,
                                         text:obj.message
                                     }
-                            /*
-                                    if(res.success === 'true'){
-                                        layer.msg(res.message,{icon:1})
-                                    }else if(res.success === 'false'){
-                                        layer.msg(res.message,{icon:5})
-                                    }*/
+                                    /*
+                                            if(res.success === 'true'){
+                                                layer.msg(res.message,{icon:1})
+                                            }else if(res.success === 'false'){
+                                                layer.msg(res.message,{icon:5})
+                                            }*/
                                 },
                                 error:function(data){
                                     layer.msg("导入失败",{icon: 5});
@@ -524,7 +535,7 @@
         components:{
             vSearchForm
         }
-	}
+    }
 </script>
 
 <style scoped>
@@ -678,8 +689,8 @@
         font-weight: 600;
         right: 22px;
         top: -25px;
-   /*     font-size: 12px;
-        color: #fff;*/
+        /*     font-size: 12px;
+             color: #fff;*/
         background: #2f455c;
         border: 5px solid #376995;
         overflow: hidden;

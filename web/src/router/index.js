@@ -132,7 +132,7 @@ export default new Router({
                     path: '/equipment2',
                     name:'equipment2',
                     component: resolve => require(['../components/equipment/equipment2.vue'], resolve),
-                    meta: { title: '资产管理' }
+                    meta: { title: '资产概览' }
                 },
                 {
                     path: '/allEquipmentMonitor',

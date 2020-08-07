@@ -190,7 +190,7 @@
 
             ]
             //鼠标拖选
-            this.mouseSelectText();
+            //this.mouseSelectText();
         },
         methods:{
             /*获取资产信息*/

@@ -743,6 +743,9 @@
 		<constructor-arg ref="elasticsearch5"/>
 		&lt;!&ndash;<constructor-arg value="article"/>&ndash;&gt;
 	</bean>-->
+	<bean id="BulkTemplate_BulkProcessor" class="com.hs.elsearch.template.BulkTemplate_BulkProcessor">
+		<constructor-arg ref="elasticsearch"/>
+	</bean>
 
 	<bean id="searchTemplate" class="com.hs.elsearch.template.SearchTemplate">
 		<constructor-arg ref="elasticsearch"/>

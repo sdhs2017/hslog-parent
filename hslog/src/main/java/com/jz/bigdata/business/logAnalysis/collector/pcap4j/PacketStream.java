@@ -17,6 +17,7 @@ import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.pcap4j.core.PcapPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
@@ -53,10 +54,12 @@ public class PacketStream {
 	private HashMap<String,LinkedList<TcpPacket>> ackRecvBuffer=new HashMap<String,LinkedList<TcpPacket>>();
 
 	//BulkRequest requests ;
-	List<IndexRequest> requests;
+	//List<IndexRequest> requests;
+	IndexRequest request;
+
 	Cache<Long, Http> httpCache;
 	
-	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap, Cache<Long, Http> httpCache)
+	/*public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,List<IndexRequest> requests,Set<String> domainSet,Map<String, String> urlmap, Cache<Long, Http> httpCache)
 	{
 		this.configProperty = configProperty;
 		this.logCurdDao = logCurdDao;
@@ -65,6 +68,20 @@ public class PacketStream {
 		this.domainSet = domainSet;
 		this.urlmap = urlmap;
 		this.httpCache = httpCache;
+	}*/
+
+	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,IndexRequest request,Set<String> domainSet,Map<String, String> urlmap, Cache<Long, Http> httpCache)
+	{
+		this.configProperty = configProperty;
+		this.logCurdDao = logCurdDao;
+		this.gson = gson;
+		this.request = request;
+		this.domainSet = domainSet;
+		this.urlmap = urlmap;
+		this.httpCache = httpCache;
+		// 初始化bulkprocessor参数
+		Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+		logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),1);
 	}
 	
 	
@@ -129,13 +146,19 @@ public class PacketStream {
 
 									// request数据入库
 									json = gson.toJson(httprequest);
-									requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+									//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+									request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
+									request.source(json, XContentType.JSON);
+									logCurdDao.bulkProcessor_add(request);
 								}else{
 								    http.setFlag("unmatched");
                                 }
                                 // response数据入库
 								json = gson.toJson(http);
-								requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+								//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+								request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
+								request.source(json, XContentType.JSON);
+								logCurdDao.bulkProcessor_add(request);
 							}
 
 
@@ -157,7 +180,10 @@ public class PacketStream {
 						json = gson.toJson(defaultpacket);
 						//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
 						//requests.add(logCurdDao.insertNotCommit(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-						requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+						//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+						request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()));
+						request.source(json, XContentType.JSON);
+						logCurdDao.bulkProcessor_add(request);
 					}
 				}
 				
@@ -169,10 +195,13 @@ public class PacketStream {
 				}
 				json = gson.toJson(defaultpacket);
 				//requests.add(clientTemplate.insertNo(index, LogType.LOGTYPE_DEFAULTPACKET, json));
-				requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+				//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+				request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()));
+				request.source(json, XContentType.JSON);
+				logCurdDao.bulkProcessor_add(request);
 			}
 
-			Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+			/*Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
 			if (requests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
 				try {
 					logCurdDao.bulkInsert(requests);
@@ -183,7 +212,7 @@ public class PacketStream {
 					e.printStackTrace();
 				}
 				
-			}
+			}*/
 		} catch (NumberFormatException ee){
             defaultpacket = new DefaultPacket(packet);
             defaultpacket.setHslog_type(LogType.LOGTYPE_DEFAULTPACKET);
@@ -193,7 +222,7 @@ public class PacketStream {
             }
             json = gson.toJson(defaultpacket);
             logger.error(json);
-            try {
+            /*try {
             	System.out.println("异常数据，提示requests size:" + requests.size());
                 requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
                 logCurdDao.bulkInsert(requests);
@@ -201,7 +230,7 @@ public class PacketStream {
                 System.out.println("异常数据采集后提交，提示requests size:" + requests.size());
             } catch (Exception e) {
                 e.printStackTrace();
-            }
+            }*/
             ee.printStackTrace();
         } catch (Exception e) {
 			//logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());

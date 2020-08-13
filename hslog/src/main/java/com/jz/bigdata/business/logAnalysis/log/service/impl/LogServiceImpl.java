@@ -113,6 +113,11 @@ public class LogServiceImpl implements IlogService {
 	}
 
 	@Override
+	public void bulkProcessor_init(int bulkActions,int concurrentRequests) {
+		logCrudDao.bulkProcessor_init(bulkActions,concurrentRequests);
+	}
+
+	@Override
 	public List<Map<String, Object>> groupBy(String index, String[] types, String groupByField, int size, String starttime,
 											 String endtime, Map<String, String> termsmap) throws Exception {
 

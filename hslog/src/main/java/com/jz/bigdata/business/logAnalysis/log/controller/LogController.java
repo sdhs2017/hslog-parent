@@ -104,7 +104,18 @@ public class LogController extends BaseController{
 		this.exportProcess = exportProcess;
 	}
 
-
+	/**
+	 * 修改bulkProcessor参数
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping("/bulkProcessor_init")
+	@DescribeLog(describe="修改bulkProcessor参数")
+	public void bulkProcessor_init(HttpServletRequest request) {
+		String bulkActions = request.getParameter("bulkActions");
+		String concurrentRequests = request.getParameter("concurrentRequests");
+		logService.bulkProcessor_init(Integer.valueOf(bulkActions),Integer.valueOf(concurrentRequests));
+	}
 	/**
 	 * @param request
 	 * @return 获取索引数据ById

@@ -26,6 +26,7 @@ import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
@@ -311,6 +312,7 @@ public class CollectorServiceImpl implements ICollectorService{
 		Map<String, Object> map = new HashMap<>();
 		// elasticsearch批量提交缓存区
 		List<IndexRequest> requests = Collections.synchronizedList(new ArrayList<IndexRequest>());
+		IndexRequest request =new IndexRequest();
 		// 针对javabean中date类型的格式转化
 		Gson gson = new GsonBuilder()
 				.setDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -349,12 +351,15 @@ public class CollectorServiceImpl implements ICollectorService{
 					}else if ("EXPIRED".equals(cause)||"SIZE".equals(cause)){
 					    http.setFlag("unmatched");
 					    // 过期的request数据入库
-						String json = gson.toJson(http);
+						/*String json = gson.toJson(http);
 						try {
-							requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+							//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
+							*//*request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
+							request.source(json, XContentType.JSON);
+							logCurdDao.bulkProcessor_add(request);*//*
 						} catch (Exception e) {
 							e.printStackTrace();
-						}
+						}*/
 					}
 
 				})
@@ -408,7 +413,8 @@ public class CollectorServiceImpl implements ICollectorService{
         	public void gotPacket(PcapPacket packet) {
         		try {
         			//packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
-        			packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap,httpCache);
+        			//packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap,httpCache);
+        			packetStream = new PacketStream(configProperty,logCurdDao,gson,request,domainSet,urlmap,httpCache);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
 					logger.error("new PacketStream-------报错信息:"+e.getMessage());

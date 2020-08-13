@@ -1,6 +1,7 @@
 package com.hs.elsearch.dao.logDao.impl;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.hs.elsearch.template.BulkTemplate_BulkProcessor;
 import com.hs.elsearch.template.CrudTemplate;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -24,6 +25,9 @@ public class LogCurdDaoImpl implements ILogCrudDao {
     @Autowired
     CrudTemplate crudTemplate;
 
+    @Autowired
+    BulkTemplate_BulkProcessor bulkTemplate_bulkProcessor;
+
     SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 
@@ -40,6 +44,16 @@ public class LogCurdDaoImpl implements ILogCrudDao {
     @Override
     public void bulkInsert(BulkRequest bulkRequest) throws Exception {
         crudTemplate.bulkInsert(bulkRequest);
+    }
+
+    @Override
+    public void bulkProcessor_init(int bulkActions, int concurrentRequests) {
+        bulkTemplate_bulkProcessor.init(bulkActions,concurrentRequests);
+    }
+
+    @Override
+    public void bulkProcessor_add(IndexRequest request) {
+        bulkTemplate_bulkProcessor.insert(request);
     }
 
     @Override

@@ -28,6 +28,13 @@ public interface IlogService {
 	 */
 	public void createIndex(String index) throws Exception;
 
+
+	/**
+	 * 创建elasticsearch的index
+	 * @param index 索引名称
+	 */
+	public void bulkProcessor_init(int bulkActions,int concurrentRequests);
+
 	/**
 	 * 判断index是否存在
 	 * @param index 索引名称

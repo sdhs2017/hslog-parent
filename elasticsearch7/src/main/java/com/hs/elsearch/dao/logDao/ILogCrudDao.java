@@ -33,6 +33,18 @@ public interface ILogCrudDao {
     public void bulkInsert(BulkRequest bulkRequest) throws Exception;
 
     /**
+     * 初始化bulkprocessor参数
+     * @param  bulkActions
+     * @param  concurrentRequests
+     */
+    public void bulkProcessor_init(int bulkActions,int concurrentRequests);
+    /**
+     * 批量提交
+     * @param  request
+     */
+    public void bulkProcessor_add(IndexRequest request);
+
+    /**
      * 添加单条数据
      * @param index 索引名称
      * @param type index 的type字段，7版本移除

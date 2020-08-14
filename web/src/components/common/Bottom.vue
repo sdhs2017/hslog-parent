@@ -217,7 +217,7 @@
                                         this.sysThresholdValue = arr[i].configuration_value
                                     }else if(arr[i].configuration_key === 'es_bulk'){//数据采集
                                         this.es_bulk = arr[i].configuration_value
-                                    }else if(arr[i].concurrent_requests === 'es_bulk'){//数据采集
+                                    }else if(arr[i].configuration_key === 'concurrent_requests'){//并发采集数
                                         this.concurrent_requests = arr[i].configuration_value
                                     }
                                 }

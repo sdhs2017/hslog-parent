@@ -26,6 +26,11 @@
                 </el-form-item>
             </el-form>
             <p  style="color: #e4956d;">注：阈值修改会影响数据采集，请慎重选择。</p>
+            <el-form ref="form" label-width="120px" label-position="left" style="border-top: 1px solid #485b71;margin-top: 10px;padding-top: 10px;">
+                <el-form-item label="并发采集数">
+                    <el-input v-model="concurrent_requests" size="mini" type="number" min="1"></el-input>
+                </el-form-item>
+            </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="okBtn">确 定</el-button>
                 <el-button @click="diskUsedState = false">取 消</el-button>
@@ -82,7 +87,8 @@
         data(){
             return{
                 loading:false,
-                es_bulk:1,
+                es_bulk:1,//数据批量采集
+                concurrent_requests:'',//并发采集数
                 thresholdText:'状态获取中',
                 editIpWapper:false,//修改IP 状态
                 changeIpObj:{ //ip参数
@@ -211,6 +217,8 @@
                                         this.sysThresholdValue = arr[i].configuration_value
                                     }else if(arr[i].configuration_key === 'es_bulk'){//数据采集
                                         this.es_bulk = arr[i].configuration_value
+                                    }else if(arr[i].concurrent_requests === 'es_bulk'){//数据采集
+                                        this.concurrent_requests = arr[i].configuration_value
                                     }
                                 }
                                 //获取磁盘数据
@@ -230,6 +238,7 @@
                     layer.load(1);
                     this.$axios.post(this.$baseUrl+'/configuration/update.do',this.$qs.stringify({
                         es_bulk:this.es_bulk,
+                        concurrent_requests:this.concurrent_requests,
                         disk_system_watermark:this.sysThresholdValue,
                         disk_data_watermark:this.dataThresholdValue
 

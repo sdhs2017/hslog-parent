@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 
 import com.alibaba.fastjson.JSON;
+import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
@@ -17,8 +18,6 @@ import com.jz.bigdata.roleauthority.user.service.IUserService;
 import joptsimple.internal.Strings;
 import org.elasticsearch.action.index.IndexRequest;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
@@ -153,7 +152,7 @@ public class KafkaCollector implements Runnable {
 	DNS dns;
 	DHCP dhcp;
 	App_file app_file;
-	LogstashSyslog logstashSyslog;
+	//LogstashSyslog logstashSyslog;
 
 	/**
 	 *
@@ -222,7 +221,8 @@ public class KafkaCollector implements Runnable {
 				keyDecoder, valueDecoder);
 
 		Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
-		logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),1);
+		Object concurrent_requests = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("concurrent_requests");
+		logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),Integer.parseInt(concurrent_requests.toString()));
 		
 	}
 
@@ -303,8 +303,9 @@ public class KafkaCollector implements Runnable {
 				IndexRequest request = new IndexRequest();
 
 				StringBuilder builder = new StringBuilder();
+				int count=0;
 				while (it.hasNext() && isStarted()) {
-					String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+					//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 
 					String log = it.next().message();
 
@@ -343,79 +344,80 @@ public class KafkaCollector implements Runnable {
 					if(logstashSyslogMatcher.find()){
 						logType = LogType.LOGTYPE_SYSLOG;
 						try{
-							logstashSyslog = (LogstashSyslog) JSON.parseObject(log, LogstashSyslog.class);
+							/**
+							 * 将采集到的log转为jsonObject格式
+							 */
+							JsonElement jsonElement = new JsonParser().parse(log);
+							JsonObject jsonObject= jsonElement.getAsJsonObject();
+							//-----转成ecs
+							Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
 							/**
 							 * 判断tags确认logstash对syslog的日志范式化是否成功
 							 */
-							if (logstashSyslog.getTags()!=null&&logstashSyslog.getTags().toString().contains("failure")){
-								logstashSyslog.setFailure(true);
-								// 将范式化失败后的无意义其他字段设置为null
-								logstashSyslog.setFacility(null);
-								logstashSyslog.setSeverity(null);
-								logstashSyslog.setFacility_label(null);
-								logstashSyslog.setSeverity_name(null);
-								logstashSyslog.setPriority(null);
+							//TODO 在logstash端处理
+							if (jsonObject.get("tags")!=null&&jsonObject.get("tags").toString().contains("failure")){
+								logstash2ECS.getFields().setFailure(true);
 							}else{
-								logstashSyslog.setFailure(false);
+								logstash2ECS.getFields().setFailure(false);
 							}
-							ipadress = logstashSyslog.getHost().toString();
 
+							//获取ip
+							ipadress = jsonObject.get("host")==null?"":jsonObject.get("host").getAsString();
 							//如果IP在逻辑资产列表中，加上逻辑资产标签
 							asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
 							if(asset!=null){
-								logstashSyslog.setAssetname(asset.getName());
-								logstashSyslog.setAssetid(asset.getId());
+								logstash2ECS.getFields().setAssetname(asset.getName());
+								logstash2ECS.getFields().setAssetid(asset.getId());
 							}
 							//IP是否在虚拟资产中
 							if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
 								equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress+logType);
 								if (equipment!=null) {
-									logstashSyslog.setUserid(equipment.getUserId());
-									logstashSyslog.setDeptid(String.valueOf(equipment.getDepartmentId()));
-									logstashSyslog.setEquipmentname(equipment.getName());
-									logstashSyslog.setEquipmentid(equipment.getId());
-									logstashSyslog.setIp(equipment.getIp());
+									logstash2ECS.getFields().setUserid(equipment.getUserId());
+									logstash2ECS.getFields().setDeptid(String.valueOf(equipment.getDepartmentId()));
+									logstash2ECS.getFields().setEquipmentname(equipment.getName());
+									logstash2ECS.getFields().setEquipmentid(equipment.getId());
+									logstash2ECS.getFields().setIp(equipment.getIp());
 								}else{
-									logstashSyslog.setUserid(LogType.LOGTYPE_UNKNOWN);
-									logstashSyslog.setDeptid(LogType.LOGTYPE_UNKNOWN);
-									logstashSyslog.setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-									logstashSyslog.setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-									//logstashSyslog.setIp(LogType.LOGTYPE_UNKNOWN);
+									logstash2ECS.getFields().setUserid(LogType.LOGTYPE_UNKNOWN);
+									logstash2ECS.getFields().setDeptid(LogType.LOGTYPE_UNKNOWN);
+									logstash2ECS.getFields().setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+									logstash2ECS.getFields().setEquipmentid(LogType.LOGTYPE_UNKNOWN);
 								}
-								Logstash2ECS logstash2ECS = new Logstash2ECS().build(logstashSyslog);
-								//json = new Logstash2ECS().toJson(logstashSyslog);
-								dateTime = DateTime.parse(logstashSyslog.getTimestamp().toString(), dtf);
+
+								if(logstash2ECS.getTimestamp()!=null){
+									dateTime = DateTime.parse(logstash2ECS.getTimestamp().toString(), dtf);
+								}else{
+									dateTime = DateTime.now();
+								}
+
 
 								// TODO 后期需要把module字段补全到资产信息中，nodule数据将不再从日志数据中获取
 								// 判断syslog的module是否为空，不为空的情况下索引名称拼接module字段信息
-								if(logstashSyslog.getModule()!=null&&!Strings.isNullOrEmpty(logstashSyslog.getModule().toString())){
-									logstashIndexName = "winlogbeat-"+logstashSyslog.getModule().toString()+"-"+ dateTime.toString("yyyy.MM.dd");
+								Object module = jsonObject.get("module");
+								if(module!=null&&!Strings.isNullOrEmpty(module.toString())){
+									logstashIndexName = "winlogbeat-"+module.toString()+"-"+ dateTime.toString("yyyy.MM.dd");
 								}else {
 									// module信息为空的情况下使用标准索引名称
 									logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
 								}
 								//日志级别
 								Object severityName = logstash2ECS.getLog().getSyslog().getSeverity().getName();
-								//json = logstash2ECS.toJson();
 								//如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
 								if(severityName==null||(severityName!=null&&"".equals(severityName.toString()))){
-									//newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, logstash2ECS.toJson()));
 									// 将bulkrequest替换为bulkprocessor方式
 									request.index(logstashIndexName);
-									request.source(logstash2ECS.toJson(), XContentType.JSON);
+									request.source(gson.toJson(logstash2ECS), XContentType.JSON);
 									logCurdDao.bulkProcessor_add(request);
 								}else{
 									// 判定应收集的日志级别，通过日志级别进行日志过滤
 									if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1) {
-										//newrequests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(logstashIndexName, null, null), LogType.LOGTYPE_SYSLOG, logstash2ECS.toJson()));
 										request.index(logstashIndexName);
-										request.source(logstash2ECS.toJson(), XContentType.JSON);
+										request.source(gson.toJson(logstash2ECS), XContentType.JSON);
 										logCurdDao.bulkProcessor_add(request);
 									}
 								}
-
 							}
-
 						}catch (Exception e){
 							e.printStackTrace();
 							logger.error("范式化失败 ，日志内容："+builder.toString());
@@ -836,13 +838,6 @@ public class KafkaCollector implements Runnable {
 							syslog = new Syslog(log);
 							syslog.setHslog_type(logType);
 							ipadress = syslog.getIp();
-							//如果IP在逻辑资产列表中，加上逻辑资产标签
-							asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
-							if(asset!=null){
-								logstashSyslog.setAssetname(asset.getName());
-								logstashSyslog.setAssetid(asset.getId());
-							}
-							//IP是否在虚拟资产中
 							//判断是否在资产ip地址池里
 							if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
 								//判断是否在已识别资产里————日志类型可识别
@@ -892,17 +887,21 @@ public class KafkaCollector implements Runnable {
 						}
 
 					}
-
 				/*if (requests.size()==configProperty.getEs_bulk()) {
 					template.bulk(requests);
 					requests.clear();
 				}*/
-					Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+					/*Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
 					if (newrequests.size()>= (es_bulk!=null?Integer.parseInt(es_bulk.toString()):0)) {
 						logCurdDao.bulkInsert(newrequests);
 						newrequests.clear();
-					}
+					}*/
+					if(count==10000){
+						System.out.println("--------"+ DateTime.now());
 
+						count=0;
+					}
+					count++;
 
 					// Thread.sleep(2000);
 				}

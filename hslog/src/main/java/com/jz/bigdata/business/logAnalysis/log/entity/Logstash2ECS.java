@@ -2,7 +2,14 @@ package com.jz.bigdata.business.logAnalysis.log.entity;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.annotation.JSONField;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import com.jz.bigdata.util.Pattern_Matcher;
+import com.mysql.jdbc.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import scala.Int;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +32,7 @@ public class Logstash2ECS {
     private Host host;
     private Event event;
     private Log log;
+    @SerializedName("@timestamp")
     private Object timestamp;
     private Winlog winlog;
     private Fields fields;
@@ -455,6 +463,128 @@ public class Logstash2ECS {
         fields.setFailure(logstashSyslog.getFailure());
         fields.setAssetid(logstashSyslog.getAssetid());
         fields.setAssetname(logstashSyslog.getAssetname());
+        this.setFields(fields);
+        return this;
+        //return JSON.toJSON(this).toString();
+    }
+    public Logstash2ECS build(JsonObject jsonObject){
+
+        //log.level
+        Log log = new Log();
+        //处理日志级别
+
+        String severityCode = jsonObject.get("severity")==null?"":jsonObject.get("severity").getAsString();//编号
+        String severityName = NumberUtils.isNumber(severityCode)?Severity.get(Integer.parseInt(severityCode)):"";//名称
+        log.setLevel(severityName);
+
+        //log.syslog
+        Logstash2ECS.Syslog syslog = new Logstash2ECS.Syslog();
+        //log.syslog.severity
+        Severity severity = new Severity();
+        severity.setCode(severityCode);//log.syslog.severity.code
+        severity.setName(severityName); //log.syslog.severity.name
+        syslog.setSeverity(severity);
+        //log.syslog.facility
+        Facility facility = new Facility();
+        facility.setCode(jsonObject.get("facility")==null?"":jsonObject.get("facility").getAsString());//log.syslog.facility.code
+        facility.setName(jsonObject.get("facility_label")==null?"":jsonObject.get("facility_label").getAsString());//log.syslog.facility.name
+        syslog.setFacility(facility);
+        //log.syslog.priority
+        syslog.setPriority(jsonObject.get("priority")==null?"":jsonObject.get("priority").getAsString());
+        log.setSyslog(syslog);
+        this.setLog(log);
+        //message
+        String message =jsonObject.get("message").getAsString();
+        this.setMessage(message);
+        //agent.type
+        Agent agent = new Agent();
+
+        if(jsonObject.get("type")!=null){
+            agent.setType("system-syslog".equals(jsonObject.get("type").getAsString())?"syslog":jsonObject.get("type").getAsString());
+        }else{
+            //不做处理
+        }
+        this.setAgent(agent);
+        //host.hostname
+        Host host = new Host();
+        host.setHostname(jsonObject.get("logsource")==null?"":jsonObject.get("logsource").getAsString());
+        this.setHost(host);
+        //event
+        Event event = new Event();
+        // event.kind
+        event.setKind(jsonObject.get("program")==null?"":jsonObject.get("program").getAsString());
+        //event.action&action_cn 事件类别及描述
+        if(Pattern_Matcher.isMatched(message,"shutdown\\s+")){
+            event.setAction("poweroff");
+            event.setAction_cn("主机关机");
+        }
+        if(Pattern_Matcher.isMatched(message,"Failed\\s+password\\s+for\\s+invalid\\s+user\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+[0-9]{1,5}\\s+ssh2")){
+            event.setAction("ssh failed");
+            event.setAction_cn("ssh登录失败");
+        }
+        if(Pattern_Matcher.isMatched(message,"NetworkManager")){
+            event.setAction("NetworkManager");
+            event.setAction_cn("网络服务");
+        }
+        if(Pattern_Matcher.isMatched(message,"usb")){
+            event.setAction("usb");
+            event.setAction_cn("usb外接");
+        }
+        if(Pattern_Matcher.isMatched(message,"Accepted password for (.*?) from (\\d+\\.\\d+\\.\\d+\\.\\d+) port [0-9]{1,5} ssh2")){
+            event.setAction("sshd");
+            event.setAction_cn("通过ssh方式进行操作");
+        }
+        if(Pattern_Matcher.isMatched(message,"systemd-logind")){
+            event.setAction("login");
+            event.setAction_cn("用户登录");
+        }
+        if(Pattern_Matcher.isMatched(message,"su:")){
+            event.setAction("su");
+            event.setAction_cn("通过su方式登录");
+        }
+        if(Pattern_Matcher.isMatched(message,"Starting Session")||Pattern_Matcher.isMatched(message.toString(),"session opened")){
+            event.setAction("session");
+            event.setAction_cn("开启新的会话窗口");
+        }
+        if(Pattern_Matcher.isMatched(message,"rsyslogd")){
+            event.setAction("rsyslogd");
+            event.setAction_cn("rsyslog自身日志");
+        }
+        if(Pattern_Matcher.isMatched(message,"kernel: pci")){
+            event.setAction("pci");
+            event.setAction_cn("pci日志");
+        }
+        if(Pattern_Matcher.isMatched(message,"kernel: pci_bus")){
+            event.setAction("pci_bus");
+            event.setAction_cn("pci_bus日志");
+        }
+        if(Pattern_Matcher.isMatched(message,"kernel: ACPI")){
+            event.setAction("ACPI");
+            event.setAction_cn("ACPI日志");
+        }
+        if(Pattern_Matcher.isMatched(message,"kernel: PM")){
+            event.setAction("PM");
+            event.setAction_cn("PM日志");
+        }
+        if(Pattern_Matcher.isMatched(message,"kernel: SRAT")){
+            event.setAction("SRAT");
+            event.setAction_cn("SRAT日志");
+        }
+        if(Pattern_Matcher.isMatched(message,"CROND")){
+            event.setAction("crond");
+            event.setAction_cn("定时任务");
+        }
+        this.setEvent(event);
+        //@timestamp
+        this.setTimestamp(jsonObject.get("@timestamp")==null?"":jsonObject.get("@timestamp").getAsString());
+        //winlog. process.pid
+        Winlog winlog = new Winlog();
+        Process process = new Process();
+        process.setPid(jsonObject.get("pid")==null?"":jsonObject.get("pid").getAsString());
+        winlog.setProcess(process);
+        this.setWinlog(winlog);
+        //fields 自定义字段，数据在外层进行标记
+        Fields fields = new Fields();
         this.setFields(fields);
         return this;
         //return JSON.toJSON(this).toString();

@@ -53,7 +53,7 @@ public class LogCurdDaoImpl implements ILogCrudDao {
 
     @Override
     public void bulkProcessor_add(IndexRequest request) {
-        bulkTemplate_bulkProcessor.insert(request);
+        bulkTemplate_bulkProcessor.add(request);
     }
 
     @Override

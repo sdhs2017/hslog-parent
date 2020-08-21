@@ -310,14 +310,14 @@
             this.defaultValPie.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
 
             this.defaultValLine.starttime= dateFormat('yyyy-mm-dd',end)+ ' 00:00:00';
-            this.defaultValLine.endtime = dateFormat('yyyy-mm-dd',end)+ ' 23:59:59';
+            this.defaultValLine.endtime = dateFormat('yyyy-mm-dd HH:MM:SS',end);
             this.barParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
             this.barParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
             this.pieParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
             this.pieParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
 
             this.lineParam.starttime= dateFormat('yyyy-mm-dd',end)+ ' 00:00:00';
-            this.lineParam.endtime = dateFormat('yyyy-mm-dd',end)+ ' 23:59:59';
+            this.lineParam.endtime = dateFormat('yyyy-mm-dd HH:MM:SS',end);
             /*监听日期改变*/
             bus.$on('changeDateBar',(obj)=>{
                 //设置参数对应

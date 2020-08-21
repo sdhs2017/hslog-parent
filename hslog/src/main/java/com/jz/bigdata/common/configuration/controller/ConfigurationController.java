@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.configuration.controller;
 
+import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import net.sf.json.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -42,6 +43,8 @@ public class ConfigurationController {
 
     @Resource(name = "ConfigurationService")
     private IConfigurationService configurationService;
+    @Resource(name="logService")
+    private IlogService logService;
 
     @ResponseBody
     @RequestMapping(value="/update.do", produces = "application/json; charset=utf-8")
@@ -50,15 +53,20 @@ public class ConfigurationController {
         //参数处理
         Map<String, String[]> params = request.getParameterMap();
         List<Configuration> list = new ArrayList<>();
+        //批量参数的处理
         for(Map.Entry<String,String[]> entity:params.entrySet()){
             Configuration configuration = new Configuration();
             configuration.setConfiguration_key(entity.getKey());
-            configuration.setConfiguration_value(entity.getValue()[0]);
+            configuration.setConfiguration_value(entity.getValue()[0]);//默认只取第一个的值
             list.add(configuration);
         }
         try{
             int result = configurationService.update(list);
             ConfigurationCache.INSTANCE.init(configurationService);//更新缓存
+            //重新初始化es的bulk_processer
+            if(request.getParameter("es_bulk")!=null&&request.getParameter("concurrent_requests")!=null){
+                logService.bulkProcessor_init(Integer.valueOf(request.getParameter("es_bulk")),Integer.valueOf(request.getParameter("concurrent_requests")));
+            }
             if(result>0){
                 return Constant.successMessage();
             }else{

@@ -19,6 +19,7 @@ import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
+import com.jz.bigdata.util.CSVUtil;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -348,6 +349,8 @@ public class BIServiceImpl implements IBIService {
         Map<String, Object> dataSet = searchService.getMultiAggDataSetWithZeroFill(conditions);
         //数据处理
         handleLastPoints4DateHistogram(conditions,dataSet);
+        //TransforDataToFile(dataSet);
+        //TransforDataToFile_Basic(dataSet);
         return dataSet;
     }
 
@@ -440,6 +443,93 @@ public class BIServiceImpl implements IBIService {
         dataPoint.put("value",pointValue);
         tempResult.add(dataPoint);
         return pointValue;
+    }
+
+    /**
+     * 将查询出的数据导出为可供机器学习使用的csv文件
+     * 源数据要求：指标类数据统计为累加的过程，需要通过相减获取其增加值
+     * 生成的csv文件格式：第一列为时间，第2-n列为数据
+     * @return
+     */
+    private String TransforDataToFile(Map<String, Object> dataSet){
+        //定义表头
+        List<String> head = new ArrayList<>();
+        //数据
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        //源数据中的数据字段
+        List<LinkedHashMap<String,Object>> source = (List<LinkedHashMap<String, Object>>) dataSet.get(ElasticConstant.SOURCE);
+        //源数据中的图例字段（即要转成的表头字段）
+        LinkedHashSet<String> dimensions = (LinkedHashSet<String>) dataSet.get(ElasticConstant.DIMENSIONS);
+        //dimensions为表头,遍历
+        for(String column:dimensions){
+            head.add(column);
+        }
+        //处理数据需要计算两个点之间的差值
+        //定义两个点的数据对象
+        LinkedHashMap<String, Object> before;
+        LinkedHashMap<String, Object> after = new LinkedHashMap<>();
+        //source为具体数据，每条数据为一组K/V
+        for(LinkedHashMap<String, Object> row:source){
+            //数据点的轮转
+            before = after;
+            after = row;
+            if(before.size()>0&&after.size()>0){
+                //计算两个点的差值,形成新的数据点
+                dataList.add(calDifBetweenTwoPoints(before,after,dimensions));
+            }
+
+        }
+        CSVUtil.createCSVFile(head,head,dataList,"e:/","train");
+        return null;
+    }
+    /**
+     * 将查询出的数据导出为可供机器学习使用的csv文件
+     * 源数据要求：无，不对数据做任何处理
+     * 生成的csv文件格式：第一列为时间，第2-n列为数据
+     * @return
+     */
+    private String TransforDataToFile_Basic(Map<String, Object> dataSet){
+        //定义表头
+        List<String> head = new ArrayList<>();
+        //数据
+        List<Map<String, Object>> dataList = new ArrayList<>();
+        //源数据中的数据字段
+        List<LinkedHashMap<String,Object>> source = (List<LinkedHashMap<String, Object>>) dataSet.get(ElasticConstant.SOURCE);
+        //源数据中的图例字段（即要转成的表头字段）
+        LinkedHashSet<String> dimensions = (LinkedHashSet<String>) dataSet.get(ElasticConstant.DIMENSIONS);
+        //dimensions为表头,遍历
+        for(String column:dimensions){
+            head.add(column);
+        }
+        dataList.addAll(source);
+        //dataList.add(row);
+        CSVUtil.createCSVFile(head,head,dataList,"e:/","train");
+        return null;
+    }
+    /**
+     * 计算两组数据的值的差
+     * @param before
+     * @param after
+     * @param dimensions
+     * @return
+     */
+    private Map<String, Object> calDifBetweenTwoPoints(LinkedHashMap<String, Object> before,LinkedHashMap<String, Object> after,LinkedHashSet<String> dimensions){
+        Map<String, Object> newPoint = new HashMap<>();
+        //保留小数点2位
+        DecimalFormat decimalFormat=new DecimalFormat("0.00");
+        //放入时间戳
+        newPoint.put(ElasticConstant.XAXIS,after.get(ElasticConstant.XAXIS));
+        //其他点进行计算
+        for(String column:dimensions){
+            //计算除了时间轴外的其他点
+            if(!column.equals(ElasticConstant.XAXIS)){
+                Double beforeValue = Double.parseDouble(before.get(column).toString());
+                Double afterValue = Double.parseDouble(after.get(column).toString());
+                newPoint.put(column,decimalFormat.format(afterValue-beforeValue));
+            }
+
+        }
+        return newPoint;
     }
 
 }

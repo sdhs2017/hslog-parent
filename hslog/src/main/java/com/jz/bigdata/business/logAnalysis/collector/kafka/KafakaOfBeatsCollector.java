@@ -158,12 +158,12 @@ public class KafakaOfBeatsCollector implements Runnable {
             //List<IndexRequest> indicesrequests = new ArrayList<IndexRequest>();
             // 使用原生的批量提交方式
             BulkRequest bulkRequest = new BulkRequest();
-            IndexRequest request = new IndexRequest();
+            IndexRequest request = null;
             /**
              * 判断迭代器中是否有数据，且kafka的状态为开启中
              */
             while (it.hasNext() && isStarted()) {
-
+                request = new IndexRequest();
                 try {
                     String log = it.next().message();
                     /**

@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.common.asset.service.IAssetService;
+import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
+import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
@@ -50,7 +52,8 @@ public class CollectorController {
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
 
-
+	@Resource(name = "ConfigurationService")
+	private IConfigurationService configurationService;
 	
 	@Resource(name="logService")
 	private IlogService logService;
@@ -60,8 +63,12 @@ public class CollectorController {
 //	private MascanCollector mascanCollector;
 	@Resource(name="assetsService")
 	private IAssetsService masscanipService;
-	
-	
+
+	@ResponseBody
+	@RequestMapping("/kafkaTest")
+	public boolean kafkaTest() {
+		return collectorService.getKafkaCollectorState();
+	}
 	// 获取采集器开启或关闭状态，true为开启，false为关闭
 	@ResponseBody
 	@RequestMapping("/getCollectorState")
@@ -87,10 +94,11 @@ public class CollectorController {
 			return JSONArray.fromObject(map).toString();
 		}
 		/**
-		 *更新资产缓存信息
+		 *更新资产缓存信息，全局配置项信息
 		 */
 		try{
 			AssetCache.INSTANCE.init(equipmentService,assetService);
+			ConfigurationCache.INSTANCE.init(configurationService);
 		}catch (Exception e){
 			e.printStackTrace();
 			map.put("state", false);
@@ -337,6 +345,7 @@ public class CollectorController {
 			 *更新资产缓存信息
 			 */
 			AssetCache.INSTANCE.init(equipmentService,assetService);
+			ConfigurationCache.INSTANCE.init(configurationService);
 		}catch (Exception e){
 			e.printStackTrace();
 			map.put("state", false);

@@ -300,11 +300,12 @@ public class KafkaCollector implements Runnable {
 				//List<IndexRequest> requests = new ArrayList<IndexRequest>();
 				List<IndexRequest> newrequests = new ArrayList<IndexRequest>();
 				//BulkRequest newrequests = new BulkRequest();
-				IndexRequest request = new IndexRequest();
+				IndexRequest request = null;
 
 				StringBuilder builder = new StringBuilder();
 				int count=0;
 				while (it.hasNext() && isStarted()) {
+					request = new IndexRequest();
 					//String index = configProperty.getEs_index().replace("*",format.format(new Date()));
 
 					String log = it.next().message();
@@ -394,7 +395,7 @@ public class KafkaCollector implements Runnable {
 
 								// TODO 后期需要把module字段补全到资产信息中，nodule数据将不再从日志数据中获取
 								// 判断syslog的module是否为空，不为空的情况下索引名称拼接module字段信息
-								Object module = jsonObject.get("module");
+								Object module = jsonObject.get("module").getAsString();
 								if(module!=null&&!Strings.isNullOrEmpty(module.toString())){
 									logstashIndexName = "winlogbeat-"+module.toString()+"-"+ dateTime.toString("yyyy.MM.dd");
 								}else {
@@ -417,6 +418,8 @@ public class KafkaCollector implements Runnable {
 										logCurdDao.bulkProcessor_add(request);
 									}
 								}
+							}else{
+								//System.out.println("");
 							}
 						}catch (Exception e){
 							e.printStackTrace();

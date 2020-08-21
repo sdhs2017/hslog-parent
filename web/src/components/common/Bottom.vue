@@ -116,7 +116,7 @@
         },
         created() {
             this.getEsBulk();
-            this.getDiskUsed();
+            //this.getDiskUsed();
             //定时查看阈值情况  100分钟 查看一次
             setInterval(this.getDiskUsed,6000000);
             //获取系统ip
@@ -216,6 +216,7 @@
                             }else{
                                 layer.msg(res.data.message,{icon:5})
                             }
+                            this.getDiskUsed();
                         })
                         .catch(err=>{
                             this.loading = false;

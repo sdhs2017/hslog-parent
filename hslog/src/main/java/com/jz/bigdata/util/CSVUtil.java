@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -90,7 +91,53 @@ public class CSVUtil {
         }
         return csvFile;
     }
-    
+
+    /**
+     *
+     * @param headKey  显示的列名对应的字段，用于数据获取
+     * @param headValue 文件中显示的列名
+     * @param dataList 数据
+     * @param outPutPath 输出路径
+     * @param filename 文件名
+     * @return
+     */
+    public static File createCSVFile(List<String> headKey,List<String> headValue, List<Map<String, Object>> dataList,
+                                     String outPutPath, String filename) {
+
+        File csvFile = null;
+        BufferedWriter csvWtriter = null;
+        try {
+            csvFile = new File(outPutPath + File.separator + filename + ".csv");
+            File parent = csvFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            csvFile.createNewFile();
+
+            // GB2312使正确读取分隔符","
+            csvWtriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(
+                    csvFile), "GB2312"), 1024);
+            // 写入文件头部
+            String head = String.join(",",  headValue);
+            csvWtriter.write(head);
+            csvWtriter.newLine();
+            // 写入文件内容
+            for (Map<String, Object> row : dataList) {
+                //
+                writeRowByKey(headKey,row, csvWtriter);
+            }
+            csvWtriter.flush();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                csvWtriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return csvFile;
+    }
     /**
      * 写一行数据方法
      * @param row
@@ -106,7 +153,28 @@ public class CSVUtil {
         }
         csvWriter.newLine();
     }
-    
+    /**
+     * 写一行数据方法，数据通过源数据getkey获取
+     * 类似处理前端显示5个字段，请求返回的数据是>5个字段的
+     * @param row
+     * @param csvWriter
+     * @throws IOException
+     */
+    private static void writeRowByKey(List<String> headKey,Map<String, Object> row, BufferedWriter csvWriter) throws IOException {
+        // 写入文件头部
+        for (int i=0;i<headKey.size() ;i++) {
+            StringBuffer sb = new StringBuffer();
+            String rowStr;
+            //最后一列不加逗号
+            if(i==headKey.size()-1){
+                rowStr = sb.append("\"").append(row.get(headKey.get(i))).append("\"").toString();
+            }else{
+                rowStr = sb.append("\"").append(row.get(headKey.get(i))).append("\",").toString();
+            }
+            csvWriter.write(rowStr);
+        }
+        csvWriter.newLine();
+    }
     /**
      * 写一行数据方法
      * @param row

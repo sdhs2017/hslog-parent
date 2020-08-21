@@ -30,8 +30,9 @@ public interface IlogService {
 
 
 	/**
-	 * 创建elasticsearch的index
-	 * @param index 索引名称
+	 * 初始化bulkprocessor参数
+	 * @param  bulkActions
+	 * @param  concurrentRequests
 	 */
 	public void bulkProcessor_init(int bulkActions,int concurrentRequests);
 

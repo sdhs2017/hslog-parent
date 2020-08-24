@@ -170,7 +170,7 @@
                         })
                 })
             },
-            /*开启beats服务*/
+            /*开启Agent服务*/
             playBeats(){
                 //询问框
                 layer.confirm('是否开启Agent采集？', {
@@ -179,15 +179,15 @@
                     layer.close(index);
                     this.loading = true;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/collector/startKafkaOfBeatsCollector.do  ','')
+                        this.$axios.post(this.$baseUrl+'/collector/startAgentKafkaListener.do','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data[0].state === true){
-                                    layer.msg(res.data[0].msg,{icon: 1});
+                                if(res.data.success === true){
+                                    layer.msg(res.data.message,{icon: 1});
                                     this.beatState='已开启';
                                     this.beatsLeft = '-301px'
-                                }else if(res.data[0].state === false){
-                                    layer.msg(res.data[0].msg,{icon: 5});
+                                }else if(res.data.success === false){
+                                    layer.msg(res.data.message,{icon: 5});
                                 }
                             })
                             .catch(err=>{
@@ -199,7 +199,7 @@
                     layer.close();
                 });
             },
-            /*停止beats服务*/
+            /*停止Agent服务*/
             stopBeats(){
                 //询问框
                 layer.confirm('是否关闭Agent采集服务？', {
@@ -208,15 +208,15 @@
                     layer.close(index);
                     this.loading = true;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/collector/stopKafkaOfBeatsCollector.do','')
+                        this.$axios.post(this.$baseUrl+'/collector/stopAgentKafkaListener.do','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data[0].state === true){
-                                    layer.msg(res.data[0].msg,{icon: 1});
+                                if(res.data.success === true){
+                                    layer.msg(res.data.message,{icon: 1});
                                     this.beatState='未开启';
                                     this.beatsLeft = '0px'
-                                }else if(res.data[0].state === false){
-                                    layer.msg(res.data[0].msg,{icon: 5});
+                                }else if(res.data.success === false){
+                                    layer.msg(res.data.message,{icon: 5});
                                 }
                             })
                             .catch(err=>{
@@ -237,15 +237,15 @@
                     layer.close(index);
                     this.loading = true;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/collector/startCollectorState.do  ','')
+                        this.$axios.post(this.$baseUrl+'/collector/startSyslogKafkaListener.do  ','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data[0].state === true){
-                                    layer.msg(res.data[0].msg,{icon: 1});
+                                if(res.data.success === true){
+                                    layer.msg(res.data.message,{icon: 1});
                                     this.syslogState='已开启';
                                     this.syslogLeft = '-301px'
-                                }else if(res.data[0].state === false){
-                                    layer.msg(res.data[0].msg,{icon: 5});
+                                }else if(res.data.success === false){
+                                    layer.msg(res.data.message,{icon: 5});
                                 }
                             })
                             .catch(err=>{
@@ -266,15 +266,15 @@
                     layer.close(index);
                     this.loading = true;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/collector/stopKafkaCollector.do','')
+                        this.$axios.post(this.$baseUrl+'/collector/stopSyslogKafkaListener.do','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data[0].state === true){
-                                    layer.msg(res.data[0].msg,{icon: 1});
+                                if(res.data.success === true){
+                                    layer.msg(res.data.message,{icon: 1});
                                     this.syslogState='未开启';
                                     this.syslogLeft = '0px'
-                                }else if(res.data[0].state === false){
-                                    layer.msg(res.data[0].msg,{icon: 5});
+                                }else if(res.data.success === false){
+                                    layer.msg(res.data.message,{icon: 5});
                                 }
                             })
                             .catch(err=>{

@@ -153,7 +153,7 @@
             /*获取syslog服务状态*/
             getSyslogState(){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/collector/etSyslogKafkaListenerState.do','')
+                    this.$axios.post(this.$baseUrl+'/collector/getSyslogKafkaListenerState.do','')
                         .then(res =>{
                             if(res.data[0].state === true){
                                 this.syslogState='已开启';

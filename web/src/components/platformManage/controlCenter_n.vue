@@ -133,7 +133,7 @@
             /*获取beats服务状态*/
             getBeatsState(){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/collector/stateKafkaOfBeatsCollector.do','')
+                    this.$axios.post(this.$baseUrl+'/collector/getAgentKafkaListenerState.do','')
                         .then(res =>{
                             if(res.data[0].state === true){
                                 this.beatState='已开启';
@@ -153,7 +153,7 @@
             /*获取syslog服务状态*/
             getSyslogState(){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/collector/stateKafkaCollector.do','')
+                    this.$axios.post(this.$baseUrl+'/collector/etSyslogKafkaListenerState.do','')
                         .then(res =>{
                             if(res.data[0].state === true){
                                 this.syslogState='已开启';

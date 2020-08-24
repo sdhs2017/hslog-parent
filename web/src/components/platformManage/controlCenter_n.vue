@@ -182,11 +182,11 @@
                         this.$axios.post(this.$baseUrl+'/collector/startAgentKafkaListener.do','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data.success === true){
+                                if(res.data.success === 'true'){
                                     layer.msg(res.data.message,{icon: 1});
                                     this.beatState='已开启';
                                     this.beatsLeft = '-301px'
-                                }else if(res.data.success === false){
+                                }else if(res.data.success === 'false'){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
                             })
@@ -211,11 +211,11 @@
                         this.$axios.post(this.$baseUrl+'/collector/stopAgentKafkaListener.do','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data.success === true){
+                                if(res.data.success === 'true'){
                                     layer.msg(res.data.message,{icon: 1});
                                     this.beatState='未开启';
                                     this.beatsLeft = '0px'
-                                }else if(res.data.success === false){
+                                }else if(res.data.success === 'false'){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
                             })
@@ -240,11 +240,11 @@
                         this.$axios.post(this.$baseUrl+'/collector/startSyslogKafkaListener.do  ','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data.success === true){
+                                if(res.data.success === 'true'){
                                     layer.msg(res.data.message,{icon: 1});
                                     this.syslogState='已开启';
                                     this.syslogLeft = '-301px'
-                                }else if(res.data.success === false){
+                                }else if(res.data.success === 'false'){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
                             })
@@ -269,11 +269,11 @@
                         this.$axios.post(this.$baseUrl+'/collector/stopSyslogKafkaListener.do','')
                             .then(res=>{
                                 this.loading = false;
-                                if(res.data.success === true){
+                                if(res.data.success === 'true'){
                                     layer.msg(res.data.message,{icon: 1});
                                     this.syslogState='未开启';
                                     this.syslogLeft = '0px'
-                                }else if(res.data.success === false){
+                                }else if(res.data.success === 'false'){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
                             })

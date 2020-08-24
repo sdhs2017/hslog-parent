@@ -205,6 +205,9 @@
                 layer.confirm('是否关闭Agent采集服务？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
+                    //关闭轮训
+                    clearInterval(this.interval)
+
                     layer.close(index);
                     this.loading = true;
                     this.$nextTick(()=>{
@@ -218,10 +221,20 @@
                                 }else if(res.data.success === 'false'){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                },5000);
                             })
                             .catch(err=>{
                                 this.loading = false;
                                 layer.msg('停止服务失败',{icon: 5});
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                },5000);
                             })
                     })
                 }, ()=>{
@@ -263,6 +276,9 @@
                 layer.confirm('是否关闭syslog采集服务？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
+                    //关闭轮训
+                    clearInterval(this.interval)
+
                     layer.close(index);
                     this.loading = true;
                     this.$nextTick(()=>{
@@ -276,10 +292,20 @@
                                 }else if(res.data.success === 'false'){
                                     layer.msg(res.data.message,{icon: 5});
                                 }
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                },5000);
                             })
                             .catch(err=>{
                                 this.loading = false;
                                 layer.msg('停止服务失败',{icon: 5});
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                },5000);
                             })
                     })
                 }, ()=>{

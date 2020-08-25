@@ -5,9 +5,9 @@
                 <div class="equipemnt-tools-btns">
                     <el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
                     <el-button type="warning" size="mini" plain @click="importEquipment()">资产导入</el-button>
-                    <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
-                    <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
-                    <el-button type="success" size="mini" plain  @click="getData(searchConditions,1)">刷新</el-button>
+                    <el-button type="primary" size="mini" plain @click="goToAddEquipment()">添加资产</el-button>
+                    <el-button type="danger" size="mini" plain  @click="removeEquipment()">删除资产</el-button>
+                    <el-button type="success" size="mini" plain  @click="refreshEq()">刷新</el-button>
                     <!--                    <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>-->
                 </div>
             </div>
@@ -276,6 +276,11 @@
                             console.log(err)
                         })
                 })
+            },
+            /*刷新*/
+            refreshEq(){
+                this.c_page = 1;
+                this.getData(this.searchConditions,1);
             },
             /*获取数据*/
             getData(searchObj,page){

@@ -87,7 +87,7 @@ public class BulkTemplate_BulkProcessor {
                 // 达到刷新的大小10MB
                 .setBulkSize(new ByteSizeValue(10, ByteSizeUnit.MB))
                 // 固定刷新的时间频率1s
-                .setFlushInterval(TimeValue.timeValueSeconds(1L))
+                .setFlushInterval(TimeValue.timeValueSeconds(5L))
                 // 并发线程数
                 .setConcurrentRequests(concurrentRequests)
                 // 重试补偿策略，失败后100ms重新执行请求，最大请求3次

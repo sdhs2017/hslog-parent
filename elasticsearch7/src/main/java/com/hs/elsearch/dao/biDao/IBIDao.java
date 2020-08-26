@@ -20,32 +20,32 @@ public interface IBIDao {
      * @param params
      * @return 返回聚合结果
      */
-    public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception;
-    /**
+    /*public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception;
+    *//**
      * bucket聚合查询后进行metric的sum计算
      * @param params
      * @return 返回聚合结果
-     */
+     *//*
     public List<Map<String, Object>> getListByCountOfAggregation(VisualParam params) throws Exception;
-    /**
+    *//**
      * bucket聚合查询后进行metric的sum计算
      * @param params
      * @return 返回聚合结果
-     */
+     *//*
     public List<Map<String, Object>> getListByAvgOfAggregation(VisualParam params) throws Exception;
-    /**
+    *//**
      * bucket聚合查询后进行metric的sum计算
      * @param params
      * @return 返回聚合结果
-     */
+     *//*
     public List<Map<String, Object>> getListByMaxOfAggregation(VisualParam params) throws Exception;
-    /**
+    *//**
      * bucket聚合查询后进行metric的sum计算
      * @param params
      * @return 返回聚合结果
-     */
+     *//*
     public List<Map<String, Object>> getListByMinOfAggregation(VisualParam params) throws Exception;
-
+*/
     /**
      * 获取某个字段不为空的数据list
      * @param indexName 索引名称

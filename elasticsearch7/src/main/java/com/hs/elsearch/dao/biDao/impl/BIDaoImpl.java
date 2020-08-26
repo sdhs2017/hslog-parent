@@ -70,7 +70,7 @@ public class BIDaoImpl implements IBIDao {
         return list;
     }
 
-    @Override
+    /*@Override
     public List<Map<String, Object>> getListBySumOfAggregation(VisualParam params) throws Exception {
         //查询条件
         BoolQueryBuilder boolQueryBuilder = buildQuery(params.getQueryParam(),params.getStartTime(),params.getEndTime(),params.getDateField());
@@ -196,7 +196,7 @@ public class BIDaoImpl implements IBIDao {
         list.add(bucketmap);
         return list;
     }
-
+*/
     /**
      *
      * @param queryParam

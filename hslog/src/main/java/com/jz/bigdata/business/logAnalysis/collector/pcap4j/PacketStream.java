@@ -50,7 +50,9 @@ public class PacketStream {
 	ILogCrudDao logCurdDao;
 	Gson gson;
 	String json;
-	
+	String json_request;
+	String json_response;
+
 	private ProtocolListener listener = new TLSProtocolListener();
 	private HashMap<String,LinkedList<TcpPacket>> ackSendBuffer=new HashMap<String,LinkedList<TcpPacket>>();
 	private HashMap<String,LinkedList<TcpPacket>> ackRecvBuffer=new HashMap<String,LinkedList<TcpPacket>>();
@@ -144,19 +146,22 @@ public class PacketStream {
 									httpCache.invalidate(httprequest.getNextacknum());
 
 									// request数据入库
-									json = gson.toJson(httprequest);
+									json_request = gson.toJson(httprequest);
+									//request请求与response匹配时会同时写入，使用同一个request对象会造成重复引用问题。
+									//因此需要重新new一个对象，放入数据
+									IndexRequest request_request = new IndexRequest();
 									//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
-									request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
-									request.source(json, XContentType.JSON);
-									logCurdDao.bulkProcessor_add(request);
+									request_request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
+									request_request.source(json_request, XContentType.JSON);
+									logCurdDao.bulkProcessor_add(request_request);
 								}else{
 								    http.setFlag("unmatched");
                                 }
                                 // response数据入库
-								json = gson.toJson(http);
+								json_response = gson.toJson(http);
 								//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
 								request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
-								request.source(json, XContentType.JSON);
+								request.source(json_response, XContentType.JSON);
 								logCurdDao.bulkProcessor_add(request);
 							}
 

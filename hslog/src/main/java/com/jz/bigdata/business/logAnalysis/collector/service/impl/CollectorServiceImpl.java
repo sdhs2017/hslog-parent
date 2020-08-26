@@ -308,7 +308,8 @@ public class CollectorServiceImpl implements ICollectorService{
 	 */
 	public String startPcap4jCollector() {
 
-
+		//初始化全局配置项
+		ConfigurationCache.INSTANCE.init(configurationService);
 
 		Map<String, Object> map = new HashMap<>();
 		//bulk processor 初始化

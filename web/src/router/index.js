@@ -379,7 +379,7 @@ export default new Router({
                     component: resolve => require(['../components/dashboard/pieChart.vue'], resolve),
                     meta: { title: '创建饼图' }
                 },
-                {
+                /*{
                     path: '/metricChart',
                     name:'metricChart',
                     component: resolve => require(['../components/dashboard/metricChart.vue'], resolve),
@@ -390,7 +390,7 @@ export default new Router({
                     name:'addEvent',
                     component: resolve => require(['../components/eventManage/addEvent.vue'], resolve),
                     meta: { title: '添加事件' }
-                },
+                },*/
                 {
                     path: '/property',
                     name:'property',

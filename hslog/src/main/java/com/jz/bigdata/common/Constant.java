@@ -6,6 +6,10 @@ package com.jz.bigdata.common;
  * @description 系统常量
  */
 public class Constant {
+	//批量提交数
+	public static String ES_BULK_NAME = "es_bulk";
+	//ES bulk提交 线程数
+	public static String ES_BULK_PROCESSOR_CONCURRENT_REQUESTS_NAME = "concurrent_requests";
 	//beats的日期字段
 	public static String BEAT_DATE_FIELD = "@timestamp";
 	//系统日志对应的index名称

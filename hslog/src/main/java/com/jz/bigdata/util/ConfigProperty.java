@@ -130,6 +130,28 @@ public class ConfigProperty {
 	// 修改ip地址的脚本名称
 	@Value("#{prop.modifyip_shell}")
 	private String modifyip_shell;
+	//kafka地址
+	@Value("#{prop.kafka_path}")
+	private String kafka_path;
+	//kafka批量消费数
+	@Value("#{prop.kafka_max_poll_records}")
+	private String kafka_max_poll_records;
+
+	public String getKafka_path() {
+		return kafka_path;
+	}
+
+	public void setKafka_path(String kafka_path) {
+		this.kafka_path = kafka_path;
+	}
+
+	public String getKafka_max_poll_records() {
+		return kafka_max_poll_records;
+	}
+
+	public void setKafka_max_poll_records(String kafka_max_poll_records) {
+		this.kafka_max_poll_records = kafka_max_poll_records;
+	}
 
 	public String getEchart_default_points() {
 		return echart_default_points;

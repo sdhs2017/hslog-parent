@@ -104,4 +104,26 @@ public interface ICollectorService {
 	public boolean stopKafkaOfBeatsCollector()throws InterruptedException;
 
 	public boolean stateKafkaOfBeatsCollector();
+
+	/**
+	 *开启、关闭 agent采集
+	 * @return
+	 */
+	public String startAgentKafkaListener();
+	public String stopAgentKafkaListener();
+	public boolean getAgentKafkaListenerState();
+	/**
+	 *开启、关闭 syslog采集
+	 * @return
+	 */
+	public String startSyslogKafkaListener();
+	public String stopSyslogKafkaListener();
+	public boolean getSyslogKafkaListenerState();
+
+	/**
+	 * ES 批量提交初始化
+	 * @return
+	 */
+	public boolean bulkProcessorInit();
+
 }

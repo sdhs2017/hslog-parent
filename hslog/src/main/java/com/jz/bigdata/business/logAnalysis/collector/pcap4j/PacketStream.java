@@ -13,6 +13,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.service.ICollectorService;
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -70,34 +72,31 @@ public class PacketStream {
 		this.httpCache = httpCache;
 	}*/
 
-	public PacketStream(ConfigProperty configProperty,ILogCrudDao logCurdDao,Gson gson,IndexRequest request,Set<String> domainSet,Map<String, String> urlmap, Cache<Long, Http> httpCache)
+	public PacketStream(ConfigProperty configProperty, ILogCrudDao logCurdDao, Gson gson, Set<String> domainSet, Map<String, String> urlmap, Cache<Long, Http> httpCache)
 	{
 		this.configProperty = configProperty;
 		this.logCurdDao = logCurdDao;
 		this.gson = gson;
-		this.request = request;
 		this.domainSet = domainSet;
 		this.urlmap = urlmap;
 		this.httpCache = httpCache;
-		// 初始化bulkprocessor参数
-		Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
-		logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),1);
 	}
 	
 	
 
 	public void gotPacket(PcapPacket packet){
-		
+
 		try {
+			request = new IndexRequest();
 			//TcpPacket tcppacket =packet.getBuilder().getPayloadBuilder().build().get(TcpPacket.class);
 			IpV4Packet ip4packet =packet.get(IpV4Packet.class);
-			packet.getTimestamp();
+			//packet.getTimestamp();
 			// 识别http数据包的正则表达式
 			String httpRequest = "^(POST|GET) /[^\\s]* HTTP/1.[0,1]";
 			String httpResponse = "^HTTP/1.[0,1] [0-9]{0,3} *";
 
 			// index名称定义
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+			//SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 			//String index = configProperty.getEs_old_index().replace("*",format.format(new Date()));
 
 			// 通过ip4packet包的header信息确认流量包是什么协议，该判断条件为是TCP协议

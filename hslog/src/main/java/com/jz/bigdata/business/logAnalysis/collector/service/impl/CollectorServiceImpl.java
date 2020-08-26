@@ -16,6 +16,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
@@ -33,6 +34,7 @@ import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -72,7 +74,8 @@ public class CollectorServiceImpl implements ICollectorService{
 
 	//kafka线程
 	Thread t;
-
+	private final String topic_beats = "beats";
+	private final String topic_all = "all";
 	/**
 	 * *****************************************masscan管理器属性****************************8
 	 */
@@ -136,6 +139,9 @@ public class CollectorServiceImpl implements ICollectorService{
 
 	@Resource(name = "UserService")
 	private IUserService usersService;
+
+	@Autowired
+	private KafkaListenerEndpointRegistry registry;
 	/*@Autowired
 	private ehcache cacheManager;*/
 	
@@ -168,7 +174,10 @@ public class CollectorServiceImpl implements ICollectorService{
 				flag = true;
 			}
 			result = true;
-		}finally{
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+			finally{
 			return result;
 		}
 	}
@@ -217,21 +226,21 @@ public class CollectorServiceImpl implements ICollectorService{
 		}else{
 			
 		}
-		
+
 //		if(null!=kc && kc.isStarted()){
 //			kc.setStarted(false);
-//			
-//			
+//
+//
 ////			t.join();
-//			
+//
 ////			t.sleep(10000);
 //			//阻塞
 ////			t.interrupt();
-//			
+//
 ////			t.stop();
 ////			t=null;
 ////			kc = null;
-//			
+//
 //			result = true;
 //		}
 		return result;
@@ -294,25 +303,23 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 		
 	}
-	public static String getRandomString(int length) {
-		String str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-		Random random = new Random();
-		StringBuffer sb = new StringBuffer();
-		for (int i = 0; i < length; i++) {
-			int number = random.nextInt(str.length());
-			sb.append(str.charAt(number));
-		}
-		return sb.toString();
-	}
 	/**
 	 * 开启pcap4j
 	 */
 	public String startPcap4jCollector() {
-		
+
+
+
 		Map<String, Object> map = new HashMap<>();
+		//bulk processor 初始化
+		if(!this.bulkProcessorInit()){
+			map.put("state", false);
+			map.put("msg", "初始化失败！");
+			return JSONArray.fromObject(map).toString();
+		}
+
 		// elasticsearch批量提交缓存区
 		List<IndexRequest> requests = Collections.synchronizedList(new ArrayList<IndexRequest>());
-		IndexRequest request =new IndexRequest();
 		// 针对javabean中date类型的格式转化
 		Gson gson = new GsonBuilder()
 				.setDateFormat("yyyy-MM-dd HH:mm:ss")
@@ -351,15 +358,16 @@ public class CollectorServiceImpl implements ICollectorService{
 					}else if ("EXPIRED".equals(cause)||"SIZE".equals(cause)){
 					    http.setFlag("unmatched");
 					    // 过期的request数据入库
-						/*String json = gson.toJson(http);
+						String json = gson.toJson(http);
 						try {
+							IndexRequest request = new IndexRequest();
 							//requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_index(), http.getIndex_suffix(), http.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
-							*//*request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
+							request.index(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),http.getIndex_suffix(),http.getLogdate()));
 							request.source(json, XContentType.JSON);
-							logCurdDao.bulkProcessor_add(request);*//*
+							logCurdDao.bulkProcessor_add(request);
 						} catch (Exception e) {
 							e.printStackTrace();
-						}*/
+						}
 					}
 
 				})
@@ -406,7 +414,7 @@ public class CollectorServiceImpl implements ICollectorService{
 
 
 		final int[] j = {0};
-		//BulkRequest requests = new BulkRequest();
+
 
         //初始化listener
         PacketListener listener = new PacketListener() {
@@ -414,7 +422,7 @@ public class CollectorServiceImpl implements ICollectorService{
         		try {
         			//packetStream = new PacketStream(configProperty,clientTemplate,gson,requests,domainSet,urlmap);
         			//packetStream = new PacketStream(configProperty,logCurdDao,gson,requests,domainSet,urlmap,httpCache);
-        			packetStream = new PacketStream(configProperty,logCurdDao,gson,request,domainSet,urlmap,httpCache);
+        			packetStream = new PacketStream(configProperty,logCurdDao,gson,domainSet,urlmap,httpCache);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
 					logger.error("new PacketStream-------报错信息:"+e.getMessage());
@@ -569,6 +577,104 @@ public class CollectorServiceImpl implements ICollectorService{
 		 * kafakaOfBeatsCollector初始化后，返回其运行状态
 		 */
 		return kafakaOfBeatsCollector.isStarted();
+	}
+
+	@Override
+	public String startAgentKafkaListener() {
+		try{
+			//初始化bulk processor
+			if(bulkProcessorInit()){
+				//判断监听容器是否启动，未启动则将其启动
+				if (registry.getListenerContainer(topic_beats).isRunning()) {
+					return Constant.failureMessage("Agent采集已启动，请勿重复开启！");
+				}else{
+					registry.getListenerContainer(topic_beats).start();
+					return Constant.successMessage("Agent采集启动成功！");
+				}
+			}else{
+				logger.error("ES 批量提交bulk processor初始化失败。");
+				return Constant.failureMessage("Agent采集启动失败！");
+
+			}
+		}catch(Exception e){
+			logger.error("kafka-Agent启动失败！"+e.getMessage());
+			registry.getListenerContainer(topic_beats).stop();//启动异常时，需要进行一次关闭
+			return Constant.failureMessage("Agent采集启动失败！");
+		}
+	}
+
+	@Override
+	public String stopAgentKafkaListener() {
+		try{
+			//判断监听容器是否启动，未启动则将其启动
+			if (registry.getListenerContainer(topic_beats).isRunning()) {
+				registry.getListenerContainer(topic_beats).stop();
+			}else{
+				//无其他操作
+			}
+			return Constant.successMessage("Agent采集已关闭！");
+		}catch(Exception e){
+			logger.error("kafka-Agent关闭失败！"+e.getMessage());
+			return Constant.failureMessage("Agent采集关闭失败！");
+		}
+	}
+
+	@Override
+	public boolean getAgentKafkaListenerState() {
+		if (registry.getListenerContainer(topic_beats).isRunning()) {
+			return true;
+		}else{
+			return false;
+		}
+	}
+
+	@Override
+	public String startSyslogKafkaListener() {
+		try{
+			//初始化bulk processor
+			if(bulkProcessorInit()){
+				//判断监听容器是否启动，未启动则将其启动
+				if (registry.getListenerContainer(topic_all).isRunning()) {
+					return Constant.failureMessage("Syslog采集已启动，请勿重复开启！");
+				}else{
+					registry.getListenerContainer(topic_all).start();
+					return Constant.successMessage("Syslog采集启动成功！");
+				}
+			}else{
+				logger.error("ES 批量提交bulk processor初始化失败。");
+				return Constant.failureMessage("Syslog采集启动失败！");
+
+			}
+		}catch(Exception e){
+			logger.error("kafka-Syslog启动失败！"+e.getMessage());
+			registry.getListenerContainer(topic_all).stop();//启动异常时，需要进行一次关闭
+			return Constant.failureMessage("Syslog采集启动失败！");
+		}
+	}
+
+	@Override
+	public String stopSyslogKafkaListener() {
+		try{
+			//判断监听容器是否启动，未启动则将其启动
+			if (registry.getListenerContainer(topic_all).isRunning()) {
+				registry.getListenerContainer(topic_all).stop();
+			}else{
+				//无其他操作
+			}
+			return Constant.successMessage("Syslog采集已关闭！");
+		}catch(Exception e){
+			logger.error("kafka-Syslog关闭失败！"+e.getMessage());
+			return Constant.failureMessage("Syslog采集关闭失败！");
+		}
+	}
+
+	@Override
+	public boolean getSyslogKafkaListenerState() {
+		if (registry.getListenerContainer(topic_all).isRunning()) {
+			return true;
+		}else{
+			return false;
+		}
 	}
 
 	/**
@@ -782,5 +888,25 @@ public class CollectorServiceImpl implements ICollectorService{
 			equipmentService.batchUpdate(Equipmentlist);
 		}
 		
+	}
+	/**
+	 * ES 批量提交初始化
+	 */
+	public boolean bulkProcessorInit(){
+		try{
+			//TODO 将名称提出来作为变量，以字典方式存取
+			Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.ES_BULK_NAME);
+			Object concurrent_requests = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.ES_BULK_PROCESSOR_CONCURRENT_REQUESTS_NAME);
+			if(es_bulk!=null&&concurrent_requests!=null){
+				logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),Integer.parseInt(concurrent_requests.toString()));
+				return true;
+			}else{
+				return false;
+			}
+		}catch(Exception e){
+			logger.error("bulk processor初始化失败！"+e.getMessage());
+			return false;
+		}
+
 	}
 }

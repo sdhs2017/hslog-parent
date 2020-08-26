@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
@@ -423,4 +424,87 @@ public class CollectorController {
          return "";  
     }
 
+
+	/**
+	 * 开启kafka of agent
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/startAgentKafkaListener", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "开启AgentKafkaListener")
+	public String startKafkaBeatsListener() {
+		try{
+			/**
+			 *更新资产、全局配置缓存信息
+			 */
+			AssetCache.INSTANCE.init(equipmentService,assetService);
+			ConfigurationCache.INSTANCE.init(configurationService);
+			return collectorService.startAgentKafkaListener();
+		}catch (Exception e){
+			logger.error("Agent采集器开启失败"+e.getMessage());
+			return Constant.failureMessage("Agent采集器开启失败！");
+		}
+	}
+
+	/**
+	 * 关闭kafka of agent
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/stopAgentKafkaListener", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "关闭AgentKafkaListener")
+	public String stopAgentKafkaListener() {
+		return collectorService.stopAgentKafkaListener();
+	}
+	// 监听agent采集器状态
+	@ResponseBody
+	@RequestMapping(value = "/getAgentKafkaListenerState", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "监控agent采集器状态")
+	public String getAgentKafkaListenerState() {
+		Map<String, Object> map = new HashMap<>();
+		boolean result = collectorService.getAgentKafkaListenerState();
+		map.put("state", result);
+		return JSONArray.fromObject(map).toString();
+	}
+	/**
+	 * 开启kafka of syslog
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/startSyslogKafkaListener", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "开启SyslogKafkaListener")
+	public String startSyslogKafkaListener() {
+		try{
+			/**
+			 *更新资产、全局配置缓存信息
+			 */
+			AssetCache.INSTANCE.init(equipmentService,assetService);
+			ConfigurationCache.INSTANCE.init(configurationService);
+			return collectorService.startSyslogKafkaListener();
+		}catch (Exception e){
+			logger.error("Syslog采集器开启失败"+e.getMessage());
+			return Constant.failureMessage("Syslog采集器开启失败！");
+		}
+	}
+
+	/**
+	 * 关闭kafka of syslog
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/stopSyslogKafkaListener", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "关闭SyslogKafkaListener")
+	public String stopSyslogKafkaListener() {
+		return collectorService.stopSyslogKafkaListener();
+	}
+	// 监听agent采集器状态
+	@ResponseBody
+	@RequestMapping(value = "/getSyslogKafkaListenerState", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "监控agent采集器状态")
+	public String getSyslogKafkaListenerState() {
+		Map<String, Object> map = new HashMap<>();
+		boolean result = collectorService.getSyslogKafkaListenerState();
+		map.put("state", result);
+		return JSONArray.fromObject(map).toString();
+	}
 }

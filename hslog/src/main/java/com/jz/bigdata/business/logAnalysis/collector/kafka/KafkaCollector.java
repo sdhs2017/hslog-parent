@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 public class KafkaCollector implements Runnable {
 	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-	private final ConsumerConnector consumer;
+	private ConsumerConnector consumer = null;
 	Map<String, List<KafkaStream<String, String>>> consumerMap;
 	String topic = "all";
 	
@@ -181,49 +181,55 @@ public class KafkaCollector implements Runnable {
 		props.put("serializer.class", "kafka.serializer.StringEncoder");
 
 		ConsumerConfig config = new ConsumerConfig(props);
+		try{
+			consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
+			this.logCurdDao = logCurdDao;
+			this.configProperty = configProperty;
+			this.usersService = usersService;
 
-		consumer = kafka.consumer.Consumer.createJavaConsumerConnector(config);
+			//状态设置为开启
+//		setStarted(true);
+
+			//初始化：获取设备列表、map
+			//equipmentMap = equipmentService.selectAllEquipment();
+
+			//ipadressSet = equipmentService.selectAllIPAdress();
+
+			//equipmentLogLevel = equipmentService.selectLog_level();
+
+			eventType = alarmService.selectByEmailState();
+
+			//初始化逻辑资产
+			//assetMap = assetService.selectAllAsset();
+			//assetIpAddressSet = assetService.selectAllIPAdress();
+
+			Gson gson = new Gson();
+
+			protocolmap = gson.fromJson(this.configProperty.getProtocol(), protocolmap.getClass());
+
+
+			Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
+			topicCountMap.put(topic, new Integer(1));
+
+			// 设置译码器
+			StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
+			StringDecoder valueDecoder = new StringDecoder(new VerifiableProperties());
+
+			consumerMap = consumer.createMessageStreams(topicCountMap,
+					keyDecoder, valueDecoder);
+
+			Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
+			Object concurrent_requests = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("concurrent_requests");
+			logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),Integer.parseInt(concurrent_requests.toString()));
+		}catch (Exception e){
+
+			e.printStackTrace();
+
+		}
 //		equ=equipment;
 		//template = clientTemplate;
-		this.logCurdDao = logCurdDao;
-		this.configProperty = configProperty;
-		this.usersService = usersService;
-		
-		//状态设置为开启
-//		setStarted(true);
-		
-		//初始化：获取设备列表、map
-		//equipmentMap = equipmentService.selectAllEquipment();
-		
-		//ipadressSet = equipmentService.selectAllIPAdress();
-		
-		//equipmentLogLevel = equipmentService.selectLog_level();
-		
-		eventType = alarmService.selectByEmailState();
 
-		//初始化逻辑资产
-		//assetMap = assetService.selectAllAsset();
-		//assetIpAddressSet = assetService.selectAllIPAdress();
-		
-		Gson gson = new Gson();
-    	
-		protocolmap = gson.fromJson(this.configProperty.getProtocol(), protocolmap.getClass());
-		
-		
-		Map<String, Integer> topicCountMap = new HashMap<String, Integer>();
-		topicCountMap.put(topic, new Integer(1));
-		
-		// 设置译码器
-		StringDecoder keyDecoder = new StringDecoder(new VerifiableProperties());
-		StringDecoder valueDecoder = new StringDecoder(new VerifiableProperties());
 
-		consumerMap = consumer.createMessageStreams(topicCountMap,
-				keyDecoder, valueDecoder);
-
-		Object es_bulk = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_bulk");
-		Object concurrent_requests = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("concurrent_requests");
-		logCurdDao.bulkProcessor_init(Integer.parseInt(es_bulk.toString()),Integer.parseInt(concurrent_requests.toString()));
-		
 	}
 
 	public static final String REGEX = "lineStartRegex";
@@ -395,9 +401,9 @@ public class KafkaCollector implements Runnable {
 
 								// TODO 后期需要把module字段补全到资产信息中，nodule数据将不再从日志数据中获取
 								// 判断syslog的module是否为空，不为空的情况下索引名称拼接module字段信息
-								Object module = jsonObject.get("module").getAsString();
-								if(module!=null&&!Strings.isNullOrEmpty(module.toString())){
-									logstashIndexName = "winlogbeat-"+module.toString()+"-"+ dateTime.toString("yyyy.MM.dd");
+								String module = jsonObject.get("module")==null?"":jsonObject.get("module").getAsString();
+								if(!Strings.isNullOrEmpty(module)){
+									logstashIndexName = "winlogbeat-"+module+"-"+ dateTime.toString("yyyy.MM.dd");
 								}else {
 									// module信息为空的情况下使用标准索引名称
 									logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");

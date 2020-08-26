@@ -80,10 +80,10 @@
                 //不存在 则添加
                 if(!isExist){
                     //判断数组长度是否大于8
-                   /* if(this.tagsList.length >= 8){
-                        //把数组的第一个元素从其中删除，并返回第一个元素的值
-                        this.tagsList.shift();
-                    }*/
+                    /* if(this.tagsList.length >= 8){
+                         //把数组的第一个元素从其中删除，并返回第一个元素的值
+                         this.tagsList.shift();
+                     }*/
                     let pn = '';
                     if(route.fullPath.indexOf('=') !== -1){
                         if(route.fullPath.split('=')[1].split('&')[0] === ''){
@@ -142,26 +142,26 @@
             },
             /*拖拽移动*/
             move(e){
-              /*  let xx = e.clientX;
-/!*                document.onmousemove = (e)=>{       //鼠标按下并移动的事件
-                    //用鼠标的位置减去鼠标相对元素的位置，得到元素的位置
-                    let left = e.clientX - disX;
-                    let top = e.clientY - disY;
+                /*  let xx = e.clientX;
+  /!*                document.onmousemove = (e)=>{       //鼠标按下并移动的事件
+                      //用鼠标的位置减去鼠标相对元素的位置，得到元素的位置
+                      let left = e.clientX - disX;
+                      let top = e.clientY - disY;
 
-                    //绑定元素位置到positionX和positionY上面
-                    this.positionX = top;
-                    this.positionY = left;
+                      //绑定元素位置到positionX和positionY上面
+                      this.positionX = top;
+                      this.positionY = left;
 
-                    //移动当前元素
-                    odiv.style.left = left + 'px';
-                    odiv.style.top = top + 'px';
-                };*!/
-                document.onmouseup = (e) => {
-                    /!*document.onmousemove = null;
-                    document.onmouseup = null;*!/
-                    let x2 = e.clientX;
-                    console.log(xx +'---'+x2)
-                };*/
+                      //移动当前元素
+                      odiv.style.left = left + 'px';
+                      odiv.style.top = top + 'px';
+                  };*!/
+                  document.onmouseup = (e) => {
+                      /!*document.onmousemove = null;
+                      document.onmouseup = null;*!/
+                      let x2 = e.clientX;
+                      console.log(xx +'---'+x2)
+                  };*/
             }
         },
         computed: {
@@ -228,7 +228,7 @@
     .tags-li {
         display: flex;
         /*margin: 3px 0px 2px 3px;*/
-/*        border-radius: 3px;*/
+        /*        border-radius: 3px;*/
         font-size: 12px;
         overflow: hidden;
         cursor: pointer;

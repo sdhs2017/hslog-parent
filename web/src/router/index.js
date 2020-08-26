@@ -42,13 +42,6 @@ export default new Router({
             meta: { title: '自述文件' },
             children:[
                 {
-                    path: '/index',
-                    name:'index',
-                   /* component: resolve => require(['../components/index/index.vue'], resolve),*/
-                    component: () => lazyLoadView(import('../components/index/index.vue')),
-                    meta: { title: '日志系统首页' }
-                },
-                {
                     path: '/index_n',
                     name:'index_n',
                     /* component: resolve => require(['../components/index/index.vue'], resolve),*/
@@ -132,7 +125,7 @@ export default new Router({
                     path: '/equipment2',
                     name:'equipment2',
                     component: resolve => require(['../components/equipment/equipment2.vue'], resolve),
-                    meta: { title: '虚拟资产概览' }
+                    meta: { title: '资产概览' }
                 },
                 {
                     path: '/allEquipmentMonitor',
@@ -386,12 +379,18 @@ export default new Router({
                     component: resolve => require(['../components/dashboard/pieChart.vue'], resolve),
                     meta: { title: '创建饼图' }
                 },
-                /*{
+                {
                     path: '/metricChart',
                     name:'metricChart',
                     component: resolve => require(['../components/dashboard/metricChart.vue'], resolve),
                     meta: { title: '创建指标' }
-                },*/
+                },
+                {
+                    path: '/addEvent',
+                    name:'addEvent',
+                    component: resolve => require(['../components/eventManage/addEvent.vue'], resolve),
+                    meta: { title: '添加事件' }
+                },
                 {
                     path: '/property',
                     name:'property',
@@ -426,7 +425,7 @@ export default new Router({
                     path: '/addEquipment2',
                     name:'addEquipment2',
                     component: resolve => require(['../components/equipment/addEquipment2.vue'], resolve),
-                    meta: { title: '添加虚拟资产' }
+                    meta: { title: '添加资产' }
                 },
                 {
                     path: '/dashboardList',
@@ -458,6 +457,18 @@ export default new Router({
                     component: resolve => require(['../components/common/customChart.vue'], resolve),
                     meta: { title: 'SIEM(测试)' }
                 },
+               /* {
+                    path: '/calendar',
+                    name:'calendar',
+                    component: resolve => require(['../components/test/calendar.vue'], resolve),
+                    meta: { title: 'calendar' }
+                },
+                {
+                    path: '/sunburst',
+                    name:'sunburst',
+                    component: resolve => require(['../components/test/sunburst.vue'], resolve),
+                    meta: { title: 'sunburst' }
+                },*/
                /* {
                     path: '/equipmentDashboardy_qMB3IBmkPMjFRE7O-_',
                     name:'equipmentDashboardy_qMB3IBmkPMjFRE7O-_',

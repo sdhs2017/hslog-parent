@@ -190,7 +190,7 @@
 
             ]
             //鼠标拖选
-            this.mouseSelectText();
+            //this.mouseSelectText();
         },
         methods:{
             /*获取资产信息*/
@@ -371,8 +371,12 @@
                 }
                 if(this.actionState){//开启正则拖选
                     this.$refs.actionWapper.style.top = '0';
+                    this.mouseSelectText()
                 }else{
                     this.$refs.actionWapper.style.top = '-305px'
+                    var container = container || document;
+                    container.onmouseup = function(){
+                    }
                 }
             }
         },

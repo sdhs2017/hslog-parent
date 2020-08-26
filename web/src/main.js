@@ -14,10 +14,7 @@ import "babel-polyfill";
 import qs from 'qs';
 import {is_has} from '../static/js/common.js';
 Vue.prototype.$is_has = is_has;
-/*import * as filters from '../static//filter'
-Object.keys(filters).forEach(key => {
-    Vue.filter(key, filters[key])
-})*/
+
 //全局过滤方法
 Vue.prototype.tableFormatter = function(val,format,obj){
     return format(val,obj)
@@ -36,6 +33,20 @@ if (process.env.NODE_ENV === 'development'){
     //axios.defaults.baseURL = '../';
     Vue.prototype.$baseUrl = '../hslog';
 }
+
+//获取权限btn
+axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
+    .then((res)=>{
+        let arr = [];
+        for (let i in res.data){
+            arr.push(res.data[i].buttonID);
+        }
+        sessionStorage.setItem('btnArr',JSON.stringify(arr));
+    })
+    .catch(err=>{
+        console.log(err)
+    })
+
 axios.defaults.timeout = 120000;
 //axios拦截器
 axios.interceptors.request.use(config => {
@@ -121,18 +132,6 @@ router.beforeEach((to, from, next) => {
                        this.$router.push('/login_m');
                    }*/
 
-                   //获取权限btn
-                   /*axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
-                       .then((res)=>{
-                           let arr = [];
-                           for (let i in res.data){
-                               arr.push(res.data[i].buttonID);
-                           }
-                           sessionStorage.setItem('btnArr',JSON.stringify(arr));
-                       })
-                       .catch(err=>{
-                           console.log(err)
-                       })*/
                    //获取本地存储的路由
                    let newRouterVal = JSON.parse(sessionStorage.getItem(to.path));
                    //删除本地存储的路由，防止进入死循环

@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">虚拟资产概览
+        <div class="top-title">资产概览
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
                     <el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
@@ -30,7 +30,10 @@
                         <span class="eq-name-span">{{i.name}}</span>
                         <span class="eq-t-span">{{i.type}}</span>
                     </div>
-                    <div class="eq-type"><i class="el-icon-data-line" title="查看资产指标统计" @click="equipmentDashboard(i)"></i></div>
+                    <div class="eq-type">
+                        <i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
+                        <i class="el-icon-data-line"  v-else></i>
+                    </div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
                         <span class="eq-ip">{{i.ip}}</span>
@@ -126,6 +129,7 @@
 		name: "device2",
 		data() {
 			return {
+                btnArr:[],
                 backState:false,//导入结果状态框显示与否
                 backStateObj:{
                     text:'',
@@ -701,8 +705,10 @@
         overflow: hidden;
         font-size: 19px;
         color: #359bd6;
-        cursor: pointer;
         /*z-index: 3;*/
+    }
+    .eq-type .go_metric{
+        cursor: pointer;
     }
     .eq-t-span{
         color: #fff;

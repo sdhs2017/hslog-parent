@@ -1,3 +1,7 @@
+import Vue from 'vue';
+import router from "../../src/router";
+import axios from 'axios';
+
 /*
 *将图片以PDF格式导出 方法 downloadToPDF(PDFtitle,imgBase64Arr)
 * 参数imgBase64Arr:需要导出的图片集合  注：图片格式必须为Base64格式
@@ -8,9 +12,6 @@
 * 		2.导出的pdf纸张为A4纸大小
 * 		3.图片会根据原始大小在A4纸上进行缩放
 */
-import router from "../../src/router";
-import axios from 'axios';
-
 function downloadToPDF(imgBase64Arr, imgTop, imgWidth, imgHeight) {
     //存储imgtop值 用于多页的初始值
     var oldImgtop = imgTop;
@@ -225,20 +226,24 @@ function is_has(id){
 * 获取按钮权限
 *
 * */
-/*function getBtn() {
-    axios.get(Vue.prototype.$baseUrl+'/user/checkLogin.do',{})
+function getBtn() {
+    axios.get(baseUrl+'/menu/selectButtonListByUser.do',{})
         .then((res)=>{
-            sessionStorage.setItem('btnArr',)
+            let arr = [];
+            for (let i in res.data){
+                arr.push(res.data[i].buttonID);
+            }
+            sessionStorage.setItem('btnArr',JSON.stringify(arr));
         })
         .catch(err=>{
             console.log(err)
         })
-}*/
+}
 /*
 * 获得当前日期 并返回固定格式 yyyy-mm-dd hh:mm:ss
 * */
 function getCurrentDate(fmt) {
-    axios.get()
+    //axios.get()
 }
 /*
 * 时间格式化
@@ -306,5 +311,6 @@ export {
     is_has,
     dateFormat,
     baseUrl,
+    getBtn,
     setChartParam
 }

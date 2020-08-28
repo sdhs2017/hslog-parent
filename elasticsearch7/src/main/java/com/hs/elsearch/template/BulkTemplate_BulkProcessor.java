@@ -55,8 +55,8 @@ public class BulkTemplate_BulkProcessor {
                 int numberOfActions = request.numberOfActions();
                 double MB = request.estimatedSizeInBytes()/1024/1024;
                 double KB = request.estimatedSizeInBytes()/1024;
-                System.out.println(format.format(new Date())+"  Executing bulk [{"+ executionId +"}] with {"+ numberOfActions +"} requests, with {"+MB+"} MB, {"+KB+"} KB");
-                //LOGGER.info("Executing bulk [{}] with {} requests, with {} MB, {} KB", executionId, numberOfActions,MB,KB);
+                //System.out.println(format.format(new Date())+"  Executing bulk [{"+ executionId +"}] with {"+ numberOfActions +"} requests, with {"+MB+"} MB, {"+KB+"} KB");
+                LOGGER.info("Executing bulk [{}] with {} requests, with {} MB, {} KB", executionId, numberOfActions,MB,KB);
             }
 
 
@@ -66,8 +66,8 @@ public class BulkTemplate_BulkProcessor {
                 if (response.hasFailures()) {
                     LOGGER.error("Bulk [{}] executed with failures,response = {}", executionId, response.buildFailureMessage());
                 } else {
-                    System.out.println(format.format(new Date())+" Bulk [{"+executionId+"}] completed in {"+response.getTook().getMillis()+"} milliseconds");
-                    //LOGGER.info("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
+                    //System.out.println(format.format(new Date())+" Bulk [{"+executionId+"}] completed in {"+response.getTook().getMillis()+"} milliseconds");
+                    LOGGER.info("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
                 }
                 //BulkItemResponse[] responses = response.getItems();
             }

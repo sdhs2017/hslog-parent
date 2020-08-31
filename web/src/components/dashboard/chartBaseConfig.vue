@@ -6,7 +6,19 @@
                 <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
             </div>
             <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true"  size="mini">保存</el-button>
-            <div class="date-wapper"><date-layout  :busName="busName" :defaultVal="defaultVal"></date-layout></div>
+            <el-button  type="primary" size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
+            <div class="date-wapper"><date-layout  :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
+        </div>
+        <div class="filter-box">
+            <queryFilter
+                :busName="this.busFliterName"
+                :defaultVal="this.filters"
+                :useType="this.operType"
+                :templateName="this.chartsConfig.templateName"
+                :preIndexName="this.chartsConfig.preIndexName"
+                :suffixIndexName="this.chartsConfig.suffixIndexName"
+            >
+            </queryFilter>
         </div>
         <div class="chart-wapper">
             <div class="config-wapper">
@@ -18,7 +30,7 @@
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(yItem,i) in chartsConfig.yAxisArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    {{ chartType !=='pie' ? 'Y轴' : '指标'}} {{yItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see' && chartsConfig.yAxisArr.length !== 1"></i>
+                                    {{ chartType !=='pie' && chartType !=='metric' ? 'Y轴' : '指标'}} {{yItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see' && chartsConfig.yAxisArr.length !== 1"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
@@ -64,12 +76,12 @@
                                      </el-form-item>-->
                                 </el-form>
                             </el-collapse-item>
-                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' && chartType !== 'pie'"><span class="addY" @click="addY"> <i class="el-icon-circle-plus"></i> 添加Y轴</span></p>
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' && chartType !== 'pie'"><span class="addY" @click="addY"> <i class="el-icon-circle-plus"></i> {{chartType === 'metric' ? '添加指标' :'添加Y轴'}}</span></p>
                         </el-collapse>
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(xItem,i) in chartsConfig.xAxisArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    {{i === 0 && chartType !=='pie' ? 'X轴' : '拆分序列'}} <i class="header-icon el-icon-error removeTab" v-if="i !== 0 && operType !== 'see'" @click="removeXaxisTab(i,$event)"></i>
+                                    {{i === 0 && chartType !=='pie' ? 'X轴' : '拆分序列'}} <i class="header-icon el-icon-error removeTab" v-if="(operType === 'see') ? 'false' : (i === 0) ? (chartType === 'metric') ? 'true' :'false' : 'true'" @click="removeXaxisTab(i,$event)"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
@@ -150,7 +162,30 @@
                             <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' "><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> 添加拆分序列</span></p>
                         </el-collapse>
                     </el-tab-pane>
-                    <el-tab-pane label="基本设定" name="second">
+                    <el-tab-pane label="基本设定" v-if="chartType === 'metric'" name="second">
+                        <el-collapse v-model="configOpened">
+                            <el-collapse-item title="标题" class="tablist" name="1">
+                                <el-form label-position="left" label-width="50px" style="position:relative;">
+                                    <div class="from-zz" v-if="operType === 'see'"></div>
+                                    <el-form-item label="标题">
+                                        <el-input v-model="chartsConfig.title.text" size="mini"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                            <el-collapse-item title="样式" class="tablist" name="2">
+                                <el-form label-position="left" label-width="50px" style="position:relative;">
+                                    <div class="from-zz" v-if="operType === 'see'"></div>
+                                    <el-form-item label="颜色">
+                                        <el-color-picker v-model="chartsConfig.style.color" size="mini"></el-color-picker>
+                                    </el-form-item>
+                                    <el-form-item label="大小">
+                                        <el-slider v-model="chartsConfig.style.fontSize" :min="12" :max="120" size="mini"></el-slider>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                        </el-collapse>
+                    </el-tab-pane>
+                    <el-tab-pane label="基本设定" v-else name="second">
                         <div class="config-item">
                             <el-collapse v-model="configOpened">
                                 <el-collapse-item title="标题" class="tablist" name="1">
@@ -161,34 +196,34 @@
                                         </el-form-item>
                                     </el-form>
                                 </el-collapse-item>
-                        <!--        <el-collapse-item title="形式" class="tablist" name="9" v-if="this.chartType === 'pie'">
-                                    <el-form label-position="right" label-width="90px" style="position: relative;">
-                                        <div class="from-zz" v-if="operType === 'see'"></div>
-                                        <el-form-item label="环形显示">
-                                            <el-switch v-model="chartsConfig.raduis.show"></el-switch>
-                                        </el-form-item>
-                                        <el-form-item label="内环大小" v-if="chartsConfig.raduis.show">
-                                            <el-input v-model="chartsConfig.raduis.raduisArr[0]" size="mini"></el-input>
-                                        </el-form-item>
-                                        <el-form-item label="外环大小" v-if="chartsConfig.raduis.show">
-                                            <el-input v-model="chartsConfig.raduis.raduisArr[1]" size="mini"></el-input>
-                                        </el-form-item>
-                                        <p class="tip-w"  style="margin-bottom: 20px;" v-if="chartsConfig.raduis.show">数值允许：'10'（px）、'10%'两种</p>
-                                        <el-form-item label="南丁格尔图">
-                                            <el-switch v-model="chartsConfig.roseType.show"></el-switch>
-                                        </el-form-item>
-                                        <el-form-item label="方式" v-if="chartsConfig.roseType.show">
-                                            <el-switch
-                                                v-model="chartsConfig.roseType.type"
-                                                active-value="radius"
-                                                inactive-value="area"
-                                                active-text="radius"
-                                                inactive-text="area">
-                                            </el-switch>
-                                        </el-form-item>
-                                        <p class="tip-w"  v-if="chartsConfig.roseType.show">'radius' 扇区圆心角展现数据的百分比，半径展现数据的大小。'area' 所有扇区圆心角相同，仅通过半径展现数据大小。</p>
-                                    </el-form>
-                                </el-collapse-item>-->
+                                <!--        <el-collapse-item title="形式" class="tablist" name="9" v-if="this.chartType === 'pie'">
+                                            <el-form label-position="right" label-width="90px" style="position: relative;">
+                                                <div class="from-zz" v-if="operType === 'see'"></div>
+                                                <el-form-item label="环形显示">
+                                                    <el-switch v-model="chartsConfig.raduis.show"></el-switch>
+                                                </el-form-item>
+                                                <el-form-item label="内环大小" v-if="chartsConfig.raduis.show">
+                                                    <el-input v-model="chartsConfig.raduis.raduisArr[0]" size="mini"></el-input>
+                                                </el-form-item>
+                                                <el-form-item label="外环大小" v-if="chartsConfig.raduis.show">
+                                                    <el-input v-model="chartsConfig.raduis.raduisArr[1]" size="mini"></el-input>
+                                                </el-form-item>
+                                                <p class="tip-w"  style="margin-bottom: 20px;" v-if="chartsConfig.raduis.show">数值允许：'10'（px）、'10%'两种</p>
+                                                <el-form-item label="南丁格尔图">
+                                                    <el-switch v-model="chartsConfig.roseType.show"></el-switch>
+                                                </el-form-item>
+                                                <el-form-item label="方式" v-if="chartsConfig.roseType.show">
+                                                    <el-switch
+                                                        v-model="chartsConfig.roseType.type"
+                                                        active-value="radius"
+                                                        inactive-value="area"
+                                                        active-text="radius"
+                                                        inactive-text="area">
+                                                    </el-switch>
+                                                </el-form-item>
+                                                <p class="tip-w"  v-if="chartsConfig.roseType.show">'radius' 扇区圆心角展现数据的百分比，半径展现数据的大小。'area' 所有扇区圆心角相同，仅通过半径展现数据大小。</p>
+                                            </el-form>
+                                        </el-collapse-item>-->
                                 <el-collapse-item title="图形" class="tablist" name="8" v-if="this.chartType === 'bar'">
                                     <el-form label-position="left" label-width="80px" style="position: relative">
                                         <div class="from-zz" v-if="operType === 'see'"></div>
@@ -365,6 +400,7 @@
                             </el-collapse>
                         </div>
                     </el-tab-pane>
+
                 </el-tabs>
             </div>
             <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
@@ -413,6 +449,7 @@
     import {setChartParam} from "../../../static/js/common";
     import bus from '../common/bus';
     import jsonView from 'vue-json-views'
+    import queryFilter from '../dashboard/queryFilter'
     import chooseIndex from '../dashboard/chooseIndex'
     const echarts = require('echarts');
     export default {
@@ -436,6 +473,7 @@
         },
         data() {
             return {
+                refresh:0,
                 allLoading:false,
                 leftLoading:false,
                 loading:false,
@@ -503,6 +541,7 @@
                 //bus监听事件的名称
                 busName:'createBarChart',
                 busIndexName:'barIndexName',
+                busFliterName:'',
                 //默认数据源索引
                 indexVal:[],
                 //展开的选项卡
@@ -521,6 +560,11 @@
                     //标题
                     title:{
                         text:''
+                    },
+                    //指标类图 样式
+                    style:{
+                        color:'#409EFF',
+                        fontSize:100,
                     },
                     //图例
                     legend:{
@@ -541,11 +585,11 @@
                         show:false,
                         type:'radius'
                     },
-                   /* //内外环大小
-                    raduis:{
-                        show:false,
-                        raduisArr:['0','70%']
-                    },*/
+                    /* //内外环大小
+                     raduis:{
+                         show:false,
+                         raduisArr:['0','70%']
+                     },*/
                     //工具栏
                     toolbox: {
                         show:false,
@@ -726,19 +770,24 @@
                 //纯色
                 solidColorArr:['#14A7F5','#5D6AFF','#FD8704','#14A7F5'],
                 //预设渐变颜色值
-               /* colorArr:[
-                    ['rgba(15,219,243,1)','rgba(68,47,148,0.5)'],
-                    ['rgba(255,221,0,1)','rgba(255,115,4,0.5)'],
-                    ['rgba(160,80,255,1)','rgba(52,123,255,0.5)'],
-                    ['rgba(38,253,149,1)','rgba(229,247,17,0.5)'],
-                ],*/
+                /* colorArr:[
+                     ['rgba(15,219,243,1)','rgba(68,47,148,0.5)'],
+                     ['rgba(255,221,0,1)','rgba(255,115,4,0.5)'],
+                     ['rgba(160,80,255,1)','rgba(52,123,255,0.5)'],
+                     ['rgba(38,253,149,1)','rgba(229,247,17,0.5)'],
+                 ],*/
                 colorArr :['#00EABD','#20C1F3','#FC686F','#F9D124','#DE1AFB','#C0D7FC','#A9F4B7','#FF9E96','#75B568','#323A81'],
 
                 //保存的每一步生成的结构数据，用于返回操作
                 chartsConfigArr:[],
+                //过滤条件
+                filters:''
             }
         },
         created(){
+            if(this.chartType === "metric"){
+                this.chartsConfig.xAxisArr = []
+            }
             //保存配置
             this.defaultConfig = JSON.stringify(this.chartsConfig)
             //判断操作性质
@@ -750,9 +799,9 @@
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = this.chartType + 'resiveChart'+this.$route.query.id;
                 this.busIndexName = this.chartType + 'IndexName' +this.$route.query.id;
+                this.busFliterName = this.chartType + 'FliterName' +this.$route.query.id;
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
-                    console.log('sss')
                     let arr = setChartParam(obj);
                     this.dateObj = arr[0];
                     this.intervalObj = arr[1];
@@ -766,6 +815,12 @@
                     this.chartsConfig.preIndexName = arr[1];
                     this.chartsConfig.templateName = arr[0];
                     this.chartsConfig.datefield = arr[3];
+                })
+                //监听过滤条件
+                bus.$on(this.busFliterName,(str)=>{
+                    this.filters = str;
+                    //刷新
+                    this.refreshChart();
                 })
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -782,8 +837,9 @@
                 //this.$options.name = 'seeBarChart'+ this.$route.query.id;
                 //修改data参数
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
-                this.busName = 'seeBarChart'+this.$route.query.id;
-                this.busIndexName = 'seeBarIndexName' +this.$route.query.id;
+                this.busName = 'seeChart'+this.$route.query.id;
+                this.busIndexName = 'seeIndexName' +this.$route.query.id;
+                this.busFliterName = 'seeFliterName' +this.$route.query.id;
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -799,6 +855,12 @@
                     this.chartsConfig.preIndexName = arr[1];
                     this.chartsConfig.templateName = arr[0];
                     this.chartsConfig.datefield = arr[3];
+                })
+                //监听过滤条件
+                bus.$on(this.busFliterName,(str)=>{
+                    this.filters = str;
+                    //刷新
+                    this.refreshChart();
                 })
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -811,6 +873,9 @@
                     this.chartId = this.$route.query.id;
                 }
             }else{//添加
+                this.busName = this.chartType + 'addChart';
+                this.busIndexName = this.chartType + 'addIndexName';
+                this.busFliterName = this.chartType + 'addFliterName';
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -827,6 +892,12 @@
                     this.chartsConfig.templateName = arr[0];
                     this.chartsConfig.datefield = arr[3];
                 })
+                //监听过滤条件
+                bus.$on(this.busFliterName,(str)=>{
+                    this.filters = str;
+                    //刷新
+                    this.refreshChart();
+                })
             }
         },
 
@@ -834,6 +905,7 @@
             //在组件销毁前移除监听事件
             bus.$off(this.busName);
             bus.$off(this.busIndexName);
+            bus.$off(this.busFliterName);
             //清楚计时器
             clearInterval(this.interval);
         },
@@ -867,6 +939,10 @@
             }
         },
         methods:{
+            //刷新
+            refreshChart(){
+                this.refresh++;
+            },
             // 初始化
             initialize(){
                 //还原配置
@@ -1007,6 +1083,16 @@
                     url = '/BI/getDataByChartParams_bar.do'
                 }else if(this.chartType === 'line'){
                     url = '/BI/getDataByChartParams_line.do'
+                }else if(this.chartType === 'metric'){
+                    this.emptyTipState = false;
+                    this.loading = false;
+                    let data2 = [
+                        {name:'count',value:9858247},
+                        {name:'count2',value:9858247}
+                    ]
+                    this.sourceData = data2
+                    this.createMetric(data2);
+                    return;
                 }
                 //构建metrics（y）参数 [{aggType:"count",field:"logdate"}]
                 let metricsArr = [];
@@ -1083,7 +1169,8 @@
                     suffix_index_name:this.chartsConfig.suffixIndexName,
                     template_name:this.chartsConfig.templateName,
                     metrics:JSON.stringify(metricsArr),
-                    buckets:JSON.stringify(bucketsArr)
+                    buckets:JSON.stringify(bucketsArr),
+                    filters:this.filters
                 }
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
@@ -1105,7 +1192,7 @@
                                     xDataArr = obj.data[0].dimensions;
                                 }
                                 if(xDataArr.length > 1){
-                                   // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
+                                    // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
                                     this.sourceData = obj.data;
                                     this.emptyTipState = false;
                                     //this.createChart(obj.data[0]);
@@ -1226,61 +1313,6 @@
                         },
                     }
                     this.opt.series.push(obj)
-                    /*if(this.chartsConfig.graph.colorType === 'solidColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[0].legendName,
-                            type: 'bar',
-                            label:{
-                                show:this.chartsConfig.graph.label.show,
-                                position:'top',
-                                color:`${this.solidColorArr[colorIndex]}`
-                            },
-                            itemStyle: {
-                                color: this.solidColorArr[colorIndex]
-                            },
-                        }
-                        this.opt.series.push(obj)
-                    }else if(this.chartsConfig.graph.colorType === 'tbColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[0].legendName,
-                            type: 'bar',
-                            label:{
-                                show:this.chartsConfig.graph.label.show,
-                                position:'top',
-                                color:`${this.colorArr[colorIndex][0]}`
-                            },
-                            itemStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                                    offset: 0,
-                                    color: this.colorArr[colorIndex][0]
-                                },{
-                                    offset: 1,
-                                    color: this.colorArr[colorIndex][1]
-                                }])
-                            },
-                        }
-                        this.opt.series.push(obj)
-                    }else if(this.chartsConfig.graph.colorType === 'lrColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[0].legendName,
-                            type: 'bar',
-                            label:{
-                                show:this.chartsConfig.graph.label.show,
-                                position:'top',
-                                color:`${this.colorArr[colorIndex][0]}`
-                            },
-                            itemStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
-                                    offset: 0,
-                                    color: this.colorArr[colorIndex][0]
-                                },{
-                                    offset: 1,
-                                    color: this.colorArr[colorIndex][1]
-                                }])
-                            },
-                        }
-                        this.opt.series.push(obj)
-                    }*/
                     colorIndex++;
                     if(colorIndex === this.colorArr.length){
                         colorIndex = 0;
@@ -1425,82 +1457,6 @@
                         }
                         this.opt.series.push(obj)
                     }
-                    /*if(this.chartsConfig.graph.colorType === 'solidColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[0].legendName,
-                            type: 'line',
-                            smooth:true,
-                            label:{
-                                show:this.chartsConfig.graph.label.show,
-                                position:'top',
-                            },
-                            itemStyle:{
-                                color: this.colorArr[colorIndex]
-                            },
-                            lineStyle:{
-                                color: this.colorArr[colorIndex]
-                            },
-                            areaStyle: {
-                                color:this.colorArr[colorIndex],
-                                opacity:this.chartsConfig.graph.areaShow
-                            },
-                        }
-                        this.opt.series.push(obj)
-                    }else if(this.chartsConfig.graph.colorType === 'tbColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[0].legendName,
-                            type: 'line',
-                            smooth:true,
-                            label:{
-                                show:this.chartsConfig.graph.label.show,
-                                position:'top',
-                            },
-                            itemStyle:{
-                                color: this.colorArr[colorIndex]
-                            },
-                            lineStyle:{
-                                color: this.colorArr[colorIndex]
-                            },
-                            areaStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                                    offset: 0,
-                                    color: this.colorArr[colorIndex]
-                                },{
-                                    offset: 1,
-                                    color: 'rgba(116,235,213,0.1)'
-                                }]),
-                                opacity:this.chartsConfig.graph.areaShow
-                            },
-                        }
-                        this.opt.series.push(obj)
-                    }else if(this.chartsConfig.graph.colorType === 'lrColor'){
-                        let obj = {
-                            name: this.chartsConfig.yAxisArr[0].legendName,
-                            type: 'line',
-                            smooth:true,
-                            label:{
-                                show:this.chartsConfig.graph.label.show,
-                                position:'top',
-                            },
-                            itemStyle:{
-                                color: this.colorArr[colorIndex]
-                            },
-                            lineStyle:{
-                                color: this.colorArr[colorIndex]
-                            },
-                            areaStyle: {
-                                color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [{
-                                    offset: 0,
-                                    color: this.colorArr[colorIndex]
-                                },{
-                                    offset: 1,
-                                    color: 'rgba(116,235,213,0.1)'
-                                }]),
-                                opacity:this.chartsConfig.graph.areaShow
-                            },
-                        }
-                        this.opt.series.push(obj)
-                    }*/
                     colorIndex++;
                     if(colorIndex === this.colorArr.length){
                         colorIndex = 0;
@@ -1555,20 +1511,7 @@
                     },
                     color:['#1E73F0','#00D1CE','#33C3F7','#3952D3','#185BFF','#2455AD','#74EE9A','#253479','#3C7FD3','#72B5D3'],
                     grid:this.chartsConfig.grid,
-                    series: [
-                        /*{
-                            name: this.chartsConfig.yAxisArr[0].yAxisName,
-                            type: 'pie',
-                            radius:this.chartsConfig.raduis.raduisArr,
-                            itemStyle: {
-                                emphasis: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                }
-                            }
-                        }*/
-                    ]
+                    series: []
                 }
                 //饼图圆环个数
                 let pieCount = pieArr.length;
@@ -1626,6 +1569,24 @@
                     myChart.resize();
                 });
             },
+            /*创建指标数据图表*/
+            createMetric(data){
+                //将配置保存在serise，用于dashbord添加
+                this.opt = {
+                    style :this.chartsConfig.style
+                }
+                //清空原始数据
+                $("#charts-wapper").html('')
+                let str = ''
+                //循环拼接数据
+                for(let i in data){
+                    data[i].value = parseInt(data[i].value).toLocaleString();
+                    str += `<span style="margin: 50px;"><p>${data[i].name}</p><p style="font-size: ${this.chartsConfig.style.fontSize}px;color: ${this.chartsConfig.style.color};font-weight: 600;">${data[i].value}</p></span>`
+                }
+                let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center">'+str+'</div>'
+                //添加到页面中
+                $("#charts-wapper").append(box);
+            },
             /*上一步*/
             prevCreate(){
                 this.chartsConfig = JSON.parse(this.chartsConfigArr[0]);
@@ -1647,7 +1608,9 @@
                 }
                 //清空echart结构中获取的图表数据
                 this.opt.dataset = [];
-                this.opt.series = [this.opt.series[0]];
+                if(this.opt.series){
+                    this.opt.series = [this.opt.series[0]];
+                }
                 //定义参数
                 let optStr = {
                     config:this.chartsConfig,
@@ -1656,6 +1619,7 @@
                 let params = {
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
+                    filters:this.filters,
                     type:this.chartType,
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
@@ -1693,11 +1657,8 @@
             },
             /*删除x轴*/
             removeXaxisTab(i,event){
-                if(this.chartsConfig.xAxisArr.length > 1){
-                    this.chartsConfig.xAxisArr.splice(i,1);
-                    event.stopPropagation();
-                }
-
+                this.chartsConfig.xAxisArr.splice(i,1);
+                event.stopPropagation();
             },
             /*删除y轴*/
             removeYaxisTab(i,event){
@@ -1722,6 +1683,7 @@
                                     let obj = res.data;
                                     if (obj.success == 'true'){
                                         //赋值
+                                        this.filters = obj.data.filters;
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;
@@ -1772,7 +1734,7 @@
                     }
                 },
                 immediate: true,
-                    deep: true
+                deep: true
             },
             //时间范围改变
             'dateObj'(nv,ov){
@@ -1885,7 +1847,8 @@
         components:{
             dateLayout,
             chooseIndex,
-            jsonView
+            jsonView,
+            queryFilter
         }
     }
 </script>
@@ -2086,5 +2049,12 @@
         cursor: pointer;
         color: #409eff;
     }
-
+    .filter-box{
+        padding: 0 10px;
+        position: relative;
+        top: -10px;
+    }
+    .filter-box /deep/ .el-input__inner{
+        border-radius: 0;
+    }
 </style>

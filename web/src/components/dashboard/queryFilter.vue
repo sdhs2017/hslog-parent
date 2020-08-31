@@ -11,7 +11,7 @@
                         <span @click="resiveFilter(i)" v-if="item.operator === 'is match' || item.operator === 'is not match' || item.operator === 'is term' || item.operator === 'is not term'">{{item.field}} : {{item.operator}} <b>{{item.value}}</b></span>
                         <span @click="resiveFilter(i)" v-if="item.operator === 'is between' || item.operator === 'is not between' ">{{item.field}} : {{item.operator}} <b>{{item.start}}-{{item.end}}</b></span>
                         <span @click="resiveFilter(i)" v-if="item.operator === 'is one of match' || item.operator === 'is not one of match' || item.operator === 'is one of term' || item.operator === 'is not one of term'">{{item.field}} : {{item.operator}} <b>{{item.values}}</b></span>
-                        <span @click="resiveFilter(i)" v-if="item.operator === 'exist' || item.operator === 'does not exist' ">{{item.field}} : {{item.operator}} </span>
+                        <span @click="resiveFilter(i)" v-if="item.operator === 'exists' || item.operator === 'does not exists' ">{{item.field}} : {{item.operator}} </span>
                     </span>
 
                     <i class="el-icon-view" @click="item.enable = false" v-if="item.enable" title="关闭过滤"></i>
@@ -27,7 +27,19 @@
         <el-dialog title="编辑筛选" :visible.sync="filterDialog" width="400px">
             <div class="filter-form-wapper" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
                 <div class="filter-form">
-                    <el-form ref="form" inline label-width="80px" label-position="top" style="display: flex;">
+                    <el-form  inline label-width="80px" label-position="top" style="display: flex;" v-if="useObject === 'dashboard'">
+                        <el-form-item label="Index Pattern" style="width:70%;">
+                            <el-select v-model="form.field" @change="fieldChange"  placeholder="请选择" filterable default-first-option  class="chooseClass iss"   size="mini">
+                                <el-option
+                                    v-for="item in fieldOpt"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                    <el-form  inline label-width="80px" label-position="top" style="display: flex;">
                         <el-form-item label="Field" style="width:70%;">
                             <el-select v-model="form.field" @change="fieldChange"  placeholder="请选择" filterable default-first-option  class="chooseClass iss"   size="mini">
                                 <el-option
@@ -177,7 +189,8 @@
                 </div>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click="filterDialog = false">取 消</el-button>
-                    <el-button type="primary" @click="saveFilter()" :disabled="(form.field === '' || form.operator === '' || (form.value === '' && form.start === '' && form.values.length === 0 && form.end === '') || (form.label_status && form.label === '')) ? 'disabled' : false">确 定</el-button>
+                    <el-button  type="primary" v-if="form.operator === 'exists' || form.operator === 'dose not exists'" @click="saveFilter()">确 定</el-button>
+                    <el-button v-else  type="primary" @click="saveFilter()" :disabled="(form.field === '' || form.operator === '' || (form.value === '' && form.start === '' && form.values.length === 0 && form.end === '') || (form.label_status && form.label === '')) ? 'disabled' : false">确 定</el-button>
                 </div>
             </div>
         </el-dialog>
@@ -198,7 +211,7 @@
                 }
             },
             //使用对象  chart/dashboard
-            userObject:{
+            useObject:{
                 type:String
             },
             //监听事件名称
@@ -206,7 +219,7 @@
                 type:String
             },
             //初始值
-            defaultVal:{
+            defaultArr:{
                 type: String,
                 default(){
                     return ''
@@ -239,6 +252,7 @@
                 addFromValue:'',
                 form:{
                     field:'',
+                    fieldType:'',
                     operator:'',
                     value:'',
                     start:'',
@@ -250,84 +264,35 @@
                 },
                 currentIndex:'',
                 queryVal:'',
+                indexPatternOpt:[],
                 filterArr:[],
                 //field类型   string、number、ip、date
-                fieldType:{
-                    _id:'string',
-                    client_ip:'ip',
-                    '@timestamp':'date',
-                    num:'number',
-                    Boolean:'boolean'
-                },
+                fieldType:{ },
                 //field值集合
-                fieldOpt:[
-                    {
-                        value:'_id',
-                        label:'_id'
-                    },
-                    {
-                        value:'client_ip',
-                        label:'client_ip'
-                    },
-                    {
-                        value:'@timestamp',
-                        label:'@timestamp'
-                    },
-                    {
-                        value:'num',
-                        label:'num'
-                    },
-                    {
-                        value:'Boolean',
-                        label:'Boolean'
-                    },
-                ],
+                fieldOpt:[],
                 //operator值集合
-                operatorOpt:[
-                    {
-                        value:'is',
-                        label:'is'
-                    },{
-                        value:'is not',
-                        label:'is not'
-                    },{
-                        value:'is between',
-                        label:'is between'
-                    },{
-                        value:'is not between',
-                        label:'is not between'
-                    },{
-                        value:'is one of',
-                        label:'is one of'
-                    },{
-                        value:'is not one of',
-                        label:'is not one of'
-                    },{
-                        value:'exists',
-                        label:'exists'
-                    },{
-                        value:'does not exist',
-                        label:'does not exist'
-                    },
-
-                ],
+                operatorOpt:[],
             }
         },
         created() {
-            //加载初始值
-            if(this.defaultVal !== ''){
-                this.filterArr = JSON.parse(this.defaultVal);
-                //获取field数据集合
-                this.getFieldData();
-            }
+
         },
         watch:{
+            'defaultArr'(){
+                //加载初始值
+                if(this.defaultArr !== ''){
+                    this.filterArr = JSON.parse(this.defaultArr);
+                    //获取field数据集合
+                    this.getFieldData();
+                }
+            },
             'filterDialog'(){
                 if(!this.filterDialog){
                     this.dialogType = 'add';
                     this.form={
                         field:'',
                         operator:'',
+                        fieldType:'',
                         value:'',
                         start:'',
                         end:'',
@@ -349,11 +314,15 @@
                 deep: true
             },
             /*监听数据源 索引*/
-            suffixIndexName(){
-                //重置
-                this.filterArr = [];
+            suffixIndexName(newVal,oldVal){
+                //判断是否有默认值  oldVal为空表明没有初始的filter值
+                if(oldVal !== ''){//
+                    //重置
+                    this.filterArr = [];
+                }
                 this.form = {
                     field:'',
+                    fieldType:'',
                     operator:'',
                     value:'',
                     start:'',
@@ -369,7 +338,7 @@
             /*添加过滤*/
             addFilters(){
                 //判断是否已经选择数据源
-                if(this.suffixIndexName !== ''){
+                if(this.suffixIndexName !== '' || this.useObject === 'dashboard'){
                     this.filterDialog = true;
                     //获取fields数据
                     this.getFieldData();
@@ -448,7 +417,8 @@
                 this.form.end = '';
                 this.form.values = [];
                 this.addFromValue = '';
-                this.operator = '';
+                this.form.operator = '';
+                this.form.fieldType = this.fieldType[val];
                 //获取operator集合
                 this.getOperatorData(val)
             },
@@ -523,7 +493,6 @@
                             }
                         }
                     }
-
                     let obj = {};
                     let str = JSON.stringify(this.form);
                     obj = JSON.parse(str);

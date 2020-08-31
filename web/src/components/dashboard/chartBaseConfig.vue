@@ -11,9 +11,10 @@
         </div>
         <div class="filter-box">
             <queryFilter
-                :busName="this.busFliterName"
-                :defaultVal="this.filters"
+                :busName="this.busFilterName"
+                :defaultArr="this.defaultFilter"
                 :useType="this.operType"
+                useObject="chart"
                 :templateName="this.chartsConfig.templateName"
                 :preIndexName="this.chartsConfig.preIndexName"
                 :suffixIndexName="this.chartsConfig.suffixIndexName"
@@ -541,7 +542,7 @@
                 //bus监听事件的名称
                 busName:'createBarChart',
                 busIndexName:'barIndexName',
-                busFliterName:'',
+                busFilterName:'',
                 //默认数据源索引
                 indexVal:[],
                 //展开的选项卡
@@ -781,7 +782,9 @@
                 //保存的每一步生成的结构数据，用于返回操作
                 chartsConfigArr:[],
                 //过滤条件
-                filters:''
+                filters:'',
+                //默认过滤条件
+                defaultFilter:''
             }
         },
         created(){
@@ -799,7 +802,7 @@
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = this.chartType + 'resiveChart'+this.$route.query.id;
                 this.busIndexName = this.chartType + 'IndexName' +this.$route.query.id;
-                this.busFliterName = this.chartType + 'FliterName' +this.$route.query.id;
+                this.busFilterName = this.chartType + 'FilterName' +this.$route.query.id;
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -817,7 +820,7 @@
                     this.chartsConfig.datefield = arr[3];
                 })
                 //监听过滤条件
-                bus.$on(this.busFliterName,(str)=>{
+                bus.$on(this.busFilterName,(str)=>{
                     this.filters = str;
                     //刷新
                     this.refreshChart();
@@ -839,7 +842,7 @@
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'seeChart'+this.$route.query.id;
                 this.busIndexName = 'seeIndexName' +this.$route.query.id;
-                this.busFliterName = 'seeFliterName' +this.$route.query.id;
+                this.busFilterName = 'seeFliterName' +this.$route.query.id;
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -857,7 +860,7 @@
                     this.chartsConfig.datefield = arr[3];
                 })
                 //监听过滤条件
-                bus.$on(this.busFliterName,(str)=>{
+                bus.$on(this.busFilterName,(str)=>{
                     this.filters = str;
                     //刷新
                     this.refreshChart();
@@ -875,7 +878,7 @@
             }else{//添加
                 this.busName = this.chartType + 'addChart';
                 this.busIndexName = this.chartType + 'addIndexName';
-                this.busFliterName = this.chartType + 'addFliterName';
+                this.busFilterName = this.chartType + 'addFliterName';
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -893,7 +896,7 @@
                     this.chartsConfig.datefield = arr[3];
                 })
                 //监听过滤条件
-                bus.$on(this.busFliterName,(str)=>{
+                bus.$on(this.busFilterName,(str)=>{
                     this.filters = str;
                     //刷新
                     this.refreshChart();
@@ -905,7 +908,7 @@
             //在组件销毁前移除监听事件
             bus.$off(this.busName);
             bus.$off(this.busIndexName);
-            bus.$off(this.busFliterName);
+            bus.$off(this.busFilterName);
             //清楚计时器
             clearInterval(this.interval);
         },
@@ -1683,7 +1686,8 @@
                                     let obj = res.data;
                                     if (obj.success == 'true'){
                                         //赋值
-                                        this.filters = obj.data.filters;
+                                        this.filters = JSON.parse(obj.data.params).filters;
+                                        this.defaultFilter = JSON.parse(obj.data.params).filters;
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;

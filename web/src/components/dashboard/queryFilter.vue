@@ -62,7 +62,7 @@
                         </el-form-item>
                     </el-form>
                     <!--初始显示-->
-                    <el-form ref="form" label-width="80px" label-position="top" v-if="form.operator === '' || form.field === '' ">
+                    <el-form ref="form" label-width="80px" label-position="top" v-if="form.operator === '' || form.field === ''">
                         <el-form-item label="Value">
                             <el-input v-model="form.value" size="mini"></el-input>
                         </el-form-item>
@@ -74,15 +74,15 @@
                             <el-input v-model="form.value" size="mini"></el-input>
                         </el-form-item>
                         <!--number-->
-                        <el-form-item label="Value" v-if="fieldType[form.field] === 'number'">
+                        <el-form-item label="Value" v-else-if="fieldType[form.field] === 'number'">
                             <el-input v-model="form.value" type="number" size="mini"></el-input>
                         </el-form-item>
                         <!--ip-->
-                        <el-form-item label="Value" v-if="fieldType[form.field] === 'ip'">
+                        <el-form-item label="Value" v-else-if="fieldType[form.field] === 'ip'">
                             <el-input v-model="form.value" size="mini"></el-input>
                         </el-form-item>
                         <!--date-->
-                        <el-form-item label="Value" v-if="fieldType[form.field] === 'date'">
+                        <el-form-item label="Value" v-else-if="fieldType[form.field] === 'date'">
                             <el-date-picker
                                 style="width: 100%;"
                                 v-model="form.value"
@@ -92,7 +92,7 @@
                             </el-date-picker>
                         </el-form-item>
                         <!--Boolean-->
-                        <el-form-item label="Value" v-if="fieldType[form.field] === 'boolean'">
+                        <el-form-item label="Value" v-else-if="fieldType[form.field] === 'boolean'">
                             <el-select v-model="form.value" placeholder="请选择" style="width: 100%">
                                 <el-option label="true" value="true"></el-option>
                                 <el-option label="false" value="false"></el-option>
@@ -363,6 +363,16 @@
                     label_status:false,
                     label:''
                 }
+            },
+            /*field 类型*/
+            fieldType:{
+                handler(newV,oldV) {
+                    if(JSON.stringify(this.fieldType) !== '{}' && this.dialogType === 'resive'){
+                        this.getOperatorData(this.form.field)
+                    }
+                },
+                immediate: false,
+                deep: true
             }
         },
         methods:{
@@ -461,7 +471,6 @@
             },
             /*获取operator数据*/
             getOperatorData(field){
-                console.log(field)
                 this.$nextTick(()=>{
                     this.loading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getOperatorByFiledType.do',this.$qs.stringify({
@@ -548,15 +557,17 @@
             resiveFilter(i){
                 this.currentIndex = i;
                 this.form =JSON.parse(JSON.stringify(this.filterArr[i]));
-                console.log(this.form.field)
                 this.dialogType = 'resive';
+                this.filterDialog = true;
                 if(this.useObject === 'dashboard'){
                     this.getIndexPattern()
                     this.getFieldData(this.form.template_name)
+                    this.loading = true;
+                }else{
+                    //获取operator数据集合
+                    this.getOperatorData(this.form.field);
                 }
-                //获取operator数据集合
-                this.getOperatorData(this.form.field);
-                this.filterDialog = true;
+
             },
             /*保存过滤条件*/
             saveFilter(){

@@ -189,7 +189,7 @@
                 </div>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click="filterDialog = false">取 消</el-button>
-                    <el-button  type="primary" v-if="form.operator === 'exists' || form.operator === 'dose not exists'" @click="saveFilter()">确 定</el-button>
+                    <el-button  type="primary" v-if="form.operator === 'exists' || form.operator === 'does not exists'" @click="saveFilter()">确 定</el-button>
                     <el-button v-else  type="primary" @click="saveFilter()" :disabled="(form.field === '' || form.operator === '' || (form.value === '' && form.start === '' && form.values.length === 0 && form.end === '') || (form.label_status && form.label === '')) ? 'disabled' : false">确 定</el-button>
                 </div>
             </div>
@@ -333,6 +333,12 @@
                         //提交到父级页面
                         let str = JSON.stringify(this.filterArr)
                         bus.$emit(this.busName,str)
+                    }else{
+                        //判断是否是chart使用的
+                        if(this.useObject !== 'dashboard'){
+                            //获取field数据集合
+                            this.getFieldData();
+                        }
                     }
                 },
                 immediate: false,
@@ -455,6 +461,7 @@
             },
             /*获取operator数据*/
             getOperatorData(field){
+                console.log(field)
                 this.$nextTick(()=>{
                     this.loading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getOperatorByFiledType.do',this.$qs.stringify({
@@ -541,6 +548,7 @@
             resiveFilter(i){
                 this.currentIndex = i;
                 this.form =JSON.parse(JSON.stringify(this.filterArr[i]));
+                console.log(this.form.field)
                 this.dialogType = 'resive';
                 if(this.useObject === 'dashboard'){
                     this.getIndexPattern()

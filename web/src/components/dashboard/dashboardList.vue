@@ -41,7 +41,7 @@
                     {
                         prop: 'tools',
                         label: '操作',
-                        width: '',
+                        width: '100',
                         btns: [
                             {
                                 icon: 'el-icon-view',
@@ -72,6 +72,16 @@
                                 }
                             },
                         ]
+                    },
+                    {
+                        prop:'',
+                        label:'状态',
+                        width:'60',
+                        formatData:(val,row)=>{
+                            if(!row.deletable && !row.editable){
+                                return '<i class="el-icon-lock" style="color:#e4956d"></i>'
+                            }
+                        }
                     }
                 ],
                 tableData:[
@@ -110,7 +120,6 @@
             },
             /*修改按钮*/
             reviseChart(rowData,index){
-                console.log(rowData)
                 switch (rowData.type) {
                     case 'bar':
                         jumpHtml('barChart'+rowData.id,'dashboard/barChart.vue',{name:rowData.title,id:rowData.id},' 修改');
@@ -130,7 +139,6 @@
                 }, (index)=> {
                     this.loading = true;
                     this.$nextTick(()=>{
-                        layer.load(1);
                         this.$axios.post(this.$baseUrl+'/BI/deleteDashboardById.do',this.$qs.stringify({
                             id:row.id
                         }))

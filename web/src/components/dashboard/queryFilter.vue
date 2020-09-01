@@ -19,7 +19,7 @@
                         <span class="i-del"></span>
                         <i class="el-icon-view" title="关闭过滤"></i>
                     </del>
-                    <i class="el-icon-close" @click="filterArr.splice(i,1)" v-if="useType !== 'see'"></i>
+                    <i class="el-icon-close" @click="filterArr.splice(i,1)" ></i>
                 </li>
                 <span class="addFilter" @click="addFilters()"> <i class="el-icon-plus"></i>添加筛选</span>
             </ul>
@@ -28,10 +28,10 @@
             <div class="filter-form-wapper" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
                 <div class="filter-form">
                     <el-form  inline label-width="80px" label-position="top" style="display: flex;" v-if="useObject === 'dashboard'">
-                        <el-form-item label="Index Pattern" style="width:70%;">
-                            <el-select v-model="form.field" @change="fieldChange"  placeholder="请选择" filterable default-first-option  class="chooseClass iss"   size="mini">
+                        <el-form-item label="Index Pattern" style="width:100%;">
+                            <el-select v-model="form.template_name" style="width:100%;"  @change="indexPatternChange"  placeholder="请选择" filterable default-first-option  class="chooseClass iss"   size="mini">
                                 <el-option
-                                    v-for="item in fieldOpt"
+                                    v-for="item in indexPatternOpt"
                                     :key="item.value"
                                     :label="item.label"
                                     :value="item.value">
@@ -225,6 +225,12 @@
                     return ''
                 }
             },
+            filterArr:{
+                type: Array,
+                default(){
+                    return []
+                }
+            },
             templateName:{
                 type:String,
                 default(){
@@ -242,6 +248,12 @@
                 default(){
                     return ''
                 }
+            },
+            ids:{
+                type:Array,
+                default(){
+                    return []
+                }
             }
         },
         data() {
@@ -251,6 +263,7 @@
                 filterDialog:false,
                 addFromValue:'',
                 form:{
+                    template_name:'',
                     field:'',
                     fieldType:'',
                     operator:'',
@@ -264,32 +277,42 @@
                 },
                 currentIndex:'',
                 queryVal:'',
+                //indexPattern集合
                 indexPatternOpt:[],
-                filterArr:[],
+                //filterArr:[],
                 //field类型   string、number、ip、date
                 fieldType:{ },
                 //field值集合
                 fieldOpt:[],
                 //operator值集合
                 operatorOpt:[],
+
             }
         },
         created() {
-
+            /*if(this.useObject === 'dashboard'){
+                this.getIndexPattern()
+            }*/
         },
         watch:{
-            'defaultArr'(){
+            /*'defaultArr'(){
                 //加载初始值
                 if(this.defaultArr !== ''){
+                    console.log('ddd')
                     this.filterArr = JSON.parse(this.defaultArr);
-                    //获取field数据集合
-                    this.getFieldData();
+                    //判断是否是chart使用的
+                    if(this.useObject !== 'dashboard'){
+                        //获取field数据集合
+                        this.getFieldData();
+                    }
+
                 }
-            },
+            },*/
             'filterDialog'(){
                 if(!this.filterDialog){
                     this.dialogType = 'add';
                     this.form={
+                        template_name:'',
                         field:'',
                         operator:'',
                         fieldType:'',
@@ -305,12 +328,14 @@
             },
             //筛选值 集合
             filterArr:{
-                handler() {
-                    //提交到父级页面
-                    let str = JSON.stringify(this.filterArr)
-                    bus.$emit(this.busName,str)
+                handler(newV,oldV) {
+                    if(JSON.stringify(oldV) == JSON.stringify(newV)){
+                        //提交到父级页面
+                        let str = JSON.stringify(this.filterArr)
+                        bus.$emit(this.busName,str)
+                    }
                 },
-                immediate: true,
+                immediate: false,
                 deep: true
             },
             /*监听数据源 索引*/
@@ -340,22 +365,63 @@
                 //判断是否已经选择数据源
                 if(this.suffixIndexName !== '' || this.useObject === 'dashboard'){
                     this.filterDialog = true;
-                    //获取fields数据
-                    this.getFieldData();
+                    if(this.useObject === 'dashboard'){
+                        this.getIndexPattern();
+                    }else{
+                        //获取fields数据
+                        this.getFieldData();
+                    }
                 }else{
                     layer.msg('请先选择数据源',{icon:5})
                 }
-
             },
-            /*获取field数据*/
-            getFieldData(){
+            /*获取indexPattern*/
+            getIndexPattern(){
+                let chartIds = '';
+                for (let i in this.ids){
+                    chartIds += this.ids[i]+','
+                }
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'/BI/getFieldByFilter.do',this.$qs.stringify({
-                        suffix_index_name:this.suffixIndexName,
-                        pre_index_name:this.preIndexName,
-                        template_name:this.templateName
+                    this.$axios.post(this.$baseUrl+'/BI/getDashboardTemplates.do',this.$qs.stringify({
+                        ids:chartIds
                     }))
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.indexPatternOpt = [];
+                                obj.data.forEach(item=>{
+                                    this.indexPatternOpt.push({
+                                        value:item,
+                                        label:item
+                                    })
+                                })
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+            /*获取field数据*/
+            getFieldData(val){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    let params = {};
+                    //判断使用对象 chart dashboard
+                    if(this.useObject === 'chart'){
+                        params = {
+                            suffix_index_name:this.suffixIndexName,
+                            pre_index_name:this.preIndexName,
+                            template_name:this.templateName
+                        }
+                    }else if(this.useObject === 'dashboard'){
+                        params.template_name = val
+                    }
+                    this.$axios.post(this.$baseUrl+'/BI/getFieldByFilter.do',this.$qs.stringify(params))
                         .then(res=>{
                             this.loading = false;
                             //清空数据
@@ -408,6 +474,20 @@
                              this.loading = false;
                         })
                 })
+            },
+            /*indexPattern改变事件*/
+            indexPatternChange(val){
+                //清空值
+                this.form.field = '';
+                this.form.value = '';
+                this.form.start = '';
+                this.form.end = '';
+                this.form.values = [];
+                this.addFromValue = '';
+                this.form.operator = '';
+                this.form.fieldType = '';
+                //查询field
+                this.getFieldData(val);
             },
             /*field改变事件*/
             fieldChange(val){
@@ -462,6 +542,10 @@
                 this.currentIndex = i;
                 this.form =JSON.parse(JSON.stringify(this.filterArr[i]));
                 this.dialogType = 'resive';
+                if(this.useObject === 'dashboard'){
+                    this.getIndexPattern()
+                    this.getFieldData(this.form.template_name)
+                }
                 //获取operator数据集合
                 this.getOperatorData(this.form.field);
                 this.filterDialog = true;

@@ -12,7 +12,7 @@
         <div class="filter-box">
             <queryFilter
                 :busName="this.busFilterName"
-                :defaultArr="this.defaultFilter"
+                :filterArr="this.defaultFilter"
                 :useType="this.operType"
                 useObject="chart"
                 :templateName="this.chartsConfig.templateName"
@@ -784,7 +784,7 @@
                 //过滤条件
                 filters:'',
                 //默认过滤条件
-                defaultFilter:''
+                defaultFilter:[]
             }
         },
         created(){
@@ -823,7 +823,12 @@
                 bus.$on(this.busFilterName,(str)=>{
                     this.filters = str;
                     //刷新
-                    this.refreshChart();
+                    //判断是否具备生成图表的条件
+                    if(this.isCanCreate !== 'disabled'){
+                        this.loading = true;
+                        //获取数据
+                        this.getData()
+                    }
                 })
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -863,7 +868,12 @@
                 bus.$on(this.busFilterName,(str)=>{
                     this.filters = str;
                     //刷新
-                    this.refreshChart();
+                    //判断是否具备生成图表的条件
+                    if(this.isCanCreate !== 'disabled'){
+                        this.loading = true;
+                        //获取数据
+                        this.getData()
+                    }
                 })
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -899,7 +909,12 @@
                 bus.$on(this.busFilterName,(str)=>{
                     this.filters = str;
                     //刷新
-                    this.refreshChart();
+                    //判断是否具备生成图表的条件
+                    if(this.isCanCreate !== 'disabled'){
+                        this.loading = true;
+                        //获取数据
+                        this.getData()
+                    }
                 })
             }
         },
@@ -1687,7 +1702,7 @@
                                     if (obj.success == 'true'){
                                         //赋值
                                         this.filters = JSON.parse(obj.data.params).filters;
-                                        this.defaultFilter = JSON.parse(obj.data.params).filters;
+                                        this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;

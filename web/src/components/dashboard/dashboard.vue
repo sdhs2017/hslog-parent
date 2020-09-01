@@ -12,6 +12,16 @@
             </div>
             <div class="tit-eq" v-if="this.equipmentId !== ''">{{this.dashboardTit}}</div>
         </div>
+        <div class="filter-box">
+            <queryFilter
+                :busName="this.busFilterName"
+                :filterArr="this.defaultFilter"
+                :useType="this.operType"
+                :ids="ids"
+                useObject="dashboard"
+            >
+            </queryFilter>
+        </div>
         <!--dashboard-->
         <div>
             <grid-layout
@@ -23,6 +33,7 @@
                 :vertical-compact="true"
                 :margin="[10, 10]"
                 :use-css-transforms="true"
+                @layout-updated="layoutUpdatedEvent"
                 @layout-ready="layoutReadyEvent"
             >
                 <grid-item v-for="(item,i) in layout"
@@ -232,6 +243,7 @@
     import { addQuillTitle } from '../../../static/js/quill-title.js';
     import VueGridLayout from 'vue-grid-layout';
     import dateLayout from '../common/dateLayout'
+    import queryFilter from '../dashboard/queryFilter'
     import vEcharts from '../common/echarts'
     import bus from '../common/bus';
     import {dateFormat,jumpHtml,setChartParam} from "../../../static/js/common";
@@ -252,6 +264,15 @@
         name: "dashboard",
         data() {
             return {
+                //监听filter事件名
+                busFilterName:'dashboardBusFilterName',
+                //filter
+                filters:[],
+                //默认过滤条件
+                defaultFilter:[],
+                //使用类型
+                operType:'',
+                //循环名称
                 interval:'',
                 loading:true,
                 color1 :['#00EABD','#20C1F3','#FC686F','#F9D124','#DE1AFB','#C0D7FC','#A9F4B7','#FF9E96','#75B568','#323A81'],
@@ -519,6 +540,8 @@
                     title:'',
                     opt:{}
                 },
+                //已添加图表id集合
+                ids:[]
             }
         },
         created(){
@@ -530,6 +553,8 @@
                 //修改data参数
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'resiveDashboard'+this.$route.query.id;
+                this.busFilterName = 'resiveDashboardFilters'+this.$route.query.id;
+                this.operType = 'edit'
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
                     path:'resiveDashboard'+this.$route.query.id,
@@ -547,6 +572,8 @@
                 //修改data参数
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'seeDashboard'+this.$route.query.id;
+                this.busFilterName = 'seeDashboardFilters'+this.$route.query.id;
+                this.operType = 'see'
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
                     path:'seeDashboard'+this.$route.query.id,
@@ -564,6 +591,7 @@
                 //修改data参数
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'equipmentDashboard'+this.$route.query.eid;
+                this.busFilterName = 'eqDashboardFilters'+this.$route.query.id;
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
                     path:'equipmentDashboard'+this.$route.query.eid,
@@ -599,9 +627,33 @@
                     this.sysChartParams = arr[0];
                 }
             })
+            bus.$on(this.busFilterName,(str)=>{
+                this.filters = str;
+                this.loading = true;
+                //获取数据
+                for(let i in this.layout){
+                    this.chartsCount += 1;
+                    //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                    if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
+                        this.getEchartsConstruction(this.layout[i])
+                            .then((res)=>{
+                                //获取图例数据
+                                return this.getEchartsData(res)
+                            })
+                            .then((res)=>{
+                                //加载图例
+                                return this.creatEcharts(res)
+                            })
+                    }else if(this.layout[i].chartType == 'systemChart'){
+
+                    }
+
+                }
+            })
         },
         beforeDestroy(){
             bus.$off(this.busName)
+            bus.$off(this.busFilterName)
         },
         methods:{
             /*过滤系统预设报表*/
@@ -737,7 +789,8 @@
                     title:this.dashboardParams.name,
                     description:this.dashboardParams.des,
                     option:JSON.stringify(this.layout),
-                    isSaveAs:true
+                    isSaveAs:true,
+                    params:JSON.stringify({filters:this.filters})
                 }
                 //判断是否是修改图表
                 if(this.dashboardId !== ''){
@@ -771,8 +824,14 @@
             },
             /*删除图例*/
             deleteE(i){
+                //删除ids中的id
+                //let delId = this.layout[i].eId;
                 //删除
                 this.layout.splice(i,1)
+                if(this.layout.length === 0){
+                    this.ids = []
+                }
+
             },
             /*全屏显示*/
             fullscreenE(obj){
@@ -811,6 +870,8 @@
                                 this.dashboardParams.name = obj.data.title;
                                 this.dashboardParams.des = obj.data.description;
                                 let option = JSON.parse(obj.data.option);
+                                this.filters = JSON.parse(obj.data.params).filters;
+                                this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
                                 this.layout = option;
                                 this.$nextTick(()=>{
                                     //获取echart结构数据
@@ -845,6 +906,10 @@
                 return new Promise((resolve,rej)=>{
                     this.$nextTick(()=>{
                         $(document.getElementById(obj.i)).next().css("display","block")
+                        //添加id  用于filters
+                        if(!this.ids.includes(obj.eId)){
+                            this.ids.push(obj.eId)
+                        }
                         this.$axios.post(this.$baseUrl+'/BI/getVisualizationById.do',this.$qs.stringify({
                             id:obj.eId
                         }))
@@ -901,6 +966,7 @@
                 param.starttime = this.dateArr.starttime;
                 param.endtime = this.dateArr.endtime;
                 param.last = this.dateArr.last;
+                param.filters=this.filters
                 //判断是否是单个资产的统计
                 if (this.equipmentId !== ''){
                     let eqObj = {
@@ -991,20 +1057,6 @@
                                     }
                                 }
                                 else if(obj.chartType === 'pie'){
-                                   /* obj.opt.series.push({
-                                        name: '',
-                                        type: 'pie',
-                                        radius : '55%',
-                                        center: ['50%', '60%'],
-                                        itemStyle: {
-                                            emphasis: {
-                                                shadowBlur: 10,
-                                                shadowOffsetX: 0,
-                                                shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                            }
-                                        }
-                                    })*/
-                                   console.log(res.data)
                                     //饼图圆环个数
                                     let pieCount = res.data.data.length;
                                     //圆环间隔
@@ -1056,7 +1108,17 @@
                                         }
                                     }
                                 }
-                                console.log(obj.opt.series)
+                                else if(obj.chartType === 'metric'){
+                                    let str = ''
+                                    //循环拼接数据
+                                    for(let i in obj.opt.dataset){
+                                        obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
+                                        str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.style.fontSize}px;color: ${obj.opt.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
+                                    }
+                                    let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center">'+str+'</div>'
+                                    obj.opt.series.push(box)
+                                }
+
                                 resolve(obj);
                             })
                             .catch(err=>{
@@ -1084,11 +1146,6 @@
             },
             /*创建图表*/
             creatEcharts(obj){
-               // console.log(i)
-                /*setTimeout(()=>{
-                    this.echartsArr[i] = echarts.init(document.getElementById(dom))
-                    this.echartsArr[i].setOption(opt);
-                },1000)*/
                 return new Promise((resolve, reject) => {
                     if(obj.opt.toolbox !== undefined){
                         obj.opt.toolbox.feature.dataView.optionToContent = function (opt) {
@@ -1113,11 +1170,18 @@
                             return table;
                         }
                     }
-                    this.echartsArr[obj.i] = echarts.init(document.getElementById(obj.i))
-                    this.echartsArr[obj.i].setOption(obj.opt);
-                    window.addEventListener("resize",()=>{
-                        this.echartsArr[obj.i].resize();
-                    });
+                    //判断图表类型
+                    if(obj.chartType !== 'metric'){//柱、折、饼
+                        this.echartsArr[obj.i] = echarts.init(document.getElementById(obj.i))
+                        this.echartsArr[obj.i].setOption(obj.opt);
+                        window.addEventListener("resize",()=>{
+                            this.echartsArr[obj.i].resize();
+                        });
+                    }else {//指标类型
+                        $("#"+obj.i).html('')
+                        $("#"+obj.i).append(obj.opt.series[0])
+                    }
+
                     $(document.getElementById(obj.i)).next().css("display","none")
                 })
 
@@ -1127,9 +1191,17 @@
                 //循环创建echarts图表
                 for(let i in newLayout){
                     this.chartsCount = i;
-                    this.creatEcharts(newLayout[i])
+                    if(newLayout[i].chartType !== 'systemChart' && newLayout[i].chartType !== 'text'){
+                        if(!this.ids.includes(newLayout[i].eId)){
+                            this.ids.push(newLayout[i].eId)
+                            console.log(this.ids)
+                        }
+                    }
+                    this.creatEcharts(newLayout[i]);
                 }
                 //console.log(this.chartsCount);
+            },
+            layoutUpdatedEvent(newLayout){
             },
             /*移动时的事件*/
             /*moveEvent(i, newX, newY){
@@ -1192,6 +1264,17 @@
 
                 }
             },
+            //layout
+          /*  layout:{
+                handler(newV,oldV) {
+                    newV.forEach(item=>{
+                        console.log(item)
+                    })
+                },
+                immediate: true,
+                deep: true
+            },*/
+            //轮训参数监听
             intervalObj:{
                 handler(newV,oldV) {
                     //判断是否启用轮询获取数据
@@ -1255,6 +1338,7 @@
             vEcharts,
             dateLayout,
             quillEditor,
+            queryFilter,
             GridLayout: VueGridLayout.GridLayout,
             GridItem: VueGridLayout.GridItem,
 
@@ -1273,6 +1357,11 @@
         cursor: no-drop;
         text-shadow: none;
         color: #455b75;
+    }
+    .filter-box{
+        padding: 0 10px;
+        position: relative;
+        top: -10px;
     }
     .tit-zz{
         width: 100%;

@@ -662,11 +662,13 @@
                     departmentId:0,
                     role:''
                 }
+                this.password2 = '';
                 this.userForm=true;
             },
             /*添加用户*/
             addUser(){
                 //拼接角色
+                this.userParams.role = '';
                 for(let i in this.roleVal){
                     this.userParams.role += this.roleVal[i]+',';
                 }

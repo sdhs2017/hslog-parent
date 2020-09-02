@@ -55,6 +55,9 @@
         },
         watch:{
             'value'(){
+                if(this.value === 0){
+                    this.valueTitle = ''
+                }
                 this.valueId = this.value;
                 this.initHandle();
             }

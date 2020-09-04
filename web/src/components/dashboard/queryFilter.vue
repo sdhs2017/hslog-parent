@@ -9,7 +9,7 @@
                v-model="popoverVisible">
                <ul class="tips-content">
                    <li>表达式格式：字段名称+运算符+录入值，各个表达式用and或or进行连接。</li>
-                   <li>支持的运算符： : <= >= < > :*  （:* 表示存在）</li>
+                   <li>支持的运算符： : <= >= < > :*  （:* 表示存在,不需要添加值）</li>
                    <li>例：ip>="192.168.2.1" and host.name:"myServer" or host.ip:*</li>
                    <li>注：表达式与连接符之间以“空格”隔开。</li>
                </ul>
@@ -20,6 +20,7 @@
            </el-popover>
        </div>
         <div class="filter-wapper">
+            <div class="ld"><b class="ld-1"></b><b class="ld-2"></b><b class="ld-3"></b></div>
             <ul class="filter-ul">
                 <li v-for="(item ,i) in filterArr" :key="i" :class="{noview:!item.enable}">
                     <span v-if="item.label_status" @click="resiveFilter(i)">{{item.label}}</span>
@@ -651,14 +652,46 @@
         font-size: 12px;
         align-items: center;
         margin-top: 5px;
+        position: relative;
     }
     .filter-wapper .filter-ul{
         display: flex;
         flex-wrap: wrap;
+        margin-left: 30px;
+        min-height: 34px;
     }
     .addFilter{
         display: flex;
         align-items: center;
+    }
+   .ld{
+       width: 16px;
+       height: 16px;
+       border-radius: 100%;
+       border: 1px solid #409eff;
+       text-align: center;
+       margin-right: 8px;
+       position: absolute;
+       top: 7px;
+    }
+    .ld b{
+        display: block;
+        height: 1px;
+        background: #409eff;
+        margin-top: 3px;
+    }
+    .ld .ld-1{
+        margin-top: 4px;
+        width: 10px;
+        margin-left: 3px;
+    }
+    .ld .ld-2{
+        width: 6px;
+        margin-left: 5px;
+    }
+    .ld .ld-3{
+        width: 2px;
+        margin-left: 7px;
     }
     .filter-ul li{
         padding:3px 5px;

@@ -991,7 +991,7 @@
                 this.refresh++;
             },
             updateChart(){
-                //this.queryVal = this.oldQuery;
+                this.oldQuery = this.queryVal;
                 this.refresh++;
                 this.updateBtn = false;
             },

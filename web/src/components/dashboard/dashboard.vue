@@ -1,12 +1,13 @@
 <template>
     <div class="content-bg" v-loading="allLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div class="top-title" style="position: relative;">
+        <div class="top-title" style="position: relative;padding-left: 10px;">
             <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
             <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
             <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
-            <el-button  type="primary" size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
+            <el-button  class="update-btn" v-if="updateBtn"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
+            <el-button  type="primary" v-else size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
             <div class="date-wapper"><!--<date-layout  :busName="busName" :refresh="refresh"></date-layout>-->
                 <dateLayout :busName="busName" :defaultVal = "defaultVal" :refresh="refresh"></dateLayout>
             </div>
@@ -14,8 +15,10 @@
         </div>
         <div class="filter-box">
             <queryFilter
-                :busName="this.busFilterName"
+                :busFilterName="this.busFilterName"
+                :busQueryName="this.busQueryName"
                 :filterArr="this.defaultFilter"
+                :queryVal="this.defaultQuery"
                 :useType="this.operType"
                 :ids="ids"
                 useObject="dashboard"
@@ -266,6 +269,8 @@
             return {
                 //监听filter事件名
                 busFilterName:'dashboardBusFilterName',
+                //监听Query
+                busQueryName:'dashboardBusQueryName',
                 //filter
                 filters:[],
                 //默认过滤条件
@@ -541,7 +546,12 @@
                     opt:{}
                 },
                 //已添加图表id集合
-                ids:[]
+                ids:[],
+                //query值
+                queryVal:'',
+                oldQuery:'',
+                defaultQuery:'',
+                updateBtn:false
             }
         },
         created(){
@@ -554,6 +564,7 @@
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'resiveDashboard'+this.$route.query.id;
                 this.busFilterName = 'resiveDashboardFilters'+this.$route.query.id;
+                this.busQueryName = 'resiveDashboardQuery'+this.$route.query.id;
                 this.operType = 'edit'
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -573,6 +584,7 @@
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'seeDashboard'+this.$route.query.id;
                 this.busFilterName = 'seeDashboardFilters'+this.$route.query.id;
+                this.busQueryName = 'seeDashboardQuery'+this.$route.query.id;
                 this.operType = 'see'
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -592,6 +604,7 @@
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'equipmentDashboard'+this.$route.query.eid;
                 this.busFilterName = 'eqDashboardFilters'+this.$route.query.id;
+                this.busQueryName = 'eqDashboardQuery'+this.$route.query.id;
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
                     path:'equipmentDashboard'+this.$route.query.eid,
@@ -650,10 +663,16 @@
 
                 }
             })
+            //监听query
+            bus.$on(this.busQueryName,(str)=>{
+                this.isUpdate(str)
+            })
+
         },
         beforeDestroy(){
             bus.$off(this.busName)
             bus.$off(this.busFilterName)
+            bus.$off(this.busQueryName)
         },
         methods:{
             /*过滤系统预设报表*/
@@ -790,7 +809,7 @@
                     description:this.dashboardParams.des,
                     option:JSON.stringify(this.layout),
                     isSaveAs:true,
-                    params:JSON.stringify({filters:this.filters})
+                    params:JSON.stringify({filters_dashboard:this.filters})
                 }
                 //判断是否是修改图表
                 if(this.dashboardId !== ''){
@@ -817,6 +836,33 @@
                             layer.msg('保存失败',{icon:5})
                         })
                 })
+            },
+            updateChart(){
+                this.oldQuery = this.queryVal;
+                this.refresh++;
+                this.updateBtn = false;
+            },
+            //判断是否出现更新按钮
+            isUpdate(currentVal){
+                this.queryVal = currentVal;
+                //判断是否可以生产报表
+                if(this.isCanCreate !== 'disabled'){
+                    //判断目标值是否有改变
+                    if(currentVal !== this.oldQuery){
+                        this.updateBtn = true
+                        if($(".layui-layer-tips").length === 0){
+                            layer.tips('点击更新', '.update-btn', {
+                                tips: [3, '#3595CC'],
+                                time: 2000
+                            });
+                        }
+
+                    }else{
+                        this.updateBtn = false
+                    }
+                }else{
+                    this.oldQuery = this.queryVal;
+                }
             },
             /*刷新dashboard*/
             refreshDashboard(){
@@ -870,8 +916,11 @@
                                 this.dashboardParams.name = obj.data.title;
                                 this.dashboardParams.des = obj.data.description;
                                 let option = JSON.parse(obj.data.option);
-                                this.filters = JSON.parse(obj.data.params).filters;
-                                this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
+                                //赋值
+                                if(obj.data.params){
+                                    this.filters = JSON.parse(obj.data.params).filters_dashboard;
+                                    this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_dashboard);
+                                }
                                 this.layout = option;
                                 this.$nextTick(()=>{
                                     //获取echart结构数据
@@ -892,8 +941,8 @@
 
                                     }
                                 })
-
-
+                            }else{
+                                layer.msg(obj.message,{icon:5})
                             }
                         })
                         .catch(err=>{
@@ -966,7 +1015,8 @@
                 param.starttime = this.dateArr.starttime;
                 param.endtime = this.dateArr.endtime;
                 param.last = this.dateArr.last;
-                param.filters=this.filters
+                param.filters_dashboard=this.filters;
+                param.queryBox = this.queryVal
                 //判断是否是单个资产的统计
                 if (this.equipmentId !== ''){
                     let eqObj = {
@@ -1553,5 +1603,8 @@
     }
     /deep/ #ql-picker-options-5{
         background: #4b6179;
+    }
+    .filter-box /deep/ .el-input__inner{
+        border-radius: 0;
     }
 </style>

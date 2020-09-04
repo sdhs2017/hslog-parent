@@ -1,8 +1,24 @@
 <template>
     <div>
-    <!--   <div>
-           <el-input v-model="queryVal" placeholder="请输入内容" size="mini"></el-input>
-       </div>-->
+       <div>
+<!--           <el-input v-model="formQueryVal" placeholder="请输入内容" size="mini"></el-input>-->
+           <el-popover
+               style="width: 100%;display: block;"
+               placement="top-start"
+               trigger="manual"
+               v-model="popoverVisible">
+               <ul class="tips-content">
+                   <li>表达式格式：字段名称+运算符+录入值，各个表达式用and或or进行连接。</li>
+                   <li>支持的运算符： : <= >= < > :*  （:* 表示存在）</li>
+                   <li>例：ip>="192.168.2.1" and host.name:"myServer" or host.ip:*</li>
+                   <li>注：表达式与连接符之间以“空格”隔开。</li>
+               </ul>
+               <div slot="reference" style="width:100%;background: 0;border: 0;padding: 0;">
+                   <span class="query-label" ><i class="el-icon-search"></i></span>
+                   <el-input v-model="formQueryVal" placeholder="请输入查询条件" size="mini" @focus="popoverVisible = true" @blur="popoverVisible = false" style="width: calc(100% - 34px);border-radius: 0;"></el-input>
+               </div>
+           </el-popover>
+       </div>
         <div class="filter-wapper">
             <ul class="filter-ul">
                 <li v-for="(item ,i) in filterArr" :key="i" :class="{noview:!item.enable}">
@@ -215,16 +231,20 @@
                 type:String
             },
             //监听事件名称
-            busName:{
+            busFilterName:{
                 type:String
             },
-            //初始值
-            defaultArr:{
+            busQueryName:{
+                type:String
+            },
+            //query
+            queryVal:{
                 type: String,
                 default(){
                     return ''
                 }
             },
+            //filter值
             filterArr:{
                 type: Array,
                 default(){
@@ -258,6 +278,7 @@
         },
         data() {
             return {
+                popoverVisible:false,
                 loading:false,
                 dialogType:'add',
                 filterDialog:false,
@@ -276,12 +297,12 @@
                     label:''
                 },
                 currentIndex:'',
-                queryVal:'',
                 //indexPattern集合
                 indexPatternOpt:[],
                 //filterArr:[],
                 //field类型   string、number、ip、date
                 fieldType:{ },
+                formQueryVal:'',
                 //field值集合
                 fieldOpt:[],
                 //operator值集合
@@ -326,13 +347,17 @@
                     }
                 }
             },
+            //query
+            'formQueryVal'(){
+               bus.$emit(this.busQueryName,this.formQueryVal)
+            },
             //筛选值 集合
             filterArr:{
                 handler(newV,oldV) {
                     if(JSON.stringify(oldV) == JSON.stringify(newV)){
                         //提交到父级页面
                         let str = JSON.stringify(this.filterArr)
-                        bus.$emit(this.busName,str)
+                        bus.$emit(this.busFilterName,str)
                     }else{
                         //判断是否是chart使用的
                         if(this.useObject !== 'dashboard'){
@@ -608,11 +633,24 @@
 </script>
 
 <style scoped>
+    .query-label{
+        display: inline-block;
+        width: 34px;
+        height: 28px;
+        float: left;
+        background: #409eff;
+        color: #fff;
+        line-height: 28px;
+        cursor: auto;
+        text-align: center;
+        font-size: 12px;
+    }
     .filter-wapper{
         display: flex;
         min-height: 24px;
         font-size: 12px;
         align-items: center;
+        margin-top: 5px;
     }
     .filter-wapper .filter-ul{
         display: flex;

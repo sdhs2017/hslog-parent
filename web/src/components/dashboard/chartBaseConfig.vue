@@ -1,18 +1,21 @@
 <template>
     <div v-loading="allLoading"  element-loading-background="rgba(26,36,47, 0.2)">
-        <div class="top-title"><!--{{htmlTitle}}-->
+        <div class="top-title" style="padding-left: 10px;"><!--{{htmlTitle}}-->
             <div class="top-zz" v-if="operType === 'see'"></div>
             <div class="choose-wapper">
                 <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
             </div>
             <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true"  size="mini">保存</el-button>
-            <el-button  type="primary" size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
-            <div class="date-wapper"><date-layout  :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
+            <el-button class="update-btn" v-if="updateBtn && isCanCreate !== 'disabled'"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
+            <el-button type="primary" v-else size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
+            <div class="date-wapper"><date-layout :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
         </div>
         <div class="filter-box">
             <queryFilter
-                :busName="this.busFilterName"
+                :busFilterName="this.busFilterName"
+                :busQueryName="this.busQueryName"
                 :filterArr="this.defaultFilter"
+                :queryVal="this.defaultQuery"
                 :useType="this.operType"
                 useObject="chart"
                 :templateName="this.chartsConfig.templateName"
@@ -454,7 +457,7 @@
     import chooseIndex from '../dashboard/chooseIndex'
     const echarts = require('echarts');
     export default {
-        name: "barChart",
+        name: "chartBaseConfig",
         props:{
             //操作类型
             operType:{
@@ -543,6 +546,7 @@
                 busName:'createBarChart',
                 busIndexName:'barIndexName',
                 busFilterName:'',
+                busQueryName:'',
                 //默认数据源索引
                 indexVal:[],
                 //展开的选项卡
@@ -784,7 +788,13 @@
                 //过滤条件
                 filters:'',
                 //默认过滤条件
-                defaultFilter:[]
+                defaultFilter:[],
+                //更新按钮
+                updateBtn:false,
+                //query值
+                queryVal:'',
+                oldQuery:'',
+                defaultQuery:''
             }
         },
         created(){
@@ -803,6 +813,7 @@
                 this.busName = this.chartType + 'resiveChart'+this.$route.query.id;
                 this.busIndexName = this.chartType + 'IndexName' +this.$route.query.id;
                 this.busFilterName = this.chartType + 'FilterName' +this.$route.query.id;
+                this.busQueryName = this.chartType + 'QueryName' +this.$route.query.id;
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -829,6 +840,10 @@
                         //获取数据
                         this.getData()
                     }
+                })
+                //监听query
+                bus.$on(this.busQueryName,(str)=>{
+                    this.isUpdate(str)
                 })
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -848,6 +863,7 @@
                 this.busName = 'seeChart'+this.$route.query.id;
                 this.busIndexName = 'seeIndexName' +this.$route.query.id;
                 this.busFilterName = 'seeFliterName' +this.$route.query.id;
+                this.busQueryName = 'seeQueryName' +this.$route.query.id;
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -874,6 +890,10 @@
                         //获取数据
                         this.getData()
                     }
+                })
+                //监听query
+                bus.$on(this.busQueryName,(str)=>{
+                    this.isUpdate(str)
                 })
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
@@ -889,6 +909,7 @@
                 this.busName = this.chartType + 'addChart';
                 this.busIndexName = this.chartType + 'addIndexName';
                 this.busFilterName = this.chartType + 'addFliterName';
+                this.busQueryName = this.chartType + 'addQueryName';
                 //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
@@ -916,6 +937,10 @@
                         this.getData()
                     }
                 })
+                //监听query
+                bus.$on(this.busQueryName,(str)=>{
+                    this.isUpdate(str)
+                })
             }
         },
 
@@ -924,6 +949,7 @@
             bus.$off(this.busName);
             bus.$off(this.busIndexName);
             bus.$off(this.busFilterName);
+            bus.$off(this.busQueryName);
             //清楚计时器
             clearInterval(this.interval);
         },
@@ -952,6 +978,9 @@
                 if(yState == false && xState == false){
                     return false;
                 }else {
+                    //设置query值
+                    this.oldQuery = this.queryVal;
+                    this.updateBtn = false
                     return 'disabled';
                 }
             }
@@ -960,6 +989,33 @@
             //刷新
             refreshChart(){
                 this.refresh++;
+            },
+            updateChart(){
+                //this.queryVal = this.oldQuery;
+                this.refresh++;
+                this.updateBtn = false;
+            },
+            //判断是否出现更新按钮
+            isUpdate(currentVal){
+                this.queryVal = currentVal;
+                //判断是否可以生产报表
+                if(this.isCanCreate !== 'disabled'){
+                    //判断目标值是否有改变
+                    if(currentVal !== this.oldQuery){
+                        this.updateBtn = true
+                        if($(".layui-layer-tips").length === 0){
+                            layer.tips('点击更新', '.update-btn', {
+                                tips: [3, '#3595CC'],
+                                time: 2000
+                            });
+                        }
+
+                    }else{
+                        this.updateBtn = false
+                    }
+                }else{
+                    this.oldQuery = this.queryVal;
+                }
             },
             // 初始化
             initialize(){
@@ -1106,7 +1162,7 @@
                     this.loading = false;
                     let data2 = [
                         {name:'count',value:9858247},
-                        {name:'count2',value:9858247}
+                       // {name:'count2',value:9858247}
                     ]
                     this.sourceData = data2
                     this.createMetric(data2);
@@ -1188,7 +1244,8 @@
                     template_name:this.chartsConfig.templateName,
                     metrics:JSON.stringify(metricsArr),
                     buckets:JSON.stringify(bucketsArr),
-                    filters:this.filters
+                    filters_visual:this.filters,
+                    queryBox:this.queryVal
                 }
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
@@ -1609,7 +1666,7 @@
             prevCreate(){
                 this.chartsConfig = JSON.parse(this.chartsConfigArr[0]);
                 console.log(this.chartsConfig)
-                this.createChart();
+                //this.createChart();
             },
             /*保存图表*/
             saveChart(){
@@ -1637,13 +1694,14 @@
                 let params = {
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
-                    filters:this.filters,
+                    filters_visual:this.filters,
                     type:this.chartType,
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
                     template_name:this.chartsConfig.templateName,
                     option:JSON.stringify(optStr),
                     params:this.chartParams.searchParam,
+                    // queryBox:this.queryVal,
                     isSaveAs:true
                 }
                 //判断是否是修改图表
@@ -1701,8 +1759,10 @@
                                     let obj = res.data;
                                     if (obj.success == 'true'){
                                         //赋值
-                                        this.filters = JSON.parse(obj.data.params).filters;
-                                        this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
+                                        if(JSON.parse(obj.data.params).filters_visual){
+                                            this.filters = JSON.parse(obj.data.params).filters_visual;
+                                            this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_visual);
+                                        }
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;

@@ -79,6 +79,7 @@
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
+                        <div class="no-chart" :id="`err${item.i}`"></div>
                         <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}"></div>
                     </div>
                 </grid-item>
@@ -1000,6 +1001,7 @@
             },
             /*获取echarts数据*/
             getEchartsData(resObj){
+
                 //判断请求的方法
                 let url = '';
                 if(resObj.obj.chartType === 'pie'){
@@ -1030,146 +1032,156 @@
                         this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                             .then(res=>{
                                 obj.loading = false;
-                                obj.opt.dataset = res.data.data;
-                                obj.opt.series=[];
-                                //判断图表类型
-                                if(obj.chartType === 'bar'){
-                                    let xL = res.data.data[0].dimensions.length - 1;//维度
-                                    let colorIndex = 0;//颜色索引
-                                    //处理y轴数字刻度单位
-                                    obj.opt.yAxis.axisLabel.formatter= function (value, index) {
-                                        if (value >= 10000 && value < 10000000) {
-                                            value = value / 10000 + "万";
-                                        } else if (value >= 10000000) {
-                                            value = value / 10000000 + "千万";
+                                if(res.data.success === 'true'){
+                                    //隐藏error提示
+                                    $(document.getElementById('err'+obj.i)).css("zIndex","0")
+                                    $(document.getElementById('err'+obj.i)).html('')
+                                    //填充数据
+                                    obj.opt.dataset = res.data.data;
+                                    obj.opt.series=[];
+                                    //判断图表类型
+                                    if(obj.chartType === 'bar'){
+                                        let xL = res.data.data[0].dimensions.length - 1;//维度
+                                        let colorIndex = 0;//颜色索引
+                                        //处理y轴数字刻度单位
+                                        obj.opt.yAxis.axisLabel.formatter= function (value, index) {
+                                            if (value >= 10000 && value < 10000000) {
+                                                value = value / 10000 + "万";
+                                            } else if (value >= 10000000) {
+                                                value = value / 10000000 + "千万";
+                                            }
+                                            return value;
                                         }
-                                        return value;
-                                    }
-                                    for(let i=0;i<xL;i++){
-                                        if(colorIndex === this.color1.length){
-                                            colorIndex = 0;
-                                        }
-                                        let dObj = {
-                                            name: '',
-                                            type: 'bar',
-                                            itemStyle: {
-                                                color: this.color1[colorIndex]
-                                            },
-                                        }
-                                        obj.opt.series.push(dObj);
-                                        colorIndex++
-                                    }
-                                }
-                                else if(obj.chartType === 'line'){
-                                    let xL = res.data.data[0].dimensions.length - 1;//维度
-                                    let colorIndex = 0;//颜色索引
-                                    //处理y轴数字刻度单位
-                                    obj.opt.yAxis.axisLabel.formatter= function (value, index) {
-                                        if (value >= 10000 && value < 10000000) {
-                                            value = value / 10000 + "万";
-                                        } else if (value >= 10000000) {
-                                            value = value / 10000000 + "千万";
-                                        }
-                                        return value;
-                                    }
-                                    for(let i=0;i<xL;i++){
-                                        if(colorIndex === this.color1.length){
-                                            colorIndex = 0;
-                                        }
-                                        let dObj = {
-                                            type: 'line',
-                                            smooth: true, //平滑性.
-                                            showSymbol: false,
-                                            hoverAnimation: false,
-                                            areaStyle: {
-                                                normal: {
-                                                    //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
-                                                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
-                                                        offset: 0,
-                                                        color:  this.color1[colorIndex]
-                                                    }, {
-                                                        offset: 1,
-                                                        color: 'rgba(116,235,213,0.1)'
-                                                    }]),
-                                                    opacity:obj.areaShow
-
-                                                },
-
-                                            },
-                                            itemStyle: {
-                                                normal: {
+                                        for(let i=0;i<xL;i++){
+                                            if(colorIndex === this.color1.length){
+                                                colorIndex = 0;
+                                            }
+                                            let dObj = {
+                                                name: '',
+                                                type: 'bar',
+                                                itemStyle: {
                                                     color: this.color1[colorIndex]
+                                                },
+                                            }
+                                            obj.opt.series.push(dObj);
+                                            colorIndex++
+                                        }
+                                    }
+                                    else if(obj.chartType === 'line'){
+                                        let xL = res.data.data[0].dimensions.length - 1;//维度
+                                        let colorIndex = 0;//颜色索引
+                                        //处理y轴数字刻度单位
+                                        obj.opt.yAxis.axisLabel.formatter= function (value, index) {
+                                            if (value >= 10000 && value < 10000000) {
+                                                value = value / 10000 + "万";
+                                            } else if (value >= 10000000) {
+                                                value = value / 10000000 + "千万";
+                                            }
+                                            return value;
+                                        }
+                                        for(let i=0;i<xL;i++){
+                                            if(colorIndex === this.color1.length){
+                                                colorIndex = 0;
+                                            }
+                                            let dObj = {
+                                                type: 'line',
+                                                smooth: true, //平滑性.
+                                                showSymbol: false,
+                                                hoverAnimation: false,
+                                                areaStyle: {
+                                                    normal: {
+                                                        //颜色渐变函数 前四个参数分别表示四个位置依次为左、下、右、上
+                                                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                                            offset: 0,
+                                                            color:  this.color1[colorIndex]
+                                                        }, {
+                                                            offset: 1,
+                                                            color: 'rgba(116,235,213,0.1)'
+                                                        }]),
+                                                        opacity:obj.areaShow
+
+                                                    },
+
+                                                },
+                                                itemStyle: {
+                                                    normal: {
+                                                        color: this.color1[colorIndex]
+                                                    }
+                                                },
+                                            }
+                                            obj.opt.series.push(dObj);
+                                            colorIndex++;
+                                        }
+                                    }
+                                    else if(obj.chartType === 'pie'){
+                                        //饼图圆环个数
+                                        let pieCount = res.data.data.length;
+                                        //圆环间隔
+                                        let pieSpace = 5;
+                                        //最大范围
+                                        let raduisMax = 70;
+                                        //每个环平均的宽度
+                                        let raduisVal = (raduisMax-pieSpace*(pieCount-1))/(pieCount + 1);
+                                        for(let i = 0;i<pieCount;i++){
+                                            if(i === 0){
+                                                let objPie = {
+                                                    type: 'pie',
+                                                    radius:[0,`${raduisVal*(i+2)}%`],
+                                                    itemStyle: {
+                                                        emphasis: {
+                                                            shadowBlur: 10,
+                                                            shadowOffsetX: 0,
+                                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                        }
+                                                    },
+                                                    label:{
+                                                        normal:{
+                                                            show:false
+                                                        }
+                                                    },
+                                                    data:res.data.data[i]
                                                 }
-                                            },
-                                        }
-                                        obj.opt.series.push(dObj);
-                                        colorIndex++;
-                                    }
-                                }
-                                else if(obj.chartType === 'pie'){
-                                    //饼图圆环个数
-                                    let pieCount = res.data.data.length;
-                                    //圆环间隔
-                                    let pieSpace = 5;
-                                    //最大范围
-                                    let raduisMax = 70;
-                                    //每个环平均的宽度
-                                    let raduisVal = (raduisMax-pieSpace*(pieCount-1))/(pieCount + 1);
-                                    for(let i = 0;i<pieCount;i++){
-                                        if(i === 0){
-                                            let objPie = {
-                                                type: 'pie',
-                                                radius:[0,`${raduisVal*(i+2)}%`],
-                                                itemStyle: {
-                                                    emphasis: {
-                                                        shadowBlur: 10,
-                                                        shadowOffsetX: 0,
-                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                                    }
-                                                },
-                                                label:{
-                                                    normal:{
-                                                        show:false
-                                                    }
-                                                },
-                                                data:res.data.data[i]
-                                            }
-                                            obj.opt.series.push(objPie)
-                                        }else{
-                                            let objPie = {
-                                                type: 'pie',
-                                                radius:[`${raduisVal*(i+1)+pieSpace*i}%`,`${raduisVal*(i+2)+pieSpace*i}%`],
-                                                data:res.data.data[i],
-                                                itemStyle: {
-                                                    emphasis: {
-                                                        shadowBlur: 10,
-                                                        shadowOffsetX: 0,
-                                                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                                    }
-                                                },
-                                                label:{
-                                                    normal:{
-                                                        show:false
-                                                    }
-                                                },
+                                                obj.opt.series.push(objPie)
+                                            }else{
+                                                let objPie = {
+                                                    type: 'pie',
+                                                    radius:[`${raduisVal*(i+1)+pieSpace*i}%`,`${raduisVal*(i+2)+pieSpace*i}%`],
+                                                    data:res.data.data[i],
+                                                    itemStyle: {
+                                                        emphasis: {
+                                                            shadowBlur: 10,
+                                                            shadowOffsetX: 0,
+                                                            shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                                        }
+                                                    },
+                                                    label:{
+                                                        normal:{
+                                                            show:false
+                                                        }
+                                                    },
 
+                                                }
+                                                obj.opt.series.push(objPie)
                                             }
-                                            obj.opt.series.push(objPie)
                                         }
                                     }
-                                }
-                                else if(obj.chartType === 'metric'){
-                                    let str = ''
-                                    //循环拼接数据
-                                    for(let i in obj.opt.dataset){
-                                        obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
-                                        str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.style.fontSize}px;color: ${obj.opt.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
+                                    else if(obj.chartType === 'metric'){
+                                        let str = ''
+                                        //循环拼接数据
+                                        for(let i in obj.opt.dataset){
+                                            obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
+                                            str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.style.fontSize}px;color: ${obj.opt.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
+                                        }
+                                        let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center">'+str+'</div>'
+                                        obj.opt.series.push(box)
                                     }
-                                    let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center">'+str+'</div>'
-                                    obj.opt.series.push(box)
+                                    resolve(obj);
+                                }else{
+                                    //显示error提示
+                                    $(document.getElementById('err'+obj.i)).css("zIndex","2")
+                                    $(document.getElementById('err'+obj.i)).html(res.data.message)
                                 }
 
-                                resolve(obj);
                             })
                             .catch(err=>{
                                 $(document.getElementById(obj.i)).next().css("display","none")
@@ -1502,6 +1514,8 @@
         justify-content: center;
         align-items: center;
         color: #56769a;
+        z-index: 1;
+        background: #303e4e;
     }
     .charts-list{
         box-sizing: border-box;

@@ -41,7 +41,7 @@
                 <span class="addFilter" @click="addFilters()"> <i class="el-icon-plus"></i>添加筛选</span>
             </ul>
         </div>
-        <el-dialog title="编辑筛选" :visible.sync="filterDialog" width="400px">
+        <el-dialog title="编辑筛选" :visible.sync="filterDialog" width="450px">
             <div class="filter-form-wapper" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
                 <div class="filter-form">
                     <el-form  inline label-width="80px" label-position="top" style="display: flex;" v-if="useObject === 'dashboard'">
@@ -141,6 +141,7 @@
                             <el-date-picker
                                 v-model="form.start"
                                 type="datetime"
+                                size="mini"
                                 value-format="yyyy-MM-dd HH:mm:ss"
                                 placeholder="选择日期时间">
                             </el-date-picker>

@@ -28,6 +28,12 @@
                         <p class="li-bottom-tit">饼图</p>
                     </router-link>
                 </li>
+                <li @click="addChartsState = false">
+                    <router-link :to="{name:'metricChart'}">
+                        <p class="li-top-i" style="font-style: italic;font-size: 27px;font-family: 'electronicFont';">123</p>
+                        <p class="li-bottom-tit">指标</p>
+                    </router-link>
+                </li>
             </ul>
         </el-dialog>
     </div>
@@ -55,7 +61,7 @@
                     {
                         prop:'type',
                         label:'类型',
-                        width:'',
+                        width:'100',
                         formatData:(val)=>{
                            switch (val) {
                                case 'bar':
@@ -83,7 +89,7 @@
                     {
                         prop: 'tools',
                         label: '操作',
-                        width: '',
+                        width: '100',
                         btns: [
                             {
                                 icon: 'el-icon-view',
@@ -111,8 +117,18 @@
                                 clickFun: (row, index) => {
                                     this.removeChart(row,index)
                                 }
-                            },
+                            }
                         ]
+                    },
+                    {
+                        prop:'',
+                        label:'状态',
+                        width:'60',
+                        formatData:(val,row)=>{
+                            if(!row.deletable && !row.editable){
+                                return '<i class="el-icon-lock" style="color:#e4956d"></i>'
+                            }
+                        }
                     }
                 ],
                 tableData:[
@@ -160,6 +176,10 @@
                         jumpHtml('barChart','dashboard/lineChart.vue',{},'创建折线图');
                         this.addChartsState = false;
                         break;
+                    case 'metric':
+                        jumpHtml('metricChart','dashboard/metricChart.vue',{},'创建指标');
+                        this.addChartsState = false;
+                        break;
                 }
             },
             /*查看图表*/
@@ -174,6 +194,9 @@
                     case 'line':
                         jumpHtml('seeLineChart'+rowData.id,'dashboard/lineChart.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
                         break;
+                    case 'metric':
+                        jumpHtml('seeMetricChart'+rowData.id,'dashboard/metricChart.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
+                        break;
                 }
             },
             /*修改按钮*/
@@ -187,6 +210,9 @@
                         break;
                     case 'line':
                         jumpHtml('editLineChart'+rowData.id,'dashboard/lineChart.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
+                        break;
+                    case 'metric':
+                        jumpHtml('editMetricChart'+rowData.id,'dashboard/metricChart.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
                         break;
                 }
             },

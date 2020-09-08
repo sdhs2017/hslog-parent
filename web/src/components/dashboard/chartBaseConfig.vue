@@ -85,7 +85,7 @@
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(xItem,i) in chartsConfig.xAxisArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    {{i === 0 && chartType !=='pie' ? 'X轴' : '拆分序列'}} <i class="header-icon el-icon-error removeTab" v-if="(operType === 'see') ? 'false' : (i === 0) ? (chartType === 'metric') ? 'true' :'false' : 'true'" @click="removeXaxisTab(i,$event)"></i>
+                                    {{i === 0 && chartType !=='pie' && chartType !=='metric' ? 'X轴' : chartType === 'metric' ? '拆分组' : '拆分序列'}} <i class="header-icon el-icon-error removeTab" v-if="(operType === 'see') ? 'false' : (i === 0) ? (chartType === 'metric') ? 'true' :'false' : 'true'" @click="removeXaxisTab(i,$event)"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
@@ -163,7 +163,7 @@
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
-                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' "><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> 添加拆分序列</span></p>
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' "><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> {{ this.chartType === 'metric' ? '添加拆分组' :'添加拆分序列'}}</span></p>
                         </el-collapse>
                     </el-tab-pane>
                     <el-tab-pane label="基本设定" v-if="chartType === 'metric'" name="second">
@@ -1158,7 +1158,8 @@
                 }else if(this.chartType === 'line'){
                     url = '/BI/getDataByChartParams_line.do'
                 }else if(this.chartType === 'metric'){
-                    this.emptyTipState = false;
+                    url = '/BI/getDataByChartParams_metric.do'
+                   /* this.emptyTipState = false;
                     this.loading = false;
                     let data2 = [
                         {name:'count',value:9858247},
@@ -1166,7 +1167,7 @@
                     ]
                     this.sourceData = data2
                     this.createMetric(data2);
-                    return;
+                    return;*/
                 }
                 //构建metrics（y）参数 [{aggType:"count",field:"logdate"}]
                 let metricsArr = [];
@@ -1261,7 +1262,7 @@
                             let obj = res.data;
                             if (obj.success === 'true'){
                                 let xDataArr =''
-                                if(this.chartType === 'pie'){
+                                if(this.chartType === 'pie' || this.chartType === 'metric'){
                                     xDataArr='pie'
                                 }else{
                                     xDataArr = obj.data[0].dimensions;
@@ -1277,6 +1278,8 @@
                                         this.createLineChart(obj.data[0])
                                     }else if(this.chartType === 'pie'){
                                         this.createPieChart(obj.data)
+                                    }else if(this.chartType === 'metric'){
+                                        this.createMetric(obj.data)
                                     }
                                 }else{
                                     this.emptyTipState = true;
@@ -1977,7 +1980,7 @@
     .chart-wapper>div{
         float: left;
         background: #303e4e;
-        height: calc(100vh - 237px);
+        height: calc(100vh - 304px);
     }
     .config-wapper{
         width: 300px;

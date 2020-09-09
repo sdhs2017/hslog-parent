@@ -101,7 +101,7 @@
                    <ul>
                        <li v-for="(item,i) in chartsList" :key="i">
                            <el-checkbox :label="item.id" style="width: 260px;overflow:hidden;">{{item.title}}</el-checkbox>
-                           <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : ''}}</span>
+                           <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : item.type === 'metric' ? '指标' : ''}}</span>
                        </li>
                    </ul>
                </el-checkbox-group>
@@ -733,6 +733,9 @@
                     case 'line':
                         jumpHtml('lineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
+                    case 'metric':
+                        jumpHtml('lineChart'+this.layout[i].eId,'dashboard/metricChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        break;
                 }
             },
             /*添加自建图例*/
@@ -974,16 +977,20 @@
                                     }
                                     let option = JSON.parse(data.data.option).opt;
                                     let param = JSON.parse(data.data.params)
-                                    //console.log(option)
                                     //填充ecahrt数据
-                                    option.title.show = false;
-                                    obj.areaShow = JSON.parse(data.data.option).config.graph.areaShow
-                                    obj.tit = data.data.title;
+                                    if(obj.chartType === 'metric'){
+
+                                    }else{//柱状图、折线图、饼图
+                                        option.title.show = false;
+                                        obj.areaShow = JSON.parse(data.data.option).config.graph.areaShow
+                                    }
                                     obj.opt = option;
+                                    obj.tit = data.data.title;
                                     let resObj = {
                                         obj:obj,
                                         param:param
                                     }
+                                    //console.log(resObj)
                                     resolve(resObj);
                                 }else{
                                     layer.msg('获取数据失败',{icon:5})
@@ -1001,7 +1008,6 @@
             },
             /*获取echarts数据*/
             getEchartsData(resObj){
-
                 //判断请求的方法
                 let url = '';
                 if(resObj.obj.chartType === 'pie'){
@@ -1010,6 +1016,8 @@
                     url = '/BI/getDataByChartParams_bar.do'
                 }else if(resObj.obj.chartType === 'line'){
                     url = '/BI/getDataByChartParams_line.do'
+                }else if(resObj.obj.chartType === 'metric'){
+                    url = '/BI/getDataByChartParams_metric.do'
                 }
 
                 let obj = resObj.obj;
@@ -1099,9 +1107,7 @@
                                                             color: 'rgba(116,235,213,0.1)'
                                                         }]),
                                                         opacity:obj.areaShow
-
                                                     },
-
                                                 },
                                                 itemStyle: {
                                                     normal: {
@@ -1167,12 +1173,13 @@
                                     }
                                     else if(obj.chartType === 'metric'){
                                         let str = ''
+                                       // console.log(obj.opt.dataset)
                                         //循环拼接数据
                                         for(let i in obj.opt.dataset){
                                             obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
                                             str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.style.fontSize}px;color: ${obj.opt.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
                                         }
-                                        let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center">'+str+'</div>'
+                                        let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;flex-wrap:wrap;overflow: auto;">'+str+'</div>'
                                         obj.opt.series.push(box)
                                     }
                                     resolve(obj);
@@ -1240,8 +1247,8 @@
                             this.echartsArr[obj.i].resize();
                         });
                     }else {//指标类型
-                        $("#"+obj.i).html('')
-                        $("#"+obj.i).append(obj.opt.series[0])
+                        $(document.getElementById(obj.i)).html('')
+                        $(document.getElementById(obj.i)).html(obj.opt.series[0])
                     }
 
                     $(document.getElementById(obj.i)).next().css("display","none")

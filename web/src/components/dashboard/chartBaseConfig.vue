@@ -163,7 +163,7 @@
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
-                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' "><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> {{ this.chartType === 'metric' ? '添加拆分组' :'添加拆分序列'}}</span></p>
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' && (chartType === 'metric' && chartsConfig.xAxisArr.length < 1)"><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> {{ this.chartType === 'metric' ? '添加拆分组' :'添加拆分序列'}}</span></p>
                         </el-collapse>
                     </el-tab-pane>
                     <el-tab-pane label="基本设定" v-if="chartType === 'metric'" name="second">

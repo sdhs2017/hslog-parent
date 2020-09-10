@@ -85,7 +85,7 @@
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(xItem,i) in chartsConfig.xAxisArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    {{i === 0 && chartType !=='pie' && chartType !=='metric' ? 'X轴' : chartType === 'metric' ? '拆分组' : '拆分序列'}} <i class="header-icon el-icon-error removeTab" v-if="(operType === 'see') ? 'false' : (i === 0) ? (chartType === 'metric') ? 'true' :'false' : 'true'" @click="removeXaxisTab(i,$event)"></i>
+                                    {{i === 0 && chartType !=='pie' && chartType !=='metric' ? 'X轴' : chartType === 'metric' ? '拆分组' : '拆分序列'}} <i class="header-icon el-icon-error removeTab" v-if="(operType === 'see') ? false : (i === 0) ? ((chartType === 'metric') ? true : false) : true" @click="removeXaxisTab(i,$event)"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
@@ -163,7 +163,11 @@
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
-                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' && (chartType === 'metric' && chartsConfig.xAxisArr.length < 1)"><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> {{ this.chartType === 'metric' ? '添加拆分组' :'添加拆分序列'}}</span></p>
+<!--                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' || (chartType === 'metric' && chartsConfig.xAxisArr.length < 1)"><span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> {{ this.chartType === 'metric' ? '添加拆分组' :'添加拆分序列'}}</span></p>-->
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType === 'see' ? false : (chartType === 'metric' && chartsConfig.xAxisArr.length > 0) ? false : true">
+                                <span class="addY" @click="addX"> <i class="el-icon-circle-plus"></i> {{ this.chartType === 'metric' ? '添加拆分组' :'添加拆分序列'}}</span>
+                            </p>
+
                         </el-collapse>
                     </el-tab-pane>
                     <el-tab-pane label="基本设定" v-if="chartType === 'metric'" name="second">

@@ -685,5 +685,25 @@ public class LogSearchDaoImpl implements ILogSearchDao {
 
         return searchTemplate.getListByBuilder(boolQueryBuilder,sortBuilder,from,size,indices);
     }
+
+    /**
+     * 目前用于hsdata数据的查询使用
+     * @param map
+     * @param indices
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public List<Map<String, Object>> getListByMap(Map<String, String> map, String... indices) throws Exception {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        // 其他查询条件处理
+        if (map!=null&&!map.isEmpty()) {
+            for(Map.Entry<String, String> entry : map.entrySet()){
+                TermQueryBuilder termQueryBuilder = QueryBuilders.termQuery(entry.getKey(),entry.getValue().toLowerCase());
+                boolQueryBuilder.must(termQueryBuilder);
+            }
+        }
+        return searchTemplate.getListByBuilder(boolQueryBuilder,null,indices);
+    }
 }
 

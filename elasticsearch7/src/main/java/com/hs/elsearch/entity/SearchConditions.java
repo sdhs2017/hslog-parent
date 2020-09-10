@@ -3,6 +3,7 @@ package com.hs.elsearch.entity;
 import org.apache.commons.beanutils.BeanUtils;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,6 +26,33 @@ public class SearchConditions {
     private ArrayList<QueryCondition> queryConditions = new ArrayList<>();//查询条件
     private String queryConnectionType;//查询条件的连接类型  should/must
     private String unit;//单位，数据换算
+    private List<Filter> filters_visual = new ArrayList<>();//图表 filter级
+    private List<Filter> filters_dashboard = new ArrayList<>();//dashboard filter级
+    private String queryBox;//query 查询框的内容
+
+    public String getQueryBox() {
+        return queryBox;
+    }
+
+    public void setQueryBox(String queryBox) {
+        this.queryBox = queryBox;
+    }
+
+    public List<Filter> getFilters_visual() {
+        return filters_visual;
+    }
+
+    public void setFilters_visual(List<Filter> filters_visual) {
+        this.filters_visual = filters_visual;
+    }
+
+    public List<Filter> getFilters_dashboard() {
+        return filters_dashboard;
+    }
+
+    public void setFilters_dashboard(List<Filter> filters_dashboard) {
+        this.filters_dashboard = filters_dashboard;
+    }
 
     public String getUnit() {
         return unit;

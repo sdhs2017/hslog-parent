@@ -107,4 +107,13 @@ public interface ILogSearchDao {
      * @return
      */
     public List<Map<String, Object>> getLogListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception;
+
+    /**
+     *
+     * @param map
+     * @param indices
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, Object>> getListByMap(Map<String, String> map,String... indices)throws Exception;
 }

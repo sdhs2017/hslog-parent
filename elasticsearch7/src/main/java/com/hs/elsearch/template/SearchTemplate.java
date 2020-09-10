@@ -94,7 +94,32 @@ public class SearchTemplate {
 
             return aggregations;
     }
+    /**
+     * 带有条件的聚合查询，暂时使用场景为多个metric 无bucket的情况
+     * @param queryBuilder
+     * @param aggregationBuilders agg数组
+     * @param indices
+     * @return
+     */
+    public Aggregations getAggregationsByBuilder(QueryBuilder queryBuilder,List<AggregationBuilder> aggregationBuilders,String... indices) throws Exception {
+        SearchRequest searchRequest = new SearchRequest(indices);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        if (queryBuilder!=null){
+            searchSourceBuilder.query(queryBuilder);
+        }
+        if (aggregationBuilders!=null){
+            for(AggregationBuilder aggregationBuilder:aggregationBuilders){
+                searchSourceBuilder.aggregation(aggregationBuilder);
+            }
+        }
+        searchRequest.source(searchSourceBuilder);
 
+        SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        Aggregations aggregations= response.getAggregations();
+
+        return aggregations;
+    }
     /**
      * 聚合查询
      * @param aggregationBuilder

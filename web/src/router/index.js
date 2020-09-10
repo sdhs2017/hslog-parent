@@ -77,7 +77,7 @@ export default new Router({
                     path: '/equipment',
                     name:'equipment',
                     component: resolve => require(['../components/equipment/equipment.vue'], resolve),
-                    meta: { title: '虚拟资产管理' }
+                    meta: { title: '资产管理' }
                 },
                 {
                     path: '/equipmentScan',

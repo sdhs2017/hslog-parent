@@ -1,7 +1,9 @@
 package com.jz.bigdata.common.businessIntelligence.service.impl;
 
 import com.google.gson.*;
+import com.hs.elsearch.cache.SearchCache;
 import com.hs.elsearch.dao.biDao.IBIDao;
+import com.hs.elsearch.dao.logDao.ILogSearchDao;
 import com.hs.elsearch.dao.searchDao.ISearchDao;
 import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.Metric;
@@ -12,26 +14,22 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.service.ISearchService;
 import com.hs.elsearch.util.ElasticConstant;
+import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
-import com.jz.bigdata.common.businessIntelligence.cache.BICache;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
-import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.CSVUtil;
+import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.cluster.settings.ClusterGetSettingsResponse;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.metrics.NumericMetricsAggregation;
-import org.joda.time.DateTime;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +53,8 @@ public class BIServiceImpl implements IBIService {
     @Autowired
     protected ISearchDao searchDao;
     @Autowired
+    protected ILogSearchDao logSearchDao;
+    @Autowired
     protected ISearchService searchService;
     @Override
     public List<MappingField> getFieldByXAxisAggregation(String templateName, String indexName, String agg) throws Exception {
@@ -63,6 +63,11 @@ public class BIServiceImpl implements IBIService {
 
     @Override
     public List<MappingField> getFieldByYAxisAggregation(String templateName, String indexName, String agg) throws Exception {
+        return getMappingFieldByAggType(templateName,indexName,agg);
+    }
+
+    @Override
+    public List<MappingField> getFilterField(String templateName, String indexName, String agg) throws Exception {
         return getMappingFieldByAggType(templateName,indexName,agg);
     }
 
@@ -145,9 +150,32 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
+    public String getDashboardTemplates(String ids,String indexName) throws Exception {
+        Set<String> result = new TreeSet<>();
+        if(ids!=null&&!"".equals(ids)){
+            String[] idArray = ids.split(",");
+            for(String id:idArray){
+                //根据id获取图表详情
+                //TODO 使用visualization.id 获取数据
+                //List<Map<String, Object>> list = logSearchDao.getListByMap(searchMap,indexName);
+                Map<String, Object> map = logCurdDao.searchById(indexName,"",id);
+                if(null!=map){
+                    Map<String,Object> visualization = (HashMap<String,Object>)map.get("visualization");
+                    result.add(visualization.get("template_name").toString());
+                }
+            }
+        }
+        return JSONArray.fromObject(result).toString();
+    }
+
+    @Override
     public String getVisualizationById(String id,String indexName) throws Exception {
         Visualization visual =new Visualization();
+        //Map<String,String> searchMap = new HashMap<>();
+        //searchMap.put("visualization.id",id);
         //根据id获取图表详情
+        //TODO 使用visualization.id 获取数据
+        //List<Map<String, Object>> list = logSearchDao.getListByMap(searchMap,indexName);
         Map<String, Object> map = logCurdDao.searchById(indexName,"",id);
         if(null!=map){
             //将数据赋值给bean，方便回显
@@ -181,6 +209,7 @@ public class BIServiceImpl implements IBIService {
             dashboard.setDescription(visualization.get("description").toString());
             dashboard.setTitle(visualization.get("title").toString());
             dashboard.setOption(visualization.get("option").toString());
+            dashboard.setParams(visualization.get("params")==null?"":visualization.get("params").toString());
 
         }
         return JSONObject.fromObject(dashboard).toString();
@@ -239,11 +268,11 @@ public class BIServiceImpl implements IBIService {
         //通过模糊的indexName 获取index列表
 
         //获取indices
-        String[] indices = logIndexDao.getIndices(indexName+"*");
+        //String[] indices = logIndexDao.getIndices(indexName+"*");
         //排序
-        Arrays.sort(indices);
+        //Arrays.sort(indices);
         //获取最新的index信息
-        indexName = indices[indices.length-1];
+        //indexName = indices[indices.length-1];
         //获取所有字段信息
         //List<MappingField> list = getMappingFieldByIndex(indexName);
         List<MappingField> result = new ArrayList<>();
@@ -277,6 +306,9 @@ public class BIServiceImpl implements IBIService {
                 //result = formatFields(list,dateTypes,false);
                 result = getFieldByIndexAndAgg(indexName,templateName,"Ip");
                 break;
+            case "AllExceptGeo"://filter字段信息
+                result = getFieldByIndexAndAgg(indexName,templateName,"AllExceptGeo");
+                break;
             default:
                 break;
         }
@@ -291,13 +323,13 @@ public class BIServiceImpl implements IBIService {
      * @return
      */
     private List<MappingField> getFieldByIndexAndAgg(String indexName,String templateName,String agg){
-        List<MappingField> list = BICache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
+        List<MappingField> list = SearchCache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
 
         //如果没有获取到mapping信息，尝试更新cache
         if(null==list||0==list.size()){
-            BICache.INSTANCE.putBiCache(templateName,logIndexDao);
+            SearchCache.INSTANCE.init(templateName,logIndexDao);
             //更新完毕后根据template+agg获取fields
-            list = BICache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
+            list = SearchCache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
         }
         return list;
     }
@@ -339,8 +371,72 @@ public class BIServiceImpl implements IBIService {
                 }
             }
 
+        }else{
+            //获取要写入结果的对象
+            ArrayList<Map<String,Object>> tempResult = new ArrayList<>();
+            for(Metric metric:conditions.getMetricList()){
+                //定义数据点，包含name和value属性，eg:{value: 335, name: '192.168.2.1'}
+                Map<String,Object> dataPoint = new HashMap<>();
+                //图例名称，eg:第一层IP，第二层port，第一层的图例为：-192.168.1.1，第二层的图例为：-192.168.1.1-8080
+                String key = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField());
+                //写入图例名称
+                dataPoint.put("name",key);
+                NumericMetricsAggregation.SingleValue value = aggregations.get(key);
+                //写入值
+                dataPoint.put("value", (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
+                tempResult.add(dataPoint);
+            }
+            result.add(tempResult);
         }
         return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> getMultiAggregationData_metric(SearchConditions conditions) throws Exception {
+
+        /**
+         * 数据返回示例
+         *   [{value: 335, name: '192.168.2.1-count'},{value: 125, name: '192.168.2.2-count'}...]
+         */
+        List<Map<String,Object>> result = new ArrayList<>();
+        //获取聚合结果
+        Aggregations aggregations = searchDao.getAggregation(conditions);
+
+        //根据饼图要求处理数据
+        if(conditions.getBucketList().size()>0){
+            //获取第一个聚合字段信息，用以组装别名，获取对应数据
+            //metric 文字块 bucket最多选择一个
+            Bucket bucket = conditions.getBucketList().get(0);
+            MultiBucketsAggregation terms  = aggregations.get(bucket.getAggType()+"-"+bucket.getField());
+            //如果无法获取结果集，直接返回空数据
+            if(null==terms||(null!=terms&&null==terms.getBuckets())){
+                //不需要进行其他操作
+            }else{
+                //遍历bucket的结果数据
+                for(MultiBucketsAggregation.Bucket bucketItem:terms.getBuckets()) {
+                    handleAggData4Metric(conditions,bucketItem,result);
+                }
+            }
+
+        }else{
+            //获取要写入结果的对象
+            ArrayList<Map<String,Object>> tempResult = new ArrayList<>();
+            for(Metric metric:conditions.getMetricList()){
+                //定义数据点，包含name和value属性，eg:{value: 335, name: '192.168.2.1'}
+                Map<String,Object> dataPoint = new HashMap<>();
+                //图例名称
+                String key = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField());
+                //写入图例名称
+                dataPoint.put("name",!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():metric.getAggType());
+                NumericMetricsAggregation.SingleValue value = aggregations.get(key);
+                //写入值
+                dataPoint.put("value", (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
+                tempResult.add(dataPoint);
+            }
+            result.addAll(tempResult);
+        }
+        return result;
+
     }
 
     @Override
@@ -444,7 +540,27 @@ public class BIServiceImpl implements IBIService {
         tempResult.add(dataPoint);
         return pointValue;
     }
+    /**
+     * 递归方法，循环遍历聚合结果
+     * @param conditions 请求参数
+     * @param bucket 第i次聚合结果的bucket对相同
+     * @return Double metric的值，饼图都是数值类型
+     */
+    private void handleAggData4Metric(SearchConditions conditions, MultiBucketsAggregation.Bucket bucket,List<Map<String,Object>> result){
+        //定义数据点，包含name和value属性，eg:{value: 335, name: '192.168.2.1-count'}
 
+        for(Metric metric:conditions.getMetricList()){
+            Map<String,Object> dataPoint = new HashMap<>();
+            //图例名称，eg:第一层IP，第二层port，第一层的图例为：-192.168.1.1，第二层的图例为：-192.168.1.1-8080
+            String key = bucket.getKeyAsString();
+            //写入图例名称
+            dataPoint.put("name",key+"-"+(StringUtils.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName()));
+            //获取metric对应的值
+            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
+            dataPoint.put("value",Double.isInfinite(value.value())||Double.isNaN(value.value())?0:value.value());
+            result.add(dataPoint);
+        }
+    }
     /**
      * 将查询出的数据导出为可供机器学习使用的csv文件
      * 源数据要求：指标类数据统计为累加的过程，需要通过相减获取其增加值

@@ -1,14 +1,9 @@
 package com.jz.bigdata.business.logAnalysis.collector.service;
 
-import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.common.alarm.service.IAlarmService;
-import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.assets_old.service.IAssetsService;
-import com.jz.bigdata.common.equipment.service.IEquipmentService;
 
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
-import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.ConfigProperty;
 
 public interface ICollectorService {

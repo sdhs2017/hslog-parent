@@ -196,7 +196,7 @@ public class HttpRequestUtil {
                 }
                 //没有聚合字段相关参数时进行提示
                 if(searchConditions.getBucketList().size()==0){
-                    searchConditions.setErrorInfo("聚合字段不能为空，请重新选择!");
+                    //searchConditions.setErrorInfo("聚合字段不能为空，请重新选择!");
                 }
             }else{
                 //没有聚合字段相关参数时进行提示
@@ -234,6 +234,38 @@ public class HttpRequestUtil {
             }else{
                 searchConditions.setErrorInfo("数据源异常，请重新选择数据源!");
             }
+            //---------处理filter--------图表filter---
+            String filters_visual = request.getParameter("filters_visual");
+            if(null!=filters_visual&&!"".equals(filters_visual)){
+                //filters中包含多个filter
+                JSONArray json = JSONArray.fromObject(filters_visual);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    Filter filter = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Filter.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=filter){
+                        searchConditions.getFilters_visual().add(filter);
+                    }
+                }
+            }
+            //---------处理filter--------dashboard filter---
+            String filters_dashboard = request.getParameter("filters_dashboard");
+            if(null!=filters_dashboard&&!"".equals(filters_dashboard)){
+                //filters中包含多个filter
+                JSONArray json = JSONArray.fromObject(filters_dashboard);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    Filter filter = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Filter.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=filter){
+                        searchConditions.getFilters_dashboard().add(filter);
+                    }
+                }
+            }
+            //queryBox 无法通过mapToBean的方式获取
+            searchConditions.setQueryBox(request.getParameter("queryBox"));
         }catch(Exception e){
             searchConditions.setErrorInfo("查询参数异常，请重新设置！");
         }

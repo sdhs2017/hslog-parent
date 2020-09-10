@@ -2,8 +2,8 @@ package com.jz.bigdata.common.businessIntelligence.service;
 
 import com.hs.elsearch.entity.SearchConditions;
 import com.hs.elsearch.entity.VisualParam;
+import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
-import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
 
@@ -31,7 +31,14 @@ public interface IBIService {
      * @return
      */
     public List<MappingField> getFieldByYAxisAggregation(String templateName, String indexName,String agg) throws Exception;
-
+    /**
+     * 获取filter字段信息
+     * @param templateName
+     * @param indexName
+     * @param agg 聚合方式
+     * @return
+     */
+    public List<MappingField> getFilterField(String templateName, String indexName, String agg) throws Exception;
 
     /**
      * 保存图表信息
@@ -55,7 +62,11 @@ public interface IBIService {
      * @return
      */
     public String getDashboards(String indexName,HttpSession session) throws Exception;
-
+    /**
+     * 获取dashboard涉及到的template
+     * @return
+     */
+    public String getDashboardTemplates(String ids,String indexName) throws Exception;
     /**
      * 根据id获取图表详情以及查询的数据结果
      * @param id
@@ -117,6 +128,13 @@ public interface IBIService {
      * @throws Exception
      */
     public LinkedList<ArrayList<Map<String,Object>>> getMultiAggregationData_pie(SearchConditions conditions) throws Exception;
+    /**
+     * 嵌套聚合，数据返回指标数据格式，类似饼图
+     * @param conditions 相关参数
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String,Object>> getMultiAggregationData_metric(SearchConditions conditions) throws Exception;
     /**
      * 嵌套聚合，数据返回echart dataset格式并针对折线图做了处理
      * @param conditions 相关参数

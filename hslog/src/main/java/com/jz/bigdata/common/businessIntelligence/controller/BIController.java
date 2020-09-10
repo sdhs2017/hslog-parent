@@ -1,19 +1,17 @@
 package com.jz.bigdata.common.businessIntelligence.controller;
 
-import com.hs.elsearch.entity.Bucket;
-import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.SearchConditions;
-import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.service.ISearchService;
+import com.hs.elsearch.util.ElasticConstant;
+import com.hs.elsearch.util.ErrorInfoException;
+import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
-import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.HttpRequestUtil;
-import com.jz.bigdata.util.MapUtil;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
@@ -99,7 +97,49 @@ public class BIController {
             return Constant.failureMessage("数据查询失败");
         }
     }
-
+    /**
+     * 通过filter方式获取fields
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getFieldByFilter", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "通过Filter方式获取对应的列")
+    public String getFieldByFilter(HttpServletRequest request){
+        try{
+            //filter方式默认获取所有字段信息(除了geo_point类型)
+            String agg = "AllExceptGeo";
+            //索引名称
+            //String indexName = request.getParameter("indexName");
+            //template名称
+            String templateName = request.getParameter("template_name");
+            //索引前缀
+            String preIndexName = request.getParameter("pre_index_name");
+            //索引后缀
+            String suffixIndexName = request.getParameter("suffix_index_name");
+            List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
+            return JSONArray.fromObject(result).toString();
+        }catch(Exception e){
+            logger.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
+            return Constant.failureMessage("数据查询失败");
+        }
+    }
+    /**
+     * 通过字段类型获取对应的operator
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getOperatorByFiledType", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "通过字段类型获取对应的operation")
+    public String getOperatorByFiledType(HttpServletRequest request){
+        try{
+            //字段类型
+            String fieldType = request.getParameter("fieldType");
+            return JSONArray.fromObject(ElasticConstant.fieldTypeOperator.get(fieldType)).toString();
+        }catch(Exception e){
+            logger.error("通过字段类型获取对应的operation,失败："+e.getStackTrace().toString());
+            return Constant.failureMessage("数据查询失败");
+        }
+    }
     /**
      *
      * @return
@@ -206,6 +246,34 @@ public class BIController {
             }
             LinkedList<ArrayList<Map<String,Object>>> result = iBIService.getMultiAggregationData_pie(searchConditions);
             return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch(ErrorInfoException e){
+            return Constant.failureMessage(e.getMessage());
+        }catch(ElasticsearchStatusException e){
+            return handleElasticException(e);
+        }catch(Exception e){
+            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            return Constant.failureMessage("数据查询失败");
+        }
+    }
+    /**
+     *通过图表参数获取查询结果，并返回(指标/metric/文字块)
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDataByChartParams_metric", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "通过图表参数获取查询结果，并返回(指标)")
+    public String getDataByChartParams_metric(HttpServletRequest request){
+        try{
+            //处理参数
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest(request);
+            //时间范围参数异常
+            if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
+                return Constant.failureMessage(searchConditions.getErrorInfo());
+            }
+            List<Map<String,Object>> result = iBIService.getMultiAggregationData_metric(searchConditions);
+            return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch(ErrorInfoException e){
+            return Constant.failureMessage(e.getMessage());
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
@@ -230,6 +298,8 @@ public class BIController {
             }
             Map<String,Object> result = iBIService.getMultiAggregationData_line(searchConditions);
             return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch(ErrorInfoException e){
+            return Constant.failureMessage(e.getMessage());
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
@@ -254,11 +324,13 @@ public class BIController {
             }
             Map<String,Object> result = iBIService.getMultiAggregationData_bar(searchConditions);
             return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch(ErrorInfoException e){
+            return Constant.failureMessage(e.getMessage());
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
             logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
-            return Constant.failureMessage("数据查询失败");
+            return Constant.failureMessage("数据查询失败！");
         }
     }
     /**
@@ -286,7 +358,7 @@ public class BIController {
                 visual.setEditable(true);
                 visual.setDeletable(true);
             }
-
+            //visual.setId(UUID.randomUUID().toString());
             DocWriteResponse.Result result = iBIService.saveVisualization(visual,biIndexName);
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");
@@ -323,6 +395,7 @@ public class BIController {
                 dashboard.setEditable(true);
                 dashboard.setDeletable(true);
             }
+            //dashboard.setId(UUID.randomUUID().toString());
             DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,biIndexName);
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");
@@ -383,6 +456,23 @@ public class BIController {
         }catch(Exception e){
             logger.error("获取图表详情"+e.getMessage());
             return Constant.failureMessage("获取图表详情失败");
+        }
+    }
+    /**
+     * 获取图表的详情
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDashboardTemplates", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取dashboard的template列表")
+    public String getDashboardTemplates(HttpServletRequest request,HttpSession session){
+        try{
+            String ids = request.getParameter("ids");
+            String result = iBIService.getDashboardTemplates(ids,biIndexName);
+            return Constant.successData(result);
+        }catch(Exception e){
+            logger.error("获取dashboard的template列表失败"+e.getMessage());
+            return Constant.failureMessage("获取Index Pattern失败!");//前端名称为index pattern，异常返回
         }
     }
     /**
@@ -493,62 +583,6 @@ public class BIController {
             return false;
         }
     }
-    /**
-     * 计算聚合查询的  时间范围/时间间隔
-     * 用于判定预估聚合桶数与配置项中的最大聚合桶数的大小
-     * 小于：继续执行
-     * 大于：返回提示信息
-     * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param intervalType 间隔类型（分、小时、天）
-     * @param intervalValue 间隔数值N（N分、N小时）
-     * @return
-     * @throws Exception 如果参数出现异常，统一在上游catch处理
-     */
-    private boolean getSearchBuckets(String startTime, String endTime, String intervalType, int intervalValue) throws Exception {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date dateStart = formatter.parse(startTime);
-        Date dateEnd = formatter.parse(endTime);
-        //差值 秒
-        long difValue = (dateEnd.getTime() - dateStart.getTime())/1000;
-        //计算间隔 秒
-        long intervalSeconds=1L;
-        switch(intervalType.toUpperCase()){
-            case "SECOND":
-                intervalSeconds = intervalValue*1;
-                break;
-            case "MINUTE":
-                intervalSeconds = intervalValue*60;
-                break;
-            case "HOURLY":
-                intervalSeconds = intervalValue*60*60;
-                break;
-            case "DAILY":
-                intervalSeconds = intervalValue*60*60*24;
-                break;
-            case "WEEKLY":
-                intervalSeconds = intervalValue*60*60*24*7;
-                break;
-            case "MONTHLY":
-                intervalSeconds = intervalValue*60*60*24*7*30;
-                break;
-            case "YEARLY":
-                intervalSeconds = intervalValue*60*60*24*7*30*365;
-                break;
-            default:
-                intervalSeconds = 1L;
-                break;
-        }
-        //计算 时间范围/时间间隔
-        long buckets = difValue/intervalSeconds;
-        //计算出的桶数【小于】最大聚合桶数(查询es当前设置的值)，可执行下一步聚合查询
-        if(buckets<iBIService.getClusterSearchMaxBuckets()){
-            return true;
-        }else{
-            return false;
-        }
-
-    }
 
     /**
      * elastic异常处理机制
@@ -563,17 +597,31 @@ public class BIController {
         String ES_ExceptionTypeSecondLevel = e.getDetailedMessage();
         /** 三级异常 too_many_buckets_exception */
         //nested: ElasticsearchException[Elasticsearch exception [type=too_many_buckets_exception, reason=Trying to create too many buckets.
-        String ES_ExceptionTypeThirdLevel = e.getCause().toString();
-        if(ES_ExceptionTypeSecondLevel.indexOf("search_phase_execution_exception")>=0){
-            if(ES_ExceptionTypeThirdLevel.indexOf("too_many_buckets_exception")>=0){
-                logger.error("数据可视化模块，聚合异常，聚合桶数超出阈值（search.max_buckets）");
-                return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
+        Throwable throwable = e.getCause();
+        Throwable[] throwableList = e.getSuppressed();
+        if(null!=throwable){
+            String ES_ExceptionTypeThirdLevel = throwable.toString();
+            if(ES_ExceptionTypeSecondLevel.indexOf("search_phase_execution_exception")>=0){
+                if(ES_ExceptionTypeThirdLevel.indexOf("too_many_buckets_exception")>=0){
+                    logger.error("数据可视化模块，聚合异常，聚合桶数超出阈值（search.max_buckets）");
+                    return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
+                }else{
+                    logger.error("ElasticsearchStatusException->search_phase_execution_exception->"+e.getMessage());
+                    return Constant.failureMessage("数据查询失败");
+                }
             }else{
-                logger.error("ElasticsearchStatusException->search_phase_execution_exception->"+e.getMessage());
+                logger.error("ElasticsearchStatusException->非search_phase_execution_exception"+e.getMessage());
+                return Constant.failureMessage("数据查询失败");
+            }
+        }else if(null!=throwableList){
+            //返回的异常可能是一个数组
+            String throwables = Arrays.toString(throwableList);
+            if(throwables.indexOf("failed to parse date field")>=0){
+                return Constant.failureMessage("数据查询失败,日期格式错误！");
+            }else{
                 return Constant.failureMessage("数据查询失败");
             }
         }else{
-            logger.error("ElasticsearchStatusException->非search_phase_execution_exception"+e.getMessage());
             return Constant.failureMessage("数据查询失败");
         }
     }

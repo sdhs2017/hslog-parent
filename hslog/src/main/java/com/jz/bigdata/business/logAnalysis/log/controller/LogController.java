@@ -416,7 +416,7 @@ public class LogController extends BaseController{
 			 * 初始化工作六：内置基本报表（数据可视化模块）
 			 */
 			try{
-				//DataVisualInit.init(logService);
+				DataVisualInit.init(logService);
 			}catch (Exception e){
 				e.printStackTrace();
 				logger.error("数据可视化内置报表失败！："+e.getMessage());

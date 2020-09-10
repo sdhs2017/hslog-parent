@@ -1,4 +1,4 @@
-package com.jz.bigdata.common.businessIntelligence.entity;
+package com.hs.elsearch.util;
 
 public class MappingField {
     //mapping的列名

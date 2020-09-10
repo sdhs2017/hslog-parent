@@ -2,13 +2,10 @@ package com.jz.bigdata.common.configuration.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.jz.bigdata.common.businessIntelligence.cache.BICache;
-import com.jz.bigdata.common.businessIntelligence.entity.MappingField;
 import com.jz.bigdata.common.configuration.entity.Configuration;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import org.apache.log4j.Logger;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**

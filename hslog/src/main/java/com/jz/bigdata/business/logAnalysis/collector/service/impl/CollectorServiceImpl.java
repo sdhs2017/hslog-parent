@@ -19,7 +19,6 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
-import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.configuration.cache.ConfigurationCache;

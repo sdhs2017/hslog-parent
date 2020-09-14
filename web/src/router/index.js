@@ -385,6 +385,12 @@ export default new Router({
                     component: resolve => require(['../components/dashboard/metricChart.vue'], resolve),
                     meta: { title: '创建指标' }
                 },
+                {
+                    path: '/dynamicTable',
+                    name:'dynamicTable',
+                    component: resolve => require(['../components/dashboard/dynamicTable.vue'], resolve),
+                    meta: { title: '创建表格' }
+                },
                 /*{
                     path: '/addEvent',
                     name:'addEvent',

@@ -34,6 +34,12 @@
                         <p class="li-bottom-tit">指标</p>
                     </router-link>
                 </li>
+                <li @click="addChartsState = false">
+                    <router-link :to="{name:'dynamicTable'}">
+                        <p class="li-top-i"><i class="el-icon-date"></i></p>
+                        <p class="li-bottom-tit">表格</p>
+                    </router-link>
+                </li>
             </ul>
         </el-dialog>
     </div>
@@ -69,7 +75,9 @@
                                case 'line':
                                    return '折线图';
                                case 'pie' :
-                                   return '饼图'
+                                   return '饼图';
+                               case 'table' :
+                                   return '表格';
                                default :
                                    return val;
                            }
@@ -180,6 +188,10 @@
                         jumpHtml('metricChart','dashboard/metricChart.vue',{},'创建指标');
                         this.addChartsState = false;
                         break;
+                    case 'table':
+                        jumpHtml('metricChart','dashboard/dynamicTable.vue',{},'创建指标');
+                        this.addChartsState = false;
+                        break;
                 }
             },
             /*查看图表*/
@@ -197,6 +209,9 @@
                     case 'metric':
                         jumpHtml('seeMetricChart'+rowData.id,'dashboard/metricChart.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
                         break;
+                    case 'table':
+                        jumpHtml('seeDynamicTable'+rowData.id,'dashboard/dynamicTable.vue',{name:rowData.title,id:rowData.id,type:'see'},' 查看');
+                        break;
                 }
             },
             /*修改按钮*/
@@ -213,6 +228,9 @@
                         break;
                     case 'metric':
                         jumpHtml('editMetricChart'+rowData.id,'dashboard/metricChart.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
+                        break;
+                    case 'table':
+                        jumpHtml('editDynamicTable'+rowData.id,'dashboard/dynamicTable.vue',{name:rowData.title,id:rowData.id,type:'edit'},' 编辑');
                         break;
                 }
             },

@@ -1,0 +1,1025 @@
+<template>
+    <div v-loading="allLoading"  element-loading-background="rgba(26,36,47, 0.2)">
+        <div class="top-title" style="padding-left: 10px;"><!--{{htmlTitle}}-->
+            <div class="top-zz" v-if="operType === 'see'"></div>
+            <div class="choose-wapper">
+                <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
+            </div>
+            <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true"  size="mini">保存</el-button>
+            <el-button class="update-btn" v-if="updateBtn && isCanCreate !== 'disabled'"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
+            <el-button type="primary" v-else size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
+            <div class="date-wapper"><date-layout :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
+        </div>
+        <div class="filter-box">
+            <queryFilter
+                :busFilterName="this.busFilterName"
+                :busQueryName="this.busQueryName"
+                :filterArr="this.defaultFilter"
+                :queryVal="this.defaultQuery"
+                :useType="this.operType"
+                useObject="chart"
+                :templateName="this.chartsConfig.templateName"
+                :preIndexName="this.chartsConfig.preIndexName"
+                :suffixIndexName="this.chartsConfig.suffixIndexName"
+            >
+            </queryFilter>
+        </div>
+        <div class="chart-wapper">
+            <div class="config-wapper">
+                <el-button class="creatBtn" type="primary" @click="createBtn" :disabled="isCanCreate || operType === 'see'">生成</el-button>
+                <el-tabs v-model="activeName" style="height: 100%;" type="border-card"  v-loading="leftLoading"  element-loading-background="rgba(26,36,47, 0.2)">
+                    <el-tab-pane label="数据" name="first">
+                        <el-collapse>
+                            <el-collapse-item class="tablist" v-for="(columnItem,i) in chartsConfig.columnArr" :key="i">
+                                <template slot="title" class="collapseTit">
+                                    列 {{columnItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see'"></i>
+                                </template>
+                                <el-form label-position="top" style="position: relative;">
+                                    <div class="from-zz" v-if="operType === 'see'"></div>
+                                    <el-form-item label="列参数">
+                                        <el-select v-model="columnItem.columnValue" placeholder="请选择" filterable style="width: 100%;" size="mini">
+                                            <el-option
+                                                v-for="item in columnOpt"
+                                                :key="item.value"
+                                                :label="item.label"
+                                                :value="item.value">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="排序方式">
+                                        <el-select v-model="columnItem.orderType" placeholder="请选择" style="width: 100%;" size="mini">
+                                            <el-option label="降序" value="desc"></el-option>
+                                            <el-option label="升序" value="asc"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="名称">
+                                        <el-input v-model="columnItem.legendName" size="mini"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see'"><span class="addY" @click="addColumn"> <i class="el-icon-circle-plus"></i>添加列</span></p>
+                        </el-collapse>
+                    </el-tab-pane>
+                    <el-tab-pane label="基本设定" name="second">
+                        <el-collapse v-model="configOpened">
+                            <el-collapse-item title="标题" class="tablist" name="1">
+                                <el-form label-position="left" label-width="50px" style="position:relative;">
+                                    <div class="from-zz" v-if="operType === 'see'"></div>
+                                    <el-form-item label="标题">
+                                        <el-input v-model="chartsConfig.title.text" size="mini"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                            <el-collapse-item title="显示" class="tablist" name="2">
+                                <el-form label-position="left" label-width="80px" style="position:relative;">
+                                    <div class="from-zz" v-if="operType === 'see'"></div>
+                                    <el-form-item label="显示总数">
+                                        <el-input v-model="chartsConfig.counts" min="1" type="number" size="mini"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="每页条数">
+                                        <el-input v-model="chartsConfig.page.size" min="1" type="number" size="mini"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                        </el-collapse>
+                    </el-tab-pane>
+
+
+                </el-tabs>
+            </div>
+            <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+                <div class="charts-title">{{chartsConfig.title.text}}</div>
+                <div id="charts-wapper">
+                    <v-basetable :tableHead="tableHead" height="200" :tableData="tableData"></v-basetable>
+                    <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="chartsConfig.page.size" :total="chartsConfig.page.allCounts"></el-pagination>
+                </div>
+<!--                <div class="empty-tip" v-if="this.emptyTipState">暂无结果</div>-->
+                <el-popover
+                    v-if="!this.emptyTipState"
+                    class="source-data"
+                    placement="left"
+                    title=""
+                    width="400"
+                    trigger="click"
+                >
+                    <jsonView :data="this.sourceData" theme="one-dark" :line-height="20" :deep="5" class="jsonView"></jsonView>
+                    <el-button type="primary" plain size="mini" slot="reference" >源数据</el-button>
+                </el-popover>
+            </div>
+        </div>
+        <el-dialog title="保存" :visible.sync="dialogFormVisible" width="400px">
+            <el-form>
+                <el-form-item label="名称">
+                    <el-input v-model="chartParams.chartName"></el-input>
+                </el-form-item>
+                <el-form-item label="描述">
+                    <el-input type="textarea" v-model="chartParams.chartDes"></el-input>
+                </el-form-item>
+                <el-form-item v-if="chartId !== ''">
+                    <el-switch
+                        v-model="chartParams.otherSave"
+                        active-text="另存为新图表">
+                    </el-switch>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="saveChart" :disabled="chartParams.chartName === '' ? 'disabled' : false">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+
+</template>
+
+<script>
+    import dateLayout from '../common/dateLayout'
+    import {setChartParam} from "../../../static/js/common";
+    import bus from '../common/bus';
+    import jsonView from 'vue-json-views'
+    import queryFilter from '../dashboard/queryFilter'
+    import chooseIndex from '../dashboard/chooseIndex'
+    import vBasetable from '../common/Basetable2';
+    export default {
+        name: "tableBaseConfig",
+        props:{
+            //操作类型
+            operType:{
+                type:String,
+                defaultVal() {
+                    return 'edit'
+                }
+            },
+            //图表类型
+            chartType:{
+                type:String
+            },
+            //图表id
+            chartId:{
+                type:String
+            }
+        },
+        data() {
+            return {
+                refresh:0,
+                allLoading:false,
+                leftLoading:false,
+                loading:false,
+                //时间控件参数 柱状图
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'15-min',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:true,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'min',
+                    //‘快速选择’功能参数数值
+                    dateCount:'15',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                },
+                //保存图表的弹窗状态
+                dialogFormVisible:false,
+                //保存图表表单参数
+                chartParams:{
+                    //图表名称
+                    chartName:'',
+                    //图表描述
+                    chartDes:'',
+                    //查询条件
+                    searchParam:'',
+                    //另存
+                    otherSave:false
+                },
+                //echarts结构
+                opt:{},
+                //时间范围
+                dateObj:{
+                    starttime:'',//起始时间
+                    endtime:'',//结束时间
+                    last:'15-min',
+                },
+                //轮询参数
+                intervalObj:{
+                    state:false,
+                    interval:'5000'
+                },
+                //轮询
+                interval:'',
+                //返回的源数据
+                sourceData:'',
+                //数据为空时提示状态
+                emptyTipState:true,
+                //默认配置 用于还原原始配置
+                defaultConfig:'',
+                //bus监听事件的名称
+                busName:'createESTable',
+                busIndexName:'ESTableIndexName',
+                busFilterName:'',
+                busQueryName:'',
+                //默认数据源索引
+                indexVal:[],
+                //展开的选项卡
+                configOpened:['1','2','3','4','5','6','7','8','9'],
+                yUnit :'',
+                //图表基本配置
+                chartsConfig:{
+                    //templateName
+                    templateName:'',
+                    //index前名
+                    preIndexName:'',
+                    //index后时间
+                    suffixIndexName:'',
+                    //datefield
+                    datefield:'',
+                    //标题
+                    title:{
+                        text:''
+                    },
+                    //列集合
+                    columnArr:[
+                        {
+                            columnValue:'',
+                            orderType:'desc',
+                            legendName: ''
+                        }
+                    ],
+                    //列顺序
+                    //总数
+                    counts:'',
+                    //分页条数
+                    page:{
+                        cPage:'1',
+                        size:'',
+                        allCounts:''
+                    }
+
+                },
+                columnOpt:[{
+                    value:'fields.ip',
+                    lable:'fields.ip'
+                }],
+                activeName:'first',
+                //保存的每一步生成的结构数据，用于返回操作
+                chartsConfigArr:[],
+                //过滤条件
+                filters:'',
+                //默认过滤条件
+                defaultFilter:[],
+                //更新按钮
+                updateBtn:false,
+                //query值
+                queryVal:'',
+                oldQuery:'',
+                defaultQuery:'',
+                tableHead:[
+                    {
+                        prop:'hostName',
+                        label:'主机名',
+                        width:''
+                    },
+                    {
+                        prop:'ip',
+                        label:'IP',
+                        width:''
+                    },
+                    {
+                        prop:'type',
+                        label:'类型',
+                        width:''
+                    },
+                ],
+                tableData:[
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
+                ],
+            }
+        },
+        created(){
+            //保存配置
+            this.defaultConfig = JSON.stringify(this.chartsConfig)
+            //判断操作性质
+            if(this.operType === 'edit'){//修改
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                //this.$options.name = 'editBarChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `编辑 ${this.$route.query.name}`;
+                this.busName = this.chartType + 'resiveChartSimple'+this.$route.query.id;
+                this.busIndexName = this.chartType + 'IndexNameSimple' +this.$route.query.id;
+                this.busFilterName = this.chartType + 'FilterNameSimple' +this.$route.query.id;
+                this.busQueryName = this.chartType + 'QueryNameSimple' +this.$route.query.id;
+                //时间范围监听事件
+                bus.$on(this.busName,(obj)=>{
+                    let arr = setChartParam(obj);
+                    this.dateObj = arr[0];
+                    this.intervalObj = arr[1];
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                    this.chartsConfig.datefield = arr[3];
+                    //获取column数据
+                    this.getColumnField()
+                })
+                //监听过滤条件
+                bus.$on(this.busFilterName,(str)=>{
+                    this.filters = str;
+                    //刷新
+                    //判断是否具备生成图表的条件
+                    if(this.isCanCreate !== 'disabled'){
+                        this.loading = true;
+                        //获取数据
+                        this.getData()
+                    }
+                })
+                //监听query
+                bus.$on(this.busQueryName,(str)=>{
+                    this.isUpdate(str)
+                })
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+            }else if(this.operType === 'see'){//查看
+                //修改此组件的name值
+                //this.$options.name = 'seeBarChart'+ this.$route.query.id;
+                //修改data参数
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
+                this.busName = 'seeChartSimple'+this.$route.query.id;
+                this.busIndexName = 'seeIndexNameSimple' +this.$route.query.id;
+                this.busFilterName = 'seeFliterNameSimple' +this.$route.query.id;
+                this.busQueryName = 'seeQueryNameSimple' +this.$route.query.id;
+                //时间范围监听事件
+                bus.$on(this.busName,(obj)=>{
+                    let arr = setChartParam(obj);
+                    this.dateObj = arr[0];
+                    this.intervalObj = arr[1];
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                    this.chartsConfig.datefield = arr[3];
+                    //获取column数据
+                    this.getColumnField()
+                })
+                //监听过滤条件
+                bus.$on(this.busFilterName,(str)=>{
+                    this.filters = str;
+                    //刷新
+                    //判断是否具备生成图表的条件
+                    if(this.isCanCreate !== 'disabled'){
+                        this.loading = true;
+                        //获取数据
+                        this.getData()
+                    }
+                })
+                //监听query
+                bus.$on(this.busQueryName,(str)=>{
+                    this.isUpdate(str)
+                })
+                if(this.chartId === '' || this.chartId !== this.$route.query.id){
+                    this.chartId = this.$route.query.id;
+                }
+            }else{//添加
+                this.busName = this.chartType + 'addChartSimple';
+                this.busIndexName = this.chartType + 'addIndexNameSimple';
+                this.busFilterName = this.chartType + 'addFliterNameSimple';
+                this.busQueryName = this.chartType + 'addQueryNameSimple';
+                //时间范围监听事件
+                bus.$on(this.busName,(obj)=>{
+                    let arr = setChartParam(obj);
+                    this.dateObj = arr[0];
+                    this.intervalObj = arr[1];
+                })
+                //数据源监听
+                bus.$on(this.busIndexName,(arr)=>{
+                    //还原配置
+                    this.initialize();
+                    //设置数据源
+                    this.chartsConfig.suffixIndexName = arr[2];
+                    this.chartsConfig.preIndexName = arr[1];
+                    this.chartsConfig.templateName = arr[0];
+                    this.chartsConfig.datefield = arr[3];
+                    //获取column数据
+                    this.getColumnField()
+                })
+                //监听过滤条件
+                bus.$on(this.busFilterName,(str)=>{
+                    this.filters = str;
+                    //刷新
+                    //判断是否具备生成图表的条件
+                    if(this.isCanCreate !== 'disabled'){
+                        this.loading = true;
+                        //获取数据
+                        this.getData()
+                    }
+                })
+                //监听query
+                bus.$on(this.busQueryName,(str)=>{
+                    this.isUpdate(str)
+                })
+            }
+        },
+
+        beforeDestroy(){
+            //在组件销毁前移除监听事件
+            bus.$off(this.busName);
+            bus.$off(this.busIndexName);
+            bus.$off(this.busFilterName);
+            bus.$off(this.busQueryName);
+            //清楚计时器
+            clearInterval(this.interval);
+        },
+        computed:{
+            /*生成按钮状态*/
+            'isCanCreate'(){
+               /* let yState = false;
+                let xState = false;
+                //判断y轴
+                this.chartsConfig.yAxisArr.forEach((item)=>{
+                    if (item.aggregationType === ''){
+                        yState = 'disabled';
+                    } else if(item.aggregationParam === '' && item.aggregationType !== 'Count'){
+                        yState = 'disabled';
+                    }
+                })
+                //判断x轴
+                this.chartsConfig.xAxisArr.forEach((item)=>{
+                    if (item.aggregationType === ''){
+                        xState = 'disabled';
+                    } else if(item.aggregationParam === '' && item.aggregationType !== 'Count'){
+                        xState = 'disabled';
+                    }
+                })
+
+                if(yState == false && xState == false){
+                    return false;
+                }else {
+                    //设置query值
+                    this.oldQuery = this.queryVal;
+                    this.updateBtn = false
+                    return 'disabled';
+                }*/
+            }
+        },
+        methods:{
+            //刷新
+            refreshChart(){
+                this.refresh++;
+            },
+            updateChart(){
+                this.queryVal = this.newQuery;
+                this.refresh++;
+                this.updateBtn = false;
+            },
+            //判断是否出现更新按钮
+            isUpdate(currentVal){
+                this.queryVal = currentVal;
+                //判断是否可以生产报表
+                if(this.isCanCreate !== 'disabled'){
+                    //判断目标值是否有改变
+                    if(currentVal !== this.oldQuery){
+                        this.updateBtn = true
+                        if($(".layui-layer-tips").length === 0){
+                            layer.tips('点击更新', '.update-btn', {
+                                tips: [3, '#3595CC'],
+                                time: 2000
+                            });
+                        }
+
+                    }else{
+                        this.updateBtn = false
+                    }
+                }else{
+                    this.oldQuery = this.queryVal;
+                }
+            },
+            // 初始化
+            initialize(){
+                //还原配置
+                this.chartsConfig = JSON.parse(this.defaultConfig);
+                this.emptyTipState = true;
+                //销毁已经创建的图表
+                this.opt = {};
+                this.chartParams.searchParam='';
+            },
+            /*添加列*/
+            addColumn(){
+                //this.isCanCreate = 'disabled';
+                this.chartsConfig.columnArr.push({
+                    columnValue:'',
+                    legendName:'',
+                    orderType:'desc',
+                })
+            },
+            /*生成按钮*/
+            createBtn(){
+                this.loading = true;
+                this.getData()
+            },
+            /*获取列参数集合*/
+            getColumnField(){
+                this.$nextTick(()=>{
+                    this.leftLoading = true;
+                    this.$axios.post(this.$baseUrl+'/BI/getFieldByDynamicTable.do',this.$qs.stringify({
+                        pre_index_name:this.chartsConfig.preIndexName,
+                        suffix_index_name:this.chartsConfig.suffixIndexName,
+                        template_name:this.chartsConfig.templateName
+                    }))
+                        .then(res=>{
+                            this.leftLoading = false;
+                            this.columnOpt = []
+                            res.data.forEach(item=>{
+                                let obj = {
+                                    value:item.fieldName,
+                                    label:item.fieldName
+                                }
+                                this.columnOpt.push(obj)
+
+                            })
+                        })
+                        .catch(err=>{
+                             this.leftLoading = false;
+                        })
+                })
+            },
+            /*获取数据*/
+            getData(){
+                //判断请求的方法
+                let url = '';
+                let param = {
+                    starttime:this.dateObj.starttime,//起始时间
+                    endtime:this.dateObj.endtime,//结束时间
+                    last:this.dateObj.last,
+                    unit:this.yUnit,
+                   /* pre_index_name:this.chartsConfig.preIndexName,
+                    suffix_index_name:this.chartsConfig.suffixIndexName,
+                    template_name:this.chartsConfig.templateName,*/
+                    template_name:'metricbeat-',
+                    pre_index_name:'metricbeat-',
+                    suffix_index_name:'*',
+                    filters:this.filters,
+                    queryBox:this.queryVal,
+                    page:'1',
+                    page_size:'10',
+                    size:'100',
+                    es_columns:JSON.stringify([{field:'fields.ip',sort:'desc',aliasName:'IP'},{field:'fields.equipmentid',sort:'desc',aliasName:'ID'},{field:'fields.equipmentname',sort:'desc',aliasName:'名称'}])
+                }
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/BI/getDataByParams_dynamicTable.do',this.$qs.stringify(param))
+                        .then(res=>{
+                            this.loading = false;
+                            //存储查询条件
+                            this.chartParams.searchParam = JSON.stringify(param);
+                            //处理数据
+                            let obj = res.data;
+                            if (obj.success === 'true'){
+                                /*let xDataArr =''
+                                if(this.chartType === 'pie'){
+                                    xDataArr='pie'
+                                }else{
+                                    xDataArr = obj.data[0].dimensions;
+                                }
+                                if(xDataArr.length > 1){
+                                    // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
+                                    this.sourceData = obj.data;
+                                    this.emptyTipState = false;
+                                    //this.createChart(obj.data[0]);
+                                    if(this.chartType === 'bar'){
+                                        this.createBarChart(obj.data[0])
+                                    }else if(this.chartType === 'line'){
+                                        this.createLineChart(obj.data[0])
+                                    }else if(this.chartType === 'pie'){
+                                        this.createPieChart(obj.data)
+                                    }
+                                }else{
+                                    this.emptyTipState = true;
+                                    echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
+                                }*/
+
+                            } else {
+                                layer.msg(obj.message,{icon:5});
+                            }
+
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
+            handleCurrentChange(){},
+            /*保存图表*/
+            saveChart(){
+                //清空已经获取的参数
+                // this.chartsConfig.xAxisArr
+                for (let i in this.chartsConfig.xAxisArr){
+                    this.chartsConfig.xAxisArr[i].aggregationParamArr = [];
+                    //this.opt.xAxis.data = [];
+                }
+                //this.chartsConfig.xAxisArr
+                for (let j in this.chartsConfig.yAxisArr){
+                    this.chartsConfig.yAxisArr[j].aggregationParamArr = [];
+                    //this.opt.series[j].data = [];
+                }
+                //清空echart结构中获取的图表数据
+                this.opt.dataset = [];
+                if(this.opt.series){
+                    this.opt.series = [this.opt.series[0]];
+                }
+                //定义参数
+                let optStr = {
+                    config:this.chartsConfig,
+                    opt:this.opt
+                }
+                let params = {
+                    title:this.chartParams.chartName,
+                    description:this.chartParams.chartDes,
+                    filters:this.filters,
+                    type:this.chartType,
+                    pre_index_name:this.chartsConfig.preIndexName,
+                    suffix_index_name:this.chartsConfig.suffixIndexName,
+                    template_name:this.chartsConfig.templateName,
+                    option:JSON.stringify(optStr),
+                    params:this.chartParams.searchParam,
+                    isSaveAs:true
+                }
+                //判断是否是修改图表
+                if(this.chartId !== ''){
+                    //判断是否是另存图表
+                    if(!this.chartParams.otherSave){//不是另存（修改原先的）
+                        params.id = this.chartId;
+                        params.isSaveAs = false;
+                    }
+                }
+                this.$nextTick(()=>{
+                    this.allLoading = true;
+                    this.$axios.post(this.$baseUrl+'/BI/saveVisualization.do',this.$qs.stringify(params))
+                        .then(res=>{
+                            this.allLoading = false;
+                            if(res.data.success == 'true'){
+                                this.dialogFormVisible = false;
+                                layer.msg(res.data.message,{icon:1})
+                            }else{
+                                layer.msg(res.data.message,{icon:5})
+                            }
+
+                        })
+                        .catch(err=>{
+                            this.allLoading = false;
+                            layer.msg('保存失败',{icon:5})
+                        })
+                })
+            },
+            /*删除列*/
+            removeYaxisTab(i,event){
+                if(this.chartsConfig.columnArr.length > 1){
+                    this.chartsConfig.columnArr.splice(i,1);
+                    event.stopPropagation();
+                }
+            }
+        },
+        watch:{
+            //检测有无id 有则是修改
+            chartId:{
+                handler(newV) {
+                    if(newV !== ''){
+                        this.$nextTick(()=>{
+                            this.allLoading = true;
+                            this.$axios.post(this.$baseUrl+'/BI/getVisualizationById.do',this.$qs.stringify({
+                                id:this.chartId
+                            }))
+                                .then(res=>{
+                                    this.allLoading = false;
+                                    let obj = res.data;
+                                    if (obj.success == 'true'){
+                                        //赋值
+                                        if(JSON.parse(obj.data.params).filters){
+                                            this.filters = JSON.parse(obj.data.params).filters;
+                                            this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
+                                        }
+                                        let option = JSON.parse(obj.data.option);
+                                        this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
+                                        this.chartsConfig = option.config;
+                                        //x轴聚合参数
+                                        /* let xap = this.chartsConfig.xAxisArr[0].aggregationParam;
+                                         this.xAggregationChange();
+                                         this.chartsConfig.xAxisArr[0].aggregationParam = xap;*/
+                                        for(let i=0;i < this.chartsConfig.xAxisArr.length;i++){
+                                            //选保存数据 避免在获取其他数据时被清空
+                                            let xap= this.chartsConfig.xAxisArr[i].aggregationParam;
+                                            let numberRange = this.chartsConfig.xAxisArr[i].numberRange;
+                                            let ipRange = this.chartsConfig.xAxisArr[i].ipRange;
+                                            let dateRange = this.chartsConfig.xAxisArr[i].dateRange;
+                                            this.xAggregationChange(this.chartsConfig.xAxisArr[i].aggregationType,i);
+                                            //赋值
+                                            this.chartsConfig.xAxisArr[i].aggregationParam = xap;
+                                            this.chartsConfig.xAxisArr[i].numberRange = numberRange;
+                                            this.chartsConfig.xAxisArr[i].ipRange = ipRange;
+                                            this.chartsConfig.xAxisArr[i].dateRange = dateRange;
+                                        }
+                                        //y轴聚合参数
+                                        for(let i=0;i < this.chartsConfig.yAxisArr.length;i++){
+                                            let yap= this.chartsConfig.yAxisArr[i].aggregationParam;
+                                            this.yAggregationChange(this.chartsConfig.yAxisArr[i].aggregationType,i);
+                                            this.chartsConfig.yAxisArr[i].aggregationParam = yap
+                                        }
+
+                                        this.chartParams.chartName = obj.data.title;
+                                        this.chartParams.chartDes = obj.data.description;
+                                        this.chartParams.searchParam = obj.data.params;
+
+                                        //后台直接返回数据
+                                        /*let xD = JSON.parse(obj.data.data)[0].name;
+                                        let yD = JSON.parse(obj.data.data)[0].data;
+                                        this.createChart(xD,yD);
+                                        this.emptyTipState = false;
+                                        this.sourceData = JSON.parse(obj.data.data);*/
+                                        //前台自己获取数据
+                                        this.getData()
+                                    }else{
+                                        layer.msg(res.data.message,{icon:5})
+                                    }
+                                })
+                                .catch(err=>{
+                                    this.allLoading = false;
+                                })
+                        })
+                    }
+                },
+                immediate: true,
+                deep: true
+            },
+            //时间范围改变
+            'dateObj'(nv,ov){
+                //判断是否具备生成图表的条件
+                if(this.isCanCreate !== 'disabled'){
+                    this.loading = true;
+                    //获取数据
+                    this.getData()
+                }
+            },
+            //轮询状态改变
+            'intervalObj'(){
+                //判断是否启用轮询获取数据
+                if (this.intervalObj.state){
+                    clearInterval(this.interval)
+                    this.interval = setInterval(()=>{
+                        //判断是否具备生成图表的条件
+                        if(this.isCanCreate !== 'disabled'){
+                            //获取数据
+                            this.getData()
+                        }
+                    },this.intervalObj.interval)
+                }else {
+                    clearInterval(this.interval)
+                }
+            }
+        },
+        components:{
+            dateLayout,
+            chooseIndex,
+            jsonView,
+            queryFilter,
+            vBasetable
+        }
+    }
+</script>
+
+<style scoped>
+    .top-zz{
+        text-align: center;
+        width: 100%;
+        height: 50px;
+        position: absolute;
+        /*background: #;*/
+        z-index: 100;
+        cursor: no-drop;
+        text-shadow: none;
+        color: #455b75;
+    }
+    .from-zz{
+        width: 242px;
+        height:100%;
+        cursor: no-drop;
+        position: absolute;
+        z-index: 100;
+    }
+    .choose-wapper{
+        height: 50px;
+        display: flex;
+        align-items: center;
+        float: left;
+    }
+    .saveChart{
+        float: right;
+        margin-right: 10px;
+        margin-top: 10px;
+    }
+    .date-wapper{
+        float: right;
+        margin-right: 10px;
+        margin-top: 10px;
+        position: relative;
+        z-index: 101;
+    }
+    .chart-wapper{
+        height: 100%;
+        overflow: hidden;
+        padding-bottom: 10px;
+    }
+    .chart-wapper>div{
+        float: left;
+        background: #303e4e;
+        height: calc(100vh - 237px);
+    }
+    .config-wapper{
+        width: 300px;
+        margin: 0 10px;
+        position: relative;
+    }
+    .creatBtn{
+        /*width: 50px;*/
+        height: 39px;
+        text-align: center;
+        line-height: 39px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 1;
+        /*background: #3a8ee6;*/
+        font-size: 14px;
+        padding: 0 8px;
+        border-radius: 0;
+    }
+    .prevBtn{
+        right: 82px;
+    }
+    .nextBtn{
+        right: 48px;
+    }
+    .creatBtn:hover{
+        /*cursor: pointer;*/
+        /*background: #66b1ff;*/
+    }
+    .config-wapper /deep/ .el-tabs__content{
+        height: calc(100% - 69px);
+        overflow: auto;
+    }
+    .chart-wapper /deep/ .el-collapse-item__content{
+        padding-bottom: 0;
+    }
+    .view-wapper{
+        width: calc(100% - 330px);
+        margin-right: 10px;
+        position: relative;
+    }
+    .config-item{
+        /*height:100*/
+    }
+    .config-wapper /deep/ .el-collapse-item__header{
+        height: 35px;
+        background: #455b75;
+        border-top: 0;
+        color: #409eff;
+    }
+    .config-wapper /deep/ .el-form-item__label{
+        color: #FFF!important;
+        font-size: 12px;
+    }
+    .config-wapper /deep/ .el-collapse-item__wrap{
+        background: 0;
+        padding: 10px;
+    }
+    .tablist{
+        background: #3e4f63;
+        margin: 10px 0;
+    }
+    .charts-title{
+        height: 50px;
+        text-align: center;
+        line-height: 50px;
+        color: #10d9f2;
+        font-weight: 600;
+        font-size: 19px;
+    }
+    #charts-wapper{
+        height: calc(100% - 50px);
+    }
+    .tip-w{
+        font-size: 10px;
+        color: #e4956d;
+    }
+    .addY:hover{
+        cursor: pointer;
+        color: #10d9f2;
+    }
+    .tablist /deep/ .el-collapse-item__header{
+        position: relative;
+        padding-left: 30px;
+    }
+    .tablist /deep/ .el-collapse-item__arrow{
+        position: absolute;
+        left: 5px;
+        top: 12px;
+    }
+    .tablist .removeTab{
+        position: absolute;
+        right: 10px;
+        top: 12px;
+    }
+    .tablist .removeTab:hover{
+        color: #e4956d;
+    }
+    /deep/.el-form-item--small.el-form-item{
+        margin-bottom: 10px;
+    }
+    .empty-tip{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        margin-left: -35px;
+        margin-top: -10px;
+        color: #6885a7;
+    }
+    .source-data{
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        overflow: auto;
+    }
+    .source-data button{
+        background: 0;
+        border: 0;
+    }
+    .jsonView{
+        width: 100%;
+        max-height: 80vh;
+        overflow: auto;
+    }
+    .range-p{
+        display: flex;
+        align-items: center;
+    }
+    /*    .range-p /deep/ .el-input__inner[type=number]{
+            padding-right: 2px;
+        }*/
+    .range-p span{
+        margin: 0 5px;
+    }
+    .range-p i{
+        margin-left: 5px;
+    }
+    .range-p i:hover{
+        cursor: pointer;
+        color: #e4956d;
+    }
+    .range-btn-p{
+        text-align: center;
+        margin-top: 5px;
+    }
+    .range-btn-p span:hover{
+        cursor: pointer;
+        color: #409eff;
+    }
+    .filter-box{
+        padding: 0 10px;
+        position: relative;
+        top: -10px;
+    }
+    .filter-box /deep/ .el-input__inner{
+        border-radius: 0;
+    }
+</style>

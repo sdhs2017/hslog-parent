@@ -29,10 +29,10 @@
 
 
     <!-- 执行sql语句 -->
-    <insert id="getDataBySql" parameterType="java.lang.String" resultType="java.util.LinkedHashMap">
+    <select id="getDataBySql" parameterType="java.lang.String" resultMap="java.util.LinkedHashMap">
         <![CDATA[
             SELECT *  FROM (${value}) obj
           ]]>
-    </insert>
+    </select>
 
 </mapper>

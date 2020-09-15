@@ -521,6 +521,18 @@
 			</array>
 		</property>
 	</bean>
+	<!-- BI模块 -->
+	<bean id="BusinessIntelligenceSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/businessIntelligence/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -648,6 +660,11 @@
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.jz.bigdata.common.configuration"/>
 		<property name="sqlSessionFactoryBeanName" value="configurationSqlSessionFactory"></property>
+	</bean>
+	<!--BI模块 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.businessIntelligence"/>
+		<property name="sqlSessionFactoryBeanName" value="BusinessIntelligenceSqlSessionFactory"></property>
 	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->

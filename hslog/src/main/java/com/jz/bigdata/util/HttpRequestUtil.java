@@ -116,62 +116,49 @@ public class HttpRequestUtil {
         }else{}
         return visualParam;
     }
+
     /**
-     * 处理参数 用于对报表的参数处理
+     * 处理参数 用于对报表的参数处理,服务于动态表格
      * @param request
      * @return
      */
-    public static SearchConditions getSearchConditionsByRequest(HttpServletRequest request){
-        SearchConditions searchConditions = new SearchConditions();
+    public static SearchConditions getSearchConditionsByRequest4DynamicTable(HttpServletRequest request){
+        SearchConditions searchConditions = getSearchConditionsByRequest_basic(request);
         try{
-            Map<String, String[]> params = request.getParameterMap();
-            //通过bean对应，直接处理部分参数，包括intervalValue、intervalType等等
-            searchConditions.mapToBean(params);
-            //获取起始和截至时间
-            String starttime = request.getParameter("starttime");
-            String endtime = request.getParameter("endtime");
-            String last = request.getParameter("last");
-            //last值不为空
-            if(!Strings.isNullOrEmpty(last)){
-                if(Strings.isNullOrEmpty(starttime)&&Strings.isNullOrEmpty(endtime)){
-                    //起始、截止时间为空，last不为空,计算起始和截止时间
-                    Map<String,String> map = getStartEndTimeByLast(last);
-                    //赋值，如果起始和截止时间能正常获取
-                    if(map.size()==2){
-                        searchConditions.setStartTime(map.get("starttime"));
-                        searchConditions.setEndTime(map.get("endtime"));
-                    }else{
-                        //其他情况判定为时间范围数据异常，返回前端显示
-                        searchConditions.setErrorInfo("请重新设定时间范围!");
+            //动态表格 ，数据为es类型时，对字段信息数据的处理
+            String es_columns = request.getParameter("es_columns");
+            if(null!=es_columns){
+                //es_columns参数包含多个column对象
+                JSONArray json = JSONArray.fromObject(es_columns);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    DataTableColumn column = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), DataTableColumn.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=column){
+                        searchConditions.getDataTableColumns().add(column);
                     }
-                }else{
-                    //既有起始或截止时间，又有last，参数异常
-                    searchConditions.setErrorInfo("请重新设定时间范围!");
-                }
-            }else{//last值为空
-                //起始和截止时间都不为空,并且格式为yyyy-MM-dd HH:mm:ss
-                if(!Strings.isNullOrEmpty(starttime)&&!Strings.isNullOrEmpty(endtime)&&starttime.matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")&&endtime.matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")){
-                    searchConditions.setStartTime(starttime);
-                    searchConditions.setEndTime(endtime);
-                }else{
-                    //起始或截止时间存在为空的，也属于参数异常状态
-                    searchConditions.setErrorInfo("请重新设定时间范围!");
                 }
             }
-            //查询条件处理,数据格式为json，{key:value,key:value}
-            String queryParam = request.getParameter("queryParam");
-            if(null!=queryParam){
-                Map<String,String> paramMap = MapUtil.json2map(queryParam);
-                //聚合后端用到的参数处理魔石
-                for(Map.Entry<String,String> entity:paramMap.entrySet()){
-                    //目前通过参数传递过来的查询信息，默认采用term构建查询条件
-                    //TODO 查询参数需要重新设计
-                    QueryCondition qc = new QueryCondition("term",entity.getKey(),entity.getValue(),"");
-                    searchConditions.getQueryConditions().add(qc);
-                }
-                //原后端用到的参数处理
-                searchConditions.setQueryParam(paramMap);
+            //分页处理
+            Integer page = searchConditions.getPage();
+            Integer page_size = searchConditions.getPage_size();
+            if (page!=null&&page_size!=null) {
+                searchConditions.setFrom((page-1)*page_size);
             }
+        }catch (Exception e){
+            searchConditions.setErrorInfo("查询参数异常，请重新设置！");
+        }
+        return searchConditions;
+    }
+    /**
+     * 处理参数 用于对报表的参数处理,服务于图表模块
+     * @param request
+     * @return
+     */
+    public static SearchConditions getSearchConditionsByRequest4Chart(HttpServletRequest request){
+        SearchConditions searchConditions = getSearchConditionsByRequest_basic(request);
+        try{
             //处理bucket聚合条件（X轴）
             String buckets = request.getParameter("buckets");
             if(null!=buckets){
@@ -223,6 +210,68 @@ public class HttpRequestUtil {
             }else{
                 //没有聚合字段相关参数时进行提示
                 searchConditions.setErrorInfo("聚合字段不能为空，请重新选择!");
+            }
+        }catch(Exception e){
+            searchConditions.setErrorInfo("查询参数异常，请重新设置！");
+        }
+        return searchConditions;
+    }
+    /**
+     * 处理参数 用于对报表的参数处理
+     * 基础参数处理，包括  index  query filter  时间范围
+     * @param request
+     * @return
+     */
+    private static SearchConditions getSearchConditionsByRequest_basic(HttpServletRequest request){
+        SearchConditions searchConditions = new SearchConditions();
+        try{
+            Map<String, String[]> params = request.getParameterMap();
+            //通过bean对应，直接处理部分参数，包括intervalValue、intervalType等等
+            searchConditions.mapToBean(params);
+            //获取起始和截至时间
+            String starttime = request.getParameter("starttime");
+            String endtime = request.getParameter("endtime");
+            String last = request.getParameter("last");
+            //last值不为空
+            if(!Strings.isNullOrEmpty(last)){
+                if(Strings.isNullOrEmpty(starttime)&&Strings.isNullOrEmpty(endtime)){
+                    //起始、截止时间为空，last不为空,计算起始和截止时间
+                    Map<String,String> map = getStartEndTimeByLast(last);
+                    //赋值，如果起始和截止时间能正常获取
+                    if(map.size()==2){
+                        searchConditions.setStartTime(map.get("starttime"));
+                        searchConditions.setEndTime(map.get("endtime"));
+                    }else{
+                        //其他情况判定为时间范围数据异常，返回前端显示
+                        searchConditions.setErrorInfo("请重新设定时间范围!");
+                    }
+                }else{
+                    //既有起始或截止时间，又有last，参数异常
+                    searchConditions.setErrorInfo("请重新设定时间范围!");
+                }
+            }else{//last值为空
+                //起始和截止时间都不为空,并且格式为yyyy-MM-dd HH:mm:ss
+                if(!Strings.isNullOrEmpty(starttime)&&!Strings.isNullOrEmpty(endtime)&&starttime.matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")&&endtime.matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")){
+                    searchConditions.setStartTime(starttime);
+                    searchConditions.setEndTime(endtime);
+                }else{
+                    //起始或截止时间存在为空的，也属于参数异常状态
+                    searchConditions.setErrorInfo("请重新设定时间范围!");
+                }
+            }
+            //查询条件处理,数据格式为json，{key:value,key:value}
+            String queryParam = request.getParameter("queryParam");
+            if(null!=queryParam){
+                Map<String,String> paramMap = MapUtil.json2map(queryParam);
+                //聚合后端用到的参数处理魔石
+                for(Map.Entry<String,String> entity:paramMap.entrySet()){
+                    //目前通过参数传递过来的查询信息，默认采用term构建查询条件
+                    //TODO 查询参数需要重新设计
+                    QueryCondition qc = new QueryCondition("term",entity.getKey(),entity.getValue(),"");
+                    searchConditions.getQueryConditions().add(qc);
+                }
+                //原后端用到的参数处理
+                searchConditions.setQueryParam(paramMap);
             }
             //组装要检索的index的名称： 前缀+后缀
             searchConditions.setIndex_name(searchConditions.getPre_index_name()+searchConditions.getSuffix_index_name());

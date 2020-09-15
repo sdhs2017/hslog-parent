@@ -19,6 +19,7 @@ import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortBuilder;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,13 +56,13 @@ public class SearchTemplate {
 
         //SearchRequest searchRequest = new SearchRequest(indices);
         CountRequest countRequest = new CountRequest(indices);
-        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        //SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
 
         if (queryBuilder!=null) {
-            searchSourceBuilder.query(queryBuilder);
+            countRequest.query(queryBuilder);
         }
         //searchRequest.source(searchSourceBuilder);
-        countRequest.source(searchSourceBuilder);
+        //countRequest.source(searchSourceBuilder);
 
         //SearchResponse searchResponse = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
         CountResponse countResponse = restHighLevelClient.count(countRequest, RequestOptions.DEFAULT);
@@ -95,7 +96,7 @@ public class SearchTemplate {
             return aggregations;
     }
     /**
-     * 带有条件的聚合查询，暂时使用场景为多个metric 无bucket的情况
+     * 带有条件的聚合查询，agg设置成list是为了应对有多个metric  无bucket的情况
      * @param queryBuilder
      * @param aggregationBuilders agg数组
      * @param indices
@@ -120,6 +121,7 @@ public class SearchTemplate {
 
         return aggregations;
     }
+
     /**
      * 聚合查询
      * @param aggregationBuilder
@@ -142,6 +144,46 @@ public class SearchTemplate {
         return aggregations;
     }
 
+
+    /**
+     * 通过查询体（QueryBuilder）获取数据（带排序功能）
+     * 带有排序的分页查询
+     * @param queryBuilder 查询体
+     * @param includeSource 回显字段
+     * @param sorts 排序信息
+     * @param from 起始行
+     * @param size 长度
+     * @param indices
+     * @return
+     * @throws Exception
+     */
+    public SearchHits getSearchHitsByBuilder(QueryBuilder queryBuilder,String[] includeSource,List<SortBuilder> sorts, int from, int size,String... indices) throws Exception {
+        SearchRequest searchRequest = new SearchRequest(indices);
+
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        if (queryBuilder!=null){
+            searchSourceBuilder.query(queryBuilder);
+        }
+        //仅返回特定字段
+        if (includeSource!=null){
+            searchSourceBuilder.fetchSource(includeSource,null);
+        }
+        //排序字段
+        if (sorts!=null){
+            for(SortBuilder sort:sorts){
+                searchSourceBuilder.sort(sort);
+            }
+        }
+        //分页
+        if (from>=0&&size>=0){
+            searchSourceBuilder.from(from).size(size);
+        }
+        searchRequest.source(searchSourceBuilder);
+
+        SearchResponse response = restHighLevelClient.search(searchRequest,RequestOptions.DEFAULT);
+        SearchHits searchHits = response.getHits();
+        return searchHits;
+    }
     /**
      * 通过查询体（QueryBuilder）获取数据（带排序功能）
      * 带有排序的分页查询，带有高亮

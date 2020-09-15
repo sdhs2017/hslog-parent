@@ -5,9 +5,13 @@ import com.hs.elsearch.entity.*;
 import com.hs.elsearch.service.ISearchService;
 import com.hs.elsearch.util.ElasticConstant;
 import joptsimple.internal.Strings;
+import org.elasticsearch.common.text.Text;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.metrics.NumericMetricsAggregation;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.DecimalFormat;
@@ -72,6 +76,24 @@ public class SearchServiceImpl implements ISearchService {
 
         }
         return result;
+    }
+
+    @Override
+    public List<Map<String, Object>> getSearchHitsList(SearchConditions conditions) throws Exception {
+        SearchHits searchHits = searchDao.getSearchHitsByBuilder(conditions);
+        //数据处理
+        SearchHit[] searchHit = searchHits.getHits();
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        for(SearchHit hit : searchHit) {
+            Map<String, Object> map = hit.getSourceAsMap();
+            list.add(map);
+        }
+        return list;
+    }
+
+    @Override
+    public long getCountByConditionsQuery(SearchConditions conditions) throws Exception {
+        return searchDao.getCountByConditionsQuery(conditions);
     }
 
 

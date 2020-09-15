@@ -85,11 +85,13 @@ public enum SearchCache {
                 List<MappingField> forIpList = new ArrayList<>();
                 //用来进行filter字段的显示，除geo_point类型外的其他所有类型都包括
                 List<MappingField> forAllExceptGeoPointList = new ArrayList<>();
-                //
+                //所有字段，用来进行动态表格的字段显示
+                List<MappingField> forAllList = new ArrayList<>();
                 Map<String,String> mappingMap = new HashMap<>();
                 //遍历list，放到cache中
                 for(MappingField mf :fieldList){
                     mappingMap.put(mf.getFieldName(),mf.getFieldType());
+                    forAllList.add(mf);
                     switch(mf.getFieldType()){
                         //number类型
                         case "long":case "integer":case "short":case "byte":case "double":case "float":case "half_float":case "scaled_float":
@@ -135,6 +137,7 @@ public enum SearchCache {
                 this.biCache.put(name+"Date",forDateList);
                 this.biCache.put(name+"Ip",forIpList);
                 this.biCache.put(name+"AllExceptGeo",forAllExceptGeoPointList);
+                this.biCache.put(name+"All",forAllList);
                 this.mappingCache.put(name,mappingMap);
                 result = true;
             }

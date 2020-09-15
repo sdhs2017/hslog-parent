@@ -4,6 +4,7 @@ import com.hs.elsearch.entity.SearchConditions;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -33,5 +34,21 @@ public interface ISearchService {
      */
     public Map<String,Object> getMultiAggDataSetWithZeroFill(SearchConditions conditions) throws Exception;
 
+    /**
+     * 普通分页查询，无聚合的结果，适配table数据格式
+     * [{"fields.ip":"192.168.1.1","fields.equipmentname":"jzlog1"},{"fields.ip":"192.168.1.2","fields.equipmentname":"jzlog2"}]
+     * @param conditions
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String,Object>> getSearchHitsList(SearchConditions conditions) throws Exception;
+
+    /**
+     * 通过条件中的query 查询结果的count值
+     * @param conditions
+     * @return
+     * @throws Exception
+     */
+    public long getCountByConditionsQuery(SearchConditions conditions) throws Exception;
 
 }

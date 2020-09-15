@@ -29,6 +29,51 @@ public class SearchConditions {
     private List<Filter> filters_visual = new ArrayList<>();//图表 filter级
     private List<Filter> filters_dashboard = new ArrayList<>();//dashboard filter级
     private String queryBox;//query 查询框的内容
+    private Integer page;//分页，第几页
+    private Integer page_size;//分页，每页多少条
+    private Integer from;//分页起始行，通过page和page_size计算而来
+    private Integer size;//最终要展示的数量
+    private List<DataTableColumn> dataTableColumns = new ArrayList<>();
+
+    public int getFrom() {
+        return from;
+    }
+
+    public void setFrom(int from) {
+        this.from = from;
+    }
+
+    public int getPage() {
+        return page;
+    }
+
+    public void setPage(int page) {
+        this.page = page;
+    }
+
+    public int getPage_size() {
+        return page_size;
+    }
+
+    public void setPage_size(int page_size) {
+        this.page_size = page_size;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
+
+    public List<DataTableColumn> getDataTableColumns() {
+        return dataTableColumns;
+    }
+
+    public void setDataTableColumns(List<DataTableColumn> dataTableColumns) {
+        this.dataTableColumns = dataTableColumns;
+    }
 
     public String getQueryBox() {
         return queryBox;

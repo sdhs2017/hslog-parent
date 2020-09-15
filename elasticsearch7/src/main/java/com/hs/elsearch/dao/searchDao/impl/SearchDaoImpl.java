@@ -14,6 +14,7 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.*;
 import org.elasticsearch.join.aggregations.ChildrenAggregationBuilder;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.*;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.ExtendedBounds;
@@ -23,9 +24,13 @@ import org.elasticsearch.search.aggregations.bucket.range.RangeAggregationBuilde
 import org.elasticsearch.search.aggregations.pipeline.BucketScriptPipelineAggregationBuilder;
 import org.elasticsearch.search.aggregations.pipeline.BucketSelectorPipelineAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -49,6 +54,9 @@ public class SearchDaoImpl implements ISearchDao {
     private final String FIELD_TYPE_ERROR = "FIELD TYPE ERROR!";
     //date format
     private final String dateFormat = "yyyy-MM-dd HH:mm:ss";
+    //sort asc desc
+    private final String SORT_ASC = "asc";
+    private final String SORT_DESC = "desc";
 
     @Autowired
     SearchTemplate searchTemplate;
@@ -168,6 +176,8 @@ public class SearchDaoImpl implements ISearchDao {
             //时间戳在参数对象生成时已经进行了不为空的判定
             //如果真实存在，不添加条件不影响查询的执行
         }
+        //
+
         return boolQueryBuilder;
     }
 
@@ -683,6 +693,25 @@ public class SearchDaoImpl implements ISearchDao {
         }
         return metricBuilder;
     }
+
+    /**
+     * 动态表格构建显示字段和排序信息
+     * @param conditions
+     * @param includeSource
+     * @param sorts
+     */
+    private void buildSourceAndSort(SearchConditions conditions,String[] includeSource,List<SortBuilder> sorts){
+        if(conditions.getDataTableColumns().size()>0){
+            //遍历字段
+            for(int i=0;i<conditions.getDataTableColumns().size();i++){
+                DataTableColumn column = conditions.getDataTableColumns().get(i);
+                //排序
+                sorts.add(SortBuilders.fieldSort(column.getField()).order("asc".equals(column.getSort())?SortOrder.ASC:SortOrder.DESC));
+                //要显示字段
+                includeSource[i] = column.getField();
+            }
+        }
+    }
     /**
      * 直接返回原始数据
      * @param conditions 查询条件
@@ -696,9 +725,40 @@ public class SearchDaoImpl implements ISearchDao {
         //聚合条件
         List<AggregationBuilder> aggregationBuilder = buildAggregations(conditions);
         // 返回聚合的内容，boolQueryBuilder以及aggregationBuilder都为空时，可以正常进行查询。
-        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, conditions.getIndex_name());
+        Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder,conditions.getIndex_name());
 
         return aggregations;
+    }
+
+    /**
+     * 获取查询，无聚合
+     * @param conditions
+     * @return
+     * @throws Exception
+     */
+    public SearchHits getSearchHitsByBuilder(SearchConditions conditions)throws Exception {
+        //查询条件 query(增加了filter的处理)
+        BoolQueryBuilder boolQueryBuilder = buildQuery(conditions);
+        //设置要返回的字段 _source
+        String[] includeSource = new String[conditions.getDataTableColumns().size()];
+        //设置排序字段 sort
+        List<SortBuilder> sorts = new ArrayList<>();;
+        buildSourceAndSort(conditions,includeSource,sorts);
+        SearchHits searchHits = searchTemplate.getSearchHitsByBuilder(boolQueryBuilder,includeSource,sorts,conditions.getFrom(),conditions.getPage_size(),conditions.getIndex_name());
+        return searchHits;
+    }
+
+    /**
+     * 获取查询条件 查询出的数据量  count
+     * @param conditions
+     * @return
+     * @throws Exception
+     */
+    public long getCountByConditionsQuery(SearchConditions conditions)throws Exception {
+        //查询条件
+        BoolQueryBuilder boolQueryBuilder = buildQuery(conditions);
+        long count = searchTemplate.getCountByQuery(boolQueryBuilder,conditions.getIndex_name());
+        return count;
     }
 
     public static void main(String[] args) {

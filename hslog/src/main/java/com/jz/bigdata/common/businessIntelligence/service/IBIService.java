@@ -149,4 +149,16 @@ public interface IBIService {
      * @throws Exception
      */
     public Map<String,Object> getMultiAggregationData_bar(SearchConditions conditions) throws Exception;
+
+    /**
+     * 获取动态表格查询结果
+     * @param conditions
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> getSearchData_dynamicTable(SearchConditions conditions) throws Exception;
+
+    public String showTables()throws Exception;
+    public String showColumns()throws Exception;
+    public String getDataBySql()throws Exception;
 }

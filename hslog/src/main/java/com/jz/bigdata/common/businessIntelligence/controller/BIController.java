@@ -119,7 +119,33 @@ public class BIController {
             List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
-            logger.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
+            logger.error("通过Filter方式获取对应的列失败："+e.getStackTrace().toString());
+            return Constant.failureMessage("数据查询失败");
+        }
+    }
+    /**
+     * 创建动态表格时，获取所有的字段
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getFieldByDynamicTable", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "动态表格获取字段")
+    public String getFieldByDynamicTable(HttpServletRequest request){
+        try{
+            //filter方式默认获取所有字段信息(除了geo_point类型)
+            String agg = "All";
+            //索引名称
+            //String indexName = request.getParameter("indexName");
+            //template名称
+            String templateName = request.getParameter("template_name");
+            //索引前缀
+            String preIndexName = request.getParameter("pre_index_name");
+            //索引后缀
+            String suffixIndexName = request.getParameter("suffix_index_name");
+            List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
+            return JSONArray.fromObject(result).toString();
+        }catch(Exception e){
+            logger.error("动态表格获取字段失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -149,47 +175,8 @@ public class BIController {
     @DescribeLog(describe = "通过图表参数获取查询结果，并返回")
     public String getDataByChartParams(HttpServletRequest request){
         try{
-            /*
             //处理参数
-            VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
-            //时间范围参数异常
-            if(!Strings.isNullOrEmpty(params.getErrorInfo())){
-                return Constant.failureMessage(params.getErrorInfo());
-            }
-            //组装要检索的index的名称： 前缀+后缀
-            params.setIndex_name(params.getPre_index_name()+params.getSuffix_index_name());
-            //查询条件处理,数据格式为json，{key:value,key:value}
-            String queryParam = request.getParameter("queryParam");
-            if(null!=queryParam){
-                Map<String,String> paramMap = MapUtil.json2map(queryParam);
-                params.setQueryParam(paramMap);
-            }
-            //如果x轴是时间聚合类型，进行计算
-            if("Date Histogram".equals(params.getX_agg())){
-                //计算聚合桶数，对超出设置search.max_buckets的，进行返回
-                //计算方式，时间范围/时间间隔
-                if(getSearchBuckets(params.getStartTime(),params.getEndTime(),params.getIntervalType(),params.getIntervalValue())){
-                    //continue
-                }else{
-                    return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
-                }
-            }else{
-                //continue
-            }
-
-
-            //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
-            if(params.getIndex_name().indexOf("hslog")>=0){
-                params.setDateField(Constant.PACKET_DATE_FIELD);
-            }else if(params.getIndex_name().indexOf("beat")>=0){
-                params.setDateField(Constant.BEAT_DATE_FIELD);
-            }else{
-                return Constant.failureMessage("数据源异常，请重新选择！");
-            }
-
-             */
-            //处理参数
-            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest(request);
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4Chart(request);
             //时间范围参数异常
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
@@ -235,7 +222,7 @@ public class BIController {
     public String getDataByChartParams_pie(HttpServletRequest request){
         try{
             //处理参数
-            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest(request);
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4Chart(request);
             //时间范围参数异常
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
@@ -265,7 +252,7 @@ public class BIController {
     public String getDataByChartParams_metric(HttpServletRequest request){
         try{
             //处理参数
-            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest(request);
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4Chart(request);
             //时间范围参数异常
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
@@ -291,7 +278,7 @@ public class BIController {
     public String getDataByChartParams_line(HttpServletRequest request){
         try{
             //处理参数
-            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest(request);
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4Chart(request);
             //时间范围参数异常
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
@@ -317,7 +304,7 @@ public class BIController {
     public String getDataByChartParams_bar(HttpServletRequest request){
         try{
             //处理参数
-            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest(request);
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4Chart(request);
             //时间范围参数异常
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
@@ -330,6 +317,32 @@ public class BIController {
             return handleElasticException(e);
         }catch(Exception e){
             logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            return Constant.failureMessage("数据查询失败！");
+        }
+    }
+    /**
+     *通过图表参数获取查询结果，并返回(动态表格)
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDataByParams_dynamicTable", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "通过图表参数获取查询结果，并返回(动态表格)")
+    public String getDataByParams_dynamicTable(HttpServletRequest request){
+        try{
+            //处理参数
+            SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4DynamicTable(request);
+            //时间范围参数异常
+            if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
+                return Constant.failureMessage(searchConditions.getErrorInfo());
+            }
+            Map<String, Object> result = iBIService.getSearchData_dynamicTable(searchConditions);
+            return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch(ErrorInfoException e){
+            return Constant.failureMessage(e.getMessage());
+        }catch(ElasticsearchStatusException e){
+            return handleElasticException(e);
+        }catch(Exception e){
+            logger.error("数据可视化模块查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -625,5 +638,56 @@ public class BIController {
             return Constant.failureMessage("数据查询失败");
         }
     }
-
+    /*******************sql部分*********************/
+    /**
+     * 获取数据库所有表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/showTables", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取数据库所有表")
+    public String showTables(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.showTables();
+            return Constant.successMessage(result);
+        }catch(Exception e){
+            logger.error("获取数据库所有表"+e.getMessage());
+            return Constant.failureMessage("获取数据库表失败");
+        }
+    }
+    /**
+     * 获取数据库所有表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/showColumns", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取数据库所有表")
+    public String showColumns(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.showColumns();
+            return Constant.successMessage(result);
+        }catch(Exception e){
+            logger.error("获取数据库所有表"+e.getMessage());
+            return Constant.failureMessage("获取数据库表失败");
+        }
+    }
+    /**
+     * 获取数据库所有表
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDataBySql", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取数据库所有表")
+    public String getDataBySql(HttpServletRequest request){
+        try{
+            String id = request.getParameter("id");
+            String result = iBIService.getDataBySql();
+            return Constant.successMessage(result);
+        }catch(Exception e){
+            logger.error("获取数据库所有表"+e.getMessage());
+            return Constant.failureMessage("获取数据库表失败");
+        }
+    }
 }

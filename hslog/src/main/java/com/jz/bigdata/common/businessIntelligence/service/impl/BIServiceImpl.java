@@ -16,8 +16,10 @@ import com.hs.elsearch.service.ISearchService;
 import com.hs.elsearch.util.ElasticConstant;
 import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.businessIntelligence.dao.IBusinessIntelligenceDao;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
+import com.jz.bigdata.common.businessIntelligence.entity.SqlResultMap;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.CSVUtil;
@@ -56,6 +58,8 @@ public class BIServiceImpl implements IBIService {
     protected ILogSearchDao logSearchDao;
     @Autowired
     protected ISearchService searchService;
+    @Autowired
+    protected IBusinessIntelligenceDao businessIntelligenceDao;
     @Override
     public List<MappingField> getFieldByXAxisAggregation(String templateName, String indexName, String agg) throws Exception {
         return getMappingFieldByAggType(templateName,indexName,agg);
@@ -309,6 +313,9 @@ public class BIServiceImpl implements IBIService {
             case "AllExceptGeo"://filter字段信息
                 result = getFieldByIndexAndAgg(indexName,templateName,"AllExceptGeo");
                 break;
+            case "All"://filter字段信息
+                result = getFieldByIndexAndAgg(indexName,templateName,"All");
+                break;
             default:
                 break;
         }
@@ -457,6 +464,36 @@ public class BIServiceImpl implements IBIService {
         //数据处理
         handleLastPoints4DateHistogram(conditions,dataSet);
         return dataSet;
+    }
+
+    @Override
+    public Map<String, Object> getSearchData_dynamicTable(SearchConditions conditions) throws Exception {
+        //获取count
+        long count = searchService.getCountByConditionsQuery(conditions);
+        //获取list
+        List<Map<String, Object>> list = searchService.getSearchHitsList(conditions);
+        Map<String, Object> allmap = new HashMap<>();
+        allmap.put("count",count);
+        allmap.put("list",list);
+        return allmap;
+    }
+
+    @Override
+    public String showTables() throws Exception {
+        List<SqlResultMap> result = businessIntelligenceDao.showTables();
+        return null;
+    }
+
+    @Override
+    public String showColumns() throws Exception {
+        List<SqlResultMap> result1 = businessIntelligenceDao.showColumns("equipment");
+        return null;
+    }
+
+    @Override
+    public String getDataBySql() throws Exception {
+        List<LinkedHashMap<String, Object>> result2 = businessIntelligenceDao.getDataBySql("select name from equipment");
+        return null;
     }
 
     /**

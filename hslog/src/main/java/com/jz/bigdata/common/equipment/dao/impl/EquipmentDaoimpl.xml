@@ -366,7 +366,32 @@
 		</if>
 		limit #{startRecord},#{pageSize}
 	</select>
-
+	<!-- 分页查询所有数据 -->
+	<select id="searchAllByPage" resultMap="BaseResultMapUserName">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		from equipment where 1=1
+		<if test="name != null and name !=''"> and name LIKE CONCAT('%',
+			#{name}, '%') </if>
+		<if test="hostName != null and hostName !=''"> and hostName LIKE
+			CONCAT('%',
+			#{hostName}, '%') </if>
+		<if test="ip != null and ip !=''">
+			and ip LIKE CONCAT('%',#{ip}, '%')
+		</if>
+		<if test="logType != null and logType !='' ">
+			and logType = #{logType,jdbcType=VARCHAR}
+		</if>
+		<if test="type != null and type !='' ">
+			and `type` LIKE CONCAT(#{type}, '%')
+		</if>
+		<if test='role=="2"'>
+			and equipment.userId=#{userId,jdbcType=VARCHAR}
+		</if>
+		limit #{startRecord},#{pageSize}
+	</select>
 	<!-- 查询总数量 -->
 	<select id="count">
 		<!-- <bind name="name" value="'%' + name + '%'" /> -->
@@ -380,7 +405,8 @@
 			CONCAT('%',
 			#{hostName}, '%') </if>
 		<if test="ip != null and ip !=''">
-			and ip = #{ip,jdbcType=VARCHAR}
+			<!--and ip = #{ip,jdbcType=VARCHAR}-->
+			and ip LIKE CONCAT('%',#{ip}, '%')
 		</if>
 		<if test="logType != null and logType !='' ">
 			and logType = #{logType,jdbcType=VARCHAR}

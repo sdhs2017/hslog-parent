@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.businessIntelligence.dao.IBusinessIntelligenceDao">
+    <!-- 返回结果设置 -->
+    <resultMap id="BaseResultMap"
+               type="com.jz.bigdata.common.businessIntelligence.entity.SqlResultMap">
+        <result column="table_name" jdbcType="VARCHAR" property="table_name" />
+        <result column="table_comment" jdbcType="VARCHAR" property="table_comment" />
+        <result column="column_name" jdbcType="VARCHAR" property="column_name" />
+        <result column="data_type" jdbcType="VARCHAR" property="data_type" />
+        <result column="column_comment" jdbcType="VARCHAR" property="column_comment" />
+    </resultMap>
+    <!-- 查看所有表 -->
+    <select id="showTables" resultMap="BaseResultMap">
+        SELECT
+            table_name,
+            table_comment
+        FROM
+            information_schema.`TABLES`
+        WHERE
+            table_schema = ( SELECT DATABASE());
+    </select>
+    <!-- 查看表结构 -->
+    <select id="showColumns" parameterType="java.lang.String" resultMap="BaseResultMap">
+       SELECT COLUMN_NAME,DATA_TYPE,column_comment
+        FROM INFORMATION_SCHEMA.COLUMNS
+        where table_name=#{tableName}
+    </select>
+
+
+    <!-- 执行sql语句 -->
+    <insert id="getDataBySql" parameterType="java.lang.String" resultType="java.util.LinkedHashMap">
+        <![CDATA[
+            SELECT *  FROM (${value}) obj
+          ]]>
+    </insert>
+
+</mapper>

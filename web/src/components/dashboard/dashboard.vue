@@ -70,6 +70,24 @@
                             <component :is="allComps[item.eId]" :params="sysChartParams" :baseConProp="{title:''}" :setIntervalObj="intervalObj"> </component>
                         </div>
                     </div>
+                    <div style="height: 100%;" v-else-if="item.chartType == 'table'">
+                        <div class="item-tit vue-draggable-handle">
+                            <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
+                            <span>{{item.tit}}</span>
+                            <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
+<!--                            <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>-->
+                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
+                        </div>
+                        <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
+                        <div class="no-chart" :id="`err${item.i}`"></div>
+                        <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
+                            <v-basetable :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText"></v-basetable>
+                            <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="item.opt.tableData">
+                                总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
+                                <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="item.opt.pageSize" :total="item.opt.page.allCounts"></el-pagination>
+                            </div>
+                        </div>
+                    </div>
                     <div style="height: 100%;" v-else >
                         <div class="item-tit vue-draggable-handle">
                             <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
@@ -249,6 +267,7 @@
     import dateLayout from '../common/dateLayout'
     import queryFilter from '../dashboard/queryFilter'
     import vEcharts from '../common/echarts'
+    import vBasetable from '../common/Basetable2';
     import bus from '../common/bus';
     import {dateFormat,jumpHtml,setChartParam} from "../../../static/js/common";
     import allComps from '../charts/index'
@@ -721,6 +740,19 @@
                 this.currentEditIndex = i;
                 this.content = this.layout[i].text;
             },
+            /*分页*/
+            handleCurrentChange(page,i){
+                this.layout[i].opt.tableData = [];
+                this.layout[i].emptyText = '数据获取中，请稍后'
+                let param = this.layout[i].opt.param;
+                param.page = page;
+                //获取数据
+                let obj = {
+                    obj:this.layout[i],
+                    param:param
+                }
+                this.getEchartsData(obj)
+            },
             /*修改图表*/
             editChartBtn(i){
                 switch (this.layout[i].chartType) {
@@ -734,7 +766,10 @@
                         jumpHtml('lineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'metric':
-                        jumpHtml('lineChart'+this.layout[i].eId,'dashboard/metricChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        jumpHtml('metricChart'+this.layout[i].eId,'dashboard/metricChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        break;
+                    case 'table':
+                        jumpHtml('dynamicTable'+this.layout[i].eId,'dashboard/dynamicTable.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                 }
             },
@@ -805,13 +840,14 @@
             },
             /*保存dashboart*/
             saveDashBoard(){
-                for (let i in this.layout){
-                    this.layout[i].opt = {};
+                let layoutObj = JSON.parse(JSON.stringify(this.layout))
+                for (let i in layoutObj){
+                    layoutObj[i].opt = {};
                 }
                 let params = {
                     title:this.dashboardParams.name,
                     description:this.dashboardParams.des,
-                    option:JSON.stringify(this.layout),
+                    option:JSON.stringify(layoutObj),
                     isSaveAs:true,
                     params:JSON.stringify({filters_dashboard:this.filters})
                 }
@@ -923,7 +959,12 @@
                                 //赋值
                                 if(obj.data.params){
                                     this.filters = JSON.parse(obj.data.params).filters_dashboard;
-                                    this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_dashboard);
+                                    if(this.filters.length === 0){
+                                        this.defaultFilter = []
+                                    }else{
+                                        this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_dashboard);
+                                    }
+
                                 }
                                 this.layout = option;
                                 this.$nextTick(()=>{
@@ -975,12 +1016,20 @@
                                         obj.eId = '';
                                         resolve(obj);
                                     }
-                                    let option = JSON.parse(data.data.option).opt;
+                                    let option = {};
                                     let param = JSON.parse(data.data.params)
-                                    //填充ecahrt数据
-                                    if(obj.chartType === 'metric'){
+                                    //填充数据
+                                    if(obj.chartType === 'metric'){//指标
 
+                                    }else if(obj.chartType === 'table'){//表格
+                                        option.tableHead = JSON.parse(data.data.option).config.tableHead;
+                                        option.tableData = [];
+                                        option.page = JSON.parse(data.data.option).config.page;
+                                        option.counts = JSON.parse(data.data.option).config.counts;
+                                        option.trueCount = 0;
+                                        option.param = JSON.parse(data.data.params);
                                     }else{//柱状图、折线图、饼图
+                                        option = JSON.parse(data.data.option).opt;
                                         option.title.show = false;
                                         obj.areaShow = JSON.parse(data.data.option).config.graph.areaShow
                                     }
@@ -1018,6 +1067,8 @@
                     url = '/BI/getDataByChartParams_line.do'
                 }else if(resObj.obj.chartType === 'metric'){
                     url = '/BI/getDataByChartParams_metric.do'
+                }else if(resObj.obj.chartType === 'table'){
+                    url = '/BI/getDataByParams_dynamicTable.do'
                 }
 
                 let obj = resObj.obj;
@@ -1047,6 +1098,7 @@
                                     //填充数据
                                     obj.opt.dataset = res.data.data;
                                     obj.opt.series=[];
+
                                     //判断图表类型
                                     if(obj.chartType === 'bar'){
                                         let xL = res.data.data[0].dimensions.length - 1;//维度
@@ -1182,6 +1234,21 @@
                                         let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;flex-wrap:wrap;overflow: auto;">'+str+'</div>'
                                         obj.opt.series.push(box)
                                     }
+                                    else if(obj.chartType === 'table'){
+                                        obj.opt.dataset = [];
+                                        obj.opt.tableData = res.data.data[0].list;
+                                        obj.opt.trueCount = res.data.data[0].count;
+                                        if(obj.opt.tableData.length === 0){
+                                            obj.emptyText = '暂无数据'
+                                        }
+                                        //判断分页
+                                        if(obj.opt.trueCount >= obj.opt.counts){
+                                            obj.opt.page.allCounts = Number(obj.opt.counts);
+                                        }else{
+                                            obj.opt.page.allCounts = Number(obj.opt.trueCount);
+                                        }
+
+                                    }
                                     resolve(obj);
                                 }else{
                                     //显示error提示
@@ -1209,6 +1276,10 @@
                     this.chartsCount = Number(this.chartsCount)+1;
                     let i = dateFormat('yyyy-mm-dd HH:MM:SS',new Date()).replace(/\s*/g,"");
                     let obj = {eId:eObj.id,"x":x,"y":0,"w":24,"h":8,intervalState:eObj.intervalState,"tit":eObj.tit ? eObj.tit : '',"i":i+this.chartsCount,chartType:eObj.type,"opt":{}};
+                    if(obj.chartType === 'table'){
+                        obj.tableHeight = 210;
+                        obj.emptyText = '数据获取中，请稍后'
+                    }
                     this.layout.push(obj);
                     resolve(obj);
                 })
@@ -1240,15 +1311,16 @@
                         }
                     }
                     //判断图表类型
-                    if(obj.chartType !== 'metric'){//柱、折、饼
+                    if(obj.chartType === 'metric'){//指标类型
+                        $(document.getElementById(obj.i)).html('')
+                        $(document.getElementById(obj.i)).html(obj.opt.series[0])
+                    }else if(obj.chartType === 'table'){//表格
+                    }else{//柱、折、饼
                         this.echartsArr[obj.i] = echarts.init(document.getElementById(obj.i))
                         this.echartsArr[obj.i].setOption(obj.opt);
                         window.addEventListener("resize",()=>{
                             this.echartsArr[obj.i].resize();
                         });
-                    }else {//指标类型
-                        $(document.getElementById(obj.i)).html('')
-                        $(document.getElementById(obj.i)).html(obj.opt.series[0])
                     }
 
                     $(document.getElementById(obj.i)).next().css("display","none")
@@ -1285,6 +1357,11 @@
             resizedEvent(i, newH, newW, newHPx, newWPx){
                 //this.echartBox.resize();
                 //console.log("RESIZED i=" + i + ", H=" + newH + ", W=" + newW + ", H(px)=" + newHPx + ", W(px)=" + newWPx);
+                this.layout.forEach(item =>{
+                    if(item.i === i){
+                        item.tableHeight = newHPx - 100
+                    }
+                })
                 if(this.echartsArr[i] != undefined) {
                     //自适应echart图表
                     this.echartsArr[i].resize();
@@ -1408,6 +1485,7 @@
             dateLayout,
             quillEditor,
             queryFilter,
+            vBasetable,
             GridLayout: VueGridLayout.GridLayout,
             GridItem: VueGridLayout.GridItem,
 

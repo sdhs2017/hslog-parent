@@ -32,14 +32,14 @@
                         <el-collapse>
                             <el-collapse-item class="tablist" v-for="(columnItem,i) in chartsConfig.columnArr" :key="i">
                                 <template slot="title" class="collapseTit">
-                                    列 {{columnItem.legendName}}<i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see'"></i>
+                                    <span style="overflow: hidden;word-break: break-all;width: 200px;height: 36px;line-height: 36px;">列 {{columnItem.aliasName === '' ? columnItem.field : columnItem.aliasName}}</span><i class="header-icon el-icon-error removeTab" @click="removeYaxisTab(i,$event)" v-if="operType !== 'see'"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
                                     <el-form-item label="列参数">
-                                        <el-select v-model="columnItem.columnValue" placeholder="请选择" filterable style="width: 100%;" size="mini">
+                                        <el-select v-model="columnItem.field" placeholder="请选择" filterable style="width: 100%;" size="mini">
                                             <el-option
-                                                v-for="item in columnOpt"
+                                                v-for="item in chartsConfig.columnOpt"
                                                 :key="item.value"
                                                 :label="item.label"
                                                 :value="item.value">
@@ -47,13 +47,13 @@
                                         </el-select>
                                     </el-form-item>
                                     <el-form-item label="排序方式">
-                                        <el-select v-model="columnItem.orderType" placeholder="请选择" style="width: 100%;" size="mini">
+                                        <el-select v-model="columnItem.sort" placeholder="请选择" style="width: 100%;" size="mini">
                                             <el-option label="降序" value="desc"></el-option>
                                             <el-option label="升序" value="asc"></el-option>
                                         </el-select>
                                     </el-form-item>
                                     <el-form-item label="名称">
-                                        <el-input v-model="columnItem.legendName" size="mini"></el-input>
+                                        <el-input v-model="columnItem.aliasName" size="mini"></el-input>
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
@@ -74,10 +74,10 @@
                                 <el-form label-position="left" label-width="80px" style="position:relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
                                     <el-form-item label="显示总数">
-                                        <el-input v-model="chartsConfig.counts" min="1" type="number" size="mini"></el-input>
+                                        <el-input v-model="chartsConfig.counts" min="1" type="Number" size="mini"></el-input>
                                     </el-form-item>
                                     <el-form-item label="每页条数">
-                                        <el-input v-model="chartsConfig.page.size" min="1" type="number" size="mini"></el-input>
+                                        <el-input v-model="chartsConfig.page.size" min="1" type="Number"  size="mini"></el-input>
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
@@ -90,8 +90,11 @@
             <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                 <div class="charts-title">{{chartsConfig.title.text}}</div>
                 <div id="charts-wapper">
-                    <v-basetable :tableHead="tableHead" height="200" :tableData="tableData"></v-basetable>
-                    <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="chartsConfig.page.size" :total="chartsConfig.page.allCounts"></el-pagination>
+                    <v-basetable :tableHead="chartsConfig.tableHead" :height="tableHeight" :tableData="chartsConfig.tableData"></v-basetable>
+                    <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="chartsConfig.tableData.length !== 0">
+                        总条数 <b style="color: #409eff;margin: 0 10px;"> {{this.chartsConfig.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{this.showCount}} </b>
+                        <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="chartsConfig.pageSize" :total="chartsConfig.page.allCounts"></el-pagination>
+                    </div>
                 </div>
 <!--                <div class="empty-tip" v-if="this.emptyTipState">暂无结果</div>-->
                 <el-popover
@@ -252,26 +255,29 @@
                     //列集合
                     columnArr:[
                         {
-                            columnValue:'',
-                            orderType:'desc',
-                            legendName: ''
+                            field:'',
+                            sort:'desc',
+                            aliasName: ''
                         }
                     ],
                     //列顺序
-                    //总数
-                    counts:'',
+                    //实际总数
+                    trueCount:0,
+                    //显示的总数
+                    counts:100,
                     //分页条数
                     page:{
-                        cPage:'1',
-                        size:'',
-                        allCounts:''
-                    }
-
+                        cPage:1,
+                        size:10,
+                        allCounts:0
+                    },
+                    //表头
+                    tableHead:[],
+                    columnOpt:[],
+                    //表数据
+                    tableData:[],
                 },
-                columnOpt:[{
-                    value:'fields.ip',
-                    lable:'fields.ip'
-                }],
+
                 activeName:'first',
                 //保存的每一步生成的结构数据，用于返回操作
                 chartsConfigArr:[],
@@ -285,37 +291,11 @@
                 queryVal:'',
                 oldQuery:'',
                 defaultQuery:'',
-                tableHead:[
-                    {
-                        prop:'hostName',
-                        label:'主机名',
-                        width:''
-                    },
-                    {
-                        prop:'ip',
-                        label:'IP',
-                        width:''
-                    },
-                    {
-                        prop:'type',
-                        label:'类型',
-                        width:''
-                    },
-                ],
-                tableData:[
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                    {hostName:'123456',ip:'192.168.2.1',type:'winlog'},
-                ],
+                //表高度
+                tableHeight:1,
+                //分页
+                pageSize:10,
+                showCount:100,
             }
         },
         created(){
@@ -357,6 +337,7 @@
                     //判断是否具备生成图表的条件
                     if(this.isCanCreate !== 'disabled'){
                         this.loading = true;
+                        this.chartsConfig.page.cPage = 1;
                         //获取数据
                         this.getData()
                     }
@@ -402,6 +383,7 @@
                     //判断是否具备生成图表的条件
                     if(this.isCanCreate !== 'disabled'){
                         this.loading = true;
+                        this.chartsConfig.page.cPage = 1;
                         //获取数据
                         this.getData()
                     }
@@ -434,7 +416,7 @@
                     this.chartsConfig.templateName = arr[0];
                     this.chartsConfig.datefield = arr[3];
                     //获取column数据
-                    this.getColumnField()
+                    this.getColumnField();
                 })
                 //监听过滤条件
                 bus.$on(this.busFilterName,(str)=>{
@@ -443,6 +425,7 @@
                     //判断是否具备生成图表的条件
                     if(this.isCanCreate !== 'disabled'){
                         this.loading = true;
+                        this.chartsConfig.page.cPage = 1;
                         //获取数据
                         this.getData()
                     }
@@ -452,8 +435,17 @@
                     this.isUpdate(str)
                 })
             }
+            //初始化 表格高度
+            let windowHeight = document.body.clientHeight;
+            this.tableHeight = windowHeight - 400
         },
-
+        mounted(){
+            //监听页面高度   改变表格高度
+            window.onresize =()=>{
+                let windowHeight = document.body.clientHeight;
+                this.tableHeight = windowHeight - 400
+            }
+        },
         beforeDestroy(){
             //在组件销毁前移除监听事件
             bus.$off(this.busName);
@@ -466,33 +458,26 @@
         computed:{
             /*生成按钮状态*/
             'isCanCreate'(){
-               /* let yState = false;
-                let xState = false;
-                //判断y轴
-                this.chartsConfig.yAxisArr.forEach((item)=>{
-                    if (item.aggregationType === ''){
-                        yState = 'disabled';
-                    } else if(item.aggregationParam === '' && item.aggregationType !== 'Count'){
-                        yState = 'disabled';
+                let columnState = false;
+                let sizeState = false;
+                //判断列
+                this.chartsConfig.columnArr.forEach((item)=>{
+                    if (item.field === ''){
+                        columnState = 'disabled';
                     }
                 })
-                //判断x轴
-                this.chartsConfig.xAxisArr.forEach((item)=>{
-                    if (item.aggregationType === ''){
-                        xState = 'disabled';
-                    } else if(item.aggregationParam === '' && item.aggregationType !== 'Count'){
-                        xState = 'disabled';
-                    }
-                })
-
-                if(yState == false && xState == false){
+                //判断分页
+                if((Number(this.chartsConfig.page.size) <= 0) || (Number(this.chartsConfig.counts)  <= 0) ){
+                    sizeState = 'disabled';
+                }
+                if(columnState === false && sizeState === false){
                     return false;
                 }else {
                     //设置query值
                     this.oldQuery = this.queryVal;
                     this.updateBtn = false
                     return 'disabled';
-                }*/
+                }
             }
         },
         methods:{
@@ -501,7 +486,7 @@
                 this.refresh++;
             },
             updateChart(){
-                this.queryVal = this.newQuery;
+                this.oldQuery = this.queryVal;
                 this.refresh++;
                 this.updateBtn = false;
             },
@@ -540,18 +525,22 @@
             addColumn(){
                 //this.isCanCreate = 'disabled';
                 this.chartsConfig.columnArr.push({
-                    columnValue:'',
-                    legendName:'',
-                    orderType:'desc',
+                    field:'',
+                    sort:'desc',
+                    aliasName: ''
                 })
             },
             /*生成按钮*/
             createBtn(){
                 this.loading = true;
-                this.getData()
+                this.chartsConfig.page.cPage = 1;
+                this.getData();
             },
             /*获取列参数集合*/
             getColumnField(){
+                if(this.chartsConfig.preIndexName === '' || this.chartsConfig.preIndexName === '' ||  this.chartsConfig.preIndexName === ''){
+                    return false
+                }
                 this.$nextTick(()=>{
                     this.leftLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByDynamicTable.do',this.$qs.stringify({
@@ -561,13 +550,13 @@
                     }))
                         .then(res=>{
                             this.leftLoading = false;
-                            this.columnOpt = []
+                            this.chartsConfig.columnOpt = [];
                             res.data.forEach(item=>{
                                 let obj = {
                                     value:item.fieldName,
                                     label:item.fieldName
                                 }
-                                this.columnOpt.push(obj)
+                                this.chartsConfig.columnOpt.push(obj)
 
                             })
                         })
@@ -579,56 +568,54 @@
             /*获取数据*/
             getData(){
                 //判断请求的方法
-                let url = '';
+                let url = '/BI/getDataByParams_dynamicTable.do';
                 let param = {
                     starttime:this.dateObj.starttime,//起始时间
                     endtime:this.dateObj.endtime,//结束时间
                     last:this.dateObj.last,
                     unit:this.yUnit,
-                   /* pre_index_name:this.chartsConfig.preIndexName,
+                    pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
-                    template_name:this.chartsConfig.templateName,*/
-                    template_name:'metricbeat-',
-                    pre_index_name:'metricbeat-',
-                    suffix_index_name:'*',
+                    template_name:this.chartsConfig.templateName,
                     filters:this.filters,
                     queryBox:this.queryVal,
-                    page:'1',
-                    page_size:'10',
-                    size:'100',
-                    es_columns:JSON.stringify([{field:'fields.ip',sort:'desc',aliasName:'IP'},{field:'fields.equipmentid',sort:'desc',aliasName:'ID'},{field:'fields.equipmentname',sort:'desc',aliasName:'名称'}])
+                    page:this.chartsConfig.page.cPage,//当前页码
+                    page_size:this.chartsConfig.page.size,//每页条数
+                    size:this.chartsConfig.counts,//显示总数
+                    es_columns:JSON.stringify(this.chartsConfig.columnArr)
                 }
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/BI/getDataByParams_dynamicTable.do',this.$qs.stringify(param))
+                    this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                         .then(res=>{
                             this.loading = false;
                             //存储查询条件
                             this.chartParams.searchParam = JSON.stringify(param);
                             //处理数据
                             let obj = res.data;
+                            this.chartsConfig.tableHead = [];
+                            this.chartsConfig.tableData = [];
+                            this.chartsConfig.page.allCounts = 0;
+                            this.chartsConfig.trueCount = 0;
+                            //拼接头部
+                            this.chartsConfig.columnArr.forEach((item)=>{
+                                this.chartsConfig.tableHead.push({
+                                    prop:item.field,
+                                    label:item.aliasName === '' ? item.field : item.aliasName,
+                                    width:''
+                                })
+                            })
                             if (obj.success === 'true'){
-                                /*let xDataArr =''
-                                if(this.chartType === 'pie'){
-                                    xDataArr='pie'
+                                //加载数据
+                                this.chartsConfig.tableData = obj.data[0].list;
+                                //处理分页
+                                this.pageSize = this.chartsConfig.page.size;
+                                this.showCount = this.chartsConfig.counts;
+                                this.chartsConfig.trueCount = obj.data[0].count;
+                                if(this.chartsConfig.trueCount >= this.chartsConfig.counts){
+                                    this.chartsConfig.page.allCounts = Number(this.chartsConfig.counts);
                                 }else{
-                                    xDataArr = obj.data[0].dimensions;
+                                    this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
                                 }
-                                if(xDataArr.length > 1){
-                                    // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
-                                    this.sourceData = obj.data;
-                                    this.emptyTipState = false;
-                                    //this.createChart(obj.data[0]);
-                                    if(this.chartType === 'bar'){
-                                        this.createBarChart(obj.data[0])
-                                    }else if(this.chartType === 'line'){
-                                        this.createLineChart(obj.data[0])
-                                    }else if(this.chartType === 'pie'){
-                                        this.createPieChart(obj.data)
-                                    }
-                                }else{
-                                    this.emptyTipState = true;
-                                    echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
-                                }*/
 
                             } else {
                                 layer.msg(obj.message,{icon:5});
@@ -640,29 +627,21 @@
                         })
                 })
             },
-            handleCurrentChange(){},
+            handleCurrentChange(page){
+                this.loading = true;
+                this.chartsConfig.page.cPage = page;
+                this.getData();
+            },
             /*保存图表*/
             saveChart(){
+                let cObj = JSON.parse(JSON.stringify(this.chartsConfig))
                 //清空已经获取的参数
-                // this.chartsConfig.xAxisArr
-                for (let i in this.chartsConfig.xAxisArr){
-                    this.chartsConfig.xAxisArr[i].aggregationParamArr = [];
-                    //this.opt.xAxis.data = [];
-                }
-                //this.chartsConfig.xAxisArr
-                for (let j in this.chartsConfig.yAxisArr){
-                    this.chartsConfig.yAxisArr[j].aggregationParamArr = [];
-                    //this.opt.series[j].data = [];
-                }
-                //清空echart结构中获取的图表数据
-                this.opt.dataset = [];
-                if(this.opt.series){
-                    this.opt.series = [this.opt.series[0]];
-                }
+                cObj.columnOpt = [];
+                cObj.tableData = [];
                 //定义参数
                 let optStr = {
-                    config:this.chartsConfig,
-                    opt:this.opt
+                    config:cObj,
+                   // opt:this.opt
                 }
                 let params = {
                     title:this.chartParams.chartName,
@@ -733,40 +712,11 @@
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;
-                                        //x轴聚合参数
-                                        /* let xap = this.chartsConfig.xAxisArr[0].aggregationParam;
-                                         this.xAggregationChange();
-                                         this.chartsConfig.xAxisArr[0].aggregationParam = xap;*/
-                                        for(let i=0;i < this.chartsConfig.xAxisArr.length;i++){
-                                            //选保存数据 避免在获取其他数据时被清空
-                                            let xap= this.chartsConfig.xAxisArr[i].aggregationParam;
-                                            let numberRange = this.chartsConfig.xAxisArr[i].numberRange;
-                                            let ipRange = this.chartsConfig.xAxisArr[i].ipRange;
-                                            let dateRange = this.chartsConfig.xAxisArr[i].dateRange;
-                                            this.xAggregationChange(this.chartsConfig.xAxisArr[i].aggregationType,i);
-                                            //赋值
-                                            this.chartsConfig.xAxisArr[i].aggregationParam = xap;
-                                            this.chartsConfig.xAxisArr[i].numberRange = numberRange;
-                                            this.chartsConfig.xAxisArr[i].ipRange = ipRange;
-                                            this.chartsConfig.xAxisArr[i].dateRange = dateRange;
-                                        }
-                                        //y轴聚合参数
-                                        for(let i=0;i < this.chartsConfig.yAxisArr.length;i++){
-                                            let yap= this.chartsConfig.yAxisArr[i].aggregationParam;
-                                            this.yAggregationChange(this.chartsConfig.yAxisArr[i].aggregationType,i);
-                                            this.chartsConfig.yAxisArr[i].aggregationParam = yap
-                                        }
 
                                         this.chartParams.chartName = obj.data.title;
                                         this.chartParams.chartDes = obj.data.description;
                                         this.chartParams.searchParam = obj.data.params;
-
-                                        //后台直接返回数据
-                                        /*let xD = JSON.parse(obj.data.data)[0].name;
-                                        let yD = JSON.parse(obj.data.data)[0].data;
-                                        this.createChart(xD,yD);
-                                        this.emptyTipState = false;
-                                        this.sourceData = JSON.parse(obj.data.data);*/
+                                        this.chartsConfig.page.cPage = 1
                                         //前台自己获取数据
                                         this.getData()
                                     }else{
@@ -787,6 +737,7 @@
                 //判断是否具备生成图表的条件
                 if(this.isCanCreate !== 'disabled'){
                     this.loading = true;
+                    this.chartsConfig.page.cPage = 1;
                     //获取数据
                     this.getData()
                 }
@@ -863,7 +814,7 @@
     .chart-wapper>div{
         float: left;
         background: #303e4e;
-        height: calc(100vh - 237px);
+        height: calc(100vh - 304px);
     }
     .config-wapper{
         width: 300px;

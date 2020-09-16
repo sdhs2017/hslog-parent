@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-table :data="tableData" stripe fit style="width: 100%;border: 0;" border row-key="id"  @selection-change="handleSelectionChange" :height="height">
+        <el-table :data="tableData" stripe fit style="width: 100%;border: 0;" border row-key="id"  @selection-change="handleSelectionChange" :height="height" :empty-text="emptyText">
             <el-table-column
                 v-if="selection"
                 type="selection"
@@ -50,6 +50,12 @@
     export default {
         name: "basetable",
         props:{
+            emptyText:{
+                type:String,
+                default:()=>{
+                    return '暂无数据'
+                }
+            },
             //高度
             height:'',
             //表头

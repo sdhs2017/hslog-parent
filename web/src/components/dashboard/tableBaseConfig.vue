@@ -719,6 +719,8 @@
                                         this.chartsConfig.page.cPage = 1
                                         //前台自己获取数据
                                         this.getData()
+                                        //获取列参数
+                                        this.getColumnField();
                                     }else{
                                         layer.msg(res.data.message,{icon:5})
                                     }

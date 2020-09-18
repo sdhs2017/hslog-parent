@@ -1015,9 +1015,10 @@
                                     let obj = res.data;
                                     if (obj.success == 'true'){
                                         //赋值
-                                        if(JSON.parse(obj.data.params).filters){
+                                        if(JSON.parse(obj.data.params).filters_visual){
                                             this.filters = JSON.parse(obj.data.params).filters_visual;
-                                            this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
+                                            this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_visual);
+
                                         }
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]

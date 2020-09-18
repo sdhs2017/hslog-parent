@@ -67,7 +67,7 @@
                                             </el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="排序方式">
+                                    <el-form-item label="排序方式" v-if="sortObj[columnItem.field] || chartsConfig.dataSourceType === 'MySQL'">
                                         <el-select v-model="columnItem.sort" placeholder="请选择" style="width: 100%;" size="mini">
                                             <el-option label="降序" value="desc"></el-option>
                                             <el-option label="升序" value="asc"></el-option>
@@ -358,6 +358,8 @@
                     //表数据
                     tableData:[],
                 },
+                //存放是否可以排序
+                sortObj:{},
                 //mySQL表名集合
                 mysqlDataOpt:[],
                 activeName:'first',
@@ -594,7 +596,6 @@
                     this.wapperHeight = parseInt(windowHeight) - 304+'px';
                     this.tableHeight = parseInt(windowHeight) - 400
                 }
-                console.log(this.tableHeight)
             },
             //数据源类型改变事件
             dataSourceChange(){
@@ -625,6 +626,10 @@
                         return item.value === val
                     })
                     this.chartsConfig.columnArr[i].aliasName = obj.label
+                }else{
+                    if(!this.sortObj[val]){
+                        this.chartsConfig.columnArr[i].sort=''
+                    }
                 }
             },
             //条件列改变
@@ -792,13 +797,14 @@
                         .then(res=>{
                             this.leftLoading = false;
                             this.chartsConfig.columnOpt = [];
+                            this.sortObj = {}
                             res.data.forEach(item=>{
                                 let obj = {
                                     value:item.fieldName,
                                     label:item.fieldName
                                 }
                                 this.chartsConfig.columnOpt.push(obj)
-
+                                this.sortObj[item.fieldName] = item.sortable
                             })
                         })
                         .catch(err=>{

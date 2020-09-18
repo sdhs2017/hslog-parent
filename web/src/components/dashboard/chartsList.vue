@@ -78,6 +78,8 @@
                                    return '饼图';
                                case 'table' :
                                    return '表格';
+                               case 'metric' :
+                                   return '指标';
                                default :
                                    return val;
                            }

@@ -827,7 +827,7 @@
                             pre_index_name:this.chartsConfig.preIndexName,
                             suffix_index_name:this.chartsConfig.suffixIndexName,
                             template_name:this.chartsConfig.templateName,
-                            filters:this.filters,
+                            filters_visual:this.filters,
                             queryBox:this.queryVal,
                             page:this.chartsConfig.page.cPage,//当前页码
                             page_size:this.chartsConfig.page.size,//每页条数
@@ -919,7 +919,7 @@
                 let params = {
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
-                    filters:this.filters,
+                    filters_visual:this.filters,
                     type:this.chartType,
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
@@ -979,7 +979,7 @@
                                     if (obj.success == 'true'){
                                         //赋值
                                         if(JSON.parse(obj.data.params).filters){
-                                            this.filters = JSON.parse(obj.data.params).filters;
+                                            this.filters = JSON.parse(obj.data.params).filters_visual;
                                             this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters);
                                         }
                                         let option = JSON.parse(obj.data.option);

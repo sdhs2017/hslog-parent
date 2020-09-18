@@ -827,11 +827,11 @@
                             pre_index_name:this.chartsConfig.preIndexName,
                             suffix_index_name:this.chartsConfig.suffixIndexName,
                             template_name:this.chartsConfig.templateName,
-                            filters_visual:this.filters,
                             queryBox:this.queryVal,
                             page:this.chartsConfig.page.cPage,//当前页码
                             page_size:this.chartsConfig.page.size,//每页条数
                             size:this.chartsConfig.counts,//显示总数
+                            filters_visual:this.filters,
                             es_columns:JSON.stringify(this.chartsConfig.columnArr)
                         }
                     }else{ //mysql
@@ -845,10 +845,10 @@
                         })
                         param = {
                             tableName : this.chartsConfig.mysqlData,
-                            columns:JSON.stringify(columnsArr),
-                            wheres:JSON.stringify(this.chartsConfig.conditionArr),
                             page:this.chartsConfig.page.cPage,//当前页码
                             page_size:this.chartsConfig.page.size,//每页条数
+                            columns:JSON.stringify(columnsArr),
+                            wheres:JSON.stringify(this.chartsConfig.conditionArr)
                         }
                     }
                 }

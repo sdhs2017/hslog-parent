@@ -1247,10 +1247,10 @@
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
                     template_name:this.chartsConfig.templateName,
+                    queryBox:this.queryVal,
                     metrics:JSON.stringify(metricsArr),
                     buckets:JSON.stringify(bucketsArr),
-                    filters_visual:this.filters,
-                    queryBox:this.queryVal
+                    filters_visual:this.filters
                 }
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))

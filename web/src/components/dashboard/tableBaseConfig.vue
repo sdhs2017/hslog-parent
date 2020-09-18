@@ -2,16 +2,37 @@
     <div v-loading="allLoading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title" style="padding-left: 10px;"><!--{{htmlTitle}}-->
             <div class="top-zz" v-if="operType === 'see'"></div>
-            <div class="choose-wapper">
+            <div style="float: left;display: flex;margin-right: 15px;">
+                <span style="width: 42px;color: #409eff;text-shadow: none">类型:</span>
+                <el-select v-model="chartsConfig.dataSourceType" placeholder="" size="mini" style="width: 90px;" @change="dataSourceChange">
+                    <el-option label="ElasticSearch" value="ElasticSearch"></el-option>
+                    <el-option label="MySQL" value="MySQL"></el-option>
+                </el-select>
+            </div>
+            <div class="choose-wapper" v-if="chartsConfig.dataSourceType ==='ElasticSearch'">
                 <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
             </div>
+            <div class="choose-wapper" v-else>
+                <span style="width: 60px;color: #409eff;text-shadow: none">数据源:</span>
+                <el-select v-model="chartsConfig.mysqlData" placeholder="" size="mini" style="width: 150px;" @change="mySQLTableChange">
+                    <el-option
+                        v-for="item in mysqlDataOpt"
+                        :key="'mysql'+item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
             <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true"  size="mini">保存</el-button>
-            <el-button class="update-btn" v-if="updateBtn && isCanCreate !== 'disabled'"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
-            <el-button type="primary" v-else size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
-            <div class="date-wapper"><date-layout :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
+            <div style="float: right" v-if="chartsConfig.dataSourceType ==='ElasticSearch'">
+                <el-button class="update-btn" v-if="updateBtn && isCanCreate !== 'disabled'"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
+                <el-button type="primary" v-else size="mini" plain @click="refreshChart"  style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
+            </div>
+            <div class="date-wapper" v-if="chartsConfig.dataSourceType ==='ElasticSearch'"><date-layout :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
         </div>
-        <div class="filter-box">
+        <div class="filter-box" >
             <queryFilter
+                v-if="chartsConfig.dataSourceType ==='ElasticSearch'"
                 :busFilterName="this.busFilterName"
                 :busQueryName="this.busQueryName"
                 :filterArr="this.defaultFilter"
@@ -25,7 +46,7 @@
             </queryFilter>
         </div>
         <div class="chart-wapper">
-            <div class="config-wapper">
+            <div class="config-wapper" :style="{height:wapperHeight}">
                 <el-button class="creatBtn" type="primary" @click="createBtn" :disabled="isCanCreate || operType === 'see'">生成</el-button>
                 <el-tabs v-model="activeName" style="height: 100%;" type="border-card"  v-loading="leftLoading"  element-loading-background="rgba(26,36,47, 0.2)">
                     <el-tab-pane label="数据" name="first">
@@ -37,10 +58,10 @@
                                 <el-form label-position="top" style="position: relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
                                     <el-form-item label="列参数">
-                                        <el-select v-model="columnItem.field" placeholder="请选择" filterable style="width: 100%;" size="mini">
+                                        <el-select v-model="columnItem.field" placeholder="请选择" filterable style="width: 100%;" size="mini" @change="columnChange($event,i)">
                                             <el-option
                                                 v-for="item in chartsConfig.columnOpt"
-                                                :key="item.value"
+                                                :key="'column'+item.value"
                                                 :label="item.label"
                                                 :value="item.value">
                                             </el-option>
@@ -52,12 +73,60 @@
                                             <el-option label="升序" value="asc"></el-option>
                                         </el-select>
                                     </el-form-item>
-                                    <el-form-item label="名称">
+                                    <el-form-item label="名称" v-if="chartsConfig.dataSourceType === 'ElasticSearch'">
                                         <el-input v-model="columnItem.aliasName" size="mini"></el-input>
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
                             <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see'"><span class="addY" @click="addColumn"> <i class="el-icon-circle-plus"></i>添加列</span></p>
+                            <el-collapse-item class="tablist" v-for="(conditionItem,ci) in chartsConfig.conditionArr" :key="'conditionItem'+ci" v-if="chartsConfig.dataSourceType === 'MySQL'">
+                                <template slot="title" class="collapseTit">
+                                    <span style="overflow: hidden;word-break: break-all;width: 200px;height: 36px;line-height: 36px;">条件 {{ci+1}}</span><i class="header-icon el-icon-error removeTab" @click="chartsConfig.conditionArr.splice(ci,1)" v-if="operType !== 'see'"></i>
+                                </template>
+                                <el-form label-position="top" style="position: relative;">
+                                    <div class="from-zz" v-if="operType === 'see'"></div>
+                                    <el-form-item label="列参数">
+                                        <el-select v-model="conditionItem.field" placeholder="请选择" @change="conditionFieldChange($event,ci)" filterable style="width: 100%;" size="mini">
+                                            <el-option
+                                                v-for="item in chartsConfig.columnOpt"
+                                                :key="'condition'+ci+item.value"
+                                                :label="item.label"
+                                                :value="item.value">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="运算符">
+                                        <el-select v-model="conditionItem.operator" placeholder="请选择" @change="conditionOperatorChange($event,ci)" filterable style="width: 100%;" size="mini">
+                                            <el-option
+                                                v-for="item in chartsConfig.operatorOpt"
+                                                :key="'operator'+ci+item.value"
+                                                :label="item.label"
+                                                :value="item.value">
+                                            </el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="值" v-if="conditionItem.operator === 'between'">
+                                        <div style="display: flex;">
+                                            <el-input v-model="conditionItem.start" size="mini"></el-input>
+                                            -
+                                            <el-input v-model="conditionItem.end" size="mini"></el-input>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="值" v-else-if="conditionItem.operator === 'in' || conditionItem.operator === 'not in'">
+                                        <p class="values-wapper">
+                                            <span v-for="(item ,n) in conditionItem.values" :key="n">{{item}}<i class="el-icon-close" title="删除" @click="conditionItem.values.splice(n,1)"></i></span>
+                                        </p>
+                                        <div style="display: flex;align-items: center;">
+                                            <el-input v-model="addValues" size="mini"></el-input>
+                                            <el-button type="primary" style="background: 0;height: 28px;" size="mini" @click="addValue(ci)">添加</el-button>
+                                        </div>
+                                    </el-form-item>
+                                    <el-form-item label="值" v-else>
+                                        <el-input v-model="conditionItem.value" size="mini"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                            </el-collapse-item>
+                            <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see' && chartsConfig.dataSourceType !== 'ElasticSearch'"><span class="addY" @click="addCondition"> <i class="el-icon-circle-plus"></i>添加条件</span></p>
                         </el-collapse>
                     </el-tab-pane>
                     <el-tab-pane label="基本设定" name="second">
@@ -73,7 +142,7 @@
                             <el-collapse-item title="显示" class="tablist" name="2">
                                 <el-form label-position="left" label-width="80px" style="position:relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
-                                    <el-form-item label="显示总数">
+                                    <el-form-item label="显示总数" v-if="chartsConfig.dataSourceType === 'ElasticSearch'">
                                         <el-input v-model="chartsConfig.counts" min="1" type="Number" size="mini"></el-input>
                                     </el-form-item>
                                     <el-form-item label="每页条数">
@@ -87,13 +156,13 @@
 
                 </el-tabs>
             </div>
-            <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" :style="{height:wapperHeight}">
                 <div class="charts-title">{{chartsConfig.title.text}}</div>
                 <div id="charts-wapper">
                     <v-basetable :tableHead="chartsConfig.tableHead" :height="tableHeight" :tableData="chartsConfig.tableData"></v-basetable>
                     <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="chartsConfig.tableData.length !== 0">
                         总条数 <b style="color: #409eff;margin: 0 10px;"> {{this.chartsConfig.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{this.showCount}} </b>
-                        <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="chartsConfig.pageSize" :total="chartsConfig.page.allCounts"></el-pagination>
+                        <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="pageSize" :total="chartsConfig.page.allCounts"></el-pagination>
                     </div>
                 </div>
 <!--                <div class="empty-tip" v-if="this.emptyTipState">暂无结果</div>-->
@@ -238,8 +307,14 @@
                 //展开的选项卡
                 configOpened:['1','2','3','4','5','6','7','8','9'],
                 yUnit :'',
+                //mysql添加多个值
+                addValues:'',
                 //图表基本配置
                 chartsConfig:{
+                    //源数据类型
+                    dataSourceType:'ElasticSearch',
+                    //mysql源数据
+                    mysqlData:'',
                     //templateName
                     templateName:'',
                     //index前名
@@ -260,6 +335,8 @@
                             aliasName: ''
                         }
                     ],
+                    //条件集合
+                    conditionArr:[],
                     //列顺序
                     //实际总数
                     trueCount:0,
@@ -273,11 +350,15 @@
                     },
                     //表头
                     tableHead:[],
+                    //列field集合
                     columnOpt:[],
+                    //operator集合
+                    operatorOpt:[],
                     //表数据
                     tableData:[],
                 },
-
+                //mySQL表名集合
+                mysqlDataOpt:[],
                 activeName:'first',
                 //保存的每一步生成的结构数据，用于返回操作
                 chartsConfigArr:[],
@@ -291,6 +372,8 @@
                 queryVal:'',
                 oldQuery:'',
                 defaultQuery:'',
+                //页面内容高度
+                wapperHeight:1,
                 //表高度
                 tableHeight:1,
                 //分页
@@ -436,14 +519,12 @@
                 })
             }
             //初始化 表格高度
-            let windowHeight = document.body.clientHeight;
-            this.tableHeight = windowHeight - 400
+            this.setHeight()
         },
         mounted(){
             //监听页面高度   改变表格高度
             window.onresize =()=>{
-                let windowHeight = document.body.clientHeight;
-                this.tableHeight = windowHeight - 400
+                this.setHeight()
             }
         },
         beforeDestroy(){
@@ -460,17 +541,37 @@
             'isCanCreate'(){
                 let columnState = false;
                 let sizeState = false;
+                let conditionState = false;
                 //判断列
                 this.chartsConfig.columnArr.forEach((item)=>{
                     if (item.field === ''){
                         columnState = 'disabled';
                     }
                 })
+                if(this.chartsConfig.dataSourceType === 'MySQL'){
+                    //判断列
+                    this.chartsConfig.conditionArr.forEach((item)=>{
+                        if (item.field === ''){
+                            conditionState = 'disabled';
+                        }
+                        if (item.operator === 'in' || item.operator === 'not in'){
+                            if (item.values.length === 0){
+                                conditionState = 'disabled';
+                            }
+                        }else if(item.operator === 'between'){
+
+                        }else{
+                            if (item.value === ''){
+                                conditionState = 'disabled';
+                            }
+                        }
+                    })
+                }
                 //判断分页
                 if((Number(this.chartsConfig.page.size) <= 0) || (Number(this.chartsConfig.counts)  <= 0) ){
                     sizeState = 'disabled';
                 }
-                if(columnState === false && sizeState === false){
+                if(columnState === false && sizeState === false && conditionState === false){
                     return false;
                 }else {
                     //设置query值
@@ -481,10 +582,74 @@
             }
         },
         methods:{
+            //设置高度
+            setHeight(){
+                let windowHeight = document.body.clientHeight;
+                //初始化 表格高度
+                if(this.chartsConfig.dataSourceType === "MySQL"){
+                    this.wapperHeight = windowHeight - 240+'px';
+                    this.tableHeight = windowHeight - 340;
+                }else{
+                    this.wapperHeight = windowHeight - 304+'px';
+                    this.tableHeight = windowHeight - 400
+                }
+            },
+            //数据源类型改变事件
+            dataSourceChange(){
+                let type = this.chartsConfig.dataSourceType;
+                //重置配置
+                this.initialize();
+                this.chartsConfig.dataSourceType = type;
+                if(type === 'MySQL'){
+                    this.getTableName();
+                }
+                this.setHeight()
+            },
+            //mysql表 改变事件
+            mySQLTableChange(){
+                let mysqlData = this.chartsConfig.mysqlData
+                //重置配置
+                this.initialize();
+                this.chartsConfig.dataSourceType = 'MySQL';
+                this.chartsConfig.mysqlData = mysqlData;
+                //获取mysql字段
+                this.getMySQLField()
+                this.getMySQLOperator()
+            },
+            //列参数改变事件
+            columnChange(val,i){
+                if(this.chartsConfig.dataSourceType === 'MySQL'){
+                    let obj = this.chartsConfig.columnOpt.find(item =>{
+                        return item.value === val
+                    })
+                    this.chartsConfig.columnArr[i].aliasName = obj.label
+                }
+            },
+            //条件列改变
+            conditionFieldChange(value,i){
+                this.chartsConfig.conditionArr[i].operator = '';
+                this.chartsConfig.conditionArr[i].value = '';
+                this.chartsConfig.conditionArr[i].start = '';
+                this.chartsConfig.conditionArr[i].end = '';
+                this.chartsConfig.conditionArr[i].values = [];
+            },
+            //条件operator改变
+            conditionOperatorChange(value,i){
+                this.chartsConfig.conditionArr[i].value = '';
+                this.chartsConfig.conditionArr[i].start = '';
+                this.chartsConfig.conditionArr[i].end = '';
+                this.chartsConfig.conditionArr[i].values = [];
+            },
+            //条件添加多个值
+            addValue(i){
+                this.chartsConfig.conditionArr[i].values.push(this.addValues);
+                this.addValues = '';
+            },
             //刷新
             refreshChart(){
                 this.refresh++;
             },
+            //更新
             updateChart(){
                 this.oldQuery = this.queryVal;
                 this.refresh++;
@@ -530,11 +695,85 @@
                     aliasName: ''
                 })
             },
+            /*添加条件*/
+            addCondition(){
+                this.chartsConfig.conditionArr.push({
+                    field:'',
+                    operator:'',
+                    value:'',
+                    start:'',
+                    end:'',
+                    values:[]
+                })
+            },
             /*生成按钮*/
             createBtn(){
                 this.loading = true;
                 this.chartsConfig.page.cPage = 1;
                 this.getData();
+            },
+            //获取mysql表
+            getTableName(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/BI/showTables.do',this.$qs.stringify())
+                        .then(res=>{
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.mysqlDataOpt = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+
+                        })
+                        .catch(err=>{
+                            console.log(err)
+                        })
+                })
+            },
+            //获取mysql 列字段
+            getMySQLField(){
+                this.$nextTick(()=>{
+                    this.leftLoading = true;
+                    this.$axios.post(this.$baseUrl+'/BI/showColumns.do',this.$qs.stringify({
+                        tableName:this.chartsConfig.mysqlData
+                    }))
+                        .then(res=>{
+                            this.leftLoading = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.chartsConfig.columnOpt = obj.data;
+                            }else {
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.leftLoading = false;
+                        })
+                })
+            },
+            //获取mysql operator
+            getMySQLOperator(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/BI/getSqlOperators.do',this.$qs.stringify())
+                        .then(res=>{
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.chartsConfig.operatorOpt = [];
+                                obj.data.forEach(item =>{
+                                    this.chartsConfig.operatorOpt.push({
+                                        label:item,
+                                        value:item
+                                    })
+                                })
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+
+                        })
+                        .catch(err=>{
+                            console.log(err)
+                        })
+                })
             },
             /*获取列参数集合*/
             getColumnField(){
@@ -566,24 +805,54 @@
                 })
             },
             /*获取数据*/
-            getData(){
+            getData(page){
                 //判断请求的方法
-                let url = '/BI/getDataByParams_dynamicTable.do';
-                let param = {
-                    starttime:this.dateObj.starttime,//起始时间
-                    endtime:this.dateObj.endtime,//结束时间
-                    last:this.dateObj.last,
-                    unit:this.yUnit,
-                    pre_index_name:this.chartsConfig.preIndexName,
-                    suffix_index_name:this.chartsConfig.suffixIndexName,
-                    template_name:this.chartsConfig.templateName,
-                    filters:this.filters,
-                    queryBox:this.queryVal,
-                    page:this.chartsConfig.page.cPage,//当前页码
-                    page_size:this.chartsConfig.page.size,//每页条数
-                    size:this.chartsConfig.counts,//显示总数
-                    es_columns:JSON.stringify(this.chartsConfig.columnArr)
+                let url = ''
+                if (this.chartsConfig.dataSourceType === 'ElasticSearch') {//es
+                    url = '/BI/getDataByParams_dynamicTable.do';
+                }else{
+                    url = '/BI/getDataBySql.do';
                 }
+                let param = {}
+                if(page){//分页发起的请求
+                    param = JSON.parse(this.chartParams.searchParam);
+                    param.page = this.chartsConfig.page.cPage
+                }else{
+                    if (this.chartsConfig.dataSourceType === 'ElasticSearch') {//es
+                        param = {
+                            starttime:this.dateObj.starttime,//起始时间
+                            endtime:this.dateObj.endtime,//结束时间
+                            last:this.dateObj.last,
+                            unit:this.yUnit,
+                            pre_index_name:this.chartsConfig.preIndexName,
+                            suffix_index_name:this.chartsConfig.suffixIndexName,
+                            template_name:this.chartsConfig.templateName,
+                            filters:this.filters,
+                            queryBox:this.queryVal,
+                            page:this.chartsConfig.page.cPage,//当前页码
+                            page_size:this.chartsConfig.page.size,//每页条数
+                            size:this.chartsConfig.counts,//显示总数
+                            es_columns:JSON.stringify(this.chartsConfig.columnArr)
+                        }
+                    }else{ //mysql
+
+                        let columnsArr = [];
+                        this.chartsConfig.columnArr.forEach(item=>{
+                            columnsArr.push({
+                                column_value:item.field,
+                                sort:item.sort
+                            })
+                        })
+                        param = {
+                            tableName : this.chartsConfig.mysqlData,
+                            columns:JSON.stringify(columnsArr),
+                            wheres:JSON.stringify(this.chartsConfig.conditionArr),
+                            page:this.chartsConfig.page.cPage,//当前页码
+                            page_size:this.chartsConfig.page.size,//每页条数
+                        }
+                    }
+                }
+
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                         .then(res=>{
@@ -608,15 +877,19 @@
                                 //加载数据
                                 this.chartsConfig.tableData = obj.data[0].list;
                                 //处理分页
-                                this.pageSize = this.chartsConfig.page.size;
+                                this.pageSize = Number(this.chartsConfig.page.size);
                                 this.showCount = this.chartsConfig.counts;
                                 this.chartsConfig.trueCount = obj.data[0].count;
-                                if(this.chartsConfig.trueCount >= this.chartsConfig.counts){
-                                    this.chartsConfig.page.allCounts = Number(this.chartsConfig.counts);
+                                if(this.chartsConfig.dataSourceType === "MySQL"){
+                                    this.chartsConfig.page.allCounts = Number(obj.data[0].count);
+                                    this.showCount = Number(obj.data[0].count);
                                 }else{
-                                    this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
+                                    if(this.chartsConfig.trueCount >= this.chartsConfig.counts){
+                                        this.chartsConfig.page.allCounts = Number(this.chartsConfig.counts);
+                                    }else{
+                                        this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
+                                    }
                                 }
-
                             } else {
                                 layer.msg(obj.message,{icon:5});
                             }
@@ -630,7 +903,7 @@
             handleCurrentChange(page){
                 this.loading = true;
                 this.chartsConfig.page.cPage = page;
-                this.getData();
+                this.getData(page);
             },
             /*保存图表*/
             saveChart(){
@@ -720,7 +993,15 @@
                                         //前台自己获取数据
                                         this.getData()
                                         //获取列参数
-                                        this.getColumnField();
+                                        if(this.chartsConfig.dataSourceType === 'MySQL'){//mysql
+                                            this.getTableName();
+                                            this.getMySQLField();
+                                            this.getMySQLOperator();
+                                        }else{//es
+                                            this.getColumnField();
+                                        }
+                                        //设置高度
+                                        this.setHeight();
                                     }else{
                                         layer.msg(res.data.message,{icon:5})
                                     }
@@ -816,7 +1097,7 @@
     .chart-wapper>div{
         float: left;
         background: #303e4e;
-        height: calc(100vh - 304px);
+        /*height: calc(100vh - 304px);*/
     }
     .config-wapper{
         width: 300px;
@@ -836,6 +1117,14 @@
         font-size: 14px;
         padding: 0 8px;
         border-radius: 0;
+    }
+    .values-wapper span{
+        border: 1px dashed #3c5d80;
+        padding: 4px 5px;
+        color: #409eff;
+        font-size: 10px;
+        margin: 5px;
+        border-left: 2px solid #409eff;
     }
     .prevBtn{
         right: 82px;

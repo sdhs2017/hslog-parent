@@ -119,7 +119,7 @@
                    <ul>
                        <li v-for="(item,i) in chartsList" :key="i">
                            <el-checkbox :label="item.id" style="width: 260px;overflow:hidden;">{{item.title}}</el-checkbox>
-                           <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : item.type === 'metric' ? '指标' : ''}}</span>
+                           <span>{{item.type === 'line' ? '折线图' : item.type === 'bar' ? '柱状图' : item.type === 'pie' ? '饼图' : item.type === 'metric' ? '指标' : item.type === 'table' ? '表格' :''}}</span>
                        </li>
                    </ul>
                </el-checkbox-group>
@@ -1068,7 +1068,15 @@
                 }else if(resObj.obj.chartType === 'metric'){
                     url = '/BI/getDataByChartParams_metric.do'
                 }else if(resObj.obj.chartType === 'table'){
-                    url = '/BI/getDataByParams_dynamicTable.do'
+                    //判断表格类型
+                    if(resObj.param.tableName){//mysql
+                        url = '/BI/getDataBySql.do'
+                        resObj.obj.tableType = 'mysql'
+                    }else{//es
+                        resObj.obj.tableType = 'es'
+                        url = '/BI/getDataByParams_dynamicTable.do'
+                    }
+
                 }
 
                 let obj = resObj.obj;
@@ -1241,13 +1249,19 @@
                                         if(obj.opt.tableData.length === 0){
                                             obj.emptyText = '暂无数据'
                                         }
-                                        //判断分页
-                                        if(obj.opt.trueCount >= obj.opt.counts){
-                                            obj.opt.page.allCounts = Number(obj.opt.counts);
+                                        //判断表格类型
+                                        if(obj.tableType === 'es'){
+                                            //判断分页
+                                            if(obj.opt.trueCount >= obj.opt.counts){
+                                                obj.opt.page.allCounts = Number(obj.opt.counts);
+                                            }else{
+                                                obj.opt.page.allCounts = Number(obj.opt.trueCount);
+                                            }
                                         }else{
                                             obj.opt.page.allCounts = Number(obj.opt.trueCount);
-                                        }
+                                            obj.opt.counts = Number(obj.opt.trueCount);
 
+                                        }
                                     }
                                     resolve(obj);
                                 }else{

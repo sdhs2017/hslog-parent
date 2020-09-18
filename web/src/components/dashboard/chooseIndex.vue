@@ -1,6 +1,6 @@
 <template>
     <div class="choose-wapper" v-loading="loading"  element-loading-spinner="el-icon-loading"  element-loading-background="rgba(26,36,47, 0.5)">
-        当前数据源:
+        数据源:
 <!--        <el-select v-model="index" filterable  placeholder="请选择" @change="indexBlur"  size="mini" class="index-sel">-->
         <!--<el-cascader
             ref="refHandle"
@@ -307,7 +307,7 @@
     }
     .chooseClass /deep/ .el-input__inner{
         background: #1a242f;
-        width: 150px;
+        width: 125px;
     }
     .ifs /deep/ .el-input__inner{
         color: #de946f;

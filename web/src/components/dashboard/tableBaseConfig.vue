@@ -159,7 +159,7 @@
             <div class="view-wapper"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" :style="{height:wapperHeight}">
                 <div class="charts-title">{{chartsConfig.title.text}}</div>
                 <div id="charts-wapper">
-                    <v-basetable :tableHead="chartsConfig.tableHead" :height="tableHeight" :tableData="chartsConfig.tableData"></v-basetable>
+                    <v-basetable :tableHead="chartsConfig.tableHead" :emptyText="emptyText" :height="tableHeight" :tableData="chartsConfig.tableData"></v-basetable>
                     <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="chartsConfig.tableData.length !== 0">
                         总条数 <b style="color: #409eff;margin: 0 10px;"> {{this.chartsConfig.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{this.showCount}} </b>
                         <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="pageSize" :total="chartsConfig.page.allCounts"></el-pagination>
@@ -232,6 +232,7 @@
         },
         data() {
             return {
+                emptyText:'加载中',
                 refresh:0,
                 allLoading:false,
                 leftLoading:false,
@@ -587,13 +588,13 @@
                 let windowHeight = document.body.clientHeight;
                 //初始化 表格高度
                 if(this.chartsConfig.dataSourceType === "MySQL"){
-                    this.wapperHeight = windowHeight - 240+'px';
-                    this.tableHeight = windowHeight - 340;
+                    this.wapperHeight = parseInt(windowHeight) - 240+'px';
+                    this.tableHeight = parseInt(windowHeight) - 340;
                 }else{
-                    this.wapperHeight = windowHeight - 304+'px';
-                    this.tableHeight = windowHeight - 400
+                    this.wapperHeight = parseInt(windowHeight) - 304+'px';
+                    this.tableHeight = parseInt(windowHeight) - 400
                 }
-                //alert(this.tableHeight)
+                console.log(this.tableHeight)
             },
             //数据源类型改变事件
             dataSourceChange(){
@@ -853,7 +854,17 @@
                         }
                     }
                 }
-
+                this.chartsConfig.tableHead = [];
+                this.chartsConfig.tableData = [];
+                this.emptyText = '加载中'
+                //拼接头部
+                this.chartsConfig.columnArr.forEach((item)=>{
+                    this.chartsConfig.tableHead.push({
+                        prop:item.field,
+                        label:item.aliasName === '' ? item.field : item.aliasName,
+                        width:''
+                    })
+                })
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
                         .then(res=>{
@@ -862,43 +873,44 @@
                             this.chartParams.searchParam = JSON.stringify(param);
                             //处理数据
                             let obj = res.data;
-                            this.chartsConfig.tableHead = [];
-                            this.chartsConfig.tableData = [];
-                            this.chartsConfig.page.allCounts = 0;
-                            this.chartsConfig.trueCount = 0;
-                            //拼接头部
-                            this.chartsConfig.columnArr.forEach((item)=>{
-                                this.chartsConfig.tableHead.push({
-                                    prop:item.field,
-                                    label:item.aliasName === '' ? item.field : item.aliasName,
-                                    width:''
-                                })
-                            })
                             if (obj.success === 'true'){
-                                //加载数据
-                                this.chartsConfig.tableData = obj.data[0].list;
-                                //处理分页
-                                this.pageSize = Number(this.chartsConfig.page.size);
-                                this.showCount = this.chartsConfig.counts;
-                                this.chartsConfig.trueCount = obj.data[0].count;
-                                if(this.chartsConfig.dataSourceType === "MySQL"){
-                                    this.chartsConfig.page.allCounts = Number(obj.data[0].count);
-                                    this.showCount = Number(obj.data[0].count);
-                                }else{
-                                    if(this.chartsConfig.trueCount >= this.chartsConfig.counts){
-                                        this.chartsConfig.page.allCounts = Number(this.chartsConfig.counts);
+                                if(!page){
+                                    this.chartsConfig.page.allCounts = 0;
+                                    this.chartsConfig.trueCount = 0;
+                                    //处理分页
+                                    this.pageSize = Number(this.chartsConfig.page.size);
+                                    this.showCount = this.chartsConfig.counts;
+                                    this.chartsConfig.trueCount = obj.data[0].count;
+                                    if(this.chartsConfig.dataSourceType === "MySQL"){
+                                        this.chartsConfig.page.allCounts = Number(obj.data[0].count);
+                                        this.showCount = Number(obj.data[0].count);
                                     }else{
-                                        this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
+                                        if(this.chartsConfig.trueCount >= this.chartsConfig.counts){
+                                            this.chartsConfig.page.allCounts = Number(this.chartsConfig.counts);
+                                        }else{
+                                            this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
+                                        }
                                     }
                                 }
+
+                                //添加延时 避免表格数据高度坍塌
+                                setTimeout(()=>{
+                                    let bodyHeight = this.tableHeight - 40;
+                                    $('.el-table__body-wrapper').height(bodyHeight+'px')
+                                    //加载数据
+                                    this.chartsConfig.tableData = obj.data[0].list;
+                                    if(this.chartsConfig.tableData.length === 0){
+                                        this.emptyText = '暂无数据'
+                                    }
+                                },300)
                             } else {
+                                this.emptyText = obj.message
                                 layer.msg(obj.message,{icon:5});
                             }
-                            this.$nextTick(()=>{
-                                this.setHeight();
-                            })
+
                         })
                         .catch(err=>{
+                            this.emptyText='获取数据出错'
                             this.loading = false;
                         })
                 })

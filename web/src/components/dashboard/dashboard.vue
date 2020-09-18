@@ -93,7 +93,7 @@
                             <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
-                            <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
+                            <i v-if="item.chartType !== 'metric'" class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
@@ -1020,7 +1020,7 @@
                                     let param = JSON.parse(data.data.params)
                                     //填充数据
                                     if(obj.chartType === 'metric'){//指标
-
+                                        option = JSON.parse(data.data.option)
                                     }else if(obj.chartType === 'table'){//表格
                                         option.tableHead = JSON.parse(data.data.option).config.tableHead;
                                         option.tableData = [];
@@ -1233,11 +1233,10 @@
                                     }
                                     else if(obj.chartType === 'metric'){
                                         let str = ''
-                                       // console.log(obj.opt.dataset)
                                         //循环拼接数据
                                         for(let i in obj.opt.dataset){
                                             obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
-                                            str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.style.fontSize}px;color: ${obj.opt.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
+                                            str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.config.style.fontSize}px;color: ${obj.opt.config.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
                                         }
                                         let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;flex-wrap:wrap;overflow: auto;">'+str+'</div>'
                                         obj.opt.series.push(box)

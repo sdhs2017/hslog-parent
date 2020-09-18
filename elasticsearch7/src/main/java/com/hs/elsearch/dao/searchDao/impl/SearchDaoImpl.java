@@ -8,6 +8,7 @@ import com.hs.elsearch.template.SearchTemplate;
 import com.hs.elsearch.util.ElasticConstant;
 import com.hs.elsearch.util.ErrorInfoException;
 import com.hs.elsearch.util.StringUtil;
+import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.XContentBuilder;
@@ -706,7 +707,9 @@ public class SearchDaoImpl implements ISearchDao {
             for(int i=0;i<conditions.getDataTableColumns().size();i++){
                 DataTableColumn column = conditions.getDataTableColumns().get(i);
                 //排序
-                sorts.add(SortBuilders.fieldSort(column.getField()).order("asc".equals(column.getSort())?SortOrder.ASC:SortOrder.DESC));
+                if(!StringUtils.isNullOrEmpty(column.getSort())){
+                    sorts.add(SortBuilders.fieldSort(column.getField()).order("asc".equals(column.getSort())?SortOrder.ASC:SortOrder.DESC));
+                }
                 //要显示字段
                 includeSource[i] = column.getField();
             }

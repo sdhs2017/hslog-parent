@@ -35,35 +35,35 @@ public class SearchConditions {
     private Integer size;//最终要展示的数量
     private List<DataTableColumn> dataTableColumns = new ArrayList<>();
 
-    public int getFrom() {
-        return from;
-    }
-
-    public void setFrom(int from) {
-        this.from = from;
-    }
-
-    public int getPage() {
+    public Integer getPage() {
         return page;
     }
 
-    public void setPage(int page) {
+    public void setPage(Integer page) {
         this.page = page;
     }
 
-    public int getPage_size() {
+    public Integer getPage_size() {
         return page_size;
     }
 
-    public void setPage_size(int page_size) {
+    public void setPage_size(Integer page_size) {
         this.page_size = page_size;
     }
 
-    public int getSize() {
+    public Integer getFrom() {
+        return from;
+    }
+
+    public void setFrom(Integer from) {
+        this.from = from;
+    }
+
+    public Integer getSize() {
         return size;
     }
 
-    public void setSize(int size) {
+    public void setSize(Integer size) {
         this.size = size;
     }
 

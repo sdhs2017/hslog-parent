@@ -64,6 +64,12 @@ public class MappingUtil {
             mappingField.setFieldName(fieldPathName);
             //字段类型
             if(fieldValue.get("type")!=null){
+                //字段是否可排序
+                if(ElasticConstant.SORT_TYPES.contains(fieldValue.get("type"))){
+                    mappingField.setSortable(true);
+                }else{
+                    mappingField.setSortable(false);
+                }
                 mappingField.setFieldType(fieldValue.get("type").toString());
             }
             //字段可聚合

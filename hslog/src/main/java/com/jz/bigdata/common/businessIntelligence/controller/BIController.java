@@ -7,6 +7,7 @@ import com.hs.elsearch.util.ErrorInfoException;
 import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
+import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.ConfigProperty;
@@ -305,7 +306,7 @@ public class BIController {
         try{
             //处理参数
             SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest4Chart(request);
-            //时间范围参数异常
+            //参数异常
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
             }
@@ -639,8 +640,14 @@ public class BIController {
         }
     }
     /*******************sql部分*********************/
+    @ResponseBody
+    @RequestMapping(value="/getSqlOperators", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取sql运算符")
+    public String getSqlOperators(){
+        return Constant.successData(JSONArray.fromObject(Constant.SQL_OPERATOR).toString());
+    }
     /**
-     * 获取数据库所有表
+     * 获取数据库所有表 ,jzLogAnalysis
      * @return
      */
     @ResponseBody
@@ -648,9 +655,8 @@ public class BIController {
     @DescribeLog(describe = "获取数据库所有表")
     public String showTables(HttpServletRequest request){
         try{
-            String id = request.getParameter("id");
-            String result = iBIService.showTables();
-            return Constant.successMessage(result);
+            List<Map<String,String>> result = iBIService.showTables();
+            return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
             logger.error("获取数据库所有表"+e.getMessage());
             return Constant.failureMessage("获取数据库表失败");
@@ -662,15 +668,15 @@ public class BIController {
      */
     @ResponseBody
     @RequestMapping(value="/showColumns", produces = "application/json; charset=utf-8")
-    @DescribeLog(describe = "获取数据库所有表")
+    @DescribeLog(describe = "获取数据库表的列信息")
     public String showColumns(HttpServletRequest request){
         try{
-            String id = request.getParameter("id");
-            String result = iBIService.showColumns();
-            return Constant.successMessage(result);
+            String tableName = request.getParameter("tableName");
+            List<Map<String,String>> result = iBIService.showColumns(tableName);
+            return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("获取数据库所有表"+e.getMessage());
-            return Constant.failureMessage("获取数据库表失败");
+            logger.error("获取表的列失败"+e.getMessage());
+            return Constant.failureMessage("获取数据库表的列信息失败");
         }
     }
     /**
@@ -679,15 +685,19 @@ public class BIController {
      */
     @ResponseBody
     @RequestMapping(value="/getDataBySql", produces = "application/json; charset=utf-8")
-    @DescribeLog(describe = "获取数据库所有表")
+    @DescribeLog(describe = "根据条件生成sql并查询结果")
     public String getDataBySql(HttpServletRequest request){
         try{
-            String id = request.getParameter("id");
-            String result = iBIService.getDataBySql();
-            return Constant.successMessage(result);
+            SqlSearchConditions sqlSearchConditions = HttpRequestUtil.getSqlSearchConditionsByRequest(request);
+            //参数异常
+            if(!Strings.isNullOrEmpty(sqlSearchConditions.getErrorInfo())){
+                return Constant.failureMessage(sqlSearchConditions.getErrorInfo());
+            }
+            Map<String, Object> result = iBIService.getDataByConditions(sqlSearchConditions);
+            return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("获取数据库所有表"+e.getMessage());
-            return Constant.failureMessage("获取数据库表失败");
+            logger.error("数据查询失败"+e.getMessage());
+            return Constant.failureMessage("数据查询失败");
         }
     }
 }

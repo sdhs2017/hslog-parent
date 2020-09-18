@@ -4,6 +4,7 @@ import com.hs.elsearch.entity.SearchConditions;
 import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
+import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import org.elasticsearch.action.DocWriteResponse;
 
@@ -158,7 +159,26 @@ public interface IBIService {
      */
     public Map<String, Object> getSearchData_dynamicTable(SearchConditions conditions) throws Exception;
 
-    public String showTables()throws Exception;
-    public String showColumns()throws Exception;
-    public String getDataBySql()throws Exception;
+    /**
+     * 获取mysql数据库所有表
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String,String>> showTables()throws Exception;
+
+    /**
+     * 获取表对应的所有字段
+     * @param tableName
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String,String>> showColumns(String tableName)throws Exception;
+
+    /**
+     * 根据条件组装sql语句并返回执行结果
+     * @param sql
+     * @return
+     * @throws Exception
+     */
+    public Map<String, Object> getDataByConditions(SqlSearchConditions sqlSearchConditions)throws Exception;
 }

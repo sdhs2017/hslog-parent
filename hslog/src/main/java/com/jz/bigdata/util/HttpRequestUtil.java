@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.hs.elsearch.entity.*;
 import com.hs.elsearch.util.HSDateUtil;
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchColumn;
+import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
+import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchWhere;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -215,6 +218,70 @@ public class HttpRequestUtil {
             searchConditions.setErrorInfo("查询参数异常，请重新设置！");
         }
         return searchConditions;
+    }
+
+    /**
+     * sql查询条件处理
+     * @param request
+     * @return
+     */
+    public static SqlSearchConditions getSqlSearchConditionsByRequest(HttpServletRequest request){
+        SqlSearchConditions sqlSearchConditions = new SqlSearchConditions();
+        try{
+            Map<String, String[]> params = request.getParameterMap();
+            //通过bean对应，直接处理部分参数
+            sqlSearchConditions.mapToBean(params);
+            //列信息
+            String columns = request.getParameter("columns");
+            if(null!=columns){
+                //columns参数包含多个column对象
+                JSONArray json = JSONArray.fromObject(columns);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    SqlSearchColumn column = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), SqlSearchColumn.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=column){
+                        sqlSearchConditions.getSqlSearchColumns().add(column);
+                    }else{
+                        sqlSearchConditions.setErrorInfo("列信息异常!");
+                    }
+                }
+                //没有列
+                if(sqlSearchConditions.getSqlSearchColumns().size()==0){
+                    sqlSearchConditions.setErrorInfo("列信息异常!");
+                }
+            }else{
+                //没有列时的异常显示
+                sqlSearchConditions.setErrorInfo("至少选择一个列!");
+            }
+            //where条件
+            String wheres = request.getParameter("wheres");
+            if(null!=wheres){
+                //wheres参数包含多个where对象
+                JSONArray json = JSONArray.fromObject(wheres);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    SqlSearchWhere where = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), SqlSearchWhere.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=where){
+                        sqlSearchConditions.getSqlSearchWheres().add(where);
+                    }else{
+                        sqlSearchConditions.setErrorInfo("条件参数异常！");
+                    }
+                }
+            }else{
+                //where条件可以为空
+            }
+            //分页信息
+            if(sqlSearchConditions.getPage()==null||sqlSearchConditions.getPage_size()==null){
+                sqlSearchConditions.setErrorInfo("查询参数异常！");
+            }
+        }catch(Exception e){
+            sqlSearchConditions.setErrorInfo("查询参数异常，请重新设置！");
+        }
+        return sqlSearchConditions;
     }
     /**
      * 处理参数 用于对报表的参数处理

@@ -1,5 +1,8 @@
 package com.jz.bigdata.common;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author yiyang
  * @date 2016年7月29日 上午9:31:24
@@ -65,6 +68,23 @@ public class Constant {
 	 * 执行异常错误信息
 	 */
 	public static String EXCEPTION = "请求出错，请重试......";
+
+	/*************sql运算符****************/
+	public static final List<String> SQL_OPERATOR = new ArrayList<>();
+	static{
+		SQL_OPERATOR.add("=");
+		SQL_OPERATOR.add(">");
+		SQL_OPERATOR.add(">=");
+		SQL_OPERATOR.add("<");
+		SQL_OPERATOR.add("<=");
+		SQL_OPERATOR.add("in");
+		SQL_OPERATOR.add("not in");
+		SQL_OPERATOR.add("between");
+	}
+	//前端combobox需要的两个字段名称
+	public static final String COMBOBOX_VALUE="value";//传参内容
+	public static final String COMBOBOX_LABEL="label";//显示内容
+
 	/**
 	 * @param tf 返回的success是true还是false
 	 * @param icon 要显示的图标样式 0：叹号  ；1：对号；2：叉号；3：问号；4：锁   默认0

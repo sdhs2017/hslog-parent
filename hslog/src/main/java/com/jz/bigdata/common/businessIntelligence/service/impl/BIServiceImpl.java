@@ -17,10 +17,7 @@ import com.hs.elsearch.util.ElasticConstant;
 import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.dao.IBusinessIntelligenceDao;
-import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
-import com.jz.bigdata.common.businessIntelligence.entity.HSData;
-import com.jz.bigdata.common.businessIntelligence.entity.SqlResultMap;
-import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
+import com.jz.bigdata.common.businessIntelligence.entity.*;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.CSVUtil;
 import com.mysql.jdbc.StringUtils;
@@ -34,6 +31,7 @@ import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.metrics.NumericMetricsAggregation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import scala.Int;
 
 import javax.servlet.http.HttpSession;
 import java.text.DecimalFormat;
@@ -472,28 +470,114 @@ public class BIServiceImpl implements IBIService {
         long count = searchService.getCountByConditionsQuery(conditions);
         //获取list
         List<Map<String, Object>> list = searchService.getSearchHitsList(conditions);
-        Map<String, Object> allmap = new HashMap<>();
-        allmap.put("count",count);
-        allmap.put("list",list);
-        return allmap;
+        Map<String, Object> allMap = new HashMap<>();
+        allMap.put("count",count);
+        allMap.put("list",list);
+        return allMap;
     }
 
     @Override
-    public String showTables() throws Exception {
-        List<SqlResultMap> result = businessIntelligenceDao.showTables();
-        return null;
+    public List<Map<String,String>> showTables() throws Exception {
+        List<Map<String,String>> result = businessIntelligenceDao.showTables();
+        List<Map<String,String>> newResult = new ArrayList<>();
+        //数据处理
+        for(Map<String,String> table:result){
+            Map<String,String> map = new HashMap<>();
+            //表名
+            map.put(Constant.COMBOBOX_VALUE,table.get(Constant.COMBOBOX_VALUE));
+            //表名的注释，在前端下拉菜单中显示的内容
+            //为空时，显示实际的表名
+            if(StringUtils.isNullOrEmpty(table.get(Constant.COMBOBOX_LABEL))){
+                map.put(Constant.COMBOBOX_LABEL,table.get(Constant.COMBOBOX_VALUE));
+            }else{
+                map.put(Constant.COMBOBOX_LABEL,table.get(Constant.COMBOBOX_LABEL));
+            }
+            newResult.add(map);
+        }
+        return newResult;
     }
 
     @Override
-    public String showColumns() throws Exception {
-        List<SqlResultMap> result1 = businessIntelligenceDao.showColumns("equipment");
-        return null;
+    public List<Map<String,String>> showColumns(String tableName) throws Exception {
+        List<Map<String,String>> result = businessIntelligenceDao.showColumns(tableName);
+        //TODO 这部分数据处理目前与获取表信息一致，但是后续可能会修改，暂时先不作为公共方法
+        List<Map<String,String>> newResult = new ArrayList<>();
+        //数据处理
+        for(Map<String,String> table:result){
+            Map<String,String> map = new HashMap<>();
+            //列名
+            map.put(Constant.COMBOBOX_VALUE,table.get(Constant.COMBOBOX_VALUE));
+            //列的注释，在前端下拉菜单中显示的内容
+            //为空时，显示实际的列名
+            if(StringUtils.isNullOrEmpty(table.get(Constant.COMBOBOX_LABEL))){
+                map.put(Constant.COMBOBOX_LABEL,table.get(Constant.COMBOBOX_VALUE));
+            }else{
+                map.put(Constant.COMBOBOX_LABEL,table.get(Constant.COMBOBOX_LABEL));
+            }
+            newResult.add(map);
+        }
+        return newResult;
     }
 
     @Override
-    public String getDataBySql() throws Exception {
-        List<LinkedHashMap<String, Object>> result2 = businessIntelligenceDao.getDataBySql("select name from equipment");
-        return null;
+    public Map<String, Object> getDataByConditions(SqlSearchConditions sqlSearchConditions) throws Exception {
+        //拼装sql
+        StringBuilder sql = new StringBuilder();
+        //获取count的sql
+        StringBuilder sql_count = new StringBuilder();
+
+        StringBuilder order = new StringBuilder();
+        sql.append("SELECT ");
+        sql_count.append("SELECT count(1) as count ");
+        order.append(" ORDER BY ");
+        //追加列 及排序部分
+        for(int i=0;i<sqlSearchConditions.getSqlSearchColumns().size();i++){
+            SqlSearchColumn sqlSearchColumn = sqlSearchConditions.getSqlSearchColumns().get(i);
+            if(i==sqlSearchConditions.getSqlSearchColumns().size()-1){
+                sql.append(sqlSearchColumn.getColumn_value());
+                order.append(sqlSearchColumn.getColumn_value()+" "+sqlSearchColumn.getSort());
+            }else{
+                sql.append(sqlSearchColumn.getColumn_value()+",");
+                order.append(sqlSearchColumn.getColumn_value()+" "+sqlSearchColumn.getSort()+",");
+            }
+        }
+        //追加表  from table
+        sql.append(" FROM "+sqlSearchConditions.getTableName());
+        sql_count.append(" FROM "+sqlSearchConditions.getTableName());
+        //添加where条件
+        sql.append(" WHERE 1=1 ");
+        sql_count.append(" WHERE 1=1 ");
+        for(SqlSearchWhere sqlSearchWhere:sqlSearchConditions.getSqlSearchWheres()){
+            switch(sqlSearchWhere.getOperator().toLowerCase()){
+                case "between":
+                    sql.append(" AND "+sqlSearchWhere.getField()+" BETWEEN '"+sqlSearchWhere.getStart()+"' AND '"+sqlSearchWhere.getEnd()+"'");
+                    sql_count.append(" AND "+sqlSearchWhere.getField()+" BETWEEN '"+sqlSearchWhere.getStart()+"' AND '"+sqlSearchWhere.getEnd()+"'");
+                    break;
+                case "in" : case "not in":
+                    sql.append(" AND "+sqlSearchWhere.getField()+" "+sqlSearchWhere.getOperator()+" ('"+String.join("','",sqlSearchWhere.getValues())+"')");
+                    sql_count.append(" AND "+sqlSearchWhere.getField()+" "+sqlSearchWhere.getOperator()+" ('"+String.join("','",sqlSearchWhere.getValues())+"')");
+                    break;
+                default:
+                    sql.append(" AND "+sqlSearchWhere.getField()+sqlSearchWhere.getOperator()+"'"+sqlSearchWhere.getValue()+"'");
+                    sql_count.append(" AND "+sqlSearchWhere.getField()+sqlSearchWhere.getOperator()+"'"+sqlSearchWhere.getValue()+"'");
+                    break;
+            }
+        }
+        //排序
+        sql.append(order);
+        //分页
+        // 获取起始数
+        int startRecord = (sqlSearchConditions.getPage_size() * (sqlSearchConditions.getPage() - 1));
+        sql.append(" limit "+startRecord+","+sqlSearchConditions.getPage_size());
+        List<Map<String,String>> result = businessIntelligenceDao.getDataBySql(sql.toString());
+        List<Map<String,String>> resultCount = businessIntelligenceDao.getDataBySql(sql_count.toString());
+        //如果返回数据有问题，通过异常抛出
+        int count = Integer.parseInt(((HashMap) ((ArrayList) resultCount.get(0)).get(0)).get("count").toString());
+        //组装前端需要的数据格式
+        Map<String, Object> allMap = new HashMap<>();
+        allMap.put("count",count);
+        allMap.put("list",result);
+        return allMap;
     }
 
     /**

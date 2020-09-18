@@ -1,9 +1,6 @@
 package com.hs.elsearch.util;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Elastic 后端涉及到的全局变量定义
@@ -28,6 +25,24 @@ public class ElasticConstant {
      * 当使用metric报表，仅定义多个metric，无bucket时，需要在聚合的外层套一个聚合，该聚合的名称定义为elastic_metric
      */
     public static final String METRIC_AGG_NAME = "elastic_metric";
+    /**
+     * sort type ，可排序字段类型
+     */
+    public static final Set<String> SORT_TYPES = new HashSet<>();
+    static{
+        SORT_TYPES.add("keyword");
+        SORT_TYPES.add("date");
+        SORT_TYPES.add("ip");
+        SORT_TYPES.add("boolean");
+        SORT_TYPES.add("long");
+        SORT_TYPES.add("integer");
+        SORT_TYPES.add("short");
+        SORT_TYPES.add("byte");
+        SORT_TYPES.add("double");
+        SORT_TYPES.add("float");
+        SORT_TYPES.add("half_float");
+        SORT_TYPES.add("scaled_float");
+    }
     /**
      * filter operator
      */

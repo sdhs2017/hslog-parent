@@ -9,6 +9,16 @@ public class MappingField {
     private String fieldType;
     //字段可聚合
     private boolean fieldData;
+    //字段是否可排序
+    private boolean sortable;
+
+    public boolean getSortable() {
+        return sortable;
+    }
+
+    public void setSortable(boolean sortable) {
+        this.sortable = sortable;
+    }
 
     public boolean getFieldData() {
         return fieldData;

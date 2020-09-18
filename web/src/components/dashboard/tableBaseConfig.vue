@@ -880,7 +880,7 @@
                             //处理数据
                             let obj = res.data;
                             if (obj.success === 'true'){
-                                if(!page){
+                              /*  if(!page){
                                     this.chartsConfig.page.allCounts = 0;
                                     this.chartsConfig.trueCount = 0;
                                     //处理分页
@@ -897,8 +897,23 @@
                                             this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
                                         }
                                     }
+                                }*/
+                                this.chartsConfig.page.allCounts = 0;
+                                this.chartsConfig.trueCount = 0;
+                                //处理分页
+                                this.pageSize = Number(this.chartsConfig.page.size);
+                                this.showCount = this.chartsConfig.counts;
+                                this.chartsConfig.trueCount = obj.data[0].count;
+                                if(this.chartsConfig.dataSourceType === "MySQL"){
+                                    this.chartsConfig.page.allCounts = Number(obj.data[0].count);
+                                    this.showCount = Number(obj.data[0].count);
+                                }else{
+                                    if(this.chartsConfig.trueCount >= this.chartsConfig.counts){
+                                        this.chartsConfig.page.allCounts = Number(this.chartsConfig.counts);
+                                    }else{
+                                        this.chartsConfig.page.allCounts = Number(this.chartsConfig.trueCount);
+                                    }
                                 }
-
                                 //添加延时 避免表格数据高度坍塌
                                 setTimeout(()=>{
                                     let bodyHeight = this.tableHeight - 40;

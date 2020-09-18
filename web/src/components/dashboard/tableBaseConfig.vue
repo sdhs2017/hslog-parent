@@ -593,6 +593,7 @@
                     this.wapperHeight = windowHeight - 304+'px';
                     this.tableHeight = windowHeight - 400
                 }
+                //alert(this.tableHeight)
             },
             //数据源类型改变事件
             dataSourceChange(){
@@ -893,12 +894,15 @@
                             } else {
                                 layer.msg(obj.message,{icon:5});
                             }
-
+                            this.$nextTick(()=>{
+                                this.setHeight();
+                            })
                         })
                         .catch(err=>{
                             this.loading = false;
                         })
                 })
+
             },
             handleCurrentChange(page){
                 this.loading = true;

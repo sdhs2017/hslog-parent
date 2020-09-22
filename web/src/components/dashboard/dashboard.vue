@@ -81,10 +81,10 @@
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="no-chart" :id="`err${item.i}`"></div>
                         <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
-                            <v-basetable :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText"></v-basetable>
+                            <v-basetable :selection="item.opt.selection" :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText" :busName="item.opt.busNames"></v-basetable>
                             <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="item.opt.tableData">
                                 总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
-                                <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="item.opt.pageSize" :total="item.opt.page.allCounts"></el-pagination>
+                                <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="Number(item.opt.page.size)" :total="item.opt.page.allCounts"></el-pagination>
                             </div>
                         </div>
                     </div>
@@ -571,7 +571,9 @@
                 queryVal:'',
                 oldQuery:'',
                 defaultQuery:'',
-                updateBtn:false
+                updateBtn:false,
+                //资产表 过滤条件
+                filters_table:'',
             }
         },
         created(){
@@ -1023,6 +1025,35 @@
                                         option = JSON.parse(data.data.option)
                                     }else if(obj.chartType === 'table'){//表格
                                         option.tableHead = JSON.parse(data.data.option).config.tableHead;
+                                        //特殊资产表 设置多选框 以及资产跳转
+                                        if(obj.eId === 'NI3fr3QBqKrf67Ha5Dr9'){
+                                            option.busNames={
+                                                selectionName:'NI3fr3QBqKrf67Ha5Dr9' +obj.i
+                                            }
+                                            option.selection = true;
+                                            option.tableHead.forEach(item =>{
+                                                if(item.prop === 'name'){
+                                                    item.clickFun = (eItem)=>{
+                                                        //跳转到资产列表页面
+                                                        this.$router.push({name:'equipment2',params:{equipmentid: eItem.id}})
+                                                    }
+                                                }
+                                            })
+                                            bus.$off(option.busNames.selectionName)
+                                            //监听选中的资产
+                                            bus.$on(option.busNames.selectionName,(params)=>{
+                                                let arr = [];
+                                                for(let i in params){
+                                                    arr.push({
+                                                        'fields.ip':params[i].ip
+                                                    })
+                                                }
+                                                this.filters_table = JSON.stringify(arr);
+                                                this.refreshDashboard()
+                                            })
+                                        }else{
+                                            option.selection = false
+                                        }
                                         option.tableData = [];
                                         option.page = JSON.parse(data.data.option).config.page;
                                         option.counts = JSON.parse(data.data.option).config.counts;
@@ -1034,6 +1065,7 @@
                                         obj.areaShow = JSON.parse(data.data.option).config.graph.areaShow
                                     }
                                     obj.opt = option;
+                                    console.log(obj.opt)
                                     obj.tit = data.data.title;
                                     let resObj = {
                                         obj:obj,
@@ -1085,6 +1117,7 @@
                 param.endtime = this.dateArr.endtime;
                 param.last = this.dateArr.last;
                 param.filters_dashboard=this.filters;
+                param.filters_table = this.filters_table;
                 param.queryBox = this.queryVal
                 //判断是否是单个资产的统计
                 if (this.equipmentId !== ''){
@@ -1406,6 +1439,13 @@
                 //获取数据
                 for(let i in this.layout){
                     this.chartsCount += 1;
+                    //特殊资产表 不需要刷新
+                    if(this.layout[i].eId === 'NI3fr3QBqKrf67Ha5Dr9'){
+                        if(this.layout.length === 1){
+                            this.loading = false;
+                        }
+                        continue;
+                    }
                     //判断是否是文字块  不是则是图表类型 需要获取图表结构
                     if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
                         this.getEchartsConstruction(this.layout[i])

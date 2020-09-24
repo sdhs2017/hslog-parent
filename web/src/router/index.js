@@ -463,6 +463,18 @@ export default new Router({
                     component: resolve => require(['../components/common/customChart.vue'], resolve),
                     meta: { title: 'SIEM(测试)' }
                 },
+                {
+                    path: '/assetGroup',
+                    name:'assetGroup',
+                    component: resolve => require(['../components/assetGroup/assetGroup.vue'], resolve),
+                    meta: { title: '资产组' }
+                },
+                {
+                    path: '/addAssetGroup',
+                    name:'addAssetGroup',
+                    component: resolve => require(['../components/assetGroup/addAssetGroup.vue'], resolve),
+                    meta: { title: '添加资产组' }
+                },
                /* {
                     path: '/calendar',
                     name:'calendar',

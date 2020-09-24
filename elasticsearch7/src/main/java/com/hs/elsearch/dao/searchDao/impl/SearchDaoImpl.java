@@ -786,5 +786,19 @@ public class SearchDaoImpl implements ISearchDao {
         aggregationBuilder.subAggregation(AggregationBuilders.max("usr_pct").field("system.core.user.pct"));
         aggregationBuilder.subAggregation(new BucketSelectorPipelineAggregationBuilder("sss",map,new Script("params.usr_pct>0.5")));
         System.out.println(aggregationBuilder.toString());
+
+        // 通过日志内容匹配进行告警
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").gte("2020-09-04 11:00:00").lte("2020-09-04 12:00:00"));
+        boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message","Started Session"));
+
+        AggregationBuilder aggregationBuilder1 = AggregationBuilders.terms("ip_count").field("fields.ip");
+        aggregationBuilder1.subAggregation(AggregationBuilders.count("count").field("fields.ip.raw"));
+        Map<String,String> maps = new HashMap<>();
+        maps.put("count","count");
+        aggregationBuilder1.subAggregation( new BucketSelectorPipelineAggregationBuilder("大于10次登陆",maps,new Script("params.count>10")));
+        aggregationBuilder1.subAggregation( new BucketScriptPipelineAggregationBuilder("",maps,new Script("")));
+        System.out.println(aggregationBuilder1.toString());
+
     }
 }

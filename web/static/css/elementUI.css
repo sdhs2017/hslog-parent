@@ -450,3 +450,23 @@
 .el-year-table td .cell{
     color: #ccc;
 }
+/*穿梭框*/
+.el-transfer-panel{
+    border: 1px solid #409eff;
+    background: #303e4e;
+}
+.el-transfer-panel .el-transfer-panel__header{
+    border-bottom: 1px solid #409eff;
+    background: #1c70c1;
+}
+.el-transfer-panel .el-transfer-panel__header .el-checkbox .el-checkbox__label{
+    color: #f1f1f1;
+}
+.el-transfer-panel .el-transfer-panel__header .el-checkbox .el-checkbox__label span{
+    color: #a0cfff;
+}
+.el-transfer-panel__item.el-checkbox {
+    color: #9dc7ef;
+    width: 169px;
+    float: left;
+}

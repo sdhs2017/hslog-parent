@@ -178,6 +178,7 @@ public class LogController extends BaseController{
 			// elasticsearch7 版本初始化template
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
+			logService.initOfElasticsearch(configProperty.getEs_templatename(),"packet-*",null,settingmap,new MappingOfNet().toMapping());
 
 			// 初始化当天的index
 			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
@@ -310,6 +311,7 @@ public class LogController extends BaseController{
 			// elasticsearch7 版本初始化template
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
 			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
+			logService.initOfElasticsearch(configProperty.getEs_templatename(),"packet-*",null,settingmap,new MappingOfNet().toMapping());
 			//初始化BI图表及dashboard存储template
 			Map<String, Object> settingmap4Hsdata = new HashMap<>();
 			// 索引最大查询条数
@@ -1516,7 +1518,7 @@ public class LogController extends BaseController{
 
 		try {
 			long count = 0;
-			count = logService.getCount(configProperty.getEs_old_index(), types,null);
+			count = logService.getCount(configProperty.getEs_flow_index(), types,null);
 			map.put("indices_defaultpacket", count);
 		} catch (Exception e) {
 			map.put("indices_defaultpacket", "获取异常");

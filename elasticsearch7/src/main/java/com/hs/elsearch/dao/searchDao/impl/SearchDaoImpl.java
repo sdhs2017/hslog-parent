@@ -76,6 +76,7 @@ public class SearchDaoImpl implements ISearchDao {
         String dateField = conditions.getDateField();//时间范围对应的字段名
         List<Filter> filter_visual = conditions.getFilters_visual();//filter
         List<Filter> filter_dashboard = conditions.getFilters_dashboard();//filter
+        List<Map<String,String>> filter_table = conditions.getFilters_table();//filter
         String queryBox = conditions.getQueryBox();//查询框
         //最外层query的定义
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -166,6 +167,8 @@ public class SearchDaoImpl implements ISearchDao {
         //------处理filters------
         addFilters(boolQueryBuilder,filter_visual);//图表
         addFilters(boolQueryBuilder,filter_dashboard);//dashboard
+        //------处理table的点击事件产生的查询条件----
+        addFilters4Table(boolQueryBuilder,filter_table);
 
         //存在时间类型字段，需要添加时间范围参数查询
         if(dateField!=null&&!"".equals(dateField)){
@@ -182,6 +185,18 @@ public class SearchDaoImpl implements ISearchDao {
         return boolQueryBuilder;
     }
 
+    /**
+     * 点击table时产生的参数的处理
+     * @param boolQueryBuilder
+     * @param filters
+     */
+    private void addFilters4Table(BoolQueryBuilder boolQueryBuilder ,List<Map<String,String>> filters){
+        BoolQueryBuilder tableShouldQuery = QueryBuilders.boolQuery();
+        for(Map<String,String> map :filters){
+            tableShouldQuery.should(QueryBuilders.termQuery("fields.ip",map.get("fields.ip")));
+        }
+        boolQueryBuilder.filter(tableShouldQuery);
+    }
     /**
      * 处理filter
      * @param boolQueryBuilder

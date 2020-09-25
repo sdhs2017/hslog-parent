@@ -62,6 +62,10 @@ public class ConfigProperty {
 	@Value("#{prop.es_old_index}")
 	private String es_old_index;
 
+	// elasticsearch的镜像口流量的index名称
+	@Value("#{prop.es_flow_index}")
+	private String es_flow_index;
+
 	// elasticsearch的新index名称
     @Value("#{prop.es_index}")
     private String es_index;
@@ -118,9 +122,15 @@ public class ConfigProperty {
 
 	@Value("#{prop.es_mapping_total_fields_limit}")
 	private String es_mapping_total_fields_limit;
+
 	// 需要合并的index
 	@Value("#{prop.es_merge_index}")
     private String es_merge_index;
+
+	// 合并后index的segments的个数
+	@Value("#{prop.es_number_of_segment}")
+	private String es_number_of_segment;
+
 	@Value("#{prop.echart_default_points}")
 	private String echart_default_points;
 
@@ -345,6 +355,14 @@ public class ConfigProperty {
 		this.es_old_index = es_old_index;
 	}
 
+	public String getEs_flow_index() {
+		return es_flow_index;
+	}
+
+	public void setEs_flow_index(String es_flow_index) {
+		this.es_flow_index = es_flow_index;
+	}
+
 	public String getEs_index() {
 		return es_index;
 	}
@@ -423,6 +441,14 @@ public class ConfigProperty {
 
 	public void setEs_merge_index(String es_merge_index) {
 		this.es_merge_index = es_merge_index;
+	}
+
+	public String getEs_number_of_segment() {
+		return es_number_of_segment;
+	}
+
+	public void setEs_number_of_segment(String es_number_of_segment) {
+		this.es_number_of_segment = es_number_of_segment;
 	}
 
 	public String getEs_ilm_policy() {

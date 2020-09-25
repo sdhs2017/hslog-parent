@@ -690,7 +690,7 @@ public class DefaultPacket {
 		}
 		this.packet_source = "libpcap";
 
-		this.index_suffix = "packet";
+		this.index_suffix = "default";
 	}
 	
 	public String toMapping() {

@@ -5,6 +5,7 @@ import com.hs.elsearch.dao.biDao.IBIDao;
 import com.hs.elsearch.entity.*;
 import com.hs.elsearch.template.SearchTemplate;
 import com.hs.elsearch.util.ElasticConstant;
+import com.hs.elsearch.util.HSDateUtil;
 import com.sun.tools.javac.code.Attribute;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
@@ -859,9 +860,19 @@ public class BIDaoImpl implements IBIDao {
             //聚合条件
             AggregationBuilder aggregationBuilder = buildAggregations(params);
 
+            //通过时间范围优化查询的index数量
+            String [] indices =null;
+            List<String> list=new ArrayList<String>();
+            if(params.getDateField()!=null&&!"".equals(params.getDateField())){
+                //时间范围，起始时间和截止时间都不允许为空
+                if (params.getStartTime() != null && !params.getStartTime().equals("") && params.getEndTime() != null && !params.getEndTime().equals("")) {
+                    indices = HSDateUtil.dateArea2Indices(params.getStartTime(),params.getEndTime(),params.getIndex_name());
+                }else {
+                    indices = params.getIndex_name().split(",");
+                }
+            }
             // 返回聚合的内容
-            Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, params.getIndex_name());
-
+            Aggregations aggregations = searchTemplate.getAggregationsByBuilder(boolQueryBuilder, aggregationBuilder, indices);
             /**
              * 组装报表所需数据格式 eg:
              * {

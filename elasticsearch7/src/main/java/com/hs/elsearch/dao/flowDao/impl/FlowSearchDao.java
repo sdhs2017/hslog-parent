@@ -3,6 +3,7 @@ package com.hs.elsearch.dao.flowDao.impl;
 import com.hs.elsearch.dao.flowDao.IFlowSearchDao;
 import com.hs.elsearch.template.IndexTemplate;
 import com.hs.elsearch.template.SearchTemplate;
+import com.hs.elsearch.util.HSDateUtil;
 import org.apache.log4j.Logger;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -52,6 +53,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
@@ -107,6 +109,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
@@ -241,6 +244,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {
@@ -606,6 +610,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
+            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
         }else if (starttime!=null&&!starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         }else if (endtime!=null&&!endtime.equals("")) {

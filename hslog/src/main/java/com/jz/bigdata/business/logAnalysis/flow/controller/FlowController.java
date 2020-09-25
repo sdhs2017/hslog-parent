@@ -450,7 +450,7 @@ public class FlowController {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         logger.info("进入业务流分析统计   "+format.format(new Date()));
 
-        String index = configProperty.getEs_old_index();
+        String index = configProperty.getEs_flow_index();
 
         // 双向划线
         String [] groupbys = {"ipv4_src_addr.raw","ipv4_dst_addr.raw"};
@@ -615,7 +615,7 @@ public class FlowController {
                 map.remove("type");
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
                 try {
-                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_old_index());
+                    list = flowService.getFlowListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_flow_index());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -717,14 +717,14 @@ public class FlowController {
                 if (userrole.equals("1")) {
                     //list = logService.getListByMap(configProperty.getEs_old_index(), types, starttime, endtime, map,page,size);
                     try {
-                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_old_index());
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_flow_index());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }else {
                     map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
                     try {
-                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_old_index());
+                        list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_flow_index());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -840,7 +840,7 @@ public class FlowController {
     @RequestMapping("/getCountGroupByUrl")
     @DescribeLog(describe="统计url的数据量")
     public String getCountGroupByUrl(HttpServletRequest request) {
-        String index = configProperty.getEs_old_index();
+        String index = configProperty.getEs_flow_index();
         String  groupby = "domain_url.raw";
         String [] types = {"defaultpacket"};
         // 资产的ip和端口即目的IP和目的端口
@@ -1043,7 +1043,7 @@ public class FlowController {
         queryParam.put("application_layer_protocol", "http");
         params.setQueryParam(queryParam);
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，用户系统版本（user_agent_os）
         Bucket bucket = new Bucket("terms","user_agent_os.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1137,7 +1137,7 @@ public class FlowController {
         queryParam.put("application_layer_protocol", "http");
         params.setQueryParam(queryParam);
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，浏览器（user_agent_browser）
         Bucket bucket = new Bucket("terms","user_agent_browser.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1197,7 +1197,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         try{
             Map<String, LinkedList<Map<String, Object>>> list = flowService.getListByMultiAggregation(params);
             return JSONArray.fromObject(list).toString();
@@ -1223,7 +1223,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         try{
             Map<String, Object> list = flowService.getMultiAggregationDataSet(params);
             return JSONArray.fromObject(list).toString();
@@ -1252,7 +1252,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
 
         try{
             //X轴，时间，logdate
@@ -1321,7 +1321,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，源IP（ipv4_src_addr）
         Bucket bucket = new Bucket("terms","ipv4_src_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1405,7 +1405,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，源IP（ipv4_dst_addr）
         Bucket bucket = new Bucket("terms","ipv4_dst_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1464,7 +1464,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，源IP（protocol_name）
         Bucket bucket = new Bucket("terms","protocol_name.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1524,7 +1524,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，源IP（ipv4_src_addr）
         Bucket bucket = new Bucket("terms","application_layer_protocol.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1584,7 +1584,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，应用层协议（application_layer_protocol）
         Bucket bucket = new Bucket("terms","application_layer_protocol.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1683,7 +1683,7 @@ public class FlowController {
         }
         try{
             //index 和 日期字段初始化
-            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
             //X轴，时间，logdate
             Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
             params.getBucketList().add(bucket);
@@ -1787,7 +1787,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，目的IP（ipv4_dst_addr）
         Bucket bucket = new Bucket("terms","ipv4_dst_addr",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1864,7 +1864,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，域名（domain_url.raw）
         Bucket bucket = new Bucket("terms","domain_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -1941,7 +1941,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，目的端口（l4_dst_port）
         Bucket bucket = new Bucket("terms","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -2015,7 +2015,7 @@ public class FlowController {
 
         try{
             //index 和 日期字段初始化
-            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
             //X轴，时间，logdate
             Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
             params.getBucketList().add(bucket);
@@ -2152,7 +2152,7 @@ public class FlowController {
         queryConditions.add(qc);
         params.setQueryConditions(queryConditions);
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，目的端口（l4_dst_port）
         Bucket bucket = new Bucket("terms","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -2226,7 +2226,7 @@ public class FlowController {
         queryConditions.add(qc);
         params.setQueryConditions(queryConditions);
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，目的端口（l4_dst_port）
         Bucket bucket = new Bucket("terms","l4_dst_port",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -2296,7 +2296,7 @@ public class FlowController {
 
         try{
             //index 和 日期字段初始化
-            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+            params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
             //X轴，时间，logdate
             Bucket bucket = new Bucket("Date Histogram",Constant.PACKET_DATE_FIELD,params.getIntervalType(),params.getIntervalValue(),null,null);
             params.getBucketList().add(bucket);
@@ -2355,7 +2355,7 @@ public class FlowController {
     @RequestMapping("/getMap")
     @DescribeLog(describe="首页地图地球-展示流量的流向")
     public String getMap(HttpServletRequest request) {
-        String index = configProperty.getEs_old_index();
+        String index = configProperty.getEs_flow_index();
         String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
         String [] types = {"defaultpacket"};
         List<List<Map<String, Object>>> list = new ArrayList<>();
@@ -2388,7 +2388,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，域名（domain_url）
         Bucket bucket = new Bucket("terms","domain_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);
@@ -2495,7 +2495,7 @@ public class FlowController {
             return Constant.failureMessage(params.getErrorInfo());
         }
         //index 和 日期字段初始化
-        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,Constant.PACKET_INDEX);
+        params.initDateFieldAndIndex(Constant.PACKET_DATE_FIELD,configProperty.getEs_flow_index());
         //X轴，全量url（complete_url）
         Bucket bucket = new Bucket("terms","complete_url.raw",null,null,10,"desc");
         params.getBucketList().add(bucket);

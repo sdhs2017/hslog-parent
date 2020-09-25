@@ -19,7 +19,7 @@
                         <i class="el-icon-close" @click="removeAssetGroup(item.asset_group_id)"></i>
                     </div>
                 </div>
-                <div class="eq-tit"><span>所在资产</span><span>（{{item.asset_group_relations.length}}个）</span></div>
+                <div class="eq-tit"><span>所在资产</span><span class="goToEqGroupSpan" title="查看所在资产" @click="goToEqGroup(item.asset_group_id)">（{{item.asset_group_relations.length}}个）</span></div>
                 <div class="eq-list">
                     <div title="点击查看资产信息" class="eq-item" v-for="(eq,ei) in item.asset_group_relations" :key="ei" @click="goToEq(eq.asset_id)">{{eq.asset_name}}</div>
                 </div>
@@ -145,10 +145,11 @@
                 layer.confirm('您确定删除么？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
-                    layer.close(index);
+                    this.loading = true
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/assetGroup/delete.do',this.$qs.stringify({asset_group_id:id}))
                             .then((res)=>{
+                                this.loading = false
                                 if(res.data.success == "true"){
                                     layer.msg("删除成功",{icon:1});
                                     this.c_page = 1;
@@ -159,6 +160,7 @@
 
                             })
                             .catch((err)=>{
+                                this.loading = false;
                                 layer.msg("删除失败",{icon:5});
                             })
                     })
@@ -173,7 +175,11 @@
             },
             /*跳转单个资产*/
             goToEq(id){
-                this.$router.push({name:'equipment2',params:{equipmentid: id}})
+                this.$router.push({name:'equipment_group',params:{equipmentid: id}})
+            },
+            /*跳转带资产组的页面*/
+            goToEqGroup(id){
+                this.$router.push({name:'equipment_group',params:{groupId: id}})
             }
         },
         components:{
@@ -346,5 +352,9 @@
         background: #1a242f;
         bottom: 0px;
         right: -6px;
+    }
+    .goToEqGroupSpan:hover{
+        color: #e4956d;
+        cursor: pointer;
     }
 </style>

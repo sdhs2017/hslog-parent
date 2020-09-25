@@ -1,6 +1,6 @@
 <template>
     <div  class="content-bg">
-        <div class="top-title">修改{{}}</div>
+        <div class="top-title">修改 {{this.groupName}}</div>
         <div class="form-wapper">
             <assetFrom :groupId="groupId" :defaultFrom="groupInfo" url="/assetGroup/update.do"></assetFrom>
         </div>

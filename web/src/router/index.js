@@ -128,6 +128,12 @@ export default new Router({
                     meta: { title: '资产概览' }
                 },
                 {
+                    path: '/equipment_group',
+                    name:'equipment_group',
+                    component: resolve => require(['../components/equipment/equipment_group.vue'], resolve),
+                    meta: { title: '资产概览' }
+                },
+                {
                     path: '/allEquipmentMonitor',
                     name:'allEquipmentMonitor',
                     component: resolve => require(['../components/equipment/allEquipmentMonitor.vue'], resolve),
@@ -431,6 +437,12 @@ export default new Router({
                     path: '/addEquipment2',
                     name:'addEquipment2',
                     component: resolve => require(['../components/equipment/addEquipment2.vue'], resolve),
+                    meta: { title: '添加资产' }
+                },
+                {
+                    path: '/addEquipmentWithGroup',
+                    name:'addEquipmentWithGroup',
+                    component: resolve => require(['../components/equipment/addEquipmentWithGroup.vue'], resolve),
                     meta: { title: '添加资产' }
                 },
                 {

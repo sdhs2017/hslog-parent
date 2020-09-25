@@ -24,6 +24,9 @@ import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.*;
+import org.elasticsearch.search.sort.SortBuilder;
+import org.elasticsearch.search.sort.SortBuilders;
+import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -793,11 +796,22 @@ public class BIDaoImpl implements IBIDao {
     public List<Map<String, Object>> getListExistsField(String indexName,String fieldName) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
         //排序
-        //SortBuilder sortBuilder = SortBuilders.fieldSort("visualization.title").order(SortOrder.DESC);
+        List<SortBuilder> sortBuilders = new ArrayList<>();
+        if(ElasticConstant.HSDATA_DASHBOARD.equals(fieldName)){
+            //是否可编辑排序
+            sortBuilders.add(SortBuilders.fieldSort("dashboard.editable").order(SortOrder.DESC));
+        }else if(ElasticConstant.HSDATA_VISUAL.equals(fieldName)){
+            sortBuilders.add(SortBuilders.fieldSort("visualization.editable").order(SortOrder.DESC));
+            //图表类型排序
+            sortBuilders.add(SortBuilders.fieldSort("visualization.type").order(SortOrder.DESC));
+        }else{
+            //其他情况无排序
+        }
+        //SortBuilder sortBuilder = SortBuilders.fieldSort("visualization.type").order(SortOrder.DESC);
         //查询条件
         boolQueryBuilder.must(QueryBuilders.constantScoreQuery(QueryBuilders.existsQuery(fieldName)));
         //TODO 分页
-        List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder, null, 0, 999, indexName);
+        List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder, sortBuilders, 0, 999, indexName);
         //List<Map<String, Object>> list = searchTemplate.getListByBuilder(boolQueryBuilder,indexName);
         return list;
     }

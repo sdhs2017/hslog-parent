@@ -28,12 +28,22 @@ public class SearchConditions {
     private String unit;//单位，数据换算
     private List<Filter> filters_visual = new ArrayList<>();//图表 filter级
     private List<Filter> filters_dashboard = new ArrayList<>();//dashboard filter级
+    private List<Map<String,String>> filters_table = new ArrayList<>();//
+
     private String queryBox;//query 查询框的内容
     private Integer page;//分页，第几页
     private Integer page_size;//分页，每页多少条
     private Integer from;//分页起始行，通过page和page_size计算而来
     private Integer size;//最终要展示的数量
     private List<DataTableColumn> dataTableColumns = new ArrayList<>();
+
+    public List<Map<String,String>> getFilters_table() {
+        return filters_table;
+    }
+
+    public void setFilters_table(List<Map<String,String>> filters_table) {
+        this.filters_table = filters_table;
+    }
 
     public Integer getPage() {
         return page;

@@ -253,7 +253,40 @@ public class SearchTemplate {
 
         return getListBySearchHit(searchHits);
     }
+    /**
+     * 通过查询体（QueryBuilder）获取数据（带排序功能）
+     * 带有排序的分页查询
+     * @param queryBuilder 查询体
+     * @param sortBuilders 排序体
+     * @param from 翻页
+     * @param size 每页数据条数
+     * @param indices
+     * @return
+     */
+    public List<Map<String, Object>> getListByBuilder(QueryBuilder queryBuilder, List<SortBuilder> sortBuilders,Integer from,Integer size, String... indices) throws Exception {
 
+        SearchRequest searchRequest = new SearchRequest(indices);
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        if (queryBuilder!=null){
+            sourceBuilder.query(queryBuilder);
+        }
+        if (sortBuilders!=null){
+            for(SortBuilder sortBuilder:sortBuilders){
+                sourceBuilder.sort(sortBuilder);
+            }
+        }
+        if (from>=0&&size>=0){
+            sourceBuilder.from(from).size(size);
+        }
+        searchRequest.source(sourceBuilder);
+
+        SearchResponse response = restHighLevelClient.search(searchRequest,RequestOptions.DEFAULT);
+
+        SearchHits searchHits = response.getHits();
+
+        return getListBySearchHit(searchHits);
+    }
     /**
      * 通过查询体（QueryBuilder）获取数据（带排序功能）
      * @param queryBuilder

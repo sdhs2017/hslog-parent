@@ -25,6 +25,16 @@ public class ElasticConstant {
      * 当使用metric报表，仅定义多个metric，无bucket时，需要在聚合的外层套一个聚合，该聚合的名称定义为elastic_metric
      */
     public static final String METRIC_AGG_NAME = "elastic_metric";
+
+    /**
+     * 可视化 图表保存在es中的字段名
+     */
+    public static final String HSDATA_VISUAL = "visualization";
+    /**
+     * 可视化 dashboard保存在es中的字段名
+     */
+    public static final String HSDATA_DASHBOARD = "dashboard";
+
     /**
      * sort type ，可排序字段类型
      */

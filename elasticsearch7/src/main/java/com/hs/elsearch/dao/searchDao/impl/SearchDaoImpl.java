@@ -193,7 +193,7 @@ public class SearchDaoImpl implements ISearchDao {
     private void addFilters4Table(BoolQueryBuilder boolQueryBuilder ,List<Map<String,String>> filters){
         BoolQueryBuilder tableShouldQuery = QueryBuilders.boolQuery();
         for(Map<String,String> map :filters){
-            tableShouldQuery.should(QueryBuilders.termQuery("fields.ip",map.get("fields.ip")));
+            tableShouldQuery.should(QueryBuilders.termQuery("fields.equipmentid",map.get("fields.equipmentid")));
         }
         boolQueryBuilder.filter(tableShouldQuery);
     }

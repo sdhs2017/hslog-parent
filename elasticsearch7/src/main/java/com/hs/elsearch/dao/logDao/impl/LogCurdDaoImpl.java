@@ -28,7 +28,7 @@ public class LogCurdDaoImpl implements ILogCrudDao {
     @Autowired
     BulkTemplate_BulkProcessor bulkTemplate_bulkProcessor;
 
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+    SimpleDateFormat format = new SimpleDateFormat("yyyy.MM.dd");
 
 
     @Override
@@ -84,7 +84,7 @@ public class LogCurdDaoImpl implements ILogCrudDao {
     @Override
     public String checkOfIndex(String index, String suffix, Date date) {
         if(suffix!=null&&!suffix.equals("")){
-            index = index.replace("*","_"+suffix+format.format(date));
+            index = index.replace("*","-"+suffix+"-"+format.format(date));
         }
 
         return index;

@@ -352,7 +352,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
 
         // 合并后的segments数
-        int segments = 1;
+        int segments = Integer.parseInt(configProperty.getEs_number_of_segment());
 
         HashMap result = new HashMap();
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");

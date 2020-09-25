@@ -336,8 +336,8 @@ public class BIController {
             if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
                 return Constant.failureMessage(searchConditions.getErrorInfo());
             }
-            Map<String, Object> result = iBIService.getSearchData_dynamicTable(searchConditions);
-            return Constant.successData(JSONArray.fromObject(result).toString());
+            String result = iBIService.getSearchData_dynamicTable(searchConditions);
+            return Constant.successData(result);
         }catch(ErrorInfoException e){
             return Constant.failureMessage(e.getMessage());
         }catch(ElasticsearchStatusException e){

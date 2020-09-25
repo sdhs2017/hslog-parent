@@ -16,7 +16,7 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 public interface IEquipmentService {
 
 	int insert(Equipment equipment, HttpSession session);
-	String upsert(Equipment equipment, HttpSession session) throws Exception;
+	int upsert(Equipment equipment, HttpSession session,boolean withAssetGroup) throws Exception;
 
 	/**
 	 * 批量插入资产
@@ -33,10 +33,12 @@ public interface IEquipmentService {
 	int updateById(Equipment equipment, HttpSession session);
 	
 	int delete(String[] ids);
+
+	int deleteWithAssetGroup (String[] ids);
 	
 	List<Equipment> selectEquipment(Equipment equipment) throws Exception;
 	
-	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session) throws Exception;
+	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session,String asset_group_id) throws Exception;
 	
 	Equipment selectOneEquipment(Equipment equipment);
 	

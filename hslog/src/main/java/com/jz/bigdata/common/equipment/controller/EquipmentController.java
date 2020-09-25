@@ -88,7 +88,71 @@ public class EquipmentController {
 	@DescribeLog(describe="添加/修改资产")
 	public String upsert(HttpServletRequest request, Equipment equipment,HttpSession session) {
 		try{
-			return this.equipmentService.upsert(equipment,session);
+			int result = this.equipmentService.upsert(equipment,session,false);
+			if(result==1){
+				return Constant.successMessage("操作成功！");
+			}else if(result==2){
+				return Constant.failureMessage("资产达到上限，无法添加！");
+			}else{
+				return Constant.successMessage("操作失败！");
+			}
+		}catch(DataAccessException e){//spring
+			//异常类型
+			if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
+				//根据异常信息判定是否存在唯一索引重复
+				if(e.getMessage().indexOf("nameUnique")>=0){
+					return Constant.failureMessage("资产名称重复，请重新输入！");
+				}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
+					return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
+				}else{
+					logger.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
+				}
+			}else{
+				logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
+			}
+			//其他异常情况
+			return Constant.failureMessage("操作失败！");
+		}catch (Exception e){
+			logger.error(e.getMessage());
+			return Constant.failureMessage("操作失败！");
+		}
+
+	}
+	/**
+	 * @param request
+	 * @param equipment
+	 * @param session
+	 * @return 添加/修改资产&资产组
+	 */
+	@ResponseBody
+	@RequestMapping(value="/upsertWithAssetGroup.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="添加/修改资产&资产组")
+	public String upsertWithAssetGroup(HttpServletRequest request, Equipment equipment,HttpSession session) {
+		try{
+			int result = this.equipmentService.upsert(equipment,session,true);
+			if(result==1){
+				return Constant.successMessage("操作成功！");
+			}else if(result==2){
+				return Constant.failureMessage("资产达到上限，无法添加！");
+			}else{
+				return Constant.successMessage("操作失败！");
+			}
+		}catch(DataAccessException e){//spring
+			//异常类型
+			if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
+				//根据异常信息判定是否存在唯一索引重复
+				if(e.getMessage().indexOf("nameUnique")>=0){
+					return Constant.failureMessage("资产名称重复，请重新输入！");
+				}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
+					return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
+				}else{
+					logger.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
+				}
+			}else{
+				logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
+			}
+			//其他异常情况
+			return Constant.failureMessage("操作失败！");
 		}catch (Exception e){
 			logger.error(e.getMessage());
 			return Constant.failureMessage("操作失败！");
@@ -101,7 +165,6 @@ public class EquipmentController {
 	 * @return 根据id删除数据
 	 */
 	@ResponseBody
-//	@RequestMapping("/delete")
 	@RequestMapping(value="/delete.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="删除资产")
 	public String delete(HttpServletRequest request) {
@@ -112,6 +175,29 @@ public class EquipmentController {
 //		数组长度大于0删除数据
 			if (ids.length > 0) {
 				result = this.equipmentService.delete(ids);
+			}
+			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+		}catch(Exception e){
+			logger.error("删除资产"+e.getMessage());
+			return Constant.failureMessage();
+		}
+
+	}
+	/**
+	 * @param request
+	 * @return 根据id删除数据&资产组关系表
+	 */
+	@ResponseBody
+	@RequestMapping(value="/deleteWithAssetGroup.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="删除资产&资产组关系表")
+	public String deleteWithAssetGroup(HttpServletRequest request) {
+		try{
+			int result = 0;
+//		获取id数组
+			String[] ids = request.getParameter("id").split(",");
+//		数组长度大于0删除数据
+			if (ids.length > 0) {
+				result = this.equipmentService.deleteWithAssetGroup(ids);
 			}
 			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 		}catch(Exception e){
@@ -200,10 +286,11 @@ public class EquipmentController {
 		String logType =request.getParameter("logType");
 		// 资产类型
 		String type = request.getParameter("type");
-
+		//资产组id
+		String asset_group_id = request.getParameter("asset_group_id");
 		String result = "";
 		try {
-			result = equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session);
+			result = equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session,asset_group_id);
 			logger.info("查询资产：成功");
 		} catch (Exception e) {
 			logger.error("查询资产：失败"+e.getMessage());

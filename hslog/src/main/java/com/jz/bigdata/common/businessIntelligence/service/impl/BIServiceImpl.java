@@ -99,13 +99,13 @@ public class BIServiceImpl implements IBIService {
     public String getVisualizations(String indexName, HttpSession session) throws Exception {
         List<Visualization> result = new ArrayList<>();
         //获取index的visualization列存在数据的信息
-        List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,"visualization");
+        List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,ElasticConstant.HSDATA_VISUAL);
         //遍历结果集
         for(Map<String,Object> map:list){
             Visualization visual = new Visualization();
             visual.setId(map.get("id").toString());
             //visualization存储图表的数据
-            Map<String,Object> visualizationInfo = (HashMap<String,Object>)map.get("visualization");
+            Map<String,Object> visualizationInfo = (HashMap<String,Object>)map.get(ElasticConstant.HSDATA_VISUAL);
             visual.setTitle(visualizationInfo.get("title").toString());//标题
             visual.setDescription(visualizationInfo.get("description").toString());//描述
             visual.setType(visualizationInfo.get("type").toString());//图表类型
@@ -128,13 +128,13 @@ public class BIServiceImpl implements IBIService {
     public String getDashboards(String indexName,HttpSession session) throws Exception {
         List<Dashboard> result = new ArrayList<>();
         //获取index的visualization列存在数据的信息
-        List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,"dashboard");
+        List<Map<String,Object>> list = ibiDao.getListExistsField(indexName,ElasticConstant.HSDATA_DASHBOARD);
         //遍历结果集
         for(Map<String,Object> map:list){
             Dashboard dashboard = new Dashboard();
             dashboard.setId(map.get("id").toString());
             //visualization存储图表的数据
-            Map<String,Object> dashboardInfo = (HashMap<String,Object>)map.get("dashboard");
+            Map<String,Object> dashboardInfo = (HashMap<String,Object>)map.get(ElasticConstant.HSDATA_DASHBOARD);
             dashboard.setTitle(dashboardInfo.get("title").toString());//标题
             dashboard.setDescription(dashboardInfo.get("description").toString());//描述
             //master用户在BI模块可以进行编辑保存
@@ -465,7 +465,7 @@ public class BIServiceImpl implements IBIService {
     }
 
     @Override
-    public Map<String, Object> getSearchData_dynamicTable(SearchConditions conditions) throws Exception {
+    public String getSearchData_dynamicTable(SearchConditions conditions) throws Exception {
         //获取count
         long count = searchService.getCountByConditionsQuery(conditions);
         //获取list
@@ -473,9 +473,51 @@ public class BIServiceImpl implements IBIService {
         Map<String, Object> allMap = new HashMap<>();
         allMap.put("count",count);
         allMap.put("list",list);
-        return allMap;
+        String result = JSONArray.fromObject(allMap).toString();
+        //处理数据
+        JSONArray obj = JSONArray.fromObject(list);
+        for (int i = 0; i < obj.size(); i++) {
+            result = analysisJson(obj.get(i),result);
+        }
+        return result;
     }
 
+    /**
+     * 返回数据处理，将非string的value转成string
+     * @param objJson
+     * @param result
+     * @return
+     */
+    private String  analysisJson(Object objJson,String result){
+        //如果为json对象
+        if(objJson instanceof JSONObject){
+            JSONObject jsonObject = (JSONObject)objJson;
+            Iterator it = jsonObject.keys();
+            while(it.hasNext()){
+                String key = it.next().toString();
+                Object object = jsonObject.get(key);
+                //如果得到的是数组
+                if(object instanceof JSONArray){
+                    JSONArray objArray = (JSONArray)object;
+                    result = analysisJson(objArray,result);
+                }
+                //如果key中是一个json对象
+                else if(object instanceof JSONObject){
+                    result = analysisJson((JSONObject)object,result);
+                }
+                //如果key中是其他
+                else{
+                    ///非string类型数据转成string。进行替换
+                    if(object instanceof String){
+                        //
+                    }else{
+                        result = result.replace("\""+key+"\":"+object,"\""+key+"\":\""+object+"\"");
+                    }
+                }
+            }
+        }
+        return result;
+    }
     @Override
     public List<Map<String,String>> showTables() throws Exception {
         List<Map<String,String>> result = businessIntelligenceDao.showTables();

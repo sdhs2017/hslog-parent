@@ -103,10 +103,12 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * 添加/修改资产
 	 * @param equipment
 	 * @param session
+	 * @param isAssetGroup 是否关联资产组
 	 * @return
 	 */
 	@Override
-	public String upsert(Equipment equipment, HttpSession session) throws Exception {
+	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
+	public int upsert(Equipment equipment, HttpSession session,boolean isAssetGroup) throws Exception {
 		// 获取总数
 		List<Object> count = equipmentDao.count_Number();
 		// 获取总数集合6
@@ -118,52 +120,33 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// 判断资产数是否超过限定
 		if (Integer.valueOf((String) resultList.get(0).get("count")) < Integer.valueOf(base64Util.decode(configProperty.getNumber()).trim())) {
 			int result = 0;
-			try{
-				//id不为空，说明是资产的update
-				if(equipment.getId()!=null&&!"".equals(equipment.getId())){
-					// 设置日期格式
-					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-					// 获取日期
-					equipment.setUpDateTime(df.format(new Date()));
-					equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
-					result = equipmentDao.updateById(equipment);
-				}else{
-					equipment.setId(Uuid.getUUID());
-					//id为空，为新增资产
-					User user = userDao.selectById(session.getAttribute(Constant.SESSION_USERID).toString());
-					equipment.setDepartmentId(user.getDepartmentId());
-					equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
-					equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
-					SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
-					// 获取日期
-					equipment.setCreateTime(df.format(new Date()));
-					result = equipmentDao.insert(equipment);
+			//id不为空，说明是资产的update
+			if(equipment.getId()!=null&&!"".equals(equipment.getId())){
+				// 设置日期格式
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				// 获取日期
+				equipment.setUpDateTime(df.format(new Date()));
+				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+				result = equipmentDao.updateById(equipment);
+				if(isAssetGroup){
+					//更新资产与资产组中间表
+					equipmentDao.updateAssetGroupRelationsById(equipment);
 				}
-				//返回添加或更新的数据，如果是1，说明添加/更新成功
-				if(result==1){
-					return Constant.successMessage("操作成功！");
-				}else{
-					return Constant.successMessage("操作失败！");
-				}
-			}catch(DataAccessException e){//spring
-				//异常类型
-				if(e.getMessage().indexOf("MySQLIntegrityConstraintViolationException")>=0){
-					//根据异常信息判定是否存在唯一索引重复
-					if(e.getMessage().indexOf("nameUnique")>=0){
-						return Constant.failureMessage("资产名称重复，请重新输入！");
-					}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
-						return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
-					}else{
-						logger.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
-					}
-				}else{
-					logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
-				}
-				//其他异常情况
-				return Constant.failureMessage("操作失败！");
+			}else{
+				equipment.setId(Uuid.getUUID());
+				//id为空，为新增资产
+				User user = userDao.selectById(session.getAttribute(Constant.SESSION_USERID).toString());
+				equipment.setDepartmentId(user.getDepartmentId());
+				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
+				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
+				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
+				// 获取日期
+				equipment.setCreateTime(df.format(new Date()));
+				result = equipmentDao.insert(equipment);
 			}
+			return result;
 		} else {
-			return Constant.failureMessage("资产达到上限，无法添加！");
+			return 2;
 		}
 	}
 
@@ -309,9 +292,22 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		int result=0;
 		result=equipmentDao.delete(ids);
 		equipmentDao.deleteEvent(ids);
+		//
 		return result;
 	}
-
+	/**
+	 * @param ids
+	 * @return 删除数据.包含资产/资产组关系表中信息的删除
+	 */
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, rollbackFor = { Exception.class })
+	public int deleteWithAssetGroup(String[] ids) {
+		int result=0;
+		result=equipmentDao.delete(ids);
+		equipmentDao.deleteEvent(ids);
+		equipmentDao.deleteAssetGroupRelationsByEquipmentId(ids);
+		return result;
+	}
 	/**
 	 * @param equipment
 	 * @return
@@ -368,14 +364,15 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * @param pageIndex
 	 * @param pageSize
 	 * @param session
+	 * @param asset_group_id 资产组id
 	 * @return
 	 */
 	@Override
-	public String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize,HttpSession session) throws Exception {
+	public String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize,HttpSession session,String asset_group_id) throws Exception {
 		// 获取起始数
 		int startRecord = (pageSize * (pageIndex - 1));
 		// 获取总数
-		List count = equipmentDao.count(hostName, name, ip, logType,type,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString());
+		List count = equipmentDao.count(hostName, name, ip, logType,type,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(),asset_group_id);
 		List listCount = new ArrayList<>();
 		// 获取总数集合
 		listCount = (List) count.get(0);
@@ -384,7 +381,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// 总数添加到map
 		map.put("count", (listCount.get(0)));
 		// 查询所有数据
-		List<Equipment> listEquipment = equipmentDao.searchAllByPage(hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize);
+		List<Equipment> listEquipment = equipmentDao.searchAllByPage(hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize,asset_group_id);
 		// System.err.println(listEquipment.get(0).getCreateTime());
 
 		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间

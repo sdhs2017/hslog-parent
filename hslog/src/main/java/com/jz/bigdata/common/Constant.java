@@ -84,6 +84,13 @@ public class Constant {
 	//前端combobox需要的两个字段名称
 	public static final String COMBOBOX_VALUE="value";//传参内容
 	public static final String COMBOBOX_LABEL="label";//显示内容
+	//前端穿梭框需要的两个字段名称
+	public static final String TRANSFER_KEY="key";//传参内容
+	public static final String TRANSFER_LABEL="label";//显示内容
+	//资产类别
+	public static final String PHYSICAL_ASSET = "physical";//物理资产
+	public static final String LOGICAL_ASSET = "logical";//逻辑资产
+	public static final String VIRTUAL_ASSET = "virtual";//虚拟资产
 
 	/**
 	 * @param tf 返回的success是true还是false

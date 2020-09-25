@@ -380,6 +380,16 @@ public class HttpRequestUtil {
                     }
                 }
             }
+            //---------处理filter--------table filter---
+            String filters_table = request.getParameter("filters_table");
+            if(null!=filters_table&&!"".equals(filters_table)){
+                //filters中包含多个filter
+                JSONArray json = JSONArray.fromObject(filters_table);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    searchConditions.getFilters_table().add((Map)JSONObject.fromObject(beanObj));
+                }
+            }
             //queryBox 无法通过mapToBean的方式获取
             searchConditions.setQueryBox(request.getParameter("queryBox"));
         }catch(Exception e){

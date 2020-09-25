@@ -157,7 +157,7 @@ public interface IBIService {
      * @return
      * @throws Exception
      */
-    public Map<String, Object> getSearchData_dynamicTable(SearchConditions conditions) throws Exception;
+    public String getSearchData_dynamicTable(SearchConditions conditions) throws Exception;
 
     /**
      * 获取mysql数据库所有表

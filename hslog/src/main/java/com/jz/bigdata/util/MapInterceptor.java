@@ -29,7 +29,7 @@ import org.json.JSONException;
  */
 @Intercepts(@Signature(method="handleResultSets", type=ResultSetHandler.class, args={Statement.class}))
 public class MapInterceptor implements Interceptor {
-
+	private final String exceptTables = "asset_group_relations";
 	/* (non-Javadoc) 实现拦截器主函数
 	 * @see org.apache.ibatis.plugin.Interceptor#intercept(org.apache.ibatis.plugin.Invocation)
 	 */
@@ -51,7 +51,9 @@ public class MapInterceptor implements Interceptor {
 			for(int i=1;i<=column;i++){
 				set.add(md.getTableName(i));
 			}
-			if(set.size()==1&&!set.contains("")){
+			//TODO 拦截器问题，mybatis可以处理多表，不需要拦截器处理
+			if((set.size()==1&&!set.contains(""))||set.contains(exceptTables)){
+			//if(!set.contains("")){
 				//closeResultSet(rs);
 				//不进行拦截
 				return invocation.proceed();

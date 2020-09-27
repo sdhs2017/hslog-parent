@@ -336,7 +336,8 @@
                         {
                             field:'',
                             sort:'desc',
-                            aliasName: ''
+                            aliasName: '',
+                            show:true
                         }
                     ],
                     //条件集合

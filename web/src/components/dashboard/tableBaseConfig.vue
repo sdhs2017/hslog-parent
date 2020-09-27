@@ -76,6 +76,9 @@
                                     <el-form-item label="名称" v-if="chartsConfig.dataSourceType === 'ElasticSearch'">
                                         <el-input v-model="columnItem.aliasName" size="mini"></el-input>
                                     </el-form-item>
+                                    <el-form-item label="显示">
+                                        <el-switch v-model="columnItem.show"></el-switch>
+                                    </el-form-item>
                                 </el-form>
                             </el-collapse-item>
                             <p style="text-align: center;font-size: 12px;margin-bottom: 10px;" v-if="operType !== 'see'"><span class="addY" @click="addColumn"> <i class="el-icon-circle-plus"></i>添加列</span></p>
@@ -699,7 +702,8 @@
                 this.chartsConfig.columnArr.push({
                     field:'',
                     sort:'desc',
-                    aliasName: ''
+                    aliasName: '',
+                    show:true
                 })
             },
             /*添加条件*/
@@ -865,11 +869,14 @@
                 this.emptyText = '加载中'
                 //拼接头部
                 this.chartsConfig.columnArr.forEach((item)=>{
-                    this.chartsConfig.tableHead.push({
-                        prop:item.field,
-                        label:item.aliasName === '' ? item.field : item.aliasName,
-                        width:''
-                    })
+                    if(item.show){
+                        this.chartsConfig.tableHead.push({
+                            prop:item.field,
+                            label:item.aliasName === '' ? item.field : item.aliasName,
+                            width:''
+                        })
+                    }
+
                 })
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))

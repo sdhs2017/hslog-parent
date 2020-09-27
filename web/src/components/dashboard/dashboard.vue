@@ -81,7 +81,7 @@
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="no-chart" :id="`err${item.i}`"></div>
                         <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
-                            <v-basetable :selection="item.opt.selection" :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText" :busName="item.opt.busNames"></v-basetable>
+                            <v-basetable :selection="item.opt.selection" :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText" :busName="item.opt.busNames" :selectionArr="selected_row"></v-basetable>
                             <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="item.opt.tableData">
                                 总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
                                 <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="Number(item.opt.page.size)" :total="item.opt.page.allCounts"></el-pagination>
@@ -574,6 +574,8 @@
                 updateBtn:false,
                 //资产表 过滤条件
                 filters_table:'',
+                //表选中的 行
+                selected_row:[]
             }
         },
         created(){
@@ -588,13 +590,6 @@
                 this.busFilterName = 'resiveDashboardFilters'+this.$route.query.id;
                 this.busQueryName = 'resiveDashboardQuery'+this.$route.query.id;
                 this.operType = 'edit'
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'resiveDashboard'+this.$route.query.id,
-                    component:'dashboard/dashboard.vue',
-                    title:'编辑'
-                }
-                sessionStorage.setItem('/resiveDashboard'+this.$route.query.id,JSON.stringify(obj))
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                 }
@@ -608,13 +603,6 @@
                 this.busFilterName = 'seeDashboardFilters'+this.$route.query.id;
                 this.busQueryName = 'seeDashboardQuery'+this.$route.query.id;
                 this.operType = 'see'
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'seeDashboard'+this.$route.query.id,
-                    component:'dashboard/dashboard.vue',
-                    title:'查看'
-                }
-                sessionStorage.setItem('/seeDashboard'+this.$route.query.id,JSON.stringify(obj))
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                 }
@@ -627,13 +615,6 @@
                 this.busName = 'equipmentDashboard'+this.$route.query.eid;
                 this.busFilterName = 'eqDashboardFilters'+this.$route.query.id;
                 this.busQueryName = 'eqDashboardQuery'+this.$route.query.id;
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'equipmentDashboard'+this.$route.query.eid,
-                    component:'dashboard/dashboard.vue',
-                    title:'编辑'
-                }
-                sessionStorage.setItem('/equipmentDashboard'+this.$route.query.eid,JSON.stringify(obj))
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                     this.equipmentId = this.$route.query.eid;
@@ -662,9 +643,12 @@
                     this.sysChartParams = arr[0];
                 }
             })
+            //过滤条件
             bus.$on(this.busFilterName,(str)=>{
                 this.filters = str;
-                this.loading = true;
+                //刷新数据
+                this.refreshData()
+                /*this.loading = true;
                 //获取数据
                 for(let i in this.layout){
                     this.chartsCount += 1;
@@ -683,7 +667,7 @@
 
                     }
 
-                }
+                }*/
             })
             //监听query
             bus.$on(this.busQueryName,(str)=>{
@@ -881,7 +865,7 @@
             },
             updateChart(){
                 this.oldQuery = this.queryVal;
-                this.refresh++;
+                this.refreshData();
                 this.updateBtn = false;
             },
             //判断是否出现更新按钮
@@ -908,7 +892,51 @@
             },
             /*刷新dashboard*/
             refreshDashboard(){
-                this.refresh++;
+                this.loading = true;
+                //获取数据
+                for(let i in this.layout) {
+                    this.chartsCount += 1;
+                    //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                    if (this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart') {
+                        this.getEchartsConstruction(this.layout[i])
+                            .then((res) => {
+                                //获取图例数据
+                                return this.getEchartsData(res)
+                            })
+                            .then((res) => {
+                                //加载图例
+                                return this.creatEcharts(res)
+                            })
+                    } else if (this.layout[i].chartType == 'systemChart') {
+
+                    }
+                }
+            },
+            /*刷新数据*/
+            refreshData(){
+                this.loading = true;
+                //获取数据
+                for(let i in this.layout){
+                    this.chartsCount += 1;
+                    //特殊资产表 不需要刷新
+                    if(this.layout[i].eId === 'NI3fr3QBqKrf67Ha5Dr9'){
+                        if(this.layout.length === 1){
+                            this.loading = false;
+                        }
+                        continue;
+                    }
+                    //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                    if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
+                        this.getEchartsData(this.layout[i])
+                            .then((res)=>{
+                                //加载图例
+                                return this.creatEcharts(res)
+                            })
+                    }else if(this.layout[i].chartType == 'systemChart'){
+
+                    }
+
+                }
             },
             /*删除图例*/
             deleteE(i){
@@ -1023,7 +1051,8 @@
                                     //填充数据
                                     if(obj.chartType === 'metric'){//指标
                                         option = JSON.parse(data.data.option)
-                                    }else if(obj.chartType === 'table'){//表格
+                                    }
+                                    else if(obj.chartType === 'table'){//表格
                                         option.tableHead = JSON.parse(data.data.option).config.tableHead;
                                         //特殊资产表 设置多选框 以及资产跳转
                                         if(obj.eId === 'NI3fr3QBqKrf67Ha5Dr9'){
@@ -1048,8 +1077,9 @@
                                                         'fields.ip':params[i].ip
                                                     })
                                                 }
+                                                this.selected_row = arr
                                                 this.filters_table = JSON.stringify(arr);
-                                                this.refreshDashboard()
+                                                this.refreshData()
                                             })
                                         }else{
                                             option.selection = false
@@ -1065,14 +1095,15 @@
                                         obj.areaShow = JSON.parse(data.data.option).config.graph.areaShow
                                     }
                                     obj.opt = option;
-                                    console.log(obj.opt)
                                     obj.tit = data.data.title;
-                                    let resObj = {
+                                    /*let resObj = {
                                         obj:obj,
                                         param:param
                                     }
                                     //console.log(resObj)
-                                    resolve(resObj);
+                                    resolve(resObj);*/
+                                    obj.param = param;
+                                    resolve(obj)
                                 }else{
                                     layer.msg('获取数据失败',{icon:5})
                                 }
@@ -1089,29 +1120,30 @@
             },
             /*获取echarts数据*/
             getEchartsData(resObj){
+                //显示error提示
+                $(document.getElementById('err'+resObj.i)).css("zIndex","200")
+                $(document.getElementById('err'+resObj.i)).html('<i class="el-icon-loading"></i>')
                 //判断请求的方法
                 let url = '';
-                if(resObj.obj.chartType === 'pie'){
+                if(resObj.chartType === 'pie'){
                     url = '/BI/getDataByChartParams_pie.do'
-                }else if(resObj.obj.chartType === 'bar'){
+                }else if(resObj.chartType === 'bar'){
                     url = '/BI/getDataByChartParams_bar.do'
-                }else if(resObj.obj.chartType === 'line'){
+                }else if(resObj.chartType === 'line'){
                     url = '/BI/getDataByChartParams_line.do'
-                }else if(resObj.obj.chartType === 'metric'){
+                }else if(resObj.chartType === 'metric'){
                     url = '/BI/getDataByChartParams_metric.do'
-                }else if(resObj.obj.chartType === 'table'){
+                }else if(resObj.chartType === 'table'){
                     //判断表格类型
                     if(resObj.param.tableName){//mysql
                         url = '/BI/getDataBySql.do'
-                        resObj.obj.tableType = 'mysql'
+                        resObj.tableType = 'mysql'
                     }else{//es
-                        resObj.obj.tableType = 'es'
+                        resObj.tableType = 'es'
                         url = '/BI/getDataByParams_dynamicTable.do'
                     }
-
                 }
-
-                let obj = resObj.obj;
+                let obj = resObj;
                 let param = resObj.param;
                 param.starttime = this.dateArr.starttime;
                 param.endtime = this.dateArr.endtime;
@@ -1215,6 +1247,11 @@
                                     else if(obj.chartType === 'pie'){
                                         //饼图圆环个数
                                         let pieCount = res.data.data.length;
+                                        if(pieCount === 0){
+                                            //显示error提示
+                                            $(document.getElementById('err'+obj.i)).css("zIndex","200")
+                                            $(document.getElementById('err'+obj.i)).html('暂无数据')
+                                        }
                                         //圆环间隔
                                         let pieSpace = 5;
                                         //最大范围
@@ -1269,10 +1306,15 @@
                                         //循环拼接数据
                                         for(let i in obj.opt.dataset){
                                             obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
-                                            str += `<span style="margin: 50px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.config.style.fontSize}px;color: ${obj.opt.config.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
+                                            str += `<span style="margin: 15px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.config.style.fontSize}px;color: ${obj.opt.config.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
                                         }
                                         let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;flex-wrap:wrap;overflow: auto;">'+str+'</div>'
                                         obj.opt.series.push(box)
+                                        if(str === ''){
+                                            //显示error提示
+                                            $(document.getElementById('err'+obj.i)).css("zIndex","200")
+                                            $(document.getElementById('err'+obj.i)).html('暂无数据')
+                                        }
                                     }
                                     else if(obj.chartType === 'table'){
                                         obj.opt.dataset = [];
@@ -1298,7 +1340,7 @@
                                     resolve(obj);
                                 }else{
                                     //显示error提示
-                                    $(document.getElementById('err'+obj.i)).css("zIndex","2")
+                                    $(document.getElementById('err'+obj.i)).css("zIndex","200")
                                     $(document.getElementById('err'+obj.i)).html(res.data.message)
                                 }
 
@@ -1414,6 +1456,7 @@
                 }
 
             },
+
         },
         watch:{
             /*系统报表过滤*/
@@ -1435,17 +1478,11 @@
             },
             //时间范围改变
             'dateArr'(nv,ov){
-                this.loading = true;
+                this.refreshData()
+                /*this.loading = true;
                 //获取数据
                 for(let i in this.layout){
                     this.chartsCount += 1;
-                    //特殊资产表 不需要刷新
-                    if(this.layout[i].eId === 'NI3fr3QBqKrf67Ha5Dr9'){
-                        if(this.layout.length === 1){
-                            this.loading = false;
-                        }
-                        continue;
-                    }
                     //判断是否是文字块  不是则是图表类型 需要获取图表结构
                     if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
                         this.getEchartsConstruction(this.layout[i])
@@ -1461,7 +1498,7 @@
 
                     }
 
-                }
+                }*/
             },
             //layout
           /*  layout:{
@@ -1525,13 +1562,37 @@
                 }
             }
         },
-        /*beforeRouteEnter(to, from, next) {
+        beforeRouteEnter(to, from, next) {
             next (vm => {
-
+                if(JSON.stringify(to.query) !== "{}" && to.query.type === "edit"){
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'resiveDashboard'+to.query.id,
+                        component:'dashboard/dashboard.vue',
+                        title:'编辑'
+                    }
+                    sessionStorage.setItem('/resiveDashboard'+to.query.id,JSON.stringify(obj))
+                }else if(to.query.type === "see"){
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'seeDashboard'+to.query.id,
+                        component:'dashboard/dashboard.vue',
+                        title:'查看'
+                    }
+                    sessionStorage.setItem('/seeDashboard'+to.query.id,JSON.stringify(obj))
+                }else if(JSON.stringify(to.query) !== "{}" && to.query.type === "EQedit"){
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'equipmentDashboard'+to.query.eid,
+                        component:'dashboard/dashboard.vue',
+                        title:'编辑'
+                    }
+                    sessionStorage.setItem('/equipmentDashboard'+to.query.eid,JSON.stringify(obj))
+                }
 
             })
 
-        },*/
+        },
         components:{
             //logLevel_bar: resolve => {require(['../charts/logLevel_bar'], resolve)},//懒加载
             vEcharts,
@@ -1758,5 +1819,14 @@
     }
     .filter-box /deep/ .el-input__inner{
         border-radius: 0;
+    }
+    .text-wapper>p{
+        width: 100%;
+    }
+    .ql-align-center{
+        text-align: center;
+    }
+    .ql-align-right{
+        text-align: right;
     }
 </style>

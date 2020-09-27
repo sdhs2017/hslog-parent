@@ -24,13 +24,6 @@
                 this.$options.name = 'editBarChart'+ this.$route.query.id;
                 //修改data参数
                 this.operType = "edit"
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'editBarChart'+this.$route.query.id,
-                    component:'dashboard/barChart.vue',
-                    title:'编辑'
-                }
-                sessionStorage.setItem('/editBarChart'+this.$route.query.id,JSON.stringify(obj))
                 if(this.chartId === '' || this.chartId !== this.$route.query.id){
                     this.chartId = this.$route.query.id;
                 }
@@ -39,33 +32,34 @@
                 this.$options.name = 'seeBarChart'+ this.$route.query.id;
                 //修改data参数
                 this.operType = "see"
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'seeBarChart'+this.$route.query.id,
-                    component:'dashboard/barChart.vue',
-                    title:'查看'
-                }
-                sessionStorage.setItem('/seeBarChart'+this.$route.query.id,JSON.stringify(obj))
                 if(this.chartId === '' || this.chartId !== this.$route.query.id){
                     this.chartId = this.$route.query.id;
                 }
-            }else{//添加
-                //时间范围监听事件
-               /* bus.$on(this.busName,(obj)=>{
-                    let arr = setChartParam(obj);
-                    this.dateObj = arr[0];
-                    this.intervalObj = arr[1];
-                })
-                //数据源监听
-                bus.$on(this.busIndexName,(arr)=>{
-                    //还原配置
-                    this.initialize();
-                    //设置数据源
-                    this.chartsConfig.suffixIndexName = arr[2];
-                    this.chartsConfig.preIndexName = arr[1];
-                    this.chartsConfig.templateName = arr[0];
-                })*/
+            }else{
             }
+        },
+        beforeRouteEnter(to, from, next) {
+            next (vm => {
+                //判断是否有参数  有参数说明是修改功能页面
+                if(JSON.stringify(to.query) !== "{}"  && to.query.type === 'edit'){
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'editBarChart'+to.query.id,
+                        component:'dashboard/barChart.vue',
+                        title:'修改'
+                    }
+                    sessionStorage.setItem('/editBarChart'+to.query.id,JSON.stringify(obj))
+                }else if(to.query.type === 'see'){//查看
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'seeBarChart'+to.query.id,
+                        component:'dashboard/barChart.vue',
+                        title:'查看'
+                    }
+                    sessionStorage.setItem('/seeBarChart'+to.query.id,JSON.stringify(obj))
+                }
+
+            })
         },
         components:{
             chartBaseConfig

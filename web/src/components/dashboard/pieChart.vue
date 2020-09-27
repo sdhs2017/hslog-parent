@@ -21,13 +21,6 @@
                 //修改此组件的name值
                 this.$options.name = 'editPieChart'+ this.$route.query.id;
                 this.operType = "edit"
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'editPieChart'+this.$route.query.id,
-                    component:'dashboard/pieChart.vue',
-                    title:'修改'
-                }
-                sessionStorage.setItem('/editPieChart'+this.$route.query.id,JSON.stringify(obj))
                 if(this.chartId === '' || this.chartId !== this.$route.query.id){
                     this.chartId = this.$route.query.id;
                 }
@@ -35,19 +28,35 @@
                 //修改此组件的name值
                 this.$options.name = 'seePieChart'+ this.$route.query.id;
                 this.operType = "see"
-                //将路由存放在本地 用来刷新页面时添加路由
-                let obj = {
-                    path:'seePieChart'+this.$route.query.id,
-                    component:'dashboard/pieChart.vue',
-                    title:'查看'
-                }
-                sessionStorage.setItem('/seePieChart'+this.$route.query.id,JSON.stringify(obj))
                 if(this.chartId === '' || this.chartId !== this.$route.query.id){
                     this.chartId = this.$route.query.id;
                 }
             }else{
 
             }
+        },
+        beforeRouteEnter(to, from, next) {
+            next (vm => {
+                //判断是否有参数  有参数说明是修改功能页面
+                if(JSON.stringify(to.query) !== "{}"  && to.query.type === 'edit'){
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'editPieChart'+to.query.id,
+                        component:'dashboard/pieChart.vue',
+                        title:'修改'
+                    }
+                    sessionStorage.setItem('/editPieChart'+to.query.id,JSON.stringify(obj))
+                }else if(to.query.type === 'see'){//查看
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'seePieChart'+to.query.id,
+                        component:'dashboard/pieChart.vue',
+                        title:'查看'
+                    }
+                    sessionStorage.setItem('/seePieChart'+to.query.id,JSON.stringify(obj))
+                }
+
+            })
         },
         components:{
             chartBaseConfig

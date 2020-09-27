@@ -235,7 +235,7 @@
         },
         data() {
             return {
-                emptyText:'加载中',
+                emptyText:'',
                 refresh:0,
                 allLoading:false,
                 leftLoading:false,

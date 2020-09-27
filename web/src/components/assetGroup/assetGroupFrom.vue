@@ -1,7 +1,8 @@
 <template>
     <div v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
-        <el-form ref="form" :model="form" label-width="100px">
+        <el-form ref="form" class="from-wapper" :model="form" label-width="100px">
             <el-form-item label="名称：">
+                <span class="mustWrite">*</span>
                 <el-input v-model="form.asset_group_name"></el-input>
             </el-form-item>
             <el-form-item label="区域：">
@@ -11,6 +12,7 @@
                 <el-input v-model="form.asset_group_person"></el-input>
             </el-form-item>
             <el-form-item label="资产：">
+                <span class="mustWrite">*</span>
                 <el-transfer
                     filterable
                     :titles="['全部资产', '已选资产']"
@@ -158,5 +160,13 @@
 </script>
 
 <style scoped>
-
+    .from-wapper>div{
+        position: relative;
+    }
+    .mustWrite{
+        color: red;
+        position: absolute;
+        top: 2px;
+        left: -65px;
+    }
 </style>

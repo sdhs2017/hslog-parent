@@ -19,7 +19,7 @@
                         <i class="el-icon-close" @click="removeAssetGroup(item.asset_group_id)"></i>
                     </div>
                 </div>
-                <div class="eq-tit"><span>所在资产</span><span class="goToEqGroupSpan" title="查看所在资产" @click="goToEqGroup(item.asset_group_id)">（{{item.asset_group_relations.length}}个）</span></div>
+                <div class="eq-tit"><span>所在资产</span><span class="goToEqGroupSpan" title="查看所在资产" @click="goToEqGroup(item.asset_group_id)">({{item.asset_group_relations.length}})</span></div>
                 <div class="eq-list">
                     <div title="点击查看资产信息" class="eq-item" v-for="(eq,ei) in item.asset_group_relations" :key="ei" @click="goToEq(eq.asset_id)">{{eq.asset_name}}</div>
                 </div>
@@ -352,6 +352,10 @@
         background: #1a242f;
         bottom: 0px;
         right: -6px;
+    }
+    .goToEqGroupSpan{
+        text-decoration: underline;
+        color: #409eff;
     }
     .goToEqGroupSpan:hover{
         color: #e4956d;

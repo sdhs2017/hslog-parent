@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.assetGroup.dao.IAssetGroupDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+			   type="com.jz.bigdata.common.assetGroup.entity.AssetGroup">
+		<id column="asset_group_id" jdbcType="VARCHAR" property="asset_group_id" />
+		<result column="asset_group_name" jdbcType="VARCHAR" property="asset_group_name" />
+		<result column="asset_group_area" jdbcType="VARCHAR" property="asset_group_area" />
+		<result column="asset_group_person" jdbcType="VARCHAR" property="asset_group_person" />
+		<result column="asset_group_note" jdbcType="VARCHAR" property="asset_group_note" />
+		<result column="user_group_id" jdbcType="VARCHAR" property="user_group_id" />
+		<result column="create_time" jdbcType="VARCHAR" property="create_time" />
+		<result column="create_user_id" jdbcType="VARCHAR" property="create_user_id" />
+		<result column="update_time" jdbcType="VARCHAR" property="update_time" />
+		<result column="update_user_id" jdbcType="INTEGER" property="update_user_id" />
+		<collection property="asset_group_relations" ofType="com.jz.bigdata.common.assetGroup.entity.AssetGroupRelations">
+			<id property="asset_id" column="asset_id"/>
+			<result property="asset_name" column="asset_name"/>
+		</collection>
+	</resultMap>
+	<!--   添加资产组基本信息 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.assetGroup.entity.AssetGroup">
+		insert into asset_group
+		<!--     格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!--     判断参数是否为空 -->
+			<if test="asset_group_id != null">
+				asset_group_id,
+			</if>
+			<if test="asset_group_name != null">
+				asset_group_name,
+			</if>
+			<if test="asset_group_area != null">
+				asset_group_area,
+			</if>
+			<if test="asset_group_person != null">
+				asset_group_person,
+			</if>
+			<if test="asset_group_note != null">
+				asset_group_note,
+			</if>
+			<if test="user_group_id != null">
+				user_group_id,
+			</if>
+			<if test="create_time != null">
+				create_time,
+			</if>
+			<if test="create_user_id != null">
+				create_user_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="asset_group_id != null">
+				#{asset_group_id,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_name != null">
+				#{asset_group_name,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_area != null">
+				#{asset_group_area,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_person != null">
+				#{asset_group_person,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_note != null">
+				#{asset_group_note,jdbcType=VARCHAR},
+			</if>
+			<if test="user_group_id != null">
+				#{user_group_id,jdbcType=VARCHAR},
+			</if>
+			<if test="create_time != null">
+				#{create_time,jdbcType=VARCHAR},
+			</if>
+			<if test="create_user_id != null">
+				#{create_user_id,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<!--   修改资产组基本信息 -->
+	<update id="update" parameterType="com.jz.bigdata.common.assetGroup.entity.AssetGroup">
+		update asset_group
+		<set>
+			<if test="asset_group_name != null">
+				asset_group_name = #{asset_group_name,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_area != null">
+				asset_group_area = #{asset_group_area,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_person != null">
+				asset_group_person = #{asset_group_person,jdbcType=VARCHAR},
+			</if>
+			<if test="asset_group_note != null">
+				asset_group_note = #{asset_group_note,jdbcType=VARCHAR},
+			</if>
+			<if test="update_time != null">
+				update_time = #{update_time,jdbcType=VARCHAR},
+			</if>
+			<if test="update_user_id != null">
+				update_user_id = #{update_user_id,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where asset_group_id = #{asset_group_id,jdbcType=VARCHAR}
+	</update>
+	<!--   添加资产/资产组关系表 -->
+	<insert id="insertAssetGroupRelations" parameterType="com.jz.bigdata.common.assetGroup.entity.AssetGroupRelations">
+		insert into asset_group_relations (asset_id,asset_type,asset_name,asset_ip,asset_group_id,asset_group_name)
+		values
+		(#{asset_id,jdbcType=VARCHAR},#{asset_type,jdbcType=VARCHAR},#{asset_name,jdbcType=VARCHAR},#{asset_ip,jdbcType=VARCHAR},#{asset_group_id,jdbcType=VARCHAR},#{asset_group_name,jdbcType=VARCHAR})
+	</insert>
+	<!--  删除资产组 -->
+	<delete id="deleteAssetGroup" parameterType="java.lang.String">
+		delete from asset_group where asset_group_id=#{asset_group_id}
+	</delete>
+	<!--  删除资产/资产组关系表 -->
+	<delete id="deleteAssetGroupRelations" parameterType="java.lang.String">
+		delete from asset_group_relations where asset_group_id=#{asset_group_id}
+	</delete>
+	<select  id="selectAssetGroupInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select asset_group.*,asset_group_relations.asset_id,asset_group_relations.asset_name from asset_group
+		left join asset_group_relations on asset_group_relations.asset_group_id = asset_group.asset_group_id
+		where asset_group.asset_group_id = #{asset_group_id}
+	</select>
+	<select id="getAssetGroupCountByCondition" parameterType="com.jz.bigdata.common.assetGroup.entity.AssetGroup">
+		select count(1) as count from asset_group
+		where 1=1
+		<if test="asset_group_id != null and asset_group_id !=''" >
+			and asset_group_id = #{asset_group_id}
+		</if>
+		<if test="asset_group_name != null and asset_group_name !=''" >
+			and asset_group_name LIKE CONCAT('%', #{asset_group_name}, '%')
+		</if>
+		<if test="asset_group_area != null and asset_group_area !=''" >
+			and asset_group_area LIKE CONCAT('%', #{asset_group_area}, '%')
+		</if>
+		<if test="asset_group_person != null and asset_group_person !=''" >
+			and asset_group_person LIKE CONCAT('%', #{asset_group_person}, '%')
+		</if>
+	</select>
+	<select  id="selectAssetGroupInfoByCondition" parameterType="com.jz.bigdata.common.assetGroup.entity.AssetGroup" resultMap="BaseResultMap">
+		select
+		asset_group.*,
+		asset_group_relations.asset_id,
+		asset_group_relations.asset_name
+		from (
+			select * from asset_group where 1=1
+			<!--   判断是否是空数据 -->
+			<if test="asset_group_id != null and asset_group_id !=''" >
+				and asset_group.asset_group_id = #{asset_group_id}
+			</if>
+			<if test="asset_group_name != null and asset_group_name !=''" >
+				and asset_group.asset_group_name LIKE CONCAT('%', #{asset_group_name}, '%')
+			</if>
+			<if test="asset_group_area != null and asset_group_area !=''" >
+				and asset_group.asset_group_area LIKE CONCAT('%', #{asset_group_area}, '%')
+			</if>
+			<if test="asset_group_person != null and asset_group_person !=''" >
+				and asset_group.asset_group_person LIKE CONCAT('%', #{asset_group_person}, '%')
+			</if>
+			<if test="startRecord != null and pageSize !=null" >
+				limit #{startRecord},#{pageSize}
+			</if>
+		) as asset_group
+		left join asset_group_relations on asset_group_relations.asset_group_id = asset_group.asset_group_id
+
+	</select>
+	<select id="getAssetGroupList"  resultMap="BaseResultMap">
+		select asset_group_id,asset_group_name
+		from asset_group
+	</select>
+
+</mapper>

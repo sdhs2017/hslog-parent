@@ -69,6 +69,7 @@
                                     </el-form-item>
                                     <el-form-item label="排序方式" v-if="sortObj[columnItem.field] || chartsConfig.dataSourceType === 'MySQL'">
                                         <el-select v-model="columnItem.sort" placeholder="请选择" style="width: 100%;" size="mini">
+                                            <el-option label="无" value=""></el-option>
                                             <el-option label="降序" value="desc"></el-option>
                                             <el-option label="升序" value="asc"></el-option>
                                         </el-select>
@@ -335,7 +336,7 @@
                     columnArr:[
                         {
                             field:'',
-                            sort:'desc',
+                            sort:'',
                             aliasName: '',
                             show:true
                         }

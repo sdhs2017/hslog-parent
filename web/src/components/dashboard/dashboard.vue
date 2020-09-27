@@ -63,7 +63,7 @@
                             <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
-                            <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
+<!--                            <i class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>-->
 <!--                            <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>-->
                         </div>
                         <div class="item-con" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
@@ -93,7 +93,7 @@
                             <div class="tit-zz" v-if="htmlTitle.substr(0,2) == '查看'"></div>
                             <span>{{item.tit}}</span>
                             <i class="deleteE el-icon-close" title="删除" @click="deleteE(i)"></i>
-                            <i v-if="item.chartType !== 'metric'" class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>
+<!--                            <i v-if="item.chartType !== 'metric'" class="fullscreenE el-icon-full-screen"  title="全屏" @click="fullscreenE(item)"></i>-->
                             <i class="el-icon-edit" title="修改"  v-if="item.eId !== ''" @click="editChartBtn(i)"></i>
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
@@ -1074,7 +1074,7 @@
                                                 let arr = [];
                                                 for(let i in params){
                                                     arr.push({
-                                                        'fields.ip':params[i].ip
+                                                        asset_id:params[i].asset_id
                                                     })
                                                 }
                                                 this.selected_row = arr
@@ -1828,5 +1828,8 @@
     }
     .ql-align-right{
         text-align: right;
+    }
+    /deep/.vue-grid-item>.vue-resizable-handle{
+        z-index: 202;
     }
 </style>

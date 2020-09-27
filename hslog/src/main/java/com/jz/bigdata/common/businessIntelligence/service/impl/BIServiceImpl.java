@@ -577,9 +577,10 @@ public class BIServiceImpl implements IBIService {
             SqlSearchColumn sqlSearchColumn = sqlSearchConditions.getSqlSearchColumns().get(i);
             if(i==sqlSearchConditions.getSqlSearchColumns().size()-1){
                 sql.append(sqlSearchColumn.getColumn_value());
-                order.append(sqlSearchColumn.getColumn_value()+" "+sqlSearchColumn.getSort());
             }else{
                 sql.append(sqlSearchColumn.getColumn_value()+",");
+            }
+            if(!StringUtils.isNullOrEmpty(sqlSearchColumn.getSort())){
                 order.append(sqlSearchColumn.getColumn_value()+" "+sqlSearchColumn.getSort()+",");
             }
         }
@@ -606,7 +607,9 @@ public class BIServiceImpl implements IBIService {
             }
         }
         //排序
-        sql.append(order);
+        if(!" ORDER BY ".equals(order.toString())){
+            sql.append(order.toString(), 0, order.length()-1);
+        }
         //分页
         // 获取起始数
         int startRecord = (sqlSearchConditions.getPage_size() * (sqlSearchConditions.getPage() - 1));

@@ -52,10 +52,10 @@ public class BulkTemplate_BulkProcessor {
             @Override
             public void beforeBulk(long executionId, BulkRequest request) {
                 //重写beforeBulk,在每次bulk request发出前执行,在这个方法里面可以知道在本次批量操作中有多少操作数
-                int numberOfActions = request.numberOfActions();
-                double MB = request.estimatedSizeInBytes()/1024/1024;
-                double KB = request.estimatedSizeInBytes()/1024;
-                System.out.println(format.format(new Date())+"  Executing bulk [{"+ executionId +"}] with {"+ numberOfActions +"} requests, with {"+MB+"} MB, {"+KB+"} KB");
+                //int numberOfActions = request.numberOfActions();
+                //double MB = request.estimatedSizeInBytes()/1024/1024;
+                //double KB = request.estimatedSizeInBytes()/1024;
+                //System.out.println(format.format(new Date())+"  Executing bulk [{"+ executionId +"}] with {"+ numberOfActions +"} requests, with {"+MB+"} MB, {"+KB+"} KB");
                 //LOGGER.info("Executing bulk [{}] with {} requests, with {} MB, {} KB", executionId, numberOfActions,MB,KB);
             }
 
@@ -66,7 +66,7 @@ public class BulkTemplate_BulkProcessor {
                 if (response.hasFailures()) {
                     LOGGER.error("Bulk [{}] executed with failures,response = {}", executionId, response.buildFailureMessage());
                 } else {
-                    System.out.println(format.format(new Date())+" Bulk [{"+executionId+"}] completed in {"+response.getTook().getMillis()+"} milliseconds");
+                    //System.out.println(format.format(new Date())+" Bulk [{"+executionId+"}] completed in {"+response.getTook().getMillis()+"} milliseconds");
                     //LOGGER.info("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
                 }
                 //BulkItemResponse[] responses = response.getItems();

@@ -121,7 +121,7 @@
                             }else{
                                 this.errState = true;
                                 this.errText = obj.message;
-                                clearInterval(this.interval)
+                                // clearInterval(this.interval)
                             }
                         })
                         .catch((err) => {

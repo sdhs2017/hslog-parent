@@ -15,7 +15,7 @@
                     <div class="group-name" :title="item.asset_group_name">{{item.asset_group_name}}</div>
                     <div class="group-btn">
                         <i class="el-icon-edit" @click="goToEditAssetGroup(item)"></i>
-                        <i class="el-icon-s-data"></i>
+                        <i class="el-icon-s-data" @click="goToDashboard(item)"></i>
                         <i class="el-icon-close" @click="removeAssetGroup(item.asset_group_id)"></i>
                     </div>
                 </div>
@@ -109,6 +109,11 @@
             goToEditAssetGroup(item){
                 jumpHtml('editAssetGroup'+item.asset_group_id,'assetGroup/editAssetGroup.vue',{ name:item.asset_group_name,id:item.asset_group_id },'资产组修改')
             },
+            /*跳转资产组报表*/
+            goToDashboard(item){
+                jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:'4EUtznQBqKrf67HaI3pC',type:'assetGroupEdit' },'修改')
+
+            },
             /*刷新*/
             refresh(){
                 this.c_page = 1;
@@ -196,9 +201,12 @@
     }
     .group-wapper{
         min-height: 600px;
-        padding:20px 10px;
+        padding:40px 10px;
         overflow: hidden;
         width: 100%;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
     }
     .asset-item{
         width: 230px;

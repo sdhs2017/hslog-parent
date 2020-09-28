@@ -12,6 +12,7 @@
                 <dateLayout :busName="busName" :defaultVal = "defaultVal" :refresh="refresh"></dateLayout>
             </div>
             <div class="tit-eq" v-if="this.equipmentId !== ''">{{this.dashboardTit}}</div>
+            <div class="tit-eq" v-if="this.assetGroupId !== ''">{{this.dashboardTit}}</div>
         </div>
         <div class="filter-box">
             <queryFilter
@@ -272,6 +273,8 @@
     import {dateFormat,jumpHtml,setChartParam} from "../../../static/js/common";
     import allComps from '../charts/index'
     const echarts = require('echarts');
+    //特殊表格id
+    const TABLEID = 'NI3fr3QBqKrf67Ha5Dr9'
     //引入font.css
     import '../../assets/font.css'
     // 自定义字体大小
@@ -349,6 +352,8 @@
                 },
                 //资产id
                 equipmentId:'',
+                //资产组id
+                assetGroupId:'',
                 //标题
                 dashboardTit:'',
                 htmlTitle:'新建',
@@ -618,6 +623,20 @@
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                     this.equipmentId = this.$route.query.eid;
+                    this.dashboardTit = this.$route.query.name;
+                }
+            }else if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "assetGroupEdit"){
+                // 这里通过 vm 来访问组件实例解决了没有 this 的问题
+                //修改此组件的name值
+                this.$options.name = 'assetGroupDashboard'+ this.$route.query.eid;
+                //修改data参数
+                this.htmlTitle = `编辑 ${this.$route.query.name}`;
+                this.busName = 'assetGroupDashboard'+this.$route.query.eid;
+                this.busFilterName = 'assetGroupDashboardFilters'+this.$route.query.id;
+                this.busQueryName = 'assetGroupDashboardQuery'+this.$route.query.id;
+                if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
+                    this.dashboardId = this.$route.query.id;
+                    this.assetGroupId = this.$route.query.eid;
                     this.dashboardTit = this.$route.query.name;
                 }
             }
@@ -919,7 +938,7 @@
                 for(let i in this.layout){
                     this.chartsCount += 1;
                     //特殊资产表 不需要刷新
-                    if(this.layout[i].eId === 'NI3fr3QBqKrf67Ha5Dr9'){
+                    if(this.layout[i].eId === TABLEID){
                         if(this.layout.length === 1){
                             this.loading = false;
                         }
@@ -1055,9 +1074,9 @@
                                     else if(obj.chartType === 'table'){//表格
                                         option.tableHead = JSON.parse(data.data.option).config.tableHead;
                                         //特殊资产表 设置多选框 以及资产跳转
-                                        if(obj.eId === 'NI3fr3QBqKrf67Ha5Dr9'){
+                                        if(obj.eId === TABLEID){
                                             option.busNames={
-                                                selectionName:'NI3fr3QBqKrf67Ha5Dr9' +obj.i
+                                                selectionName:TABLEID +obj.i
                                             }
                                             option.selection = true;
                                             option.tableHead.forEach(item =>{
@@ -1138,6 +1157,19 @@
                     if(resObj.param.tableName){//mysql
                         url = '/BI/getDataBySql.do'
                         resObj.tableType = 'mysql'
+                        //首先判断是否是资产组的报表 在判断是否是资产表格
+                        if(this.assetGroupId !== '' && resObj.eId === TABLEID){
+                            let arr = [];
+                            arr.push({
+                                field:'asset_group_id',
+                                operator:'=',
+                                value:this.assetGroupId,
+                                start:'',
+                                end:'',
+                                values:[]
+                            })
+                            resObj.param.wheres = JSON.stringify(arr)
+                        }
                     }else{//es
                         resObj.tableType = 'es'
                         url = '/BI/getDataByParams_dynamicTable.do'
@@ -1331,7 +1363,19 @@
                                             }else{
                                                 obj.opt.page.allCounts = Number(obj.opt.trueCount);
                                             }
-                                        }else{
+                                        }else{//mysql
+                                            //判断是否是资产组dashboard
+                                            if(this.assetGroupId !== ''){
+                                                //填充条件
+                                                let arr = [];
+                                                obj.opt.tableData.forEach(item =>{
+                                                    arr.push({
+                                                        asset_id:item.asset_id
+                                                    })
+                                                })
+                                                this.selected_row = obj.opt.tableData;
+                                                this.filters_table = JSON.stringify(arr);
+                                            }
                                             obj.opt.page.allCounts = Number(obj.opt.trueCount);
                                             obj.opt.counts = Number(obj.opt.trueCount);
 
@@ -1588,6 +1632,14 @@
                         title:'编辑'
                     }
                     sessionStorage.setItem('/equipmentDashboard'+to.query.eid,JSON.stringify(obj))
+                }else if(JSON.stringify(to.query) !== "{}" && to.query.type === "assetGroupEdit"){
+                    //将路由存放在本地 用来刷新页面时添加路由
+                    let obj = {
+                        path:'assetGroupDashboard'+to.query.eid,
+                        component:'dashboard/dashboard.vue',
+                        title:'编辑'
+                    }
+                    sessionStorage.setItem('/assetGroupDashboard'+to.query.eid,JSON.stringify(obj))
                 }
 
             })

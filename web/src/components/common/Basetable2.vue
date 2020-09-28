@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-table :data="tableData" stripe fit style="width: 100%;border: 0;" border row-key="id"  @selection-change="handleSelectionChange" :height="height" :empty-text="emptyText">
+        <el-table :data="tableData" ref="multipleTable" stripe fit style="width: 100%;border: 0;" border row-key="id"  @selection-change="handleSelectionChange" :height="height" :empty-text="emptyText">
             <el-table-column
                 v-if="selection"
                 type="selection"
@@ -71,6 +71,12 @@
                 type:Boolean,
                 default:false
             },
+            selectionArr:{
+                type:Array,
+                default(){
+                    return[]
+                }
+            },
             //监听方法名称
             busName:{
                 type:Object,
@@ -91,6 +97,22 @@
         },
         created(){
 
+        },
+        mounted(){
+
+        },
+        watch:{
+            'tableData'(){
+                if(this.tableData.length !== 0){
+                   this.$nextTick(()=>{
+                       this.selectionArr.forEach(row=>{
+                           this.$refs.multipleTable.toggleRowSelection(row,true);
+                       })
+
+                   })
+
+                }
+            }
         },
         methods:{
             //数据处理

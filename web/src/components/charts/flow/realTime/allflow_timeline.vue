@@ -129,7 +129,7 @@
                             }else{
                                 this.errState = true;
                                 this.errText = allObj.message;
-                                clearInterval(this.interval)
+                                //clearInterval(this.interval)
                             }
                         })
                         .catch((err) => {

@@ -95,7 +95,7 @@ public enum SearchCache {
                     switch(mf.getFieldType()){
                         //number类型
                         case "long":case "integer":case "short":case "byte":case "double":case "float":case "half_float":case "scaled_float":
-
+                            forTermsList.add(mf);
                             forNumber.add(mf);
                             forNumberOrDate.add(mf);
                             forAllExceptGeoPointList.add(mf);

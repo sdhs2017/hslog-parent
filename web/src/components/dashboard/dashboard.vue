@@ -584,29 +584,32 @@
             }
         },
         created(){
+            //设置 资产表过滤条件
+            let asset_ids = sessionStorage.getItem(this.$route.query.eid);
+            this.setFilterTable(JSON.parse(asset_ids))
             //判断是否有参数  有参数说明是修改功能页面
             if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "edit"){
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
-                this.$options.name = 'resiveDashboard'+ this.$route.query.id;
+                this.$options.name = 'resiveDashboard'+ this.$route.query.eid;
                 //修改data参数
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
-                this.busName = 'resiveDashboard'+this.$route.query.id;
-                this.busFilterName = 'resiveDashboardFilters'+this.$route.query.id;
-                this.busQueryName = 'resiveDashboardQuery'+this.$route.query.id;
-                this.operType = 'edit'
+                this.busName = 'resiveDashboard'+this.$route.query.eid;
+                this.busFilterName = 'resiveDashboardFilters'+this.$route.query.eid;
+                this.busQueryName = 'resiveDashboardQuery'+this.$route.query.eid;
+                this.operType = 'edit';
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                 }
             }else if(this.$route.query.type === "see"){
                 // 这里通过 vm 来访问组件实例解决了没有 this 的问题
                 //修改此组件的name值
-                this.$options.name = 'seeDashboard'+ this.$route.query.id;
+                this.$options.name = 'seeDashboard'+ this.$route.query.eid;
                 //修改data参数
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'seeDashboard'+this.$route.query.id;
-                this.busFilterName = 'seeDashboardFilters'+this.$route.query.id;
-                this.busQueryName = 'seeDashboardQuery'+this.$route.query.id;
+                this.busFilterName = 'seeDashboardFilters'+this.$route.query.eid;
+                this.busQueryName = 'seeDashboardQuery'+this.$route.query.eid;
                 this.operType = 'see'
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
@@ -618,8 +621,8 @@
                 //修改data参数
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'equipmentDashboard'+this.$route.query.eid;
-                this.busFilterName = 'eqDashboardFilters'+this.$route.query.id;
-                this.busQueryName = 'eqDashboardQuery'+this.$route.query.id;
+                this.busFilterName = 'eqDashboardFilters'+this.$route.query.eid;
+                this.busQueryName = 'eqDashboardQuery'+this.$route.query.eid;
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                     this.equipmentId = this.$route.query.eid;
@@ -632,8 +635,8 @@
                 //修改data参数
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'assetGroupDashboard'+this.$route.query.eid;
-                this.busFilterName = 'assetGroupDashboardFilters'+this.$route.query.id;
-                this.busQueryName = 'assetGroupDashboardQuery'+this.$route.query.id;
+                this.busFilterName = 'assetGroupDashboardFilters'+this.$route.query.eid;
+                this.busQueryName = 'assetGroupDashboardQuery'+this.$route.query.eid;
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                     this.assetGroupId = this.$route.query.eid;
@@ -700,6 +703,17 @@
             bus.$off(this.busQueryName)
         },
         methods:{
+            /*设置过滤资产表条件*/
+            setFilterTable(params){
+                let arr = [];
+                for(let i in params){
+                    arr.push({
+                        asset_id:params[i]
+                    })
+                }
+                //this.selected_row = params
+                this.filters_table = JSON.stringify(arr);
+            },
             /*过滤系统预设报表*/
             filterNode(value, data) {
                 if (!value) return true;
@@ -1080,23 +1094,34 @@
                                             }
                                             option.selection = true;
                                             option.tableHead.forEach(item =>{
-                                                if(item.prop === 'name'){
+                                                if(item.prop === 'asset_name'){
                                                     item.clickFun = (eItem)=>{
+                                                        //判断资产类型 跳转相应页面
+                                                        if(eItem.asset_logType === 'syslog'){
+                                                            jumpHtml('syslogEquipmentEcharts'+eItem.asset_id,'equipment/syslogEquipmentEcharts.vue',{ name:eItem.asset_name,id: eItem.asset_id },'统计')
+                                                        }else if(eItem.asset_logType === 'winlog' || eItem.asset_logType === 'winlogbeat'){
+                                                            jumpHtml('winEquipmentEcharts'+eItem.asset_id,'equipment/winEquipmentEcharts.vue',{ name:eItem.asset_name,id: eItem.asset_id },'统计')
+                                                        }else if(eItem.asset_logType === 'metric'){
+                                                            jumpHtml('equipmentDashboard'+eItem.asset_id,'dashboard/dashboard.vue',{ name:eItem.asset_name+'指标数据统计',eid:eItem.asset_id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'修改')
+                                                        }else{
+                                                            layer.msg(eItem.asset_logType+'类型资产暂无报表',{icon:5})
+                                                        }
                                                         //跳转到资产列表页面
-                                                        this.$router.push({name:'equipment2',params:{equipmentid: eItem.id}})
+                                                        //this.$router.push({name:'equipment_group',params:{equipmentid: eItem.asset_id}})
                                                     }
                                                 }
                                             })
                                             bus.$off(option.busNames.selectionName)
                                             //监听选中的资产
                                             bus.$on(option.busNames.selectionName,(params)=>{
+                                                //console.log(params)
                                                 let arr = [];
                                                 for(let i in params){
                                                     arr.push({
                                                         asset_id:params[i].asset_id
                                                     })
                                                 }
-                                                this.selected_row = arr
+                                                this.selected_row = params
                                                 this.filters_table = JSON.stringify(arr);
                                                 this.refreshData()
                                             })
@@ -1449,7 +1474,7 @@
                     }else if(obj.chartType === 'table'){//表格
                     }else{//柱、折、饼
                         this.echartsArr[obj.i] = echarts.init(document.getElementById(obj.i))
-                        this.echartsArr[obj.i].setOption(obj.opt);
+                        this.echartsArr[obj.i].setOption(obj.opt,true);
                         window.addEventListener("resize",()=>{
                             this.echartsArr[obj.i].resize();
                         });

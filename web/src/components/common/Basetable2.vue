@@ -1,6 +1,6 @@
 <template>
     <div>
-        <el-table :data="tableData" ref="multipleTable" stripe fit style="width: 100%;border: 0;" border row-key="id"  @selection-change="handleSelectionChange" :height="height" :empty-text="emptyText">
+        <el-table :data="tableData" ref="multipleTable" stripe fit style="width: 100%;border: 0;" border row-key="id" @select="selectOne" @select-all="selectAll"  @selection-change="handleSelectionChange" :height="height" :empty-text="emptyText">
             <el-table-column
                 v-if="selection"
                 type="selection"
@@ -129,9 +129,17 @@
                 }
                 return  currentData;
             },
+            /*多选框点击单个*/
+            selectOne(val){
+                bus.$emit(this.busName.selectionName,val)
+            },
+            /*多选框点击全部*/
+            selectAll(val){
+                bus.$emit(this.busName.selectionName,val)
+            },
             /*多选框点击*/
             handleSelectionChange(val){
-                bus.$emit(this.busName.selectionName,val)
+                //bus.$emit(this.busName.selectionName,val)
             },
             btnClick($event,rowData){
                 const btnType = $event.currentTarget.getAttribute('btnType');

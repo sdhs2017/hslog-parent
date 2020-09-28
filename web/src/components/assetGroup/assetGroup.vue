@@ -111,7 +111,25 @@
             },
             /*跳转资产组报表*/
             goToDashboard(item){
-                jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:'4EUtznQBqKrf67HaI3pC',type:'assetGroupEdit' },'修改')
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupDashboardInfo.do',this.$qs.stringify({
+                        asset_group_id: item.asset_group_id
+                    }))
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                sessionStorage.setItem(item.asset_group_id,JSON.stringify(obj.data.asset_ids))
+                                jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:obj.data.dashboard_id,type:'assetGroupEdit' },'修改')
+                            }else {
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
 
             },
             /*刷新*/

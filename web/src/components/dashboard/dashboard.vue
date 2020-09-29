@@ -637,6 +637,11 @@
                 this.busName = 'assetGroupDashboard'+this.$route.query.eid;
                 this.busFilterName = 'assetGroupDashboardFilters'+this.$route.query.eid;
                 this.busQueryName = 'assetGroupDashboardQuery'+this.$route.query.eid;
+                //设置时间为 今天
+                this.defaultVal.lastVal = '1-daying'
+                this.defaultVal.commonlyVal = '1-daying'
+                this.dateArr.last='1-daying'
+
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
                     this.assetGroupId = this.$route.query.eid;

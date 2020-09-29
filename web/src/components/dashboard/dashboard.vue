@@ -1121,6 +1121,13 @@
                                                         asset_id:params[i].asset_id
                                                     })
                                                 }
+                                                //判断是否是资产组的报表 并且未选中任何资产   设置参数 使数据为空
+                                                if(arr.length === 0 && this.assetGroupId !== ''){
+                                                    arr.push({
+                                                        asset_id:'111111111'
+                                                    })
+                                                    layer.msg('此为资产组报表，至少选择一个资产',{icon:5})
+                                                }
                                                 this.selected_row = params
                                                 this.filters_table = JSON.stringify(arr);
                                                 this.refreshData()

@@ -619,7 +619,7 @@
                 //修改此组件的name值
                 this.$options.name = 'equipmentDashboard'+ this.$route.query.eid;
                 //修改data参数
-                this.htmlTitle = `编辑 ${this.$route.query.name}`;
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'equipmentDashboard'+this.$route.query.eid;
                 this.busFilterName = 'eqDashboardFilters'+this.$route.query.eid;
                 this.busQueryName = 'eqDashboardQuery'+this.$route.query.eid;
@@ -633,7 +633,7 @@
                 //修改此组件的name值
                 this.$options.name = 'assetGroupDashboard'+ this.$route.query.eid;
                 //修改data参数
-                this.htmlTitle = `编辑 ${this.$route.query.name}`;
+                this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'assetGroupDashboard'+this.$route.query.eid;
                 this.busFilterName = 'assetGroupDashboardFilters'+this.$route.query.eid;
                 this.busQueryName = 'assetGroupDashboardQuery'+this.$route.query.eid;
@@ -1107,7 +1107,7 @@
                                                         }else if(eItem.asset_logType === 'winlog' || eItem.asset_logType === 'winlogbeat'){
                                                             jumpHtml('winEquipmentEcharts'+eItem.asset_id,'equipment/winEquipmentEcharts.vue',{ name:eItem.asset_name,id: eItem.asset_id },'统计')
                                                         }else if(eItem.asset_logType === 'metric'){
-                                                            jumpHtml('equipmentDashboard'+eItem.asset_id,'dashboard/dashboard.vue',{ name:eItem.asset_name+'指标数据统计',eid:eItem.asset_id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'修改')
+                                                            jumpHtml('equipmentDashboard'+eItem.asset_id,'dashboard/dashboard.vue',{ name:eItem.asset_name+'指标数据统计',eid:eItem.asset_id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
                                                         }else{
                                                             layer.msg(eItem.asset_logType+'类型资产暂无报表',{icon:5})
                                                         }

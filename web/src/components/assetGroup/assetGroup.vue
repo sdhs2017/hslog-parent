@@ -121,7 +121,7 @@
                             let obj = res.data;
                             if(obj.success === 'true'){
                                 sessionStorage.setItem(item.asset_group_id,JSON.stringify(obj.data.asset_ids))
-                                jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:obj.data.dashboard_id,type:'assetGroupEdit' },'修改')
+                                jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:obj.data.dashboard_id,type:'assetGroupEdit' },'查看')
                             }else {
                                 layer.msg(obj.message,{icon:5})
                             }

@@ -604,6 +604,7 @@
 		update asset_group_relations
 		set
 		asset_name=#{name,jdbcType=VARCHAR},
+		asset_logType=#{logType,jdbcType=VARCHAR},
 		asset_ip=#{ip,jdbcType=VARCHAR}
 		where asset_id = #{id,jdbcType=VARCHAR}
 	</update>
@@ -615,4 +616,10 @@
 			#{ids}
 		</foreach>
 	</update>
+	<select id="getEquipmentListByAssetGroupId" parameterType="java.lang.String" resultMap="BaseResultMapUserName">
+	select equipment.* from asset_group asset_group
+	left join asset_group_relations asset_group_relations on asset_group_relations.asset_group_id = asset_group.asset_group_id
+	left join equipment equipment on equipment.id=asset_group_relations.asset_id
+	where asset_group.asset_group_id = #{asset_group_id}
+	</select>
 </mapper>

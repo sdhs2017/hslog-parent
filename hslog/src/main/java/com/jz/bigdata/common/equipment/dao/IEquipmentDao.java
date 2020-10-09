@@ -65,4 +65,11 @@ public interface IEquipmentDao {
 	 * @return
 	 */
 	int deleteAssetGroupRelationsByEquipmentId(String[] ids);
+
+	/**
+	 * 通过资产组id获取资产列表
+	 * @param asset_group_id
+	 * @return
+	 */
+	List<Equipment> getEquipmentListByAssetGroupId(@Param("asset_group_id")String asset_group_id);
 }

@@ -64,9 +64,10 @@ public class EcsCommonController {
     //@Autowired protected ClientTemplate clientTemplate;
     @Autowired
     protected ILogCrudDao logCrudDao;
+
     /**
      * 获取索引数据的数量
-     * 用于首页日志总数展示、首页error日志数展示、单个资产报表中的日志总数、error数展示
+     * 用于首页日志总数展示、单个资产报表中的日志总数
      * @param request
      * @return
      */
@@ -79,21 +80,6 @@ public class EcsCommonController {
         //返回结果
         List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
         Map<String,Object> resultMap = new HashMap<>();
-        /**
-         *  error日志条数统计
-         */
-        try {
-            long count = 0;
-            Map<String, String> errorParam = new HashMap<>();
-            errorParam.putAll(params.getQueryMap());
-            errorParam.put("log.level", "error");
-            count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
-            resultMap.put("indiceserror", count);
-        } catch (Exception e) {
-            logger.error("查询error日志数：失败！");
-            logger.error(e.getMessage());
-            resultMap.put("indiceserror", "获取异常");
-        }
 
         /**
          * 所有日志总数据统计
@@ -115,6 +101,45 @@ public class EcsCommonController {
 
         return result;
     }
+
+    /**
+     * 获取索引数据的数量
+     * 用于首页error日志数展示、单个资产报表中的error数展示
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getIndicesCountByLevel",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取error索引数据的数量")
+    public String getIndicesCountByLevel(HttpServletRequest request) {
+        //参数处理
+        HttpRequestParams params = HttpRequestUtil.getParams(request);
+        //返回结果
+        List<Map<String, Object>> resultList = new ArrayList<Map<String, Object>>();
+        Map<String,Object> resultMap = new HashMap<>();
+        /**
+         *  error日志条数统计
+         */
+        try {
+            long count = 0;
+            Map<String, String> errorParam = new HashMap<>();
+            errorParam.putAll(params.getQueryMap());
+            errorParam.put("log.level", "error");
+            count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
+            resultMap.put("indiceserror", count);
+        } catch (Exception e) {
+            logger.error("查询error日志数：失败！");
+            logger.error(e.getMessage());
+            resultMap.put("indiceserror", "获取异常");
+        }
+
+        resultList.add(resultMap);
+        String result = JSONArray.fromObject(resultList).toString();
+        logger.info("查询error日志数：成功！");
+
+        return result;
+    }
+
     /**
      * @param request
      * 统计各时间段的日志数据量

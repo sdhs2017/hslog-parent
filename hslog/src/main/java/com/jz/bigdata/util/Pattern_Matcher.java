@@ -44,9 +44,20 @@ public class Pattern_Matcher {
    		}
    		return "";
    	}
+
+	/**
+	 * 正则匹配
+	 * @param soap 内容
+	 * @param rgex 正则
+	 * @return 返回正则（.*?）中匹配的内容
+	 */
+	public static Matcher getMatchedByParentheses(String soap, String rgex) {
+		Pattern pattern = Pattern.compile(rgex);// 匹配的模式
+		Matcher m = pattern.matcher(soap);
+		return m;
+	}
    	
    	public static void main(String [] args) {
-
 
 	}
 }

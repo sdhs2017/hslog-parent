@@ -13,6 +13,8 @@ import scala.Int;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Logstash2ECS {
     public final static Map<Integer, String> Severity = new HashMap<>();
@@ -31,6 +33,7 @@ public class Logstash2ECS {
     private Agent agent;
     private Host host;
     private Event event;
+    private Source source;
     private Log log;
     @SerializedName("@timestamp")
     private Object timestamp;
@@ -157,6 +160,28 @@ public class Logstash2ECS {
             this.kind = kind;
         }
     }
+
+    public class Source{
+        private String ip;//源IP地址
+        private long port;//源端口
+
+        public String getIp() {
+            return ip;
+        }
+
+        public void setIp(String ip) {
+            this.ip = ip;
+        }
+
+        public long getPort() {
+            return port;
+        }
+
+        public void setPort(long port) {
+            this.port = port;
+        }
+    }
+
     public class Log{
         private Object level;
         private Syslog syslog;
@@ -180,12 +205,32 @@ public class Logstash2ECS {
     public class Winlog{
         private Process process;
 
+        private Event_data event_data;
+
+        private String task;
+
         public Process getProcess() {
             return process;
         }
 
         public void setProcess(Process process) {
             this.process = process;
+        }
+
+        public Event_data getEvent_data() {
+            return event_data;
+        }
+
+        public void setEvent_data(Event_data event_data) {
+            this.event_data = event_data;
+        }
+
+        public String getTask() {
+            return task;
+        }
+
+        public void setTask(String task) {
+            this.task = task;
         }
     }
     public class Process{
@@ -197,6 +242,17 @@ public class Logstash2ECS {
 
         public void setPid(Object pid) {
             this.pid = pid;
+        }
+    }
+    public class Event_data{
+        private String SubjectUserName;
+
+        public String getSubjectUserName() {
+            return SubjectUserName;
+        }
+
+        public void setSubjectUserName(String subjectUserName) {
+            SubjectUserName = subjectUserName;
         }
     }
     public class Fields{
@@ -330,6 +386,14 @@ public class Logstash2ECS {
         this.event = event;
     }
 
+    public Source getSource() {
+        return source;
+    }
+
+    public void setSource(Source source) {
+        this.source = source;
+    }
+
     public Log getLog() {
         return log;
     }
@@ -352,6 +416,7 @@ public class Logstash2ECS {
         //log.level
         Log log = new Log();
         log.setLevel(severityName);
+        Winlog winlog = new Winlog();
 
         //log.syslog
         Logstash2ECS.Syslog syslog = new Logstash2ECS.Syslog();
@@ -391,6 +456,30 @@ public class Logstash2ECS {
         if(Pattern_Matcher.isMatched(logstashSyslog.getMessage().toString(),"Failed\\s+password\\s+for\\s+invalid\\s+user\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+[0-9]{1,5}\\s+ssh2")){
             event.setAction("ssh failed");
             event.setAction_cn("ssh登录失败");
+            Matcher m = Pattern_Matcher.getMatchedByParentheses(logstashSyslog.getMessage().toString(),"Failed\\s+password\\s+for\\s+invalid\\s+user\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+([0-9]{1,5})\\s+ssh2");
+            //source
+            Source source = new Source();
+            source.setIp(m.group(2));
+            source.setPort(Long.parseLong(m.group(3)));
+            this.setSource(source);
+            // event_data
+            Event_data event_data = new Event_data();
+            event_data.setSubjectUserName(m.group(1));
+            winlog.setEvent_data(event_data);
+        }
+        if(Pattern_Matcher.isMatched(logstashSyslog.getMessage().toString(),"Failed\\s+password\\s+for\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+[0-9]{1,5}\\s+ssh2")){
+            event.setAction("ssh failed");
+            event.setAction_cn("ssh登录失败");
+            Matcher m = Pattern_Matcher.getMatchedByParentheses(logstashSyslog.getMessage().toString(),"Failed\\s+password\\s+for\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+([0-9]{1,5})\\s+ssh2");
+            //source
+            Source source = new Source();
+            source.setIp(m.group(2));
+            source.setPort(Long.parseLong(m.group(3)));
+            this.setSource(source);
+            // event_data
+            Event_data event_data = new Event_data();
+            event_data.setSubjectUserName(m.group(1));
+            winlog.setEvent_data(event_data);
         }
         if(Pattern_Matcher.isMatched(logstashSyslog.getMessage().toString(),"NetworkManager")){
             event.setAction("NetworkManager");
@@ -402,7 +491,17 @@ public class Logstash2ECS {
         }
         if(Pattern_Matcher.isMatched(logstashSyslog.getMessage().toString(),"Accepted password for (.*?) from (\\d+\\.\\d+\\.\\d+\\.\\d+) port [0-9]{1,5} ssh2")){
             event.setAction("sshd");
-            event.setAction_cn("通过ssh方式进行操作");
+            event.setAction_cn("通过ssh方式进行登录操作");
+            Matcher m = Pattern_Matcher.getMatchedByParentheses(logstashSyslog.getMessage().toString(),"Accepted password for (.*?) from (\\d+\\.\\d+\\.\\d+\\.\\d+) port ([0-9]{1,5}) ssh2");
+            //source
+            Source source = new Source();
+            source.setIp(m.group(2));
+            source.setPort(Long.parseLong(m.group(3)));
+            this.setSource(source);
+            // event_data
+            Event_data event_data = new Event_data();
+            event_data.setSubjectUserName(m.group(1));
+            winlog.setEvent_data(event_data);
         }
         if(Pattern_Matcher.isMatched(logstashSyslog.getMessage().toString(),"systemd-logind")){
             event.setAction("login");
@@ -445,10 +544,11 @@ public class Logstash2ECS {
             event.setAction_cn("定时任务");
         }
         this.setEvent(event);
+
         //@timestamp
         this.setTimestamp(logstashSyslog.getTimestamp());
         //winlog. process.pid
-        Winlog winlog = new Winlog();
+
         Process process = new Process();
         process.setPid(logstashSyslog.getPid());
         winlog.setProcess(process);
@@ -471,6 +571,7 @@ public class Logstash2ECS {
 
         //log.level
         Log log = new Log();
+        Winlog winlog = new Winlog();
         //处理日志级别
 
         String severityCode = jsonObject.get("severity")==null?"":jsonObject.get("severity").getAsString();//编号
@@ -517,68 +618,127 @@ public class Logstash2ECS {
         if(Pattern_Matcher.isMatched(message,"shutdown\\s+")){
             event.setAction("poweroff");
             event.setAction_cn("主机关机");
+            winlog.setTask("poweroff");
         }
-        if(Pattern_Matcher.isMatched(message,"Failed\\s+password\\s+for\\s+invalid\\s+user\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+[0-9]{1,5}\\s+ssh2")){
+        if(Pattern_Matcher.isMatched(message,"Failed\\s+password\\s+for\\s+invalid\\s+user\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+([0-9]{1,5})\\s+ssh2")){
             event.setAction("ssh failed");
             event.setAction_cn("ssh登录失败");
+            winlog.setTask("ssh failed");
+            //source
+            Source source = new Source();
+            // event_data
+            Event_data event_data = new Event_data();
+            // 通过正则匹配数据格式截取数据内容，如m.group(1)第一个截取内容，m.group(2)第二个截取内容
+            Matcher m = Pattern_Matcher.getMatchedByParentheses(message,"Failed\\s+password\\s+for\\s+invalid\\s+user\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+([0-9]{1,5})\\s+ssh2");
+            String matcher = m.group(1)+","+m.group(2)+","+m.group(3);
+            String [] matcherarr = matcher.split(",");
+            event_data.setSubjectUserName(matcherarr[0]);
+            source.setIp(matcherarr[1]);
+            source.setPort(Long.parseLong(matcherarr[2]));
+            winlog.setEvent_data(event_data);
+            this.setSource(source);
+        }
+        if(Pattern_Matcher.isMatched(message,"Failed\\s+password\\s+for\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+([0-9]{1,5})\\s+ssh2")){
+            event.setAction("ssh failed");
+            event.setAction_cn("ssh登录失败");
+            winlog.setTask("ssh failed");
+            //source
+            Source source = new Source();
+            // event_data
+            Event_data event_data = new Event_data();
+            // 通过正则匹配数据格式截取数据内容，如m.group(1)第一个截取内容，m.group(2)第二个截取内容
+            Matcher m = Pattern_Matcher.getMatchedByParentheses(message,"Failed\\s+password\\s+for\\s+(.*?)\\s+from\\s+(\\d+\\.\\d+\\.\\d+\\.\\d+)\\s+port\\s+([0-9]{1,5})\\s+ssh2");
+            String matcher = m.group(1)+","+m.group(2)+","+m.group(3);
+            String [] matcherarr = matcher.split(",");
+            event_data.setSubjectUserName(matcherarr[0]);
+            source.setIp(matcherarr[1]);
+            source.setPort(Long.parseLong(matcherarr[2]));
+            winlog.setEvent_data(event_data);
+            this.setSource(source);
+
         }
         if(Pattern_Matcher.isMatched(message,"NetworkManager")){
             event.setAction("NetworkManager");
             event.setAction_cn("网络服务");
+            winlog.setTask("NetworkManager");
         }
         if(Pattern_Matcher.isMatched(message,"usb")){
             event.setAction("usb");
             event.setAction_cn("usb外接");
+            winlog.setTask("usb");
         }
         if(Pattern_Matcher.isMatched(message,"Accepted password for (.*?) from (\\d+\\.\\d+\\.\\d+\\.\\d+) port [0-9]{1,5} ssh2")){
             event.setAction("sshd");
-            event.setAction_cn("通过ssh方式进行操作");
+            event.setAction_cn("通过ssh方式进行登录操作");
+            winlog.setTask("sshd");
+            //source
+            Source source = new Source();
+            // event_data
+            Event_data event_data = new Event_data();
+            // 通过正则匹配数据格式截取数据内容，如m.group(1)第一个截取内容，m.group(2)第二个截取内容
+            Matcher m = Pattern_Matcher.getMatchedByParentheses(message,"Accepted password for (.*?) from (\\d+\\.\\d+\\.\\d+\\.\\d+) port ([0-9]{1,5}) ssh2");
+            String matcher = m.group(1)+","+m.group(2)+","+m.group(3);
+            String [] matcherarr = matcher.split(",");
+            event_data.setSubjectUserName(matcherarr[0]);
+            source.setIp(matcherarr[1]);
+            source.setPort(Long.parseLong(matcherarr[2]));
+            winlog.setEvent_data(event_data);
+            this.setSource(source);
         }
         if(Pattern_Matcher.isMatched(message,"systemd-logind")){
             event.setAction("login");
             event.setAction_cn("用户登录");
+            winlog.setTask("login");
         }
         if(Pattern_Matcher.isMatched(message,"su:")){
             event.setAction("su");
             event.setAction_cn("通过su方式登录");
+            winlog.setTask("su");
         }
         if(Pattern_Matcher.isMatched(message,"Starting Session")||Pattern_Matcher.isMatched(message.toString(),"session opened")){
             event.setAction("session");
             event.setAction_cn("开启新的会话窗口");
+            winlog.setTask("session");
         }
         if(Pattern_Matcher.isMatched(message,"rsyslogd")){
             event.setAction("rsyslogd");
             event.setAction_cn("rsyslog自身日志");
+            winlog.setTask("rsyslogd");
         }
         if(Pattern_Matcher.isMatched(message,"kernel: pci")){
             event.setAction("pci");
             event.setAction_cn("pci日志");
+            winlog.setTask("pci");
         }
         if(Pattern_Matcher.isMatched(message,"kernel: pci_bus")){
             event.setAction("pci_bus");
             event.setAction_cn("pci_bus日志");
+            winlog.setTask("pci_bus");
         }
         if(Pattern_Matcher.isMatched(message,"kernel: ACPI")){
             event.setAction("ACPI");
             event.setAction_cn("ACPI日志");
+            winlog.setTask("ACPI");
         }
         if(Pattern_Matcher.isMatched(message,"kernel: PM")){
             event.setAction("PM");
             event.setAction_cn("PM日志");
+            winlog.setTask("PM");
         }
         if(Pattern_Matcher.isMatched(message,"kernel: SRAT")){
             event.setAction("SRAT");
             event.setAction_cn("SRAT日志");
+            winlog.setTask("SRAT");
         }
         if(Pattern_Matcher.isMatched(message,"CROND")){
             event.setAction("crond");
             event.setAction_cn("定时任务");
+            winlog.setTask("crond");
         }
         this.setEvent(event);
         //@timestamp
         this.setTimestamp(jsonObject.get("@timestamp")==null?"":jsonObject.get("@timestamp").getAsString());
         //winlog. process.pid
-        Winlog winlog = new Winlog();
         Process process = new Process();
         process.setPid(jsonObject.get("pid")==null?"":jsonObject.get("pid").getAsString());
         winlog.setProcess(process);

@@ -72,8 +72,26 @@
                         type:'input'
                     },
                     {
+                        label:'事件类型',
+                        paramName:'winlog.task',
+                        itemType:'',
+                        model:{
+                            model:''
+                        },
+                        type:'input'
+                    },
+                    {
                         label:'事件客体/IP',
                         paramName:'fields.ip',
+                        itemType:'',
+                        model:{
+                            model:''
+                        },
+                        type:'input'
+                    },
+                    {
+                        label:'源地址',
+                        paramName:'source.ip',
                         itemType:'',
                         model:{
                             model:''
@@ -112,6 +130,11 @@
                         width:'150'
                     },
                     {
+                        prop:'winlog.task',
+                        label:'事件类型',
+                        width:'150'
+                    },
+                    {
                         prop:'winlog.event_data.SubjectUserName',
                         label:'事件主体',
                         width:'120',
@@ -126,6 +149,11 @@
                     {
                         prop:'fields.ip',
                         label:'事件客体/IP',
+                        width:'125'
+                    },
+                    {
+                        prop:'source.ip',
+                        label:'源地址',
                         width:'125'
                     },
                     {
@@ -210,6 +238,7 @@
             this.dateVal= [startTime,endTime];
             this.eventSearchCondition={
                 'fields.ip':'',
+                'winlog.task':'',
                 'fields.equipmentname':'',
                 'event.action':'',
                 'winlog.event_data.SubjectUserName':'',

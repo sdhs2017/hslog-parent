@@ -105,7 +105,16 @@ public class EcsSearchDao implements IEcsSearchDao {
                     }else if (entry.getValue().equals("普通")) {
                         boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(6).lte(7));
                     }
-                }else{
+                }else if(entry.getKey().equals("event_group")){
+                   String[] event_names = entry.getValue().split(",");
+                   BoolQueryBuilder eventboolQueryBuilder = QueryBuilders.boolQuery();
+                   for(String event_name:event_names){
+                       if(!StringUtils.isEmpty(event_name)){
+                           eventboolQueryBuilder.should(QueryBuilders.termQuery("event.action",event_name));
+                       }
+                   }
+                   boolQueryBuilder.must(eventboolQueryBuilder);
+               }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
                 }
@@ -297,6 +306,15 @@ public class EcsSearchDao implements IEcsSearchDao {
                     }else if (entry.getValue().equals("普通")) {
                         boolQueryBuilder.must(QueryBuilders.rangeQuery("log.syslog.severity.code").gte(6).lte(7));
                     }
+                }else if(entry.getKey().equals("event_group")){
+                    String[] event_names = entry.getValue().split(",");
+                    BoolQueryBuilder eventboolQueryBuilder = QueryBuilders.boolQuery();
+                    for(String event_name:event_names){
+                        if(!StringUtils.isEmpty(event_name)){
+                            eventboolQueryBuilder.should(QueryBuilders.termQuery("event.action",event_name));
+                        }
+                    }
+                    boolQueryBuilder.must(eventboolQueryBuilder);
                 }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));

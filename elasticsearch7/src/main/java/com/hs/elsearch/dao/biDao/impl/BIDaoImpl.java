@@ -302,6 +302,13 @@ public class BIDaoImpl implements IBIDao {
                             queriesBuilder.must(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue().toString()));
                         }
                         break;
+                    case "exists":
+                        if("should".equals(queryConnectionType)){
+                            queriesBuilder.should(QueryBuilders.existsQuery(queryCondition.getSearchField()));
+                        }else{
+                            queriesBuilder.must(QueryBuilders.existsQuery(queryCondition.getSearchField()));
+                        }
+                        break;
                     default://默认与term同级
                         if("should".equals(queryConnectionType)){
                             queriesBuilder.should(QueryBuilders.termQuery(queryCondition.getSearchField(), queryCondition.getSearchValue()));

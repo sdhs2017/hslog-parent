@@ -247,7 +247,8 @@ public class SearchConditions {
             //其他参数处理
             BeanUtils.populate(this,map);
         }catch(Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
+            //无法转换的参数会抛出异常，这里不错处理
         }
         return this;
     }

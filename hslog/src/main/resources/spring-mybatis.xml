@@ -447,7 +447,17 @@
 			</array>
 		</property>
 	</bean>
-
+	<!-- 资产事件业务mapper -->
+	<bean id="eventGroupSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/eventGroup/**/*.xml"></property>
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- ansj自定义词典业务mapper -->
 	<bean id="ansj_dicSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="logDataSource"/>
@@ -681,6 +691,11 @@
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.jz.bigdata.common.businessIntelligence"/>
 		<property name="sqlSessionFactoryBeanName" value="BusinessIntelligenceSqlSessionFactory"></property>
+	</bean>
+	<!--事件组模块 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.eventGroup"/>
+		<property name="sqlSessionFactoryBeanName" value="eventGroupSqlSessionFactory"></property>
 	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->

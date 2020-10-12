@@ -384,6 +384,11 @@ public class EcsCommonController {
                 map.remove("event_group_id");
             }
         }
+        //日志类型的值为空，将该条件去掉，事件关联查询页面
+        if(map.get("agent.type")!=null&&"".equals(map.get("agent.type"))) {
+            map.remove("agent.type");
+        }
+
         List<Map<String, Object>> list = new ArrayList<>();
 
         try {

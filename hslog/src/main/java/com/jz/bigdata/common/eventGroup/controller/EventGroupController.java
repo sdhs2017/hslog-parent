@@ -175,7 +175,7 @@ public class EventGroupController {
 		}
 	}
 	/**
-	 * 通过日志类型获取事件列表，syslog/winlog,combobox使用
+	 * 通过日志类型获取事件列表，syslog/winlog,combobox使用，key为id  value为名称（英文）
 	 * @param request
 	 * @return
 	 */
@@ -191,6 +191,23 @@ public class EventGroupController {
 			return Constant.failureMessage("获取信息失败！");
 		}
 	}
+    /**
+     * 通过日志类型获取事件列表，syslog/winlog,combobox使用,key/value都是事件名称(英文)
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getEventListByType4Combobox_equal.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取事件列表")
+    public String getEventListByType4Combobox_equal(HttpServletRequest request) {
+        try{
+            String log_type = request.getParameter("log_type");
+            List<Map<String,Object>> result = this.eventGroupService.getEventList4Combobox_equal(log_type);
+            return Constant.successData(JSONArray.toJSONString(result));
+        }catch(Exception e){
+            return Constant.failureMessage("获取信息失败！");
+        }
+    }
 	/**
 	 * 通过资产组的id获取事件列表
 	 * @param request

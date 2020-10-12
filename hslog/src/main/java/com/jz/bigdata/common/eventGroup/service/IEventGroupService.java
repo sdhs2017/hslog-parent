@@ -63,6 +63,12 @@ public interface IEventGroupService {
 	 * @return
 	 */
 	List<Map<String,Object>> getEventList4Combobox(String event_type);
+	/**
+	 * 事件列表,通过日志类型
+	 * @return
+	 */
+	List<Map<String,Object>> getEventList4Combobox_equal(String event_type);
+
 
 	/**
 	 * 事件列表，通过事件组id

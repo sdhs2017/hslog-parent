@@ -197,6 +197,19 @@ public class EventGroupServiceImpl implements IEventGroupService {
 	}
 
 	@Override
+	public List<Map<String, Object>> getEventList4Combobox_equal(String event_type) {
+		List<Map<String, Object>> result = new ArrayList<>();
+		List<Event> list = eventGroupDao.getEventList(event_type);
+		for(Event event:list){
+			Map<String,Object> map = new HashMap<>();
+			map.put(Constant.COMBOBOX_VALUE,event.getEvent_name_en());
+			map.put(Constant.COMBOBOX_LABEL,event.getEvent_name_en());
+			result.add(map);
+		}
+		return result;
+	}
+
+	@Override
 	public List<Map<String, Object>> getEventListByEventGroupId(String event_group_id) {
 		return null;
 	}

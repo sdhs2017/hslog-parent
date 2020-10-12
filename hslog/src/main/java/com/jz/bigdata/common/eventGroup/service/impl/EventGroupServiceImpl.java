@@ -100,7 +100,7 @@ public class EventGroupServiceImpl implements IEventGroupService {
 				//事件组包含的事件类型，syslog和winlog分开处理
 				if("syslog".equals(event.getEvent_type())){
 					syslog_event_ids.add(event.getEvent_id());
-				}else if("winlog".equals(event.getEvent_type())){
+				}else if("winlogbeat".equals(event.getEvent_type())){
 					winlog_event_ids.add(event.getEvent_id());
 				}else{
 
@@ -177,7 +177,7 @@ public class EventGroupServiceImpl implements IEventGroupService {
 		for(Event event:list){
 			Map<String,Object> map = new HashMap<>();
 			map.put(Constant.TRANSFER_KEY,event.getEvent_id());
-			map.put(Constant.TRANSFER_LABEL,event.getEvent_name_en());
+			map.put(Constant.TRANSFER_LABEL,event.getEvent_name_cn());
 			result.add(map);
 		}
 		return result;
@@ -190,7 +190,7 @@ public class EventGroupServiceImpl implements IEventGroupService {
 		for(Event event:list){
 			Map<String,Object> map = new HashMap<>();
 			map.put(Constant.COMBOBOX_VALUE,event.getEvent_id());
-			map.put(Constant.COMBOBOX_LABEL,event.getEvent_name_en());
+			map.put(Constant.COMBOBOX_LABEL,event.getEvent_name_cn());
 			result.add(map);
 		}
 		return result;
@@ -203,7 +203,7 @@ public class EventGroupServiceImpl implements IEventGroupService {
 		for(Event event:list){
 			Map<String,Object> map = new HashMap<>();
 			map.put(Constant.COMBOBOX_VALUE,event.getEvent_name_en());
-			map.put(Constant.COMBOBOX_LABEL,event.getEvent_name_en());
+			map.put(Constant.COMBOBOX_LABEL,event.getEvent_name_cn());
 			result.add(map);
 		}
 		return result;

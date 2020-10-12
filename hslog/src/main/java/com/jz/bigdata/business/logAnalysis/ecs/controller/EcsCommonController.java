@@ -13,6 +13,9 @@ import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
+import com.jz.bigdata.common.eventGroup.entity.Event;
+import com.jz.bigdata.common.eventGroup.entity.EventGroup;
+import com.jz.bigdata.common.eventGroup.service.IEventGroupService;
 import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.*;
@@ -60,7 +63,8 @@ public class EcsCommonController {
 
     @Resource(name ="UserService")
     private IUserService usersService;
-
+    @Resource(name ="EventGroupService")
+    private IEventGroupService eventGroupService;
     //@Autowired protected ClientTemplate clientTemplate;
     @Autowired
     protected ILogCrudDao logCrudDao;
@@ -366,7 +370,20 @@ public class EcsCommonController {
         if (!userrole.equals(ContextRoles.MANAGEMENT)){
             map.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
         }
-
+        //事件组处理
+        if(map.get("event_group_id")!=null&&!"".equals(map.get("event_group_id"))){
+            EventGroup eventGroup = eventGroupService.getEventGroupInfoById(map.get("event_group_id"));
+            if(eventGroup!=null&&eventGroup.getEvent_group_events().size()>0){
+                List<Event> list = eventGroup.getEvent_group_events();
+                String event_names = "";
+                for(Event event:list){
+                    //事件名称以逗号隔开
+                    event_names=event_names+event.getEvent_name_en()+",";
+                }
+                map.put("event_group",event_names);
+                map.remove("event_group_id");
+            }
+        }
         List<Map<String, Object>> list = new ArrayList<>();
 
         try {

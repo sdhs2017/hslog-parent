@@ -298,10 +298,10 @@
         /*background: #2e7cc7;*/
         color: #e5f9ff;
         background: #4876a2;
-        cursor: pointer;
+        /*cursor: pointer;*/
     }
     .eq-list .eq-item:hover{
-        color: #e4956d;
+        /*color: #e4956d;*/
     }
     .event-item .create-time{
         border-bottom: 1px dotted #2e7cc7;
@@ -363,8 +363,8 @@
         text-decoration: underline;
         color: #409eff;
     }
-    .goToEqGroupSpan:hover{
+   /* .goToEqGroupSpan:hover{
         color: #e4956d;
         cursor: pointer;
-    }
+    }*/
 </style>

@@ -84,8 +84,11 @@
             "detailsListArr":[
                 {"@timestamp":"时间"},
                 {"event.action":"事件名称"},
-                {"event.type":"事件类型"},
-                {"fields.ip":"IP地址"},
+                {"winlog.task":"事件类型"},
+                {"winlog.task":"主体"},
+                {"fields.ip":"客体/目的IP"},
+                {"source.ip": "源地址"},
+                {"agent.type": "日志类型"},
                 {"fields.equipmentname":"资产名称"},
                 {"winlog":"事件原因"},
                 {"message":"日志内容"}

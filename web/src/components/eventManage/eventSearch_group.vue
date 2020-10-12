@@ -7,7 +7,63 @@
 
         </div>
         <div class="event-search-condition" v-loading="loadingFrom"  element-loading-background="rgba(48, 62, 78, 0.5)">
-            <v-search-form :formItem="formConditionsArr" busName="eventSearch_group"></v-search-form>
+<!--            <v-search-form :formItem="formConditionsArr" busName="eventSearch_group"></v-search-form>-->
+            <div style="width: 384px;">
+                <span class="input-lable">日期范围</span>
+                <el-date-picker
+                    style="border-radius: 0;"
+                    v-model="timeArr"
+                    type="datetimerange"
+                    range-separator="至"
+                    size="mini"
+                    @change="timeChanage"
+                    start-placeholder="开始日期"
+                    value-format="yyyy-MM-dd HH:mm:ss"
+                    :default-time="['00:00:00', '23:59:59']"
+                    end-placeholder="结束日期">
+                </el-date-picker>
+            </div>
+            <div>
+                <span class="input-lable">日志类型</span>
+                <el-select size="mini" style="border-radius: 0" @change="logtypeChange" v-model="eventSearchCondition['agent.type']">
+                    <!--<el-option value=" ">全部</el-option>
+                    <el-option value="syslog">syslog</el-option>
+                    <el-option value="winlogbeat">window(日志)</el-option>-->
+                    <el-option
+                        v-for="item in logTypeOpt"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable">事件名称</span>
+                <el-select size="mini" v-model="eventSearchCondition['event.action']" clearable filterable>
+                    <el-option
+                        v-for="item in eventList"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable">事件组</span>
+                <el-select size="mini" v-model="eventSearchCondition.event_group_id" clearable>
+                    <el-option
+                        v-for="item in eventGroup"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable">事件类型</span>
+                <el-input size="mini" v-model="eventSearchCondition['winlog.task']" placeholder="" style="border-radius: 0"></el-input>
+            </div>
+            <el-button size="mini" type="primary" class="searchHttpLogs" @click="searchBtn">检索</el-button>
         </div>
         <div class="event-search-content" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable2 :tableHead="tableHead" :tableData="tableData"></v-basetable2>
@@ -52,6 +108,7 @@
                     detailData:{},//弹窗数据
                     layerState:false//弹窗状态
                 },
+                timeArr:[],//时间参数数组
                 page:1,
                 size:15,
                 c_page:1,
@@ -59,47 +116,16 @@
                 total:0,
                 eventGroup:[],
                 eventList:[],
-                formConditionsArr:[
-                    {
-                        label:'时间范围',
-                        type:'datetimerange',
-                        itemType:'',
-                        paramName:'time',
-                        model:{
-                            model:[]
-                        },
-                        val:''
-                    },
-                    {
-                        label:'事件类型',
-                        paramName:'winlog.task',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        type:'input'
-                    },
-                    {
-                        label:'事件名称',
-                        paramName:'event.action',
-                        type:'select',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        options:this.eventList
-                    },
-                   {
-                        label:'事件组',
-                        paramName:'event_group_id',
-                        type:'select',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        options:this.eventGroup
-                    }
-                ],
+                logTypeOpt:[{
+                    label:'全部',
+                    value:''
+                },{
+                    label:'syslog',
+                    value:'syslog'
+                },{
+                    label:'window(日志)',
+                    value:'winlogbeat'
+                }],
                 tableHead:[
                     {
                         prop:'@timestamp',
@@ -130,7 +156,7 @@
                     },
                     {
                         prop:'fields.ip',
-                        label:'客体/目的IP',
+                        label:'客体/目的地址',
                         width:'125'
                     },
                     {
@@ -207,40 +233,38 @@
                         label:'1亿'
                     },
                 ],
-                eventSearchCondition:{},
+                eventSearchCondition:{
+                    'winlog.task':'',
+                    'event.action':'',
+                    'agent.type':'',
+                    event_group_id:'',
+                    endtime: '',
+                    starttime: ''
+                },
                 saveCondition:{},
             }
         },
         created(){
-            this.getEventGroup();
+            this.getEventGroup('');
             this.getEventList();
             //定义七天时间范围
             let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
             let startTime= new Date();
             startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
             startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
-            this.dateVal= [startTime,endTime];
+            this.timeArr= [startTime,endTime];
             this.eventSearchCondition={
-                'fields.ip':'',
                 'winlog.task':'',
-                'fields.equipmentname':'',
                 'event.action':'',
+                'agent.type':'',
                 event_group_id:'',
-                'winlog.event_data.SubjectUserName':'',
                 endtime: endTime,
                 starttime: startTime
             }
-            this.formConditionsArr[0].model.model= [startTime,endTime]
             //保存检索条件
             this.saveCondition = this.eventSearchCondition;
             //获取事件数据
             this.getEventsData(1,this.eventSearchCondition);
-            //监听检索条件
-            bus.$on('eventSearch_group',(params)=>{
-                this.getEventsData(1,params);
-                this.c_page = 1;
-                this.saveCondition = params;
-            })
         },
         beforeDestroy(){
             bus.$off('eventSearch_group')
@@ -265,20 +289,36 @@
         methods:{
             /*刷新*/
             refreshEvent(){
-                this.getEventList();
                 this.getEventGroup();
             },
+            /*时间改变事件*/
+            timeChanage(val){
+                if (val !== null){
+                    this.eventSearchCondition.starttime = val[0];
+                    this.eventSearchCondition.endtime = val[1];
+                }else{
+                    this.eventSearchCondition.starttime = '';
+                    this.eventSearchCondition.endtime = '';
+                }
+            },
+            /*日志类型改变事件*/
+            logtypeChange(val){
+                this.getEventList(val)
+                this.eventSearchCondition['event.action'] = ''
+            },
             /*获取事件列表*/
-            getEventList(){
+            getEventList(type){
                 this.loadingFrom = true;
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/eventGroup/getEventListByType4Combobox_equal.do',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/eventGroup/getEventListByType4Combobox_equal.do',this.$qs.stringify({
+                        log_type:type
+                    }))
                         .then(res=>{
                             this.loadingFrom = false;
                             let obj = res.data;
                             if(obj.success === 'true'){
                                 this.eventList = obj.data
-                                this.formConditionsArr[this.formConditionsArr.length - 2].options = this.eventList;
+                                //this.formConditionsArr[this.formConditionsArr.length - 2].options = this.eventList;
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }
@@ -298,7 +338,7 @@
                             this.loadingFrom = false;
                             if(obj.success === 'true'){
                                 this.eventGroup = obj.data;
-                                this.formConditionsArr[this.formConditionsArr.length - 1].options = this.eventGroup;
+                                //this.formConditionsArr[this.formConditionsArr.length - 1].options = this.eventGroup;
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }
@@ -308,6 +348,12 @@
                             this.loadingFrom = false;
                         })
                 })
+            },
+            /*检索按钮*/
+            searchBtn(){
+                this.getEventsData(1,this.eventSearchCondition);
+                this.c_page = 1;
+                this.saveCondition = this.eventSearchCondition;
             },
             /*获得事件列表数据*/
             getEventsData(page,params){
@@ -416,5 +462,31 @@
     .event-table-page b{
         color: #1ab394;
         margin:0 10px;
+    }
+    .event-search-condition{
+        padding: 0 10px;
+    }
+    .event-search-condition>div{
+        font-size: 12px;
+        display: flex;
+    }
+    .input-lable{
+        display: inline-block;
+        font-size: 12px;
+        height: 28px;
+        background: #409eff;
+        line-height: 28px;
+        padding: 0 5px;
+        color: #fff;
+        word-break: keep-all;
+        text-align: center;
+    }
+    .event-search-condition /deep/ .el-input__inner{
+        border-radius: 0!important;
+    }
+    .searchHttpLogs{
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
     }
 </style>

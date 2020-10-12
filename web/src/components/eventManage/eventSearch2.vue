@@ -147,7 +147,7 @@
                     },
                     {
                         prop:'fields.ip',
-                        label:'客体/目的IP',
+                        label:'客体/目的地址',
                         width:'125'
                     },
                     {

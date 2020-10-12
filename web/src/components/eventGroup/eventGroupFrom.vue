@@ -84,7 +84,7 @@
             }
         },
         created() {
-            this.getEventList('winlog');
+            this.getEventList('winlogbeat');
             this.getEventList('syslog');
         },
         methods:{
@@ -101,7 +101,7 @@
                             if(obj.success === 'true'){
                                 if(type === 'syslog'){
                                    this.syslogEventList = obj.data
-                                }else if(type === 'winlog'){
+                                }else if(type === 'winlogbeat'){
                                     this.winlogEventList = obj.data
                                 }
                             }else{

@@ -522,6 +522,10 @@
                 }else if(logType === 'winlog' || logType === 'winlogbeat'){
                     //跳转页面
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }else if(logType === 'metric'){
+                    jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
+                }else{
+                    layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
                 }
             },
             /*资产仪表盘*/

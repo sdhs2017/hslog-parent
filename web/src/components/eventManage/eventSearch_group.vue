@@ -1,8 +1,13 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">事件搜索</div>
-        <div class="event-search-condition">
-            <v-search-form :formItem="formConditionsArr" busName="eventSearch2"></v-search-form>
+        <div class="top-title">事件关联查询
+            <div class="equipemnt-tools-btns">
+                <el-button type="success" size="mini" plain  @click="refreshEvent">刷新事件组</el-button>
+            </div>
+
+        </div>
+        <div class="event-search-condition" v-loading="loadingFrom"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <v-search-form :formItem="formConditionsArr" busName="eventSearch_group"></v-search-form>
         </div>
         <div class="event-search-content" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable2 :tableHead="tableHead" :tableData="tableData"></v-basetable2>
@@ -32,10 +37,11 @@
     import bus from '../common/bus';
     import {dateFormat} from "../../../static/js/common";
     export default {
-        name: "eventSearch2",
+        name: "eventSearch_group",
         data(){
             return{
                 loading:false,
+                loadingFrom:false,
                 baseConfig:{ //弹窗基础配置
                     type:'2',
                     title:'事件详情',
@@ -51,6 +57,8 @@
                 c_page:1,
                 allCounts:0,
                 total:0,
+                eventGroup:[],
+                eventList:[],
                 formConditionsArr:[
                     {
                         label:'时间范围',
@@ -63,16 +71,7 @@
                         val:''
                     },
                     {
-                        label:'名称',
-                        paramName:'event.action',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        type:'input'
-                    },
-                    {
-                        label:'类型',
+                        label:'事件类型',
                         paramName:'winlog.task',
                         itemType:'',
                         model:{
@@ -81,40 +80,24 @@
                         type:'input'
                     },
                     {
-                        label:'主体',
-                        paramName:'winlog.event_data.SubjectUserName',
+                        label:'事件名称',
+                        paramName:'event.action',
+                        type:'select',
                         itemType:'',
                         model:{
                             model:''
                         },
-                        type:'input'
+                        options:this.eventList
                     },
-                    {
-                        label:'目的地址',
-                        paramName:'fields.ip',
+                   {
+                        label:'事件组',
+                        paramName:'event_group_id',
+                        type:'select',
                         itemType:'',
                         model:{
                             model:''
                         },
-                        type:'input'
-                    },
-                    {
-                        label:'源地址',
-                        paramName:'source.ip',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        type:'input'
-                    },
-                    {
-                        label:'资产名称',
-                        paramName:'fields.equipmentname',
-                        itemType:'',
-                        model:{
-                            model:''
-                        },
-                        type:'input'
+                        options:this.eventGroup
                     }
                 ],
                 tableHead:[
@@ -229,6 +212,8 @@
             }
         },
         created(){
+            this.getEventGroup();
+            this.getEventList();
             //定义七天时间范围
             let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
             let startTime= new Date();
@@ -240,6 +225,7 @@
                 'winlog.task':'',
                 'fields.equipmentname':'',
                 'event.action':'',
+                event_group_id:'',
                 'winlog.event_data.SubjectUserName':'',
                 endtime: endTime,
                 starttime: startTime
@@ -250,14 +236,14 @@
             //获取事件数据
             this.getEventsData(1,this.eventSearchCondition);
             //监听检索条件
-            bus.$on('eventSearch2',(params)=>{
+            bus.$on('eventSearch_group',(params)=>{
                 this.getEventsData(1,params);
                 this.c_page = 1;
                 this.saveCondition = params;
             })
         },
         beforeDestroy(){
-            bus.$off('eventSearch2')
+            bus.$off('eventSearch_group')
         },
         watch:{
         /*检测弹窗状态*/
@@ -277,6 +263,52 @@
         }
         },
         methods:{
+            /*刷新*/
+            refreshEvent(){
+                this.getEventList();
+                this.getEventGroup();
+            },
+            /*获取事件列表*/
+            getEventList(){
+                this.loadingFrom = true;
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/eventGroup/getEventListByType4Combobox_equal.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loadingFrom = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.eventList = obj.data
+                                this.formConditionsArr[this.formConditionsArr.length - 2].options = this.eventList;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loadingFrom = false;
+                        })
+                })
+            },
+            /*获取事件组*/
+            getEventGroup(){
+                this.loadingFrom = true;
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/eventGroup/getEventGroupList.do',this.$qs.stringify())
+                        .then(res=>{
+                            let obj = res.data;
+                            this.loadingFrom = false;
+                            if(obj.success === 'true'){
+                                this.eventGroup = obj.data;
+                                this.formConditionsArr[this.formConditionsArr.length - 1].options = this.eventGroup;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+
+                        })
+                        .catch(err=>{
+                            this.loadingFrom = false;
+                        })
+                })
+            },
             /*获得事件列表数据*/
             getEventsData(page,params){
                 this.loading = true;
@@ -356,6 +388,16 @@
 </script>
 
 <style scoped>
+    .equipment-tools{
+        height: 30px;
+        padding: 0 20px;
+        float: right;
+        margin-right: 10px;
+    }
+    .equipemnt-tools-btns{
+        float: right;
+        margin-right: 10px;
+    }
     .event-search-condition{
         display: flex;
         justify-content: center;

@@ -31,7 +31,7 @@
                             :value="op.value">
                         </el-option>
                     </el-select>
-                    <el-select v-else v-model="item.model.model" class="select-width" placeholder="请选择" :style="{width:item.width ? `${item.width}px` : ''}"  size="mini">
+                    <el-select v-else filterable clearable v-model="item.model.model" class="select-width" placeholder="请选择" :style="{width:item.width ? `${item.width}px` : ''}"  size="mini">
                         <el-option
                             v-for="op in item.options"
                             :key="op.value"
@@ -223,7 +223,7 @@
                    }
                 }
                 //检测IP合法性
-                let reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+                /*let reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
                 let ip = searchObj['fields.ip'] ? searchObj['fields.ip'] : searchObj.ip ? searchObj.ip : undefined ;
                 if(ip != undefined && ip != ''){
                     if(reg.test(ip)){
@@ -234,8 +234,8 @@
                     }
                 }else{
                     bus.$emit(this.busName,searchObj);
-                }
-
+                }*/
+                bus.$emit(this.busName,searchObj);
 
             },
             //日志类型改变

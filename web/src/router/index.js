@@ -272,6 +272,12 @@ export default new Router({
                     meta: { title: '事件搜索' }
                 },
                 {
+                    path: '/eventSearch_group',
+                    name:'eventSearch_group',
+                    component: resolve => require(['../components/eventManage/eventSearch_group.vue'], resolve),
+                    meta: { title: '事件关联查询' }
+                },
+                {
                     path: '/eventList',
                     name:'eventList',
                     component: resolve => require(['../components/eventManage/eventList.vue'], resolve),
@@ -486,6 +492,18 @@ export default new Router({
                     name:'addAssetGroup',
                     component: resolve => require(['../components/assetGroup/addAssetGroup.vue'], resolve),
                     meta: { title: '添加资产组' }
+                },
+                {
+                    path: '/eventGroup',
+                    name:'eventGroup',
+                    component: resolve => require(['../components/eventGroup/eventGroup.vue'], resolve),
+                    meta: { title: '事件组' }
+                },
+                {
+                    path: '/addEventGroup',
+                    name:'addEventGroup',
+                    component: resolve => require(['../components/eventGroup/addEventGroup.vue'], resolve),
+                    meta: { title: '添加事件组' }
                 },
                /* {
                     path: '/calendar',

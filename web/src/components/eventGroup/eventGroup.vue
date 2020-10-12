@@ -1,6 +1,6 @@
 <template>
     <div  class="content-bg" v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div class="top-title">关联事件组
+        <div class="top-title">事件组
             <div class="btn-wapper">
                 <el-button type="primary" size="mini" plain @click="goToAddEventGroup">添加</el-button>
                 <el-button type="success" size="mini" plain  @click="refresh">刷新</el-button>

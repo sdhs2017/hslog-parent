@@ -29,7 +29,7 @@ public enum TemplateDateField {
      */
     public static String getDateField(String indexName){
         //以hslog开头的index，日期字段都是logdate
-        if(indexName.indexOf("hslog")==0){
+        if(indexName.indexOf("packet-")==0){
             return "logdate";
         }else{
             //其他情况都暂定为@timestamp

@@ -13,7 +13,7 @@
 		<result column="create_time" jdbcType="VARCHAR" property="create_time" />
 		<result column="create_user_id" jdbcType="VARCHAR" property="create_user_id" />
 		<result column="update_time" jdbcType="VARCHAR" property="update_time" />
-		<result column="update_user_id" jdbcType="INTEGER" property="update_user_id" />
+		<result column="update_user_id" jdbcType="VARCHAR" property="update_user_id" />
 		<collection property="asset_group_relations" ofType="com.jz.bigdata.common.assetGroup.entity.AssetGroupRelations">
 			<id property="asset_id" column="asset_id"/>
 			<result property="asset_name" column="asset_name"/>
@@ -104,9 +104,9 @@
 	</update>
 	<!--   添加资产/资产组关系表 -->
 	<insert id="insertAssetGroupRelations" parameterType="com.jz.bigdata.common.assetGroup.entity.AssetGroupRelations">
-		insert into asset_group_relations (asset_id,asset_type,asset_name,asset_ip,asset_group_id,asset_group_name)
+		insert into asset_group_relations (asset_id,asset_type,asset_name,asset_ip,asset_group_id,asset_group_name,asset_logType)
 		values
-		(#{asset_id,jdbcType=VARCHAR},#{asset_type,jdbcType=VARCHAR},#{asset_name,jdbcType=VARCHAR},#{asset_ip,jdbcType=VARCHAR},#{asset_group_id,jdbcType=VARCHAR},#{asset_group_name,jdbcType=VARCHAR})
+		(#{asset_id,jdbcType=VARCHAR},#{asset_type,jdbcType=VARCHAR},#{asset_name,jdbcType=VARCHAR},#{asset_ip,jdbcType=VARCHAR},#{asset_group_id,jdbcType=VARCHAR},#{asset_group_name,jdbcType=VARCHAR},#{asset_logType,jdbcType=VARCHAR})
 	</insert>
 	<!--  删除资产组 -->
 	<delete id="deleteAssetGroup" parameterType="java.lang.String">

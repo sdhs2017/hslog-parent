@@ -593,13 +593,14 @@ public class CollectorServiceImpl implements ICollectorService{
 				}
 			}else{
 				logger.error("ES 批量提交bulk processor初始化失败。");
-				return Constant.failureMessage("Agent采集启动失败！");
+				return Constant.failureMessage("Agent采集启动失败  ！");
 
 			}
 		}catch(Exception e){
+			System.out.println("kafka-Agent启动失败！"+e.getMessage());
 			logger.error("kafka-Agent启动失败！"+e.getMessage());
 			registry.getListenerContainer(topic_beats).stop();//启动异常时，需要进行一次关闭
-			return Constant.failureMessage("Agent采集启动失败！");
+			return Constant.failureMessage("Agent采集启动失败   ！");
 		}
 	}
 
@@ -904,6 +905,7 @@ public class CollectorServiceImpl implements ICollectorService{
 				return false;
 			}
 		}catch(Exception e){
+			System.out.println("bulk processor初始化失败！"+e.getMessage());
 			logger.error("bulk processor初始化失败！"+e.getMessage());
 			return false;
 		}

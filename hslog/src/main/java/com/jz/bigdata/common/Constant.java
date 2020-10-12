@@ -87,6 +87,7 @@ public class Constant {
 	//前端穿梭框需要的两个字段名称
 	public static final String TRANSFER_KEY="key";//传参内容
 	public static final String TRANSFER_LABEL="label";//显示内容
+
 	//资产类别
 	public static final String PHYSICAL_ASSET = "physical";//物理资产
 	public static final String LOGICAL_ASSET = "logical";//逻辑资产

@@ -90,6 +90,7 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 				assetGroupRelations.setAsset_type(Constant.VIRTUAL_ASSET);
 				assetGroupRelations.setAsset_group_id(assetGroup.getAsset_group_id());
 				assetGroupRelations.setAsset_group_name(assetGroup.getAsset_group_name());
+				assetGroupRelations.setAsset_logType(equipment_info.getLogType());
 				assetGroupDao.insertAssetGroupRelations(assetGroupRelations);
 			}
 		}
@@ -161,6 +162,7 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 				assetGroupRelations.setAsset_type(Constant.VIRTUAL_ASSET);
 				assetGroupRelations.setAsset_group_id(assetGroup.getAsset_group_id());
 				assetGroupRelations.setAsset_group_name(assetGroup.getAsset_group_name());
+				assetGroupRelations.setAsset_logType(equipment_info.getLogType());
 				assetGroupDao.insertAssetGroupRelations(assetGroupRelations);
 			}
 		}
@@ -196,6 +198,41 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 			map.put(Constant.COMBOBOX_VALUE,assetGroup.getAsset_group_id());
 			map.put(Constant.COMBOBOX_LABEL,assetGroup.getAsset_group_name());
 			result.add(map);
+		}
+		return result;
+	}
+
+	@Override
+	public Map<String,Object> getDashboardInfo(String asset_group_id) {
+		Map<String,Object> result = new HashMap<>();
+		//通过资产组id获取对应的资产信息列表
+		List<Equipment> equipmentList = equipmentDao.getEquipmentListByAssetGroupId(asset_group_id);
+		//资产组对应资产id
+		String[] asset_ids = new String[equipmentList.size()];
+		//用于判断使用哪种dashboard
+		Boolean syslog=false;
+		Boolean winlog=false;
+		Boolean other=false;
+		//遍历
+		for(int i=0;i<equipmentList.size();i++){
+			asset_ids[i] = equipmentList.get(i).getId();
+			if("syslog".equals(equipmentList.get(i).getLogType())){
+				syslog=true;
+			}else if("winlog".equals(equipmentList.get(i).getLogType())){
+				winlog=true;
+			}else{
+				other=true;
+			}
+		}
+		result.put("asset_ids",asset_ids);
+		if(syslog&winlog){
+			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_winlog_id());
+		}else if(syslog){
+			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_id());
+		}else if(winlog){
+			result.put("dashboard_id",configProperty.getHsdata_dashboard_winlog_id());
+		}else{
+			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_winlog_id());
 		}
 		return result;
 	}

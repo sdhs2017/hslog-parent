@@ -146,6 +146,40 @@ public class ConfigProperty {
 	//kafka批量消费数
 	@Value("#{prop.kafka_max_poll_records}")
 	private String kafka_max_poll_records;
+	//****资产组 不同类型对应的dashboard-id*********/
+	//syslog&winlog
+	@Value("#{prop.hsdata_dashboard_syslog_winlog_id}")
+	private String hsdata_dashboard_syslog_winlog_id;
+	//syslog
+	@Value("#{prop.hsdata_dashboard_syslog_id}")
+	private String hsdata_dashboard_syslog_id;
+	//winlog
+	@Value("#{prop.hsdata_dashboard_winlog_id}")
+	private String hsdata_dashboard_winlog_id;
+
+	public String getHsdata_dashboard_syslog_winlog_id() {
+		return hsdata_dashboard_syslog_winlog_id;
+	}
+
+	public void setHsdata_dashboard_syslog_winlog_id(String hsdata_dashboard_syslog_winlog_id) {
+		this.hsdata_dashboard_syslog_winlog_id = hsdata_dashboard_syslog_winlog_id;
+	}
+
+	public String getHsdata_dashboard_syslog_id() {
+		return hsdata_dashboard_syslog_id;
+	}
+
+	public void setHsdata_dashboard_syslog_id(String hsdata_dashboard_syslog_id) {
+		this.hsdata_dashboard_syslog_id = hsdata_dashboard_syslog_id;
+	}
+
+	public String getHsdata_dashboard_winlog_id() {
+		return hsdata_dashboard_winlog_id;
+	}
+
+	public void setHsdata_dashboard_winlog_id(String hsdata_dashboard_winlog_id) {
+		this.hsdata_dashboard_winlog_id = hsdata_dashboard_winlog_id;
+	}
 
 	public String getKafka_path() {
 		return kafka_path;

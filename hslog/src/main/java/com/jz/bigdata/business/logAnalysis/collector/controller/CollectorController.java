@@ -441,8 +441,9 @@ public class CollectorController {
 			ConfigurationCache.INSTANCE.init(configurationService);
 			return collectorService.startAgentKafkaListener();
 		}catch (Exception e){
+			System.out.println("Agent采集器开启失败"+e.getMessage());
 			logger.error("Agent采集器开启失败"+e.getMessage());
-			return Constant.failureMessage("Agent采集器开启失败！");
+			return Constant.failureMessage("Agent采集器开启失败 ！");
 		}
 	}
 

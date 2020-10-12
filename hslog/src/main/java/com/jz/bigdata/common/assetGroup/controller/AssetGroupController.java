@@ -175,7 +175,23 @@ public class AssetGroupController {
 			return Constant.failureMessage("资产组添加失败！");
 		}
 	}
-
+	/**
+	 * 获取资产组对应dashboard时的信息。包含该资产组下的资产列表id，以及资产组对应的dashboard的id
+	 * @param request
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getAssetGroupDashboardInfo.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产组列表")
+	public String getAssetGroupDashboardInfo(HttpServletRequest request) {
+		try{
+			String asset_group_id = request.getParameter("asset_group_id");
+			Map<String,Object> result = this.assetGroupService.getDashboardInfo(asset_group_id);
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			return Constant.failureMessage("获取资产组信息失败！");
+		}
+	}
 	/**
 	 * 资产组增改异常处理，资产组名称重复问题
 	 * @param e

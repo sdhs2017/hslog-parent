@@ -16,6 +16,7 @@ import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.Metric;
+import com.hs.elsearch.entity.QueryCondition;
 import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.common.asset.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
@@ -2227,6 +2228,9 @@ public class LogController extends BaseController{
 			//Y轴，数据包个数（count(packet_length)）
 			Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,null);
 			params.getMetricList().add(metric);
+			//
+			QueryCondition existsField = new QueryCondition("exists","event.action",null,"must");
+			params.getQueryConditions().add(existsField);
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
 
 			return Constant.successData(JSONArray.fromObject(result).toString());

@@ -343,7 +343,7 @@ public class HttpRequestUtil {
             //组装要检索的index的名称： 前缀+后缀
             searchConditions.setIndex_name(searchConditions.getPre_index_name()+searchConditions.getSuffix_index_name());
             //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
-            if(searchConditions.getIndex_name().indexOf("hslog")>=0){
+            if(searchConditions.getIndex_name().indexOf("packet-")>=0){
                 searchConditions.setDateField(Constant.PACKET_DATE_FIELD);
             }else if(searchConditions.getIndex_name().indexOf("beat")>=0){
                 searchConditions.setDateField(Constant.BEAT_DATE_FIELD);

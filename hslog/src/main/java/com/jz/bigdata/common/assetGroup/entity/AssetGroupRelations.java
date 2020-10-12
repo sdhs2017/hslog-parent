@@ -7,6 +7,15 @@ public class AssetGroupRelations {
     private String asset_ip;//资产IP
     private String asset_group_id;//资产组ID
     private String asset_group_name;//资产组名称
+    private String asset_logType;//资产日志类型
+
+    public String getAsset_logType() {
+        return asset_logType;
+    }
+
+    public void setAsset_logType(String asset_logType) {
+        this.asset_logType = asset_logType;
+    }
 
     public String getAsset_id() {
         return asset_id;

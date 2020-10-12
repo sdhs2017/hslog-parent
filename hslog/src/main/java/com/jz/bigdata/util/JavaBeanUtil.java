@@ -108,7 +108,8 @@ public class JavaBeanUtil {
 			BeanUtils.populate(result,map);
 			return result;
 		}catch(Exception e){
-			logger.error("convertMapToBean Error{}", e);
+			//logger.error("convertMapToBean Error{}", e);
+			//数据无法转化时，异常不进行处理
 		}
 		return result;
 	}

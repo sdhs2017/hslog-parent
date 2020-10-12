@@ -61,4 +61,11 @@ public interface IAssetGroupService {
 	 * @return
 	 */
 	List<Map<String,String>> getAssetGroupList();
+
+	/**
+	 * 通过资产组id获取对应的dashboard信息
+	 * @param asset_group_id
+	 * @return
+	 */
+	Map<String,Object> getDashboardInfo (String asset_group_id);
 }

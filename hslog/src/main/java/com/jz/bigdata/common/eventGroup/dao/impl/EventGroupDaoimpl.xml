@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.eventGroup.dao.IEventGroupDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+			   type="com.jz.bigdata.common.eventGroup.entity.EventGroup">
+		<id column="event_group_id" jdbcType="VARCHAR" property="event_group_id" />
+		<result column="event_group_name" jdbcType="VARCHAR" property="event_group_name" />
+		<result column="event_group_note" jdbcType="VARCHAR" property="event_group_note" />
+		<collection property="event_group_events" ofType="com.jz.bigdata.common.eventGroup.entity.Event">
+			<id property="event_id" column="event_id"/>
+			<result property="event_name_en" column="event_name_en"/>
+			<result property="event_name_cn" column="event_name_cn"/>
+			<result property="event_type" column="event_type"/>
+		</collection>
+	</resultMap>
+	<resultMap id="EventResultMap" type="com.jz.bigdata.common.eventGroup.entity.Event">
+		<id column="event_id" jdbcType="INTEGER" property="event_id" />
+		<result column="event_name_en" jdbcType="VARCHAR" property="event_name_en" />
+		<result column="event_name_cn" jdbcType="VARCHAR" property="event_name_cn" />
+		<result column="event_type" jdbcType="VARCHAR" property="event_type" />
+	</resultMap>
+	<!--   添加事件组基本信息 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.eventGroup.entity.EventGroup">
+		insert into event_group
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!--     判断参数是否为空 -->
+			<if test="event_group_id != null">
+				event_group_id,
+			</if>
+			<if test="event_group_name != null">
+				event_group_name,
+			</if>
+			<if test="event_group_note != null">
+				event_group_note,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="event_group_id != null">
+				#{event_group_id,jdbcType=VARCHAR},
+			</if>
+			<if test="event_group_name != null">
+				#{event_group_name,jdbcType=VARCHAR},
+			</if>
+			<if test="event_group_note != null">
+				#{event_group_note,jdbcType=VARCHAR},
+			</if>
+
+		</trim>
+	</insert>
+	<!--   修改事件组基本信息 -->
+	<update id="update" parameterType="com.jz.bigdata.common.eventGroup.entity.EventGroup">
+		update event_group
+		<set>
+			<if test="event_group_name != null">
+				event_group_name = #{event_group_name,jdbcType=VARCHAR},
+			</if>
+			<if test="event_group_note != null">
+				event_group_note = #{event_group_note,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where event_group_id = #{event_group_id,jdbcType=VARCHAR}
+	</update>
+	<!--   添加资产/资产组关系表 -->
+	<insert id="insertEventGroupRelations" parameterType="com.jz.bigdata.common.eventGroup.entity.EventGroupRelations">
+		insert into event_group_relations (event_id,event_group_id)
+		values
+		(#{event_id,jdbcType=VARCHAR},#{event_group_id,jdbcType=VARCHAR})
+	</insert>
+	<!--  删除事件组 -->
+	<delete id="deleteEventGroup" parameterType="java.lang.String">
+		delete from event_group where event_group_id=#{event_group_id}
+	</delete>
+	<!--  删除事件/事件组关系表 -->
+	<delete id="deleteEventGroupRelations" parameterType="java.lang.String">
+		delete from event_group_relations where event_group_id=#{event_group_id}
+	</delete>
+	<select  id="selectEventGroupInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select event_group.*,event_dic.*
+		from event_group
+		left join event_group_relations on event_group_relations.event_group_id = event_group.event_group_id
+		left join event_dic on event_dic.event_id = event_group_relations.event_id
+		where event_group.event_group_id = #{event_group_id}
+	</select>
+	<select id="getEventGroupCountByCondition" parameterType="com.jz.bigdata.common.eventGroup.entity.EventGroup">
+		select count(1) as count from event_group
+		where event_group_id in (
+			select event_group.event_group_id from event_group
+			left join event_group_relations on event_group_relations.event_group_id = event_group.event_group_id
+			left join event_dic on event_dic.event_id = event_group_relations.event_id
+			where 1=1
+			<if test="event_group_id != null and event_group_id !=''">
+				and event_group.event_group_id = #{event_group_id}
+			</if>
+			<if test="event_group_name != null and event_group_name !=''">
+				and event_group.event_group_name LIKE CONCAT('%', #{event_group_name}, '%')
+			</if>
+			<if test="event_id != null">
+				and event_dic.event_id = #{event_id}
+			</if>
+			group by event_group.event_group_id
+		)
+	</select>
+	<select  id="selectEventGroupInfoByCondition" parameterType="com.jz.bigdata.common.eventGroup.entity.EventGroup" resultMap="BaseResultMap">
+		select event_group.*,event_dic.* from event_group
+		left join event_group_relations on event_group_relations.event_group_id = event_group.event_group_id
+		left join event_dic on event_dic.event_id = event_group_relations.event_id
+		where event_group.event_group_id in (select * from (
+			select event_group.event_group_id from event_group
+			left join event_group_relations on event_group_relations.event_group_id = event_group.event_group_id
+			left join event_dic on event_dic.event_id = event_group_relations.event_id
+			where 1=1
+			<if test="event_group_id != null and event_group_id !=''">
+				and event_group.event_group_id = #{event_group_id}
+			</if>
+			<if test="event_group_name != null and event_group_name !=''">
+				and event_group.event_group_name LIKE CONCAT('%', #{event_group_name}, '%')
+			</if>
+			<if test="event_id != null">
+				and event_dic.event_id = #{event_id}
+			</if>
+			group by event_group.event_group_id
+			<if test="startRecord != null and pageSize !=null" >
+				limit #{startRecord},#{pageSize}
+			</if>
+		) as event_group_ids)
+
+	</select>
+	<select id="getEventGroupList"  resultMap="BaseResultMap">
+		select event_group_id,event_group_name
+		from event_group
+	</select>
+	<select id="getEventList" parameterType="java.lang.String" resultMap="EventResultMap">
+		select event_id,event_name_en,event_name_cn,event_type
+		from event_dic
+		where 1=1
+		<if test="event_type != null and event_type !=''">
+			and event_type = #{event_type}
+		</if>
+	</select>
+</mapper>

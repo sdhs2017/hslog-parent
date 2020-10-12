@@ -45,6 +45,7 @@
     import vLogscontent2 from '@/components/logsManage/logsContent2';
     import vBasetable2 from '../common/Basetable2'
     import bus from '../common/bus';
+    import {dateFormat} from "../../../static/js/common";
 
     export default {
         name: "equipmentLogs2",
@@ -165,15 +166,26 @@
         },
         created(){
             this.getEquipmentType();
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.searchConditions={
+                'fields.equipmentid':'',
+                    starttime:startTime,
+                    endtime:endTime,
+                    queryParam: ''
+            }
             //检索条件
             this.formConditionsArr = [
                 {
-                    label:'事件范围',
+                    label:'日期范围',
                     type:'datetimerange',
                     itemType:'',
                     paramName:'time',
                     model:{
-                        model:[]
+                        model:[startTime,endTime]
                     },
                     val:''
                 },

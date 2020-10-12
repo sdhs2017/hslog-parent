@@ -74,7 +74,9 @@
         <el-row :gutter="20" class="wapper-bottom">
             <el-col :span="10">
                 <div class="grid-content bg-purple wapper-content"  style="height: 400px;">
-                    <p class="content-title">异常检索</p>
+                    <p class="content-title">异常检索
+                        <dateLayout style="margin-top: 9px;"  class="date-wapper"  busName="changeDateErrorLog" :defaultVal="defaultValErrorLog"></dateLayout>
+                    </p>
                     <div class="content-infom" style="height: 350px;" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <p v-if="errorLogsData.length == 0" style="padding: 19px;color: #7593bc;">暂无异常</p>
                         <ul v-else class="errorLogsList" ref="errorLogsList" :style="{top}" @mouseenter="stopLogsInterval()" @mouseleave="startLogsInterval()">
@@ -96,7 +98,7 @@
             <el-col :span="14" style="height: 400px;">
                 <div class="grid-content bg-purple wapper-content" style="height: 400px;">
                     <p class="content-title">数据量统计
-                        <dateLayout  class="date-wapper"  busName="changeDateLine" :defaultVal="defaultValLine"></dateLayout>
+                        <dateLayout style="margin-top: 9px;"   class="date-wapper"  busName="changeDateLine" :defaultVal="defaultValLine"></dateLayout>
                     </p>
                     <div class="content-infom"  style="height: 350px;">
                         <div class="content-infom"  style="height: 350px;">
@@ -213,6 +215,33 @@
                     //是否可以切换精确日期
                     changeState:true
                 },
+                //error log
+                defaultValErrorLog:{
+                    //具体时间参数
+                    lastVal:'',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:true,
+                    //是否存在轮询框
+                    isIntervalBox:false,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'hour',
+                    //‘快速选择’功能参数数值
+                    dateCount:'1',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:false
+                },
                 //日志级别柱状图参数
                 barParam:{
                     intervalValue:'',
@@ -251,6 +280,14 @@
                 },
                 //今日每小时日志数
                 lineParam:{
+                    intervalValue:'',
+                    intervalType:'',
+                    starttime:'',
+                    endtime:'',
+                    last:''
+                },
+                //error日志时间参数
+                errorLogParam:{
                     intervalValue:'',
                     intervalType:'',
                     starttime:'',
@@ -308,16 +345,19 @@
             this.defaultValBar.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
             this.defaultValPie.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
             this.defaultValPie.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
-
             this.defaultValLine.starttime= dateFormat('yyyy-mm-dd',end)+ ' 00:00:00';
             this.defaultValLine.endtime = dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.defaultValErrorLog.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.defaultValErrorLog.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
+
             this.barParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
             this.barParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
             this.pieParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
             this.pieParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
-
             this.lineParam.starttime= dateFormat('yyyy-mm-dd',end)+ ' 00:00:00';
             this.lineParam.endtime = dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.errorLogParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.errorLogParam.starttime = dateFormat('yyyy-mm-dd',start) + ' 00:00:00';
             /*监听日期改变*/
             bus.$on('changeDateBar',(obj)=>{
                 //设置参数对应
@@ -339,10 +379,18 @@
                 this.lineParam = arr[0];
                 this.intervalObjLine = arr[1];
             })
+            /*监听日期改变 */
+            bus.$on('changeDateErrorLog',(obj)=>{
+                //设置参数对应
+                let arr = setChartParam(obj);
+                this.errorLogParam = arr[0];
+                this.getErrorLogsData()
+            })
             //循环创建时间 模拟时间
             setInterval(this.setDate,1000);
             // //获取日志条数方法
              this.getLogsTotle();
+             this.getErrorLogTotle();
             // //获取柱状图
             //this.getBarPieEchartData(this.starttime,this.todayDate,true,true);
             // //获取折线图数据  轮训 1min
@@ -404,6 +452,17 @@
                     this.$axios.get(this.$baseUrl+'/ecsCommon/getIndicesCount.do',{})
                         .then((res) => {
                             this.allLogsTotle = parseInt(res.data[0].indices).toLocaleString();
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        })
+                })
+            },
+            //获取error日志数量
+            getErrorLogTotle(){
+                this.$nextTick( ()=> {
+                    this.$axios.get(this.$baseUrl+'/ecsCommon/getIndicesCountByLevel.do',{})
+                        .then((res) => {
                             this.errorLogsTotle = parseInt(res.data[0].indiceserror).toLocaleString();
                         })
                         .catch((err) => {
@@ -429,7 +488,13 @@
                 this.loading = true;
                 this.$nextTick( ()=>{
                     this.$axios.post(this.$baseUrl+'/ecsWinlog/getLogListByBlend.do',this.$qs.stringify({
-                        hsData:JSON.stringify({'log.level':'error',page:1,size:20})
+                        hsData:JSON.stringify({
+                            starttime:this.errorLogParam.starttime,
+                            endtime:this.errorLogParam.endtime,
+                            'log.level':'error',
+                            page:1,
+                            size:20
+                        })
                     }))
                         .then((res)=>{
                             this.loading = false
@@ -488,6 +553,7 @@
             startLogsInterval(){
                 //判断是否有详情弹窗 有则不启动计时器
                 if(!this.layerState){
+                    clearInterval(this.interval);
                     this.interval = setInterval(()=>{this.errorLogsListScroll()}, 4000);
                 }
             }/*,

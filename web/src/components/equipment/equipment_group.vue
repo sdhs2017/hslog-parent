@@ -31,8 +31,9 @@
                         <span class="eq-t-span">{{i.type}}</span>
                     </div>
                     <div class="eq-type">
-                        <i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
-                        <i class="el-icon-data-line"  v-else></i>
+                       <!-- <i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
+                        <i class="el-icon-data-line"  v-else></i>-->
+                        <i class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>
                     </div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
@@ -85,7 +86,7 @@
                     </div>
                     <div class="eq-tools-02">
                         <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>
-                        <i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+<!--                        <i class="el-icon-s-data" title="查看资产报表" @click="equipmentEcharts(i)"></i>-->
                         <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
                         <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
                         <i class="el-icon-view" title="潜在威胁分析" :style="{color:i.high_risk !== 0 ? '#f55446' : i.moderate_risk !== 0 ? '#f1ae09' : '#4995bb'}" @click="theartAnalyse(i)"></i>
@@ -465,6 +466,10 @@
                 }else if(logType === 'winlog' || logType === 'winlogbeat'){
                     //跳转页面
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }else if(logType === 'metric'){
+                    jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
+                }else{
+                    layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
                 }
             },
             /*资产仪表盘*/
@@ -515,7 +520,6 @@
             },
             /*下载资产模板*/
             downLoadEq(){
-                console.log('ddd')
                 let ahtml = document.getElementById('eqDownload');
                 ahtml.href = this.$baseUrl+'/equipment/equipmentDownload.do';
                 ahtml.click();
@@ -748,6 +752,9 @@
     }
     .eq-type .go_metric{
         cursor: pointer;
+    }
+    .eq-type .go_metric:hover{
+        color: #E4956D;
     }
     .eq-t-span{
         color: #fff;

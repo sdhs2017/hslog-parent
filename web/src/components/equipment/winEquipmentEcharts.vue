@@ -161,7 +161,7 @@
             })
         },
         methods:{
-            /*获取日志总数于错误日志数*/
+            /*获取日志总数*/
             getLogCount(id){
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/ecsCommon/getIndicesCount.do',this.$qs.stringify({
@@ -169,6 +169,19 @@
                     }))
                         .then((res)=>{
                             this.logsCount = res.data[0].indices;
+                        })
+                        .catch((err)=>{
+                            console.log(err)
+                        })
+                })
+            },
+            /*获取错误日志数*/
+            getErrorLogCount(id){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/ecsCommon/getIndicesCountByLevel.do',this.$qs.stringify({
+                        hsData:JSON.stringify({'fields.equipmentid':id})
+                    }))
+                        .then((res)=>{
                             this.errorLogsCount = res.data[0].indiceserror;
                         })
                         .catch((err)=>{
@@ -224,6 +237,7 @@
         watch:{
             'equipmentId'(newV,oldV){
                 this.getLogCount(newV);
+                this.getErrorLogCount(newV);
                 //this.getEventCount(newV);
                 this.getEquipmentInfo(newV)
             }

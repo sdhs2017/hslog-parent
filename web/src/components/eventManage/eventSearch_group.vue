@@ -351,9 +351,14 @@
             },
             /*检索按钮*/
             searchBtn(){
-                this.getEventsData(1,this.eventSearchCondition);
-                this.c_page = 1;
-                this.saveCondition = this.eventSearchCondition;
+                if(this.eventSearchCondition.starttime === '' || this.eventSearchCondition.endtime === ''){
+                    layer.msg('查询时间条件不允许为空，时间跨度过大可能导致相应慢',{icon:5})
+                }else{
+                    this.getEventsData(1,this.eventSearchCondition);
+                    this.c_page = 1;
+                    this.saveCondition = this.eventSearchCondition;
+                }
+
             },
             /*获得事件列表数据*/
             getEventsData(page,params){

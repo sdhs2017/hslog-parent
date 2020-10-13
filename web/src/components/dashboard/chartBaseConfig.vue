@@ -181,13 +181,27 @@
                                 </el-form>
                             </el-collapse-item>
                             <el-collapse-item title="样式" class="tablist" name="2">
-                                <el-form label-position="left" label-width="50px" style="position:relative;">
+                                <el-form label-position="left" label-width="70px" style="position:relative;">
                                     <div class="from-zz" v-if="operType === 'see'"></div>
                                     <el-form-item label="颜色">
                                         <el-color-picker v-model="chartsConfig.style.color" size="mini"></el-color-picker>
                                     </el-form-item>
                                     <el-form-item label="大小">
                                         <el-slider v-model="chartsConfig.style.fontSize" :min="12" :max="120" size="mini"></el-slider>
+                                    </el-form-item>
+                                    <el-form-item label="单位类型" >
+                                        <el-select v-model="chartsConfig.style.unitType" style="width: 100%;" size="mini">
+                                            <el-option label="无" value=""></el-option>
+                                            <el-option label="百分比" value="%"></el-option>
+                                            <el-option label="byte" value="byte"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="单位数值" v-if="chartsConfig.style.unitType === 'byte'">
+                                        <el-select v-model="chartsConfig.style.unitValue" style="width: 100%;" size="mini">
+                                            <el-option label="MB" value="MB"></el-option>
+                                            <el-option label="GB" value="GB"></el-option>
+                                            <el-option label="TB" value="TB"></el-option>
+                                        </el-select>
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
@@ -574,6 +588,8 @@
                     style:{
                         color:'#409EFF',
                         fontSize:100,
+                        unitType:'',
+                        unitValue:''
                     },
                     //图例
                     legend:{
@@ -1231,13 +1247,21 @@
 
                     bucketsArr.push(obj)
                 }
-                //单位
+                //y轴单位
                 if(this.chartsConfig.yNormal.unitType === ''){
                     this.yUnit = ''
                 }else if(this.chartsConfig.yNormal.unitType === '%'){
                     this.yUnit = '%'
                 }else if(this.chartsConfig.yNormal.unitType === 'byte'){
                     this.yUnit = this.chartsConfig.yNormal.unitValue
+                }
+                //metric指标单位
+                if(this.chartsConfig.style.unitType === ''){
+                    this.yUnit = ''
+                }else if(this.chartsConfig.style.unitType === '%'){
+                    this.yUnit = '%'
+                }else if(this.chartsConfig.style.unitType === 'byte'){
+                    this.yUnit = this.chartsConfig.style.unitValue
                 }
                 let param = {
                     starttime:this.dateObj.starttime,//起始时间

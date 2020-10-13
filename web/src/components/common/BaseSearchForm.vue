@@ -235,8 +235,11 @@
                 }else{
                     bus.$emit(this.busName,searchObj);
                 }*/
-                bus.$emit(this.busName,searchObj);
-
+                if(searchObj.starttime === '' || searchObj.endtime === ''){
+                    layer.msg('查询时间条件不允许为空，时间跨度过大可能导致相应慢',{icon:5})
+                }else{
+                    bus.$emit(this.busName,searchObj);
+                }
             },
             //日志类型改变
             logTypeChange(val,type){

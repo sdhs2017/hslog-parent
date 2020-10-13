@@ -20,6 +20,7 @@
             type="datetimerange"
             range-separator="至"
             size="mini"
+            :clearable="false"
             start-placeholder="开始日期"
             value-format="yyyy-MM-dd HH:mm:ss"
             :default-time="['00:00:00', '23:59:59']"

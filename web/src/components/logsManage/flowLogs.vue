@@ -209,7 +209,12 @@
             },
             /*检索按钮点击事件*/
             searchHttpLogs(){
-                this.searchConditions = Object.assign({}, this.formConditions);//复制对象 避免指针
+                if(this.formConditions.starttime === '' || this.formConditions.endtime === ''){
+                    layer.msg('查询时间条件不允许为空，时间跨度过大可能导致相应慢',{icon:5})
+                }else{
+                    this.searchConditions = Object.assign({}, this.formConditions);//复制对象 避免指针
+                }
+
             }
         },
         beforeRouteEnter(to, from, next) {

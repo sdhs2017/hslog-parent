@@ -334,7 +334,7 @@
             //填充时间
             const end = new Date();
             const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
             this.dateVal1=[start,end];
             this.dateVal2=[start,end];
 

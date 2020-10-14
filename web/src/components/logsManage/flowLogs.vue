@@ -256,7 +256,7 @@
                     //定义七天时间范围
                     let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
                     let startTime= new Date();
-                    startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * 7);
+                    startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
                     startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
                     vm.timeArr=[startTime,endTime]
                     vm.formConditions.endtime= endTime;

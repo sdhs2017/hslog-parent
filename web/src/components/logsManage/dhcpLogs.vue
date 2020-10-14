@@ -14,6 +14,7 @@
 <script>
     import vSearchForm from '../common/BaseSearchForm';
     import vLogscontent from '@/components/logsManage/logsContent';
+    import {dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
         name: "dhcpLogs",
@@ -34,54 +35,7 @@
                     'relay_ip':'',
                     'client_ip':''
                 },
-                formConditionsArr:[
-                    {
-                        label:'事件范围',
-                        type:'datetimerange',
-                        itemType:'',
-                        paramName:'time',
-                        model:{
-                            model:[]
-                        },
-                        val:''
-                    },
-                    {
-                        label:'dhcp类型',
-                        paramName:'dhcp_type',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    },
-                    {
-                        label:'mac地址',
-                        paramName:'client_mac',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    },
-                    {
-                        label:'中继设备',
-                        paramName:'relay_ip',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    },
-                    {
-                        label:'客户端ip',
-                        paramName:'client_ip',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    }
-                ],
+                formConditionsArr:[],
                 tableHead:[
                     {
                         prop:'logtime',
@@ -144,6 +98,68 @@
             }
         },
         created(){
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.searchConditions = {
+                'type':'dhcp',
+                'dhcp_type':'',
+                'client_mac':'',
+                'relay_ip':'',
+                'client_ip':'',
+                endtime: endTime,
+                starttime: startTime
+            }
+            this. formConditionsArr=[
+                {
+                    label:'事件范围',
+                    type:'datetimerange',
+                    itemType:'',
+                    paramName:'time',
+                    model:{
+                        model:[startTime,endTime]
+                    },
+                    val:''
+                },
+                {
+                    label:'dhcp类型',
+                    paramName:'dhcp_type',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'mac地址',
+                    paramName:'client_mac',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'中继设备',
+                    paramName:'relay_ip',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'客户端ip',
+                    paramName:'client_ip',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                }
+            ],
             bus.$on('dhcpLogs',params =>{
                 this.searchConditions = params;
                 this.searchConditions.type = 'dhcp';

@@ -14,6 +14,7 @@
 <script>
     import vSearchForm from '../common/BaseSearchForm';
     import vLogscontent from '@/components/logsManage/logsContent';
+    import {dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
         name: "dnsLogs",
@@ -160,6 +161,78 @@
             }
         },
         created(){
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.searchConditions = {
+                'type':'dhcp',
+                'dhcp_type':'',
+                'client_mac':'',
+                'relay_ip':'',
+                'client_ip':'',
+                endtime: endTime,
+                starttime: startTime
+            }
+            this.formConditionsArr=[
+                {
+                    label:'事件范围',
+                    type:'datetimerange',
+                    itemType:'',
+                    paramName:'time',
+                    model:{
+                        model:[startTime,endTime]
+                    },
+                    val:''
+                },
+                {
+                    label:'客户IP',
+                    paramName:'dns_clientip',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'访问域名',
+                    paramName:'dns_domain_name',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'解析类型',
+                    paramName:'dns_ana_type',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                },
+                {
+                    label:'服务器',
+                    paramName:'dns_server',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                }
+                ,
+                {
+                    label:'View',
+                    paramName:'dns_view',
+                    model:{
+                        model:''
+                    },
+                    itemType:'',
+                    type:'input'
+                }
+            ],
             bus.$on('dnsLogs',params =>{
                 this.searchConditions = params;
                 this.searchConditions.type = 'dns';

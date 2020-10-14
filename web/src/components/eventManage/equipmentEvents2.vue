@@ -33,6 +33,7 @@
     import vBasetable from '../common/Basetable';
     import vBasetable2 from '../common/Basetable2';
     import vListdetails2 from '../common/Listdetails2';
+    import {dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
 
     export default {
@@ -211,6 +212,40 @@
         created(){
             //获得资产类型
             this.getEquipmentType();
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.eventSearchCondition={
+                starttime:startTime,
+                endtime:endTime,
+                'event.action':''
+            }
+            //检索条件
+            this.formConditionsArr = [
+                {
+                    label:'日期范围',
+                    type:'datetimerange',
+                    itemType:'',
+                    paramName:'time',
+                    model:{
+                        model:[startTime,endTime]
+                    },
+                    val:''
+                },
+                {
+                    label:'日志级别',
+                    paramName:'log.level',
+                    type:'select',
+                    itemType:'multiple',
+                    model:{
+                        model:this.levelVal
+                    },
+                    options:this.logLevel
+                }
+
+            ]
         },
         methods:{
             /*获取资产信息*/

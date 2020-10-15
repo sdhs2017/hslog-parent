@@ -53,8 +53,9 @@
                     <p class="content-title">
                         <dateLayout class="date-wapper" busName="changeDateBar" :defaultVal="defaultValBar" ></dateLayout>
                     </p>
-                    <div class="content-infom">
-                        <logLevel_bar  class="date-wapper"  :params="barParam" :busName1="barBusName" :setIntervalObj="intervalObjBar"></logLevel_bar>
+                    <div class="content-infom" v-loading="barloading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+<!--                        <logLevel_bar  class="date-wapper"  :params="barParam" :busName1="barBusName" :setIntervalObj="intervalObjBar"></logLevel_bar>-->
+                        <v-echarts echartType="bar" :echartData = "echartData.barData" :busName="barBusName" ></v-echarts>
                     </div>
                 </div>
             </el-col>
@@ -63,8 +64,9 @@
                     <p class="content-title" style="display: flex;justify-content: flex-end;">
                         <dateLayout  class="date-wapper"  busName="changeDatePie" :defaultVal="defaultValPie" ></dateLayout>
                     </p>
-                    <div class="content-infom">
-                        <logLevel_pie :params="pieParam" :setIntervalObj="intervalObjPie"></logLevel_pie>
+                    <div class="content-infom" v-loading="pieloading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+<!--                        <logLevel_pie :params="pieParam" :setIntervalObj="intervalObjPie"></logLevel_pie>-->
+                        <v-echarts echartType="pie" :echartData = "this.echartData.pieData" ></v-echarts>
                     </div>
                 </div>
             </el-col>
@@ -117,7 +119,7 @@
 </template>
 
 <script>
-    import vEcharts from '../common/echarts'
+    import vEcharts from '../common/echarts_n'
     import dateLayout from '../common/dateLayout'
     import vListdetails2 from '../common/Listdetails2'
     import logLevel_bar from '../charts/log/index/logLevel_bar'
@@ -134,6 +136,8 @@
         name: "index_n",
         data() {
             return{
+                barloading:false,
+                pieloading:false,
                 //时间控件参数 柱状图
                 defaultValBar:{
                     //具体时间参数
@@ -145,7 +149,7 @@
                     //具体时间 类型状态
                     dateBlock:true,
                     //是否存在轮询框
-                    isIntervalBox:true,
+                    isIntervalBox:false,
                     //轮询状态
                     intervalState:false,
                     //轮询数值间隔
@@ -172,7 +176,7 @@
                     //具体时间 类型状态
                     dateBlock:true,
                     //是否存在轮询框
-                    isIntervalBox:true,
+                    isIntervalBox:false,
                     //轮询状态
                     intervalState:false,
                     //轮询数值间隔
@@ -199,7 +203,7 @@
                     //具体时间 类型状态
                     dateBlock:true,
                     //是否存在轮询框
-                    isIntervalBox:true,
+                    isIntervalBox:false,
                     //轮询状态
                     intervalState:false,
                     //轮询数值间隔
@@ -294,6 +298,34 @@
                     endtime:'',
                     last:''
                 },
+                echartData:{
+                    barData: {//柱状图数据
+                        baseConfig:{
+                            title:'日志级别数量统计',
+                            xAxisName:'级别',
+                            yAxisName:'数量/条',
+                            hoverText:'数量',
+                            itemColor:[['rgba(68,47,148,0.5)','rgba(15,219,243,1)']]
+                        },
+                        data:{
+                            dimensions:[],
+                            source:[]
+                        }
+                    },
+                    pieData: {//饼状图数据
+                        baseConfig:{
+                            title:'日志级别数量统计',
+                            xAxisName:'级别',
+                            yAxisName:'数量/条',
+                            hoverText:'数量',
+                            itemColor:[['rgba(68,47,148,0.5)','rgba(15,219,243,1)']]
+                        },
+                        data:{
+                            dimensions:[],
+                            source:[]
+                        }
+                    },
+                },
                 //日常检索遮罩
                 loading:false,
                 date:'',//日期
@@ -364,6 +396,7 @@
                 let arr = setChartParam(obj);
                 this.barParam = arr[0];
                 this.intervalObjBar = arr[1];
+                this.getBarPieEchartData(this.barParam,true,false);
             })
             /*监听日期改变*/
             bus.$on('changeDatePie',(obj)=>{
@@ -371,6 +404,7 @@
                 let arr = setChartParam(obj);
                 this.pieParam = arr[0];
                 this.intervalObjPie = arr[1];
+                this.getBarPieEchartData(this.barParam,false,true);
             })
             /*监听日期改变*/
             bus.$on('changeDateLine',(obj)=>{
@@ -392,7 +426,7 @@
              this.getLogsTotle();
              this.getErrorLogTotle();
             // //获取柱状图
-            //this.getBarPieEchartData(this.starttime,this.todayDate,true,true);
+            this.getBarPieEchartData(this.barParam,true,true);
             // //获取折线图数据  轮训 1min
             //this.getLineEchartData();
             //setInterval(this.getLineEchartData,60000);
@@ -513,6 +547,45 @@
                         })
                         .catch((err)=>{
                             this.loading = false
+                            console.log(err)
+                        })
+                })
+            },
+            //获取柱状图 饼图 数据
+            getBarPieEchartData(params,bar,pie){
+                if(bar){
+                    this.barloading = true
+                }
+                if(pie){
+                    this.pieloading = true
+                }
+                this.$nextTick( ()=> {
+                    this.$axios.post(this.$baseUrl+'/log/getCountGroupByLogLevel_barAndPie.do',this.$qs.stringify(params))
+                        .then((res) => {
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                //赋值
+                                if (bar){
+                                    this.barloading = false
+                                    this.echartData.barData.data = obj.data[0]
+                                }
+                                if(pie){
+                                    this.pieloading = false
+                                    this.echartData.pieData.data = obj.data[0];
+                                }
+                            }else{
+                                //赋值
+                                if (bar){
+                                    this.barloading = false
+                                }
+                                if(pie){
+                                    this.pieloading = false
+                                }
+                            }
+
+
+                        })
+                        .catch((err) => {
                             console.log(err)
                         })
                 })

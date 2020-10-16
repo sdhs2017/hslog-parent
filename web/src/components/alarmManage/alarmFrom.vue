@@ -615,7 +615,7 @@
                 console.log( this.paramObj)
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'/alert/getAlertResult.do',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/alert/getAlertResult.do',this.$qs.stringify(this.paramObj))
                         .then(res=>{
                             this.loading = false;
                             let obj = res.data

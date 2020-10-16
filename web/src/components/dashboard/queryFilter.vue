@@ -1,6 +1,6 @@
 <template>
     <div>
-       <div>
+       <div v-if="queryState">
 <!--           <el-input v-model="formQueryVal" placeholder="请输入内容" size="mini"></el-input>-->
            <el-popover
                style="width: 100%;display: block;"
@@ -19,7 +19,7 @@
                </div>
            </el-popover>
        </div>
-        <div class="filter-wapper">
+        <div class="filter-wapper" v-if="filterState">
             <div class="ld"><b class="ld-1"></b><b class="ld-2"></b><b class="ld-3"></b></div>
             <ul class="filter-ul">
                 <li v-for="(item ,i) in filterArr" :key="i" :class="{noview:!item.enable}">
@@ -221,6 +221,20 @@
     export default {
         name: "queryFilter",
         props:{
+            //是否使用query
+            queryState:{
+                type:Boolean,
+                default(){
+                    return true
+                }
+            },
+            //是否使用filter
+            filterState:{
+                type:Boolean,
+                default(){
+                    return true
+                }
+            },
             //使用类型  查看/修改、添加
             useType:{
                 type:String,
@@ -247,7 +261,7 @@
                 }
             },
             //filter值
-            filterArr:{
+            defaultFilterArr:{
                 type: Array,
                 default(){
                     return []
@@ -301,7 +315,7 @@
                 currentIndex:'',
                 //indexPattern集合
                 indexPatternOpt:[],
-                //filterArr:[],
+                filterArr:[],
                 //field类型   string、number、ip、date
                 fieldType:{ },
                 formQueryVal:'',
@@ -352,6 +366,9 @@
             //query
             'formQueryVal'(){
                bus.$emit(this.busQueryName,this.formQueryVal)
+            },
+            'defaultFilterArr'(){
+                this.filterArr = this.defaultFilterArr
             },
             //筛选值 集合
             filterArr:{

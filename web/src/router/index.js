@@ -505,6 +505,18 @@ export default new Router({
                     component: resolve => require(['../components/eventGroup/addEventGroup.vue'], resolve),
                     meta: { title: '添加事件组' }
                 },
+                {
+                    path: '/alarmList',
+                    name:'alarmList',
+                    component: resolve => require(['../components/alarmManage/alarmList.vue'], resolve),
+                    meta: { title: '告警列表' }
+                },
+                {
+                    path: '/addAlarm',
+                    name:'addAlarm',
+                    component: resolve => require(['../components/alarmManage/addAlarm.vue'], resolve),
+                    meta: { title: '添加告警' }
+                },
                /* {
                     path: '/calendar',
                     name:'calendar',

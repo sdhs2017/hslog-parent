@@ -18,7 +18,7 @@
             <queryFilter
                 :busFilterName="this.busFilterName"
                 :busQueryName="this.busQueryName"
-                :filterArr="this.defaultFilter"
+                :defaultFilterArr="this.defaultFilter"
                 :queryVal="this.defaultQuery"
                 :useType="this.operType"
                 :ids="ids"
@@ -1374,7 +1374,7 @@
                                         let str = ''
                                         //循环拼接数据
                                         for(let i in obj.opt.dataset){
-                                            obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
+                                           // obj.opt.dataset[i].value = parseInt(obj.opt.dataset[i].value).toLocaleString();
                                             str += `<span style="margin: 15px;"><p>${obj.opt.dataset[i].name}</p><p style="font-size: ${obj.opt.config.style.fontSize}px;color: ${obj.opt.config.style.color};font-weight: 600;">${obj.opt.dataset[i].value}</p></span>`
                                         }
                                         let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;flex-wrap:wrap;overflow: auto;">'+str+'</div>'

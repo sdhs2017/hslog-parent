@@ -14,7 +14,7 @@
             <queryFilter
                 :busFilterName="this.busFilterName"
                 :busQueryName="this.busQueryName"
-                :filterArr="this.defaultFilter"
+                :defaultFilterArr="this.defaultFilter"
                 :queryVal="this.defaultQuery"
                 :useType="this.operType"
                 useObject="chart"
@@ -1686,7 +1686,7 @@
                 let str = ''
                 //循环拼接数据
                 for(let i in data){
-                    data[i].value = parseInt(data[i].value).toLocaleString();
+                    //data[i].value = parseInt(data[i].value).toLocaleString();
                     str += `<span style="margin: 50px;"><p>${data[i].name}</p><p style="font-size: ${this.chartsConfig.style.fontSize}px;color: ${this.chartsConfig.style.color};font-weight: 600;">${data[i].value}</p></span>`
                 }
                 let box = '<div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center;flex-wrap:wrap;overflow: auto;">'+str+'</div>'

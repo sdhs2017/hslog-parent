@@ -35,7 +35,7 @@
                 v-if="chartsConfig.dataSourceType ==='ElasticSearch'"
                 :busFilterName="this.busFilterName"
                 :busQueryName="this.busQueryName"
-                :filterArr="this.defaultFilter"
+                :defaultFilterArr="this.defaultFilter"
                 :queryVal="this.defaultQuery"
                 :useType="this.operType"
                 useObject="chart"

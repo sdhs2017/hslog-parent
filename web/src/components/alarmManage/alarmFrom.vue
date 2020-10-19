@@ -27,9 +27,9 @@
                             :defaultFilterArr="this.defaultFilter"
                             :queryState="false"
                             useObject="chart"
-                            :templateName="this.form.templateName"
-                            :preIndexName="this.form.preIndexName"
-                            :suffixIndexName="this.form.suffixIndexName"
+                            :templateName="this.form.template_name"
+                            :preIndexName="this.form.pre_index_name"
+                            :suffixIndexName="this.form.suffix_index_name"
                         >
                         </queryFilter>
                     </div>

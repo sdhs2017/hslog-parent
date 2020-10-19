@@ -19,7 +19,7 @@
                     <choose-index :busName="this.busNameObj.busIndexName" :arr = "indexVal"></choose-index>
                 </div>
                 <div class="form-item">
-                    <span class="mustWrite" >*</span>
+<!--                    <span class="mustWrite" >*</span>-->
                     <div class="item-label" style="position: absolute; top: 9px;">筛选：</div>
                     <div class="item-con" style="margin-left: 56px;">
                         <queryFilter
@@ -284,9 +284,9 @@
                 indexVal:[],
                 form:{
                     alert_name:'',
-                    templateName:'',
-                    preIndexName:'',
-                    suffixIndexName:'',
+                    template_name:'',
+                    pre_index_name:'',
+                    suffix_index_name:'',
                     datefield:'',
                     alert_filters:'',
                 },
@@ -395,9 +395,9 @@
                 //还原配置
                 this.initialize();
                 //设置数据源
-                this.form.suffixIndexName = arr[2];
-                this.form.preIndexName = arr[1];
-                this.form.templateName = arr[0];
+                this.form.suffix_index_name = arr[2];
+                this.form.pre_index_name = arr[1];
+                this.form.template_name = arr[0];
                 this.form.datefield = arr[3];
                 //获取column数据
                 //this.getColumnField()
@@ -445,7 +445,7 @@
             },
             /*y轴聚合类型改变*/
             yAggregationChange($event,index){
-                if (this.form.preIndexName === '' || this.form.suffixIndexName === '' || this.form.templateName === ''){
+                if (this.form.pre_index_name === '' || this.form.suffix_index_name === '' || this.form.template_name === ''){
                     layer.msg('请选择数据源',{icon:'5'});
                     return;
                 }
@@ -458,9 +458,9 @@
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
                             agg:$event,
-                            pre_index_name:this.form.preIndexName,
-                            suffix_index_name:this.form.suffixIndexName,
-                            template_name:this.form.templateName
+                            pre_index_name:this.form.pre_index_name,
+                            suffix_index_name:this.form.suffix_index_name,
+                            template_name:this.form.template_name
                         }
                     ))
                         .then(res=>{
@@ -482,7 +482,7 @@
             },
             /*x轴聚合类型改变*/
             xAggregationChange($event,index){
-                if (this.form.preIndexName === '' || this.form.suffixIndexName === '' || this.form.templateName === ''){
+                if (this.form.pre_index_name === '' || this.form.suffix_index_name === '' || this.form.template_name === ''){
                     layer.msg('请选择数据源',{icon:'5'});
                     return;
                 }
@@ -497,9 +497,9 @@
                     this.leftXLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
                         agg:$event,
-                        pre_index_name:this.form.preIndexName,
-                        suffix_index_name:this.form.suffixIndexName,
-                        template_name:this.form.templateName
+                        pre_index_name:this.form.pre_index_name,
+                        suffix_index_name:this.form.suffix_index_name,
+                        template_name:this.form.template_name
                     }))
                         .then(res=>{
                             this.leftXLoading = false;
@@ -609,9 +609,23 @@
 
                     bucketsArr.push(obj)
                 }
+
                 this.paramObj = JSON.parse(JSON.stringify(this.form));
-                this.paramObj.alert_metricList = JSON.stringify(metricsArr)
-                this.paramObj.alert_bucketList = JSON.stringify(bucketsArr)
+                //判断是空值
+                if(metricsArr[0].aggType !== 'Count' && metricsArr[0].field === ''){
+                    this.paramObj.alert_metricList = []
+                }else{
+                    this.paramObj.alert_metricList = JSON.stringify(metricsArr)
+                }
+                if(bucketsArr[0].field === ''){
+                    this.paramObj.alert_bucketList = []
+
+                }else{
+                    this.paramObj.alert_bucketList = JSON.stringify(bucketsArr)
+                }
+                if(this.paramObj.alert_filters === ''){
+                    this.paramObj.alert_filters = []
+                }
                 console.log( this.paramObj)
                 this.$nextTick(()=>{
                     this.loading = true;

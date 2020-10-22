@@ -2,7 +2,7 @@
     <div  class="content-bg">
         <div class="top-title">添加告警</div>
         <div class="form-wapper">
-            <alarmFrom url="/eventGroup/insert.do" :busNameObj="busName"></alarmFrom>
+            <alarmFrom url="/alert/insert.do" :busNameObj="busName"></alarmFrom>
         </div>
     </div>
 </template>
@@ -16,6 +16,7 @@
                 busName:{
                     busIndexName:'addAlarmIndexBus',
                     busFilterName:'addAlarmFilterBus',
+                    busDateName:'addAlarmDateBus'
                 }
             }
         },

@@ -1,19 +1,13 @@
 <template>
     <div v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
         <el-steps :active="active" simple>
-            <el-step title="基本信息" icon="el-icon-edit"></el-step>
-            <el-step title="选择字段" icon="el-icon-upload"></el-step>
-            <el-step title="完成" icon="el-icon-picture"></el-step>
+            <el-step title="数据源" icon="el-icon-coin"></el-step>
+            <el-step title="选择字段" icon="el-icon-thumb"></el-step>
+            <el-step title="完善信息" icon="el-icon-edit-outline"></el-step>
+            <el-step title="完成" icon="el-icon-success"></el-step>
         </el-steps>
         <div class="con-wapper" v-show="active === 0">
             <div class="form-con">
-                <div class="form-item">
-                    <span class="mustWrite">*</span>
-                    <div class="item-label">名称：</div>
-                    <div class="item-con">
-                        <el-input v-model="form.alert_name" size="mini" style="width: 250px;"></el-input>
-                    </div>
-                </div>
                 <div class="form-item">
                     <span class="mustWrite" style="left: -10px;">*</span>
                     <choose-index :busName="this.busNameObj.busIndexName" :arr = "indexVal"></choose-index>
@@ -37,10 +31,11 @@
                 <div class="form-item">
                     <div class="item-label" style="position: absolute; top: 9px;">统计：</div>
                     <div class="item-con" style="margin-left: 58px;" v-loading="leftYLoading" element-loading-background="rgba(48, 62, 78, 0.5)">
-                        <el-collapse>
-                            <el-collapse-item class="tablist" v-for="(yItem,i) in yAxisArr" :key="i">
+                        <el-collapse v-model="configOpened">
+                            <el-collapse-item class="tablist" v-for="(yItem,i) in yAxisArr" :key="i" name="1">
                                 <template slot="title" class="collapseTit">
-                                    <i class="header-icon el-icon-error removeTab" @click="yAxisArr = []"></i>
+                                    {{yItem.aggregationType}}
+                                    <i class="header-icon el-icon-error removeTab" @click="deleteMetric"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative;">
                                     <el-form-item label="聚合类型">
@@ -72,9 +67,10 @@
                 <div class="form-item" >
                     <div class="item-label" style="position: absolute; top: 9px;">分组：</div>
                     <div class="item-con" style="margin-left: 58px;" v-loading="leftXLoading" element-loading-background="rgba(48, 62, 78, 0.5)">
-                        <el-collapse>
-                            <el-collapse-item class="tablist" v-for="(xItem,i) in xAxisArr" :key="i">
+                        <el-collapse v-model="configOpened">
+                            <el-collapse-item class="tablist" v-for="(xItem,i) in xAxisArr" :key="i" name="1">
                                 <template slot="title" class="collapseTit">
+                                    {{xItem.aggregationParam}}
                                     <i class="header-icon el-icon-error removeTab" @click="xAxisArr = []"></i>
                                 </template>
                                 <el-form label-position="top" style="position: relative">
@@ -155,25 +151,208 @@
                 </div>
             </div>
             <div class="btn-wapper">
-                <el-button type="primary" @click="getFields()">下一步</el-button>
+                <el-button type="primary" @click="getFields()" :disabled="isCanCreate1">下一步</el-button>
             </div>
         </div>
         <div class="con-wapper" v-show="active === 1">
             <div class="form-con">
+                <div class="form-item">
+                    <span class="mustWrite" >*</span>
+                    <div class="item-label" style="position: absolute; top: 9px;width: 80px;">告警条件：</div>
+                    <div class="item-con alarm-list" style="margin-left: 80px;margin-top: 11px;font-size: 14px;">
+                        <div class="alarm-item" v-for="(item,i) in alarmList" :key="i">
+                            <span @click="resiveAlarm(i)" v-if="item.operator !== 'is one of' && item.operator !== 'is not one of' " >{{item.field}} : {{item.operator}} <b>{{item.value}}</b></span>
+                            <span @click="resiveAlarm(i)" v-else>{{item.field}} : {{item.operator}} <b>{{item.values}}</b></span>
+                            <i class="el-icon-close" @click="alarmList.splice(i,1)" ></i>
+                        </div>
+                        <span class="addFilter" @click="addAlarmBtn()"> <i class="el-icon-plus"></i>添加告警</span>
+                    </div>
+                </div>
+                <p class="tip-wapper">提示：添加告警选取的字段列表</p>
                 <jsonView :data="this.JSONData" theme="one-dark" :line-height="20" :deep="5" class="jsonView"></jsonView>
             </div>
-            <div class="btn-wapper">
+            <div class="btn-wapper" style="display: flex;">
                 <el-button @click="active = 0" type="primary">上一步</el-button>
+                <el-button @click="active = 2" type="primary" :disabled="(alarmList.length === 0) ? true : false">下一步</el-button>
             </div>
         </div>
-        <div class="con-wapper" v-show="active === 2"></div>
+        <div class="con-wapper" v-show="active === 2">
+            <div class="form-con">
+                <div class="form-item">
+                    <span class="mustWrite" style="left: 23px;">*</span>
+                    <div class="item-label" style="position: absolute;width: 80px;">名称：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <el-input v-model="form.alert_name" size="mini" placeholder="名称"></el-input>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <span class="mustWrite" style="left: -8px;">*</span>
+                    <div class="item-label" style="position: absolute;width: 80px;">执行周期：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <el-input v-model="form.alert_cron" size="mini" placeholder="请输入cron表达式"></el-input>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <span class="mustWrite" style="left: -8px;">*</span>
+                    <div class="item-label" style="position: absolute;width: 80px;">时间周期：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <date-layout :busName="this.busNameObj.busDateName" :defaultVal="defaultVal"></date-layout>
+                    </div>
+                </div>
+                <div class="form-item">
+<!--                    <span class="mustWrite" >*</span>-->
+                    <div class="item-label" style="position: absolute;top: 5px;width: 80px;">说明：</div>
+                    <div class="item-con" style="margin-left: 80px;">
+                        <el-input v-model="form.alert_note" size="mini" type="textarea" rows="10" placeholder="说明"></el-input>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-wapper" style="display: flex;">
+                <el-button @click="active = 1" type="primary">上一步</el-button>
+                <el-button type="primary"  @click="commitFunc" :disabled="(form.alert_name === '' || form.alter_cron === '') ? true : false">提交</el-button>
+            </div>
+        </div>
+        <div class="con-wapper" v-show="active === 3">
+            <div class="form-con">
+                <div class="success-wapper">
+                    <div class="icon-wapper">
+                        <i class="el-icon-success"></i>
+                    </div>
+                    <div class="text-wapper">{{this.alarmId === '' ? '添加完成' : '修改完成'}}</div>
+                </div>
+                <div class="error-wapper"></div>
+                <div style="width: 300px;margin: 50px auto;"> <el-button style="width: 100%;" @click="addAgain" v-if="alarmId === ''" type="primary">再次添加</el-button></div>
+            </div>
+        </div>
+        <el-dialog title="编辑告警" :visible.sync="alarmDialog" width="450px">
+            <div class="filter-form-wapper" v-loading="alarmLoading"  element-loading-background="rgba(26,36,47, 0.2)">
+                <div class="filter-form">
+                    <el-form  inline label-width="80px" label-position="top" style="display: flex;">
+                        <el-form-item label="Field" style="width:70%;">
+                            <el-select v-model="formDialog.field" @change="fieldChange"  placeholder="请选择" filterable default-first-option  class="chooseClass iss"   size="mini">
+                                <el-option
+                                    v-for="item in fieldOpt"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="Operator">
+                            <el-select v-model="formDialog.operator" @change="operatorChange()" filterable allow-create default-first-option  class="chooseClass iss"   size="mini">
+                                <el-option
+                                    v-for="item in operatorOpt"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                    <!--&lt;!&ndash;初始显示&ndash;&gt;
+                    <el-form ref="form" label-width="80px" label-position="top" v-if="formDialog.operator === '' || formDialog.field === ''">
+                        <el-form-item label="Value">
+                            <el-input v-model="formDialog.value" size="mini"></el-input>
+                        </el-form-item>
+                    </el-form>-->
+                    <!--单个值-->
+                    <el-form ref="form" label-width="80px" label-position="top" v-if=" formDialog.operator !== 'is one of' && formDialog.operator !== 'is not one of'">
+                        <!--string-->
+                        <el-form-item label="Value" v-if="fieldType[formDialog.field] === 'string'">
+                            <el-input v-model="formDialog.value" size="mini"></el-input>
+                        </el-form-item>
+                        <!--number-->
+                        <el-form-item label="Value" v-else-if="fieldType[formDialog.field] === 'number'">
+                            <el-input v-model="formDialog.value" type="number" size="mini"></el-input>
+                        </el-form-item>
+                        <!--ip-->
+                        <!--<el-form-item label="Value" v-else-if="fieldType[form.field] === 'ip'">
+                            <el-input v-model="form.value" size="mini"></el-input>
+                        </el-form-item>
+                        &lt;!&ndash;date&ndash;&gt;
+                        <el-form-item label="Value" v-else-if="fieldType[form.field] === 'date'">
+                            <el-date-picker
+                                style="width: 100%;"
+                                v-model="form.value"
+                                type="datetime"
+                                value-format="yyyy-MM-dd HH:mm:ss"
+                                placeholder="选择日期时间">
+                            </el-date-picker>
+                        </el-form-item>-->
+                        <!--Boolean-->
+                        <el-form-item label="Value" v-else-if="fieldType[formDialog.field] === 'boolean'">
+                            <el-select v-model="formDialog.value" placeholder="请选择" style="width: 100%">
+                                <el-option label="true" value="true"></el-option>
+                                <el-option label="false" value="false"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-form>
+                    <!--多个值-->
+                    <div v-if="formDialog.field !== '' && ( formDialog.operator === 'is one of' || formDialog.operator === 'is not one of')">
+                        <p class="values-tit">Value</p>
+                        <div class="values-wapper">
+                            <span v-for="(item ,n) in formDialog.values" :key="n">{{item}}<i class="el-icon-close" title="删除" @click="formDialog.values.splice(n,1)"></i></span>
+                        </div>
+                        <div class="morevalue-form">
+                            <el-form style="height: 32px;width: 300px;">
+                                <!--string-->
+                                <el-form-item v-if="fieldType[formDialog.field] === 'string'">
+                                    <el-input v-model="addFromValue" size="mini"></el-input>
+                                </el-form-item>
+                                <!--number-->
+                                <el-form-item v-if="fieldType[formDialog.field] === 'number'">
+                                    <el-input v-model="addFromValue" type="number" size="mini"></el-input>
+                                </el-form-item>
+                                <!--ip-->
+                                <el-form-item  v-if="fieldType[formDialog.field] === 'ip'">
+                                    <el-input v-model="addFromValue" size="mini"></el-input>
+                                </el-form-item>
+                                <!--date-->
+                                <el-form-item  v-if="fieldType[formDialog.field] === 'date'">
+                                    <el-date-picker
+                                        style="width: 300px;"
+                                        v-model="addFromValue"
+                                        type="datetime"
+                                        size="mini"
+                                        value-format="yyyy-MM-dd HH:mm:ss"
+                                        placeholder="选择日期时间">
+                                    </el-date-picker>
+                                </el-form-item>
+                            </el-form>
+                            <el-button type="primary" style="background: 0;border-radius:0;" size="mini" @click="addValue()">添加</el-button>
+                        </div>
+
+                    </div>
+
+                </div>
+                <!--<div class="custom-laber-wapper">
+                    <el-form  label-width="82px" style="margin-bottom: 10px;">
+                        <el-form-item label="自定义标签" style="margin-bottom: 0">
+                            <el-switch v-model="form.label_status"></el-switch>
+                        </el-form-item>
+                    </el-form>
+                    <el-form  label-width="82px" v-if="form.label_status" label-position="left">
+                        <el-form-item label="标签名称">
+                            <el-input v-model="form.label" size="mini"></el-input>
+                        </el-form-item>
+                    </el-form>
+                </div>-->
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="alarmDialog = false">取 消</el-button>
+<!--                    <el-button  type="primary" v-if="form.operator === 'exists' || form.operator === 'does not exists'" @click="saveFilter()">确 定</el-button>-->
+                    <el-button  type="primary" @click="addAlarm()" :disabled="(formDialog.field === '' || formDialog.operator === '' || (formDialog.value === '' && formDialog.start === '' && formDialog.values.length === 0 && formDialog.end === '') || (formDialog.label_status && formDialog.label === '')) ? 'disabled' : false">确 定</el-button>
+                </div>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
 <script>
+    import dateLayout from '../common/dateLayout'
     import chooseIndex from '../dashboard/chooseIndex'
     import queryFilter from '../dashboard/queryFilter'
     import jsonView from 'vue-json-views'
+    import {setChartParam} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
         name: "alarmFrom",
@@ -184,7 +363,7 @@
                     return''
                 }
             },
-            groupId:{
+            alarmId:{
                 type:String,
                 default(){
                     return''
@@ -205,122 +384,70 @@
                     return{
                         busIndexName:'',
                         busFilterName:'',
+                        busDateName:'',
                     }
                 }
             }
         },
         data() {
             return {
-                JSONData:{
-                    "took" : 335,
-                    "timed_out" : false,
-                    "_shards" : {
-                        "total" : 36,
-                        "successful" : 36,
-                        "skipped" : 0,
-                        "failed" : 0
-                    },
-                    "hits" : {
-                        "total" : {
-                            "value" : 10000,
-                            "relation" : "gte"
-                        },
-                        "max_score" : null,
-                        "hits" : [ ]
-                    },
-                    "aggregations" : {
-                        "ip" : {
-                            "doc_count_error_upper_bound" : 0,
-                            "sum_other_doc_count" : 0,
-                            "buckets" : [
-                                {
-                                    "key" : "172.16.1.2",
-                                    "doc_count" : 46742735
-                                },
-                                {
-                                    "key" : "192.168.2.13",
-                                    "doc_count" : 3154194
-                                },
-                                {
-                                    "key" : "192.168.2.182",
-                                    "doc_count" : 734129
-                                },
-                                {
-                                    "key" : "192.168.2.81",
-                                    "doc_count" : 248424
-                                },
-                                {
-                                    "key" : "192.168.2.110",
-                                    "doc_count" : 179444
-                                },
-                                {
-                                    "key" : "192.168.2.222",
-                                    "doc_count" : 38360
-                                },
-                                {
-                                    "key" : "192.168.200.15",
-                                    "doc_count" : 17942
-                                },
-                                {
-                                    "key" : "192.168.2.1",
-                                    "doc_count" : 15438
-                                },
-                                {
-                                    "key" : "192.168.200.182",
-                                    "doc_count" : 10518
-                                },
-                                {
-                                    "key" : "192.168.56.1",
-                                    "doc_count" : 4260
-                                }
-                            ]
-                        }
-                    }
-                },
+                configOpened:['1','2'],
+                JSONData:{},
                 loading: false,
+                alarmLoading:false,
                 leftYLoading:false,
                 leftXLoading:false,
                 active:0,
                 indexVal:[],
+                defaultVal:{
+                    //具体时间参数
+                    lastVal:'15-min',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:false,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'min',
+                    //‘快速选择’功能参数数值
+                    dateCount:'15',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                },
                 form:{
                     alert_name:'',
                     template_name:'',
                     pre_index_name:'',
                     suffix_index_name:'',
                     datefield:'',
-                    alert_filters:'',
+                    alert_search_filters:'',
+                    alter_cron:'',
+                    alter_note:'',
+                    alert_search_metric:[],
+                    alert_search_bucket:[],
+                    alter_conditions:[],
+                    alert_structure:'',
+                    alert_time_last:'15-min',
+                    alert_time_start_end:''
                 },
                 //参数
                 paramObj:{},
                 defaultFilter:[],
                 //bucket
-                xAxisArr:[{
-                    aggregationType:'',//聚合类型
-                    aggregationParam:'',//聚合字段
-                    aggregationParamArr:[],//字段集合
-                    timeInterval:'1',//时间间隔 聚合字段为时间时
-                    timeType:'hourly',
-                    xAxisName:'',//x轴名称
-                    orderType:'desc',//排序方式
-                    topSum:'5',//展示个数
-                    numberRange:[ //数值类范围 集合
-                        {start:'',end:''}
-                    ],
-                    dateRange:[//时间类范围 集合
-                        {start:'',end:''}
-                    ],
-                    ipRange:[
-                        {start:'',end:''}
-                    ]
-                }],
+                xAxisArr:[],
                 //metric
-                yAxisArr:[{
-                    aggregationType:'',//聚合类型
-                    aggregationParam:'',//聚合字段
-                    aggregationParamArr:[],//字段集合
-                    yAxisName:'',//y轴名称
-                    legendName:'',//图例说明
-                }],
+                yAxisArr:[],
                 //metric聚合类型
                 yAggregation: [
                     {
@@ -387,6 +514,96 @@
                         label: '年'
                     }
                 ],
+                //告警弹窗状态
+                alarmDialog:false,
+                //告警列表
+                alarmList:[],
+                formDialog:{
+                    field:'',
+                    fieldType:'',
+                    operator:'',
+                    value:'',
+                    start:'',
+                    end:'',
+                    values:[],
+                },
+                //field类型   string、number、ip、date
+                fieldType:{},
+                formQueryVal:'',
+                //field值集合
+                fieldOpt:[],
+                //operator值集合
+                operatorOpt:[],
+                //多个值临时参数
+                addFromValue:''
+            }
+        },
+        watch:{
+            'alarmDialog'(){
+                if(!this.alarmDialog){
+                    this.formDialog={
+                        field:'',
+                        fieldType:'',
+                        operator:'',
+                        value:'',
+                        start:'',
+                        end:'',
+                        values:[],
+                    }
+                }else{
+                    this.getFieldData()
+                }
+            },
+            'active'(){
+                if(this.active === 0){
+                    //清除第1步后面的参数
+                    this.alarmList = [];
+                    this.form.alert_name = '';
+                    this.form.alert_cron = '';
+                    this.form.alert_note = '';
+                    this.form.alert_time_last = '';
+                    this.form.alert_time_start_end='';
+                }else if(this.active === 1){
+                    this.form.alert_name = '';
+                    this.form.alert_cron = '';
+                    this.form.alert_note = '';
+                    this.form.alert_time_last = '';
+                    this.form.alert_time_start_end='';
+                }
+            }
+        },
+        computed:{
+            /*生成按钮状态*/
+            'isCanCreate1'(){
+                let dataState = false;
+                let yState = false;
+                let xState = false;
+                //判断数据源
+                if(this.form.suffix_index_name === ''){
+                    dataState = 'disabled'
+                }
+                //判断y轴
+                this.yAxisArr.forEach((item)=>{
+                    if (item.aggregationType === ''){
+                        yState = 'disabled';
+                    } else if(item.aggregationParam === '' && item.aggregationType !== 'Count'){
+                        yState = 'disabled';
+                    }
+                })
+                //判断x轴
+                this.xAxisArr.forEach((item)=>{
+                    if (item.aggregationType === ''){
+                        xState = 'disabled';
+                    } else if(item.aggregationParam === '' && item.aggregationType !== 'Count'){
+                        xState = 'disabled';
+                    }
+                })
+
+                if(dataState ==false && yState == false && xState == false){
+                    return false;
+                }else {
+                    return 'disabled';
+                }
             }
         },
         created(){
@@ -404,8 +621,18 @@
             })
             //监听过滤条件
             bus.$on(this.busNameObj.busFilterName,(str)=>{
-                this.form.alert_filters = str;
+                this.form.alert_search_filters = str;
 
+            })
+            //时间
+            //时间范围监听事件
+            bus.$on(this.busNameObj.busDateName,(obj)=>{
+                this.defaultVal = obj;
+                let arr = setChartParam(obj);
+                let dateObj = arr[0];
+                this.form.alert_time_last = dateObj.last
+                this.form.alert_time_start_end = `${dateObj.starttime},${dateObj.endtime}`
+                //this.intervalObj = arr[1];
             })
         },
         beforeDestroy(){
@@ -415,33 +642,24 @@
         methods:{
             /*还原配置*/
             initialize(){
-                this.form.alert_filters = '';
-                this.yAxisArr =[{
-                    aggregationType:'',//聚合类型
-                    aggregationParam:'',//聚合字段
-                    aggregationParamArr:[],//字段集合
-                    yAxisName:'',//y轴名称
-                    legendName:'',//图例说明
-                }]
-                this.xAxisArr=[{
-                    aggregationType:'',//聚合类型
-                    aggregationParam:'',//聚合字段
-                    aggregationParamArr:[],//字段集合
-                    timeInterval:'1',//时间间隔 聚合字段为时间时
-                    timeType:'hourly',
-                    xAxisName:'',//x轴名称
-                    orderType:'desc',//排序方式
-                    topSum:'5',//展示个数
-                    numberRange:[ //数值类范围 集合
-                        {start:'',end:''}
-                    ],
-                    dateRange:[//时间类范围 集合
-                        {start:'',end:''}
-                    ],
-                    ipRange:[
-                        {start:'',end:''}
-                    ]
-                }]
+                this.form = {
+                    alert_name:'',
+                    template_name:'',
+                    pre_index_name:'',
+                    suffix_index_name:'',
+                    datefield:'',
+                    alert_search_filters:'',
+                    alter_cron:'',
+                    alter_note:'',
+                    alert_search_metric:[],
+                    alert_search_bucket:[],
+                    alter_conditions:[],
+                    alert_structure:'',
+                    alert_time_last:'',
+                    alert_time_start_end:''
+                }
+                this.yAxisArr =[]
+                this.xAxisArr=[]
             },
             /*y轴聚合类型改变*/
             yAggregationChange($event,index){
@@ -519,35 +737,56 @@
             },
             /*添加metric*/
             addMetric(){
-                this.yAxisArr =[{
-                    aggregationType:'',//聚合类型
-                    aggregationParam:'',//聚合字段
-                    aggregationParamArr:[],//字段集合
-                    yAxisName:'',//y轴名称
-                    legendName:'',//图例说明
-                }]
+                if(this.form.suffix_index_name !== ''){
+                    this.yAxisArr =[{
+                        aggregationType:'',//聚合类型
+                        aggregationParam:'',//聚合字段
+                        aggregationParamArr:[],//字段集合
+                        yAxisName:'',//y轴名称
+                        legendName:'',//图例说明
+                    }]
+                }else{
+                    layer.msg('请先选择数据源',{icon:5})
+                }
+
+            },
+            /*删除metric*/
+            deleteMetric(){
+                if (this.xAxisArr.length === 1){
+                    layer.msg('请先删除分组',{icon:5})
+                } else {
+                    this.yAxisArr =[]
+                }
             },
             /*添加bucket*/
             addBucket(){
-                this.xAxisArr=[{
-                    aggregationType:'',//聚合类型
-                    aggregationParam:'',//聚合字段
-                    aggregationParamArr:[],//字段集合
-                    timeInterval:'1',//时间间隔 聚合字段为时间时
-                    timeType:'hourly',
-                    xAxisName:'',//x轴名称
-                    orderType:'desc',//排序方式
-                    topSum:'5',//展示个数
-                    numberRange:[ //数值类范围 集合
-                        {start:'',end:''}
-                    ],
-                    dateRange:[//时间类范围 集合
-                        {start:'',end:''}
-                    ],
-                    ipRange:[
-                        {start:'',end:''}
-                    ]
-                }]
+                if(this.form.suffix_index_name !== ''){
+                    if(this.yAxisArr.length !== 0){
+                        this.xAxisArr=[{
+                            aggregationType:'',//聚合类型
+                            aggregationParam:'',//聚合字段
+                            aggregationParamArr:[],//字段集合
+                            timeInterval:'1',//时间间隔 聚合字段为时间时
+                            timeType:'hourly',
+                            xAxisName:'',//x轴名称
+                            orderType:'desc',//排序方式
+                            topSum:'5',//展示个数
+                            numberRange:[ //数值类范围 集合
+                                {start:'',end:''}
+                            ],
+                            dateRange:[//时间类范围 集合
+                                {start:'',end:''}
+                            ],
+                            ipRange:[
+                                {start:'',end:''}
+                            ]
+                        }]
+                    }else{
+                        layer.msg('请先添加统计',{icon:5})
+                    }
+                }else{
+                    layer.msg('请先选择数据源',{icon:5})
+                }
             },
             /*获取字段*/
             getFields(){
@@ -610,26 +849,15 @@
                     bucketsArr.push(obj)
                 }
 
-                this.paramObj = JSON.parse(JSON.stringify(this.form));
-                //判断是空值
-                if(metricsArr[0].aggType !== 'Count' && metricsArr[0].field === ''){
-                    this.paramObj.alert_metricList = []
-                }else{
-                    this.paramObj.alert_metricList = JSON.stringify(metricsArr)
+                //this.paramObj = JSON.parse(JSON.stringify(this.form));
+                this.form.alert_search_metric = JSON.stringify(metricsArr)
+                this.form.alert_search_bucket = JSON.stringify(bucketsArr)
+                if(this.form.alert_search_filters === ''){
+                    this.form.alert_search_filters = []
                 }
-                if(bucketsArr[0].field === ''){
-                    this.paramObj.alert_bucketList = []
-
-                }else{
-                    this.paramObj.alert_bucketList = JSON.stringify(bucketsArr)
-                }
-                if(this.paramObj.alert_filters === ''){
-                    this.paramObj.alert_filters = []
-                }
-                console.log( this.paramObj)
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'/alert/getAlertResult.do',this.$qs.stringify(this.paramObj))
+                    this.$axios.post(this.$baseUrl+'/alert/getAlertResult.do',this.$qs.stringify(this.form))
                         .then(res=>{
                             this.loading = false;
                             let obj = res.data
@@ -645,8 +873,183 @@
                         })
                 })
             },
+            /*添加告警按钮*/
+            addAlarmBtn(){
+                this.alarmDialog = true
+            },
+            /*添加告警*/
+            addAlarm(){
+                let obj = {};
+                let str = JSON.stringify(this.formDialog);
+                obj = JSON.parse(str);
+                this.alarmList.push(obj);
+                this.alarmDialog = false;
+            },
+            /*修改告警*/
+            resiveAlarm(i){
+
+                //this.currentIndex = i;
+                this.formDialog =JSON.parse(JSON.stringify(this.alarmList[i]));
+                console.log(this.fieldType[this.formDialog.field])
+                // this.dialogType = 'resive';
+                this.alarmDialog = true;
+                /*  if(this.useObject === 'dashboard'){
+                    this.getIndexPattern()
+                    this.getFieldData(this.form.template_name)
+                    this.loading = true;
+                }else{
+                    //获取operator数据集合
+                    this.getOperatorData(this.form.field);
+                }*/
+            },
+            /*获取field数据*/
+            getFieldData(val){
+                this.$nextTick(()=>{
+                    this.alarmLoading = true;
+                    let params = {};
+                    //判断参数类型
+                    if(JSON.stringify(this.form.alert_search_bucket) === '[]' && JSON.stringify(this.form.alert_search_metric) === '[]'){
+                        params.aggType = 'All'
+                    }else{
+                        params.aggType = 'alertAgg'
+                    }
+                    params.template_name = this.form.template_name;
+                    this.$axios.post(this.$baseUrl+'/alert/getFieldByAggResult.do',this.$qs.stringify(params))
+                        .then(res=>{
+                            this.alarmLoading = false;
+                            //清空数据
+                            this.fieldOpt = [];
+                            this.fieldType = {};
+                            //循环push
+                            let arr = res.data;
+                            arr.forEach(item =>{
+                                this.fieldOpt.push({
+                                    value:item.fieldName,
+                                    label:item.fieldName
+                                })
+                                //判断类型
+                                if(item.fieldType === 'long' || item.fieldType === 'integer' || item.fieldType === 'short' || item.fieldType === 'byte' || item.fieldType === 'double' || item.fieldType === 'float' || item.fieldType === 'half_float' || item.fieldType === 'scaled_float'){
+                                    this.fieldType[item.fieldName] = 'number'
+                                }else if(item.fieldType === 'boolean'){
+                                    this.fieldType[item.fieldName] = 'boolean'
+                                }else if(item.fieldType === 'text' || item.fieldType === 'keyword'){
+                                    this.fieldType[item.fieldName] = 'string'
+                                }else if(item.fieldType === 'ip'){
+                                    this.fieldType[item.fieldName] = 'ip'
+                                }else if(item.fieldType === 'date'){
+                                    this.fieldType[item.fieldName] = 'date'
+                                }
+                            })
+                        })
+                        .catch(err=>{
+                            this.alarmLoading = false;
+                        })
+                })
+            },
+            /*获取operator数据*/
+            getOperatorData(field){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/alert/getOperatorByFiledType.do',this.$qs.stringify({
+                        fieldType:this.fieldType[field]
+                    }))
+                        .then(res=>{
+                            this.loading = false;
+                            this.operatorOpt = [];
+                            res.data.forEach(item =>{
+                                this.operatorOpt.push({
+                                    value:item,
+                                    label:item
+                                })
+                            })
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
+            /*field改变事件*/
+            fieldChange(val){
+                //清空值
+                this.formDialog.value = '';
+                this.formDialog.start = '';
+                this.formDialog.end = '';
+                this.formDialog.values = [];
+                this.addFromValue = '';
+                this.formDialog.operator = '';
+                this.formDialog.fieldType = this.fieldType[val];
+                //获取operator集合
+                this.getOperatorData(val)
+            },
+            /*operator改变事件*/
+            operatorChange(){
+                //清空值
+                this.formDialog.value = '';
+                this.formDialog.start = '';
+                this.formDialog.end = '';
+                this.formDialog.values = [];
+                this.addFromValue = '';
+            },
+            /*添加按钮*/
+            addValue(){
+                //判断值是否存在/是否合法
+                if(this.addFromValue && !this.formDialog.values.includes(this.addFromValue)){
+                    /*//判断ip类型
+                    if(this.fieldType[this.form.field] === 'ip'){
+                        //检查ip合法性
+                        if(!this.checkIp(this.addFromValue)){
+                            layer.msg('IP不合法',{icon:5});
+                            return;
+                        }
+                    }*/
+                    this.formDialog.values.push(this.addFromValue)
+                    this.addFromValue = '';
+                }
+            },
+            /*提交保存*/
+            commitFunc(){
+                let paramsObj = JSON.parse(JSON.stringify(this.form))
+                //判断是否是修改
+                if(this.alarmId !== ''){//修改
+                    paramsObj.alert_id = this.alarmId
+                }else{//添加
+
+                }
+                paramsObj.alter_conditions = JSON.stringify(this.alarmList)
+                let obj = {};
+                obj.buckets = this.xAxisArr;
+                obj.mertics = this.yAxisArr;
+                obj.date = this.defaultVal;
+                paramsObj.alert_structure = JSON.stringify(obj)
+                //拼接参数
+                console.log(paramsObj)
+
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+this.url,this.$qs.stringify(paramsObj))
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                               /* layer.msg(obj.message,{1})*/
+                                this.active = 3
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+            /*再次添加*/
+            addAgain(){
+                this.initialize();
+                this.active = 0;
+            }
         },
         components:{
+            dateLayout,
             chooseIndex,
             queryFilter,
             jsonView
@@ -710,7 +1113,7 @@
         color: #409eff;
         border-radius: 5px;
         position: relative;
-
+        padding-left: 30px;
     }
     .form-item /deep/ .el-form-item__label{
         color: #FFF!important;
@@ -767,5 +1170,115 @@
     }
     /deep/ .el-form-item--mini.el-form-item, .el-form-item--small.el-form-item {
         margin-bottom: 5px;
+    }
+    .alarm-list{
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .alarm-item{
+        padding:3px 5px;
+        border: 1px solid #48617d;
+        font-size: 12px;
+        margin: 5px;
+        margin-left: 0;
+        color: #a0cfff;
+        margin-top: 0;
+    }
+    .alarm-item span:hover{
+        cursor: pointer;
+        text-decoration: underline;
+    }
+    .alarm-item .el-icon-view{
+        margin-left: 3px;
+    }
+    .alarm-item .el-icon-view:hover{
+        color: #32ff1d;
+    }
+    .alarm-item i:hover{
+        cursor: pointer;
+    }
+    .addFilter:hover{
+        cursor: pointer;
+        text-decoration: underline;
+        color: #409eff;
+    }
+    .filter-form{
+        padding: 10px 0;
+        border-top: 1px solid #3c5d80;
+        border-bottom: 1px solid #3c5d80;
+    }
+    .filter-btn{
+        height: 50px;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+    }
+    .between-wapper /deep/ .el-form-item__content{
+        display: flex;
+    }
+    .between-wapper span{
+        margin: 0 5px;
+        color: #fff;
+    }
+    .values-tit{
+        color: #e4956d;
+        font-weight: 600;
+        padding: 0;
+    }
+    .morevalue-form{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .values-wapper{
+        margin: 5px 0;
+        display: flex;
+        flex-wrap: wrap;
+        /*border: 1px solid #409eff;*/
+    }
+    .values-wapper span{
+        border: 1px dashed #3c5d80;
+        padding: 4px 5px;
+        color: #409eff;
+        font-size: 10px;
+        margin: 5px;
+        border-left: 2px solid #409eff;
+    }
+    .values-wapper span i{
+        margin-left: 3px;
+        cursor: pointer;
+    }
+    .values-wapper span i:hover{
+        color: #e4956d;
+    }
+    .dialog-footer{
+        margin-top: 10px;
+        /* text-align: end; */
+        display: flex;
+        justify-content: space-around;
+    }
+    .custom-laber-wapper{
+        border-bottom: 1px solid #3c5d80;
+        padding: 10px 0;
+    }
+    .custom-laber-wapper /deep/.el-form--label-top .el-form-item__label{
+        color: #fff!important;
+    }
+    .tip-wapper{
+        margin-bottom: 20px;
+        color: #e4956d;
+    }
+    .success-wapper{
+        margin-top: 70px;
+    }
+    .success-wapper>div{
+        text-align: center;
+        color: #1ab394;
+    }
+    .success-wapper .icon-wapper{
+        font-size: 50px;
+    }
+    .success-wapper .text-wapper{
+        font-size: 50px;
     }
 </style>

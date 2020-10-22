@@ -168,7 +168,8 @@
                         <span class="addFilter" @click="addAlarmBtn()"> <i class="el-icon-plus"></i>添加告警</span>
                     </div>
                 </div>
-                <p class="tip-wapper">提示：添加告警选取的字段列表</p>
+                <p class="tip-wapper">提示：告警条件所选字段为下方示例数据的key（即标红字段）</p>
+                <p style="color: #409eff;font-weight: 600;font-size: 15px;margin-bottom: 10px;">示例数据</p>
                 <jsonView :data="this.JSONData" theme="one-dark" :line-height="20" :deep="5" class="jsonView"></jsonView>
             </div>
             <div class="btn-wapper" style="display: flex;">
@@ -436,7 +437,7 @@
                     alter_note:'',
                     alert_search_metric:[],
                     alert_search_bucket:[],
-                    alter_conditions:[],
+                    alert_conditions:[],
                     alert_structure:'',
                     alert_time_last:'15-min',
                     alert_time_start_end:''
@@ -649,11 +650,11 @@
                     suffix_index_name:'',
                     datefield:'',
                     alert_search_filters:'',
-                    alter_cron:'',
-                    alter_note:'',
+                    alert_cron:'',
+                    alert_note:'',
                     alert_search_metric:[],
                     alert_search_bucket:[],
-                    alter_conditions:[],
+                    alert_conditions:[],
                     alert_structure:'',
                     alert_time_last:'',
                     alert_time_start_end:''
@@ -1015,7 +1016,7 @@
                 }else{//添加
 
                 }
-                paramsObj.alter_conditions = JSON.stringify(this.alarmList)
+                paramsObj.alert_conditions = JSON.stringify(this.alarmList)
                 let obj = {};
                 obj.buckets = this.xAxisArr;
                 obj.mertics = this.yAxisArr;
@@ -1265,7 +1266,7 @@
         color: #fff!important;
     }
     .tip-wapper{
-        margin-bottom: 20px;
+        margin-bottom: 10px;
         color: #e4956d;
     }
     .success-wapper{

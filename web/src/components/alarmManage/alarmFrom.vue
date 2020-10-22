@@ -908,8 +908,10 @@
                 this.$nextTick(()=>{
                     this.alarmLoading = true;
                     let params = {};
+                    console.log(this.form.alert_search_bucket)
+                    console.log(this.form.alert_search_bucket === '[]')
                     //判断参数类型
-                    if(JSON.stringify(this.form.alert_search_bucket) === '[]' && JSON.stringify(this.form.alert_search_metric) === '[]'){
+                    if(this.form.alert_search_bucket === '[]' && this.form.alert_search_metric === '[]'){
                         params.aggType = 'All'
                     }else{
                         params.aggType = 'alertAgg'

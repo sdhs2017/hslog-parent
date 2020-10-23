@@ -12,7 +12,7 @@
                         <span v-if="!item.formatData && !item.clickFun " v-html="dataChange(scope.row,item.prop)"></span>
                         <el-button v-else-if="!item.formatData && item.clickFun " v-html="dataChange(scope.row,item.prop)" @click.native.prevent="item.clickFun(scope.row,scope.index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
                         <span v-else-if="item.formatData && !item.clickFun " v-html="tableFormatter(dataChange(scope.row,item.prop),item.formatData,scope.row)" ></span>
-                        <el-button v-else v-html="tableFormatter(dataChange(scope.row,item.prop),item.formatData,scope.row)" @click.native.prevent="item.clickFun(scope.row,scope.index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
+                        <el-button v-else v-html="tableFormatter(dataChange(scope.row,item.prop),item.formatData,scope.row)" @click.native.prevent="item.clickFun(scope.row,scope.$index)" type="text" size="mini" style="margin-left: 0;padding: 0px;color:#409EFF;"></el-button>
                     </template>
 <!--                    <template slot-scope="scope">-->
 <!--                        <span >{{dataChange(scope.row,item.prop)}}</span>-->

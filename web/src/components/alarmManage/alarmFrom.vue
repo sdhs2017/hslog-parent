@@ -210,7 +210,7 @@
             </div>
             <div class="btn-wapper" style="display: flex;">
                 <el-button @click="active = 1" type="primary">上一步</el-button>
-                <el-button type="primary"  @click="commitFunc" :disabled="(form.alert_name === '' || form.alter_cron === '') ? true : false">提交</el-button>
+                <el-button type="primary"  @click="commitFunc" :disabled="(form.alert_name === '' || form.alert_cron === '') ? true : false">提交</el-button>
             </div>
         </div>
         <div class="con-wapper" v-show="active === 3">
@@ -433,14 +433,14 @@
                     suffix_index_name:'',
                     datefield:'',
                     alert_search_filters:'',
-                    alter_cron:'',
-                    alter_note:'',
+                    alert_cron:'',
+                    alert_note:'',
                     alert_search_metric:[],
                     alert_search_bucket:[],
                     alert_conditions:[],
                     alert_structure:'',
-                    alert_time_last:'15-min',
-                    alert_time_start_end:''
+                    alert_time:'15-min',
+                    alert_time_type : 'last'
                 },
                 //参数
                 paramObj:{},
@@ -540,6 +540,17 @@
             }
         },
         watch:{
+            'defaultFrom'(){
+                for(let i in this.form){
+                    this.form[i] = this.defaultFrom[i]
+                }
+               // alert_structure
+                this.alarmList= JSON.parse(this.form.alert_conditions)
+                this.xAxisArr = JSON.parse(this.form.alert_structure.buckets)
+                this.yAxisArr = JSON.parse(this.form.alert_structure.metrics)
+                this.defaultVal = JSON.parse(this.form.alert_structure.date)
+            },
+            //告警条件弹窗状态
             'alarmDialog'(){
                 if(!this.alarmDialog){
                     this.formDialog={
@@ -555,21 +566,41 @@
                     this.getFieldData()
                 }
             },
+            'form.suffix_index_name'(){
+                this.alarmList = [];
+                this.form.alert_conditions = [];
+            },
+            'xAxisArr'(){
+                this.alarmList = [];
+                this.form.alert_conditions = [];
+            },
+            'yAxisArr'(){
+                this.alarmList = [];
+                this.form.alert_conditions = [];
+            },
+            //向导 索引
             'active'(){
                 if(this.active === 0){
-                    //清除第1步后面的参数
-                    this.alarmList = [];
-                    this.form.alert_name = '';
-                    this.form.alert_cron = '';
-                    this.form.alert_note = '';
-                    this.form.alert_time_last = '';
-                    this.form.alert_time_start_end='';
+                    if(this.alarmId === ''){
+                        //清除第1步后面的参数
+                        this.alarmList = [];
+                        this.form.alert_name = '';
+                        this.form.alert_cron = '';
+                        this.form.alert_note = '';
+                        this.form.alert_time = '15-min';
+                        this.form.alert_time_type='last';
+                    }
+
                 }else if(this.active === 1){
-                    this.form.alert_name = '';
-                    this.form.alert_cron = '';
-                    this.form.alert_note = '';
-                    this.form.alert_time_last = '';
-                    this.form.alert_time_start_end='';
+                    if(this.alarmId === ''){
+                        //清除第2步后面的参数
+                        this.form.alert_name = '';
+                        this.form.alert_cron = '';
+                        this.form.alert_note = '';
+                        this.form.alert_time = '15-min';
+                        this.form.alert_time_type='last';
+                    }
+
                 }
             }
         },
@@ -631,8 +662,16 @@
                 this.defaultVal = obj;
                 let arr = setChartParam(obj);
                 let dateObj = arr[0];
-                this.form.alert_time_last = dateObj.last
-                this.form.alert_time_start_end = `${dateObj.starttime},${dateObj.endtime}`
+                //判断时间类型
+                if(dateObj.last === ''){ //时间范围
+                    this.form.alert_time_type = 'range';
+                    this.form.alert_time = `${dateObj.starttime},${dateObj.endtime}`;
+                }else{//最近....
+                    this.form.alert_time_type = 'last'
+                    this.form.alert_time = dateObj.last;
+                }
+               // this.form.alert_time_last = dateObj.last;
+                //this.form.alert_time_start_end = `${dateObj.starttime},${dateObj.endtime}`;
                 //this.intervalObj = arr[1];
             })
         },
@@ -656,11 +695,38 @@
                     alert_search_bucket:[],
                     alert_conditions:[],
                     alert_structure:'',
-                    alert_time_last:'',
-                    alert_time_start_end:''
+                    alert_time:'15-min',
+                    alert_time_type : 'last'
                 }
-                this.yAxisArr =[]
-                this.xAxisArr=[]
+                this.alarmList = [];
+                this.yAxisArr =[];
+                this.xAxisArr=[];
+                this.defaultVal={
+                    //具体时间参数
+                    lastVal:'15-min',
+                    //起始时间
+                    starttime:'',
+                    //结束时间
+                    endtime:'',
+                    //具体时间 类型状态
+                    dateBlock:false,
+                    //是否存在轮询框
+                    isIntervalBox:false,
+                    //轮询状态
+                    intervalState:false,
+                    //轮询数值间隔
+                    intervalVal:'',
+                    //轮询参数类型
+                    intervalType:'',
+                    //‘快速选择’功能参数类型
+                    dateUnit:'min',
+                    //‘快速选择’功能参数数值
+                    dateCount:'15',
+                    //‘常用’ 时间值
+                    commonlyVal:'',
+                    //是否可以切换精确日期
+                    changeState:true
+                }
             },
             /*y轴聚合类型改变*/
             yAggregationChange($event,index){
@@ -1025,7 +1091,7 @@
                 obj.date = this.defaultVal;
                 paramsObj.alert_structure = JSON.stringify(obj)
                 //拼接参数
-                console.log(paramsObj)
+                //console.log(paramsObj)
 
                 this.$nextTick(()=>{
                     this.loading = true;
@@ -1034,7 +1100,7 @@
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success === 'true'){
-                               /* layer.msg(obj.message,{1})*/
+                               /!* layer.msg(obj.message,{1})*!/
                                 this.active = 3
                             }else{
                                 layer.msg(obj.message,{icon:5})

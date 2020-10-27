@@ -76,9 +76,9 @@
                         let arr = JSON.parse(val);
                         for(let i in arr){
                             if(arr[i].operator !== 'is one of' && arr[i].operator !== 'is not one of'){
-                                str += `${arr[i].field} : ${arr[i].operator}<b> ${arr[i].value}</b>`
+                                str += `${arr[i].field} ${arr[i].operator}<b> ${arr[i].value}</b>; `
                             }else{
-                                str += `${arr[i].field} : ${arr[i].operator}<b> ${arr[i].values}</b>`
+                                str += `${arr[i].field} ${arr[i].operator}<b> ${arr[i].values}</b>; `
                             }
                         }
                         return str
@@ -137,9 +137,9 @@
                         let str = ''
                         if(val){
                            // str = '<el-switch v-model="aa" active-color="#13ce66" inactive-color="#ff4949"> </el-switch>'
-                            str='<label><input class="mui-switch" type="checkbox" checked></label>'
+                            str='<label><input class="mui-switch" type="checkbox" checked title="执行中" style="cursor: pointer"></label>'
                         }else{
-                            str='<label><input class="mui-switch mui-switch-anim" type="checkbox"></label>'
+                            str='<label><input class="mui-switch mui-switch-anim" type="checkbox" title="已停止" style="cursor: pointer"></label>'
                         }
                         return str
                     },
@@ -165,12 +165,19 @@
                             }
                         },
                         {
+                            icon:'el-icon-tickets',
+                            text:'查看执行详情',
+                            clickFun:(row,index)=>{
+                                this.detailAlarm(row,index)
+                            }
+                        },
+                        {
                             icon:'el-icon-close',
                             text:'删除',
                             clickFun:(row,index)=>{
                                 this.deleteAlarm(row.alert_id)
                             }
-                        }
+                        },
                     ]
                 }
             ]
@@ -234,12 +241,12 @@
             /*获得告警列表*/
             getAlarmList(searchObj,page){
                 this.loading = true;
-                let obj = searchObj;
-                obj.pageIndex = page;//当前页
-                obj.pageSize = this.size;//页的条数
+                let objParam = searchObj;
+                objParam.pageIndex = page;//当前页
+                objParam.pageSize = this.size;//页的条数
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'/alert/getAlertInfoByCondition.do',this.$qs.stringify(searchObj))
+                    this.$axios.post(this.$baseUrl+'/alert/getAlertInfoByCondition.do',this.$qs.stringify(objParam))
                         .then(res=>{
                             this.loading = false;
                             let obj = res.data;
@@ -267,7 +274,7 @@
                 }, (index)=>{
                     this.loading = true
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/',this.$qs.stringify({alert_id:id}))
+                        this.$axios.post(this.$baseUrl+'/alert/delete.do',this.$qs.stringify({alert_id:id}))
                             .then((res)=>{
                                 this.loading = false
                                 if(res.data.success == "true"){
@@ -288,6 +295,10 @@
                     layer.close();
                 })
             },
+            /*查看告警详情*/
+            detailAlarm(item){
+                jumpHtml('alarmExecuteDetail'+item.alert_id,'alarmManage/alarmExecuteDetail.vue',{ name:item.alert_name,id:item.alert_id },'执行详情')
+            },
             /*分页页码改变*/
             handleCurrentChange(page){
                //获取数据
@@ -297,14 +308,21 @@
             },
             /*设置告警状态*/
             setAlarmState(item,i){
+                let url = ''
+                //判断此刻状态
+                if(item.alert_state){//状态：启用中
+                    url = '/alert/stopQuartz.do'
+                }else{//状态：关闭
+                    url = '/alert/startQuartz.do'
+                }
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'/',this.$qs.stringify({alert_id:item.alert_id}))
+                    this.$axios.post(this.$baseUrl+url,this.$qs.stringify({alert_id:item.alert_id}))
                         .then(res=>{
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success === 'true'){
-                                layer.msg(obj.message,{icon:5})
+                                layer.msg(obj.message,{icon:1})
                                 this.tableData[i].alert_state = !item.alert_state
                             }else{
                                 layer.msg(obj.message,{icon:5})

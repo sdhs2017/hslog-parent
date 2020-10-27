@@ -199,6 +199,22 @@
             }
         },
         watch:{
+            defaultVal:{
+                handler() {
+                    this.$nextTick( ()=> {
+                        if(JSON.stringify(this.defaultVal) !== '{}'){
+                            //设置默认值
+                            this.params =  this.defaultVal;
+                            //设置显示文字
+                            this.setView()
+                        }
+                        this.saveP = JSON.stringify(this.params)
+                    })
+                },
+                immediate: true,
+                deep: true
+
+            },
             //刷新
             'refresh'(){
                 if (JSON.stringify(this.dateObj) !== '{}'){
@@ -242,14 +258,15 @@
         created(){
             //默认15分钟
             //this.commonlyClick({value:'15-min',label:'最近15分钟'})
-            //赋值
-            if(JSON.stringify(this.defaultVal) !== '{}'){
+            //赋值 第一次
+           /* if(JSON.stringify(this.defaultVal) !== '{}'){
+                console.log(this.defaultVal)
                 //设置默认值
                 this.params =  this.defaultVal;
                 //设置显示文字
                 this.setView()
             }
-            this.saveP = JSON.stringify(this.params)
+            this.saveP = JSON.stringify(this.params)*/
         },
         methods:{
             /*确定按钮*/

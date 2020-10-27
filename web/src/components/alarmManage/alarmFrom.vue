@@ -10,7 +10,7 @@
             <div class="form-con">
                 <div class="form-item">
                     <span class="mustWrite" style="left: -10px;">*</span>
-                    <choose-index :busName="this.busNameObj.busIndexName" :arr = "indexVal"></choose-index>
+                    <choose-index :busName="this.busNameObj.busIndexName" :arr="indexVal"></choose-index>
                 </div>
                 <div class="form-item">
 <!--                    <span class="mustWrite" >*</span>-->
@@ -161,11 +161,11 @@
                     <div class="item-label" style="position: absolute; top: 9px;width: 80px;">告警条件：</div>
                     <div class="item-con alarm-list" style="margin-left: 80px;margin-top: 11px;font-size: 14px;">
                         <div class="alarm-item" v-for="(item,i) in alarmList" :key="i">
-                            <span @click="resiveAlarm(i)" v-if="item.operator !== 'is one of' && item.operator !== 'is not one of' " >{{item.field}} : {{item.operator}} <b>{{item.value}}</b></span>
-                            <span @click="resiveAlarm(i)" v-else>{{item.field}} : {{item.operator}} <b>{{item.values}}</b></span>
+                            <span @click="resiveAlarm(i)" v-if="item.operator !== 'is one of' && item.operator !== 'is not one of' " >{{item.field}} {{item.operator}} <b>{{item.value}}</b></span>
+                            <span @click="resiveAlarm(i)" v-else>{{item.field}} {{item.operator}} <b>{{item.values}}</b></span>
                             <i class="el-icon-close" @click="alarmList.splice(i,1)" ></i>
                         </div>
-                        <span class="addFilter" @click="addAlarmBtn()"> <i class="el-icon-plus"></i>添加告警</span>
+                        <span class="addFilter" @click="addAlarmBtn()"> <i class="el-icon-plus"></i>添加条件</span>
                     </div>
                 </div>
                 <p class="tip-wapper">提示：告警条件所选字段为下方示例数据的key（即标红字段）</p>
@@ -197,7 +197,7 @@
                     <span class="mustWrite" style="left: -8px;">*</span>
                     <div class="item-label" style="position: absolute;width: 80px;">时间周期：</div>
                     <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <date-layout :busName="this.busNameObj.busDateName" :defaultVal="defaultVal"></date-layout>
+                        <date-layout :busName="busNameObj.busDateName" :defaultVal="defaultVal"></date-layout>
                     </div>
                 </div>
                 <div class="form-item">
@@ -392,6 +392,7 @@
         },
         data() {
             return {
+                changeOver:false,//用于修改时 标记第一次填充数据完成
                 configOpened:['1','2'],
                 JSONData:{},
                 loading: false,
@@ -517,6 +518,8 @@
                 ],
                 //告警弹窗状态
                 alarmDialog:false,
+                //弹窗类型
+                dialogType:'add',
                 //告警列表
                 alarmList:[],
                 formDialog:{
@@ -536,19 +539,88 @@
                 //operator值集合
                 operatorOpt:[],
                 //多个值临时参数
-                addFromValue:''
+                addFromValue:'',
+                //告警条件索引
+                currentIndex:0,
             }
+        },
+        created(){
+            //数据源监听
+            bus.$on(this.busNameObj.busIndexName,(arr)=>{
+                //还原配置
+                this.initialize();
+                //设置数据源
+                this.form.suffix_index_name = arr[2];
+                this.form.pre_index_name = arr[1];
+                this.form.template_name = arr[0];
+                this.form.datefield = arr[3];
+                //获取column数据
+                //this.getColumnField()
+            })
+            //监听过滤条件
+            bus.$on(this.busNameObj.busFilterName,(str)=>{
+                this.form.alert_search_filters = str;
+
+            })
+            //时间
+            //时间范围监听事件
+            bus.$on(this.busNameObj.busDateName,(obj)=>{
+                /* if(JSON.stringify(obj) !== '[]'){
+                     this.defaultVal = obj;
+                     let arr = setChartParam(obj);
+                     let dateObj = arr[0];
+                     //判断时间类型
+                     if(dateObj.last === ''){ //时间范围
+                         this.form.alert_time_type = 'range';
+                         this.form.alert_time = `${dateObj.starttime},${dateObj.endtime}`;
+                     }else{//最近....
+                         this.form.alert_time_type = 'last'
+                         this.form.alert_time = dateObj.last;
+                     }
+                 }*/
+                this.defaultVal = obj;
+                let arr = setChartParam(obj);
+                let dateObj = arr[0];
+                //判断时间类型
+                if(dateObj.last === ''){ //时间范围
+                    this.form.alert_time_type = 'range';
+                    this.form.alert_time = `${dateObj.starttime},${dateObj.endtime}`;
+                }else{//最近....
+                    this.form.alert_time_type = 'last'
+                    this.form.alert_time = dateObj.last;
+                }
+            })
+        },
+        beforeDestroy(){
+            bus.$off(this.busNameObj.busIndexName)
+            bus.$off(this.busNameObj.busFilterName)
+            bus.$off(this.busNameObj.busDateName)
         },
         watch:{
             'defaultFrom'(){
-                for(let i in this.form){
-                    this.form[i] = this.defaultFrom[i]
+                if(this.alarmId){
+                    for(let i in this.form){
+                        this.form[i] = this.defaultFrom[i]
+                    }
+                    if(this.form.alert_search_filters){
+                        this.defaultFilter = JSON.parse(this.form.alert_search_filters)
+                    }else{
+                        this.defaultFilter = []
+                    }
+                    let strObj = JSON.parse(this.form.alert_structure)
+
+                    this.form.datefield = strObj.dateField
+                    this.indexVal = [this.form.template_name,this.form.pre_index_name,this.form.suffix_index_name,this.form.datefield]
+                    this.alarmList= JSON.parse(this.form.alert_conditions)
+                    this.xAxisArr = strObj.buckets
+                    this.yAxisArr = strObj.mertics
+                    this.defaultVal = strObj.date
+                    setTimeout(()=>{
+                        this.changeOver = true;
+                    },1000)
+
                 }
-               // alert_structure
-                this.alarmList= JSON.parse(this.form.alert_conditions)
-                this.xAxisArr = JSON.parse(this.form.alert_structure.buckets)
-                this.yAxisArr = JSON.parse(this.form.alert_structure.metrics)
-                this.defaultVal = JSON.parse(this.form.alert_structure.date)
+
             },
             //告警条件弹窗状态
             'alarmDialog'(){
@@ -567,16 +639,56 @@
                 }
             },
             'form.suffix_index_name'(){
-                this.alarmList = [];
-                this.form.alert_conditions = [];
+                //判断是否是修改 还是 添加 页面
+                if(this.alarmId){//修改
+                    //判断是否是第一次填充数据 引起的改变
+                    if(this.changeOver){//是
+                        this.alarmList = [];
+                        this.form.alert_conditions = [];
+                    }
+                }else{
+                    this.alarmList = [];
+                    this.form.alert_conditions = [];
+                }
             },
-            'xAxisArr'(){
-                this.alarmList = [];
-                this.form.alert_conditions = [];
+            xAxisArr:{
+                handler() {
+                    this.$nextTick( ()=> {
+                        //判断是否是修改 还是 添加 页面
+                        if(this.alarmId){//修改
+                            //判断是否是第一次填充数据 引起的改变
+                            if(this.changeOver){//是
+                                this.alarmList = [];
+                                this.form.alert_conditions = [];
+                            }
+                        }else{
+                            this.alarmList = [];
+                            this.form.alert_conditions = [];
+                        }
+                    })
+                },
+                immediate: false,
+                deep: true
             },
-            'yAxisArr'(){
-                this.alarmList = [];
-                this.form.alert_conditions = [];
+            yAxisArr:{
+                handler() {
+                    this.$nextTick( ()=> {
+                        //判断是否是修改 还是 添加 页面
+                        if(this.alarmId){//修改
+                            //判断是否是第一次填充数据 引起的改变
+                            if(this.changeOver){//是
+                                this.alarmList = [];
+                                this.form.alert_conditions = [];
+                            }
+                        }else{
+                            this.alarmList = [];
+                            this.form.alert_conditions = [];
+                        }
+
+                    })
+                },
+                immediate: false,
+                deep: true
             },
             //向导 索引
             'active'(){
@@ -638,66 +750,20 @@
                 }
             }
         },
-        created(){
-            //数据源监听
-            bus.$on(this.busNameObj.busIndexName,(arr)=>{
-                //还原配置
-                this.initialize();
-                //设置数据源
-                this.form.suffix_index_name = arr[2];
-                this.form.pre_index_name = arr[1];
-                this.form.template_name = arr[0];
-                this.form.datefield = arr[3];
-                //获取column数据
-                //this.getColumnField()
-            })
-            //监听过滤条件
-            bus.$on(this.busNameObj.busFilterName,(str)=>{
-                this.form.alert_search_filters = str;
-
-            })
-            //时间
-            //时间范围监听事件
-            bus.$on(this.busNameObj.busDateName,(obj)=>{
-                this.defaultVal = obj;
-                let arr = setChartParam(obj);
-                let dateObj = arr[0];
-                //判断时间类型
-                if(dateObj.last === ''){ //时间范围
-                    this.form.alert_time_type = 'range';
-                    this.form.alert_time = `${dateObj.starttime},${dateObj.endtime}`;
-                }else{//最近....
-                    this.form.alert_time_type = 'last'
-                    this.form.alert_time = dateObj.last;
-                }
-               // this.form.alert_time_last = dateObj.last;
-                //this.form.alert_time_start_end = `${dateObj.starttime},${dateObj.endtime}`;
-                //this.intervalObj = arr[1];
-            })
-        },
-        beforeDestroy(){
-            bus.$off(this.busNameObj.busIndexName)
-            bus.$off(this.busNameObj.busFilterName)
-        },
         methods:{
             /*还原配置*/
             initialize(){
-                this.form = {
-                    alert_name:'',
-                    template_name:'',
-                    pre_index_name:'',
-                    suffix_index_name:'',
-                    datefield:'',
-                    alert_search_filters:'',
-                    alert_cron:'',
-                    alert_note:'',
-                    alert_search_metric:[],
-                    alert_search_bucket:[],
-                    alert_conditions:[],
-                    alert_structure:'',
-                    alert_time:'15-min',
-                    alert_time_type : 'last'
-                }
+                this.form.alert_name = '';
+                this.form.alert_cron = '';
+                this.form.alert_note = '';
+                this.form.alert_search_filters = '';
+                this.form.alert_search_metric = [];
+                this.form.alert_search_bucket = [];
+                this.form.alert_conditions = [];
+                this.form.alert_structure = '';
+                this.form.alert_time = '15-min';
+                this.form.alert_time_type = 'last';
+                //this.indexVal = [];
                 this.alarmList = [];
                 this.yAxisArr =[];
                 this.xAxisArr=[];
@@ -942,40 +1008,33 @@
             },
             /*添加告警按钮*/
             addAlarmBtn(){
-                this.alarmDialog = true
+                this.alarmDialog = true;
+                this.dialogType = 'add';
             },
             /*添加告警*/
             addAlarm(){
                 let obj = {};
                 let str = JSON.stringify(this.formDialog);
                 obj = JSON.parse(str);
-                this.alarmList.push(obj);
+                if(this.dialogType === 'resive'){
+                    this.alarmList[this.currentIndex] = obj
+                }else{
+                    this.alarmList.push(obj);
+                }
                 this.alarmDialog = false;
             },
             /*修改告警*/
             resiveAlarm(i){
-
-                //this.currentIndex = i;
+                this.currentIndex = i;
                 this.formDialog =JSON.parse(JSON.stringify(this.alarmList[i]));
-                console.log(this.fieldType[this.formDialog.field])
-                // this.dialogType = 'resive';
+                this.dialogType = 'resive';
                 this.alarmDialog = true;
-                /*  if(this.useObject === 'dashboard'){
-                    this.getIndexPattern()
-                    this.getFieldData(this.form.template_name)
-                    this.loading = true;
-                }else{
-                    //获取operator数据集合
-                    this.getOperatorData(this.form.field);
-                }*/
             },
             /*获取field数据*/
             getFieldData(val){
                 this.$nextTick(()=>{
                     this.alarmLoading = true;
                     let params = {};
-                    console.log(this.form.alert_search_bucket)
-                    console.log(this.form.alert_search_bucket === '[]')
                     //判断参数类型
                     if(this.form.alert_search_bucket === '[]' && this.form.alert_search_metric === '[]'){
                         params.aggType = 'All'
@@ -1089,10 +1148,9 @@
                 obj.buckets = this.xAxisArr;
                 obj.mertics = this.yAxisArr;
                 obj.date = this.defaultVal;
+                obj.dateField=this.form.datefield
                 paramsObj.alert_structure = JSON.stringify(obj)
                 //拼接参数
-                //console.log(paramsObj)
-
                 this.$nextTick(()=>{
                     this.loading = true;
                     this.$axios.post(this.$baseUrl+this.url,this.$qs.stringify(paramsObj))
@@ -1115,6 +1173,10 @@
             addAgain(){
                 this.initialize();
                 this.active = 0;
+               /* this.indexVal=[];
+                this.form.template_name='';
+                this.form.pre_index_name='';
+                this.form.suffix_index_name='';*/
             }
         },
         components:{

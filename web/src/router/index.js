@@ -518,6 +518,18 @@ export default new Router({
                     meta: { title: '添加告警' }
                 },
                /* {
+                    path: '/alert',
+                    name:'alert',
+                    component: resolve => require(['../components/alarmManage/alert.vue'], resolve),
+                    meta: { title: '告警' }
+                },*/
+                {
+                    path: '/fileLogSearch',
+                    name:'fileLogSearch',
+                    component: resolve => require(['../components/logsManage/fileLogSearch.vue'], resolve),
+                    meta: { title: '文件日志查询' }
+                },
+               /* {
                     path: '/calendar',
                     name:'calendar',
                     component: resolve => require(['../components/test/calendar.vue'], resolve),

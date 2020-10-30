@@ -77,6 +77,39 @@
                 {"fields.ip":"IP"},
                 {"message":"日志内容"}
             ]
+        },
+        "file":{
+            "level":[],
+            "searchFrom":{},
+            "tableHead":[
+                {
+                    "prop":"@timestamp",
+                    "label":"时间",
+                    "width":"150"
+                },
+                {
+                    "prop":"agent.type",
+                    "label":"日志类型",
+                    "width":"100"
+                },
+                {
+                    "prop":"fields.ip",
+                    "label":"IP",
+                    "width":"125"
+                },
+                {
+                    "prop":"message",
+                    "label":"日志内容",
+                    "width":""
+                }
+            ],
+            "detailsListArr":[
+                {"@timestamp":"时间"},
+                {"agent.type":"日志类型"},
+                {"fields.equipmentname":"资产名称"},
+                {"fields.ip":"IP"},
+                {"message":"日志内容"}
+            ]
         }
     },
     "event": {

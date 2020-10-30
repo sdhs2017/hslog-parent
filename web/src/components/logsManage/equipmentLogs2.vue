@@ -252,7 +252,27 @@
                                 this.logLevel.push(obj);
                             }
                             //设置表头
-                            let headerArr = logConfig[logType].tableHead;
+                            let headerArr = [];
+                            //判断对应日志是否存在表头
+                            if(logConfig[logType]){//存在
+                                headerArr = logConfig[logType].tableHead;
+                            }else{//不存在 加载默认
+                                headerArr = [{
+                                        "prop":"@timestamp",
+                                        "label":"时间",
+                                        "width":"150"
+                                    },
+                                    {
+                                        "prop":"fields.ip",
+                                        "label":"IP",
+                                        "width":"125"
+                                    },
+                                    {
+                                        "prop":"message",
+                                        "label":"日志内容",
+                                        "width":""
+                                    }]
+                            }
                             headerArr.push({
                                 prop:'tools',
                                 label:'操作',
@@ -264,6 +284,7 @@
                                         btnType: 'readDetails',
                                         clickFun:(row,index)=>{
                                             //console.log(this.layerObj)
+                                            row.agent.type = 'file';
                                             this.layerObj.layerState = true;
                                             this.layerObj.detailData = row;
                                         }

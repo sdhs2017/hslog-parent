@@ -18,5 +18,10 @@
         "type":"metric",
         "label": "metric（指标）",
         "level":[]
+    },
+    {
+        "type":"file",
+        "label": "file（文件）",
+        "level":[]
     }
 ]

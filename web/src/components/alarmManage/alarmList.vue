@@ -85,7 +85,7 @@
                     }
                 },
                 {
-                    prop:'alert_cron',
+                    prop:'alert_exec_cycle',
                     label:'执行周期',
                     width:''
                 },
@@ -96,41 +96,45 @@
                     formatData:(val,obj)=>{
                         let time = '';
                         //判断时间类型
-                        if(obj.alert_time_type === 'range'){//时间范围
-                            let arr = val.split(',');
-                            if(arr[0] === ''){
-                                arr[0] = '*'
-                            }
-                            if(arr[1] === ''){
-                                arr[1] = '*'
-                            }
-                            time = arr[0]+'至'+ arr[1]
-                        }else{ //最近....
-                            //time = val
-                            if(val === '1-daying'){
-                                time = '今天'
-                            }else if(val === '1-weeking'){
-                                time = '这周'
-                            }else if(val === '1-monthing'){
-                                time = '本月'
-                            }else{
-                                let arr = val.split('-');
-                                if(arr[1] === 'min'){
-                                    time ='最近'+arr[0]+'分钟'
-                                }else if(arr[1] === 'hour'){
-                                    time ='最近'+arr[0]+'小时'
-                                }else if(arr[1] === 'day'){
-                                    time ='最近'+arr[0]+'天'
+                        if(obj.alert_exec_type === 'complex'){
+                            if(obj.alert_time_type === 'range'){//时间范围
+                                let arr = val.split(',');
+                                if(arr[0] === ''){
+                                    arr[0] = '*'
+                                }
+                                if(arr[1] === ''){
+                                    arr[1] = '*'
+                                }
+                                time = arr[0]+'至'+ arr[1]
+                            }else{ //最近....
+                                //time = val
+                                if(val === '1-daying'){
+                                    time = '今天'
+                                }else if(val === '1-weeking'){
+                                    time = '这周'
+                                }else if(val === '1-monthing'){
+                                    time = '本月'
                                 }else{
-                                    time = '时间格式未知'
+                                    let arr = val.split('-');
+                                    if(arr[1] === 'min'){
+                                        time ='最近'+arr[0]+'分钟'
+                                    }else if(arr[1] === 'hour'){
+                                        time ='最近'+arr[0]+'小时'
+                                    }else if(arr[1] === 'day'){
+                                        time ='最近'+arr[0]+'天'
+                                    }else{
+                                        time = '时间格式未知'
+                                    }
                                 }
                             }
+                        }else{
+                            time = obj.alert_time_range;
                         }
                         return time
                     }
                 },
                 {
-                    prop:'alert_state',
+                    prop:'alert_state_boolean',
                     label:'状态',
                     width:'80',
                     formatData:(val,obj)=>{
@@ -310,7 +314,7 @@
             setAlarmState(item,i){
                 let url = ''
                 //判断此刻状态
-                if(item.alert_state){//状态：启用中
+                if(item.alert_state_boolean){//状态：启用中
                     url = '/alert/stopQuartz.do'
                 }else{//状态：关闭
                     url = '/alert/startQuartz.do'
@@ -323,7 +327,7 @@
                             let obj = res.data;
                             if(obj.success === 'true'){
                                 layer.msg(obj.message,{icon:1})
-                                this.tableData[i].alert_state = !item.alert_state
+                                this.tableData[i].alert_state_boolean = !item.alert_state_boolean
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }

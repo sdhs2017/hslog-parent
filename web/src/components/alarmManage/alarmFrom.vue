@@ -149,6 +149,32 @@
                         <p v-if="xAxisArr.length === 0" class="addWapper"><span @click="addBucket"><i class="el-icon-plus"></i>添加</span></p>
                     </div>
                 </div>
+                <div class="form-item">
+                    <div class="item-label" style="position: absolute;width: 64px;">资产组：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <el-select v-model="form.alert_assetGroup_id" placeholder="" size="mini" @change="assetGroupChange">
+                            <el-option
+                                v-for="item in assetGroupOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <div class="item-label" style="position: absolute;width: 64px;">资产：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <el-select v-model="form.alert_equipment_id" placeholder="" size="mini" @change="assetChange">
+                            <el-option
+                                v-for="item in assetOptions"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </div>
+                </div>
             </div>
             <div class="btn-wapper">
                 <el-button type="primary" @click="getFields()" :disabled="isCanCreate1">下一步</el-button>
@@ -188,12 +214,27 @@
                 </div>
                 <div class="form-item">
                     <span class="mustWrite" style="left: -8px;">*</span>
-                    <div class="item-label" style="position: absolute;width: 80px;">执行周期：</div>
+                    <div class="item-label" style="position: absolute;width: 80px;top: 0;">执行周期：</div>
                     <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <el-input v-model="form.alert_cron" size="mini" placeholder="请输入cron表达式"></el-input>
+                        <template>
+                            <el-radio v-model="form.alert_exec_type" label="simple">普通</el-radio>
+                            <el-radio v-model="form.alert_exec_type" label="complex">高级</el-radio>
+                        </template>
+                        <div v-if="form.alert_exec_type === 'simple'" style="display:flex;margin-top: 10px;">
+                            <el-input v-model="form.alert_time_cycle_num" size="mini" type="number" style="margin-right: 10px;" min="1" @change="timeCycleNumChange"></el-input>
+                            <el-select v-model="form.alert_time_cycle_type" placeholder="请选择" size="mini" @change="timeCycleTypeChange">
+                                <el-option label="秒" value="second"></el-option>
+                                <el-option label="分钟" value="minute"></el-option>
+                                <el-option label="小时" value="hour"></el-option>
+                            </el-select>
+                        </div>
+                        <div v-if="form.alert_exec_type === 'complex'" style="margin-top: 10px;">
+                            <el-input v-model="form.alert_cron" size="mini" placeholder="请输入cron表达式"></el-input>
+                        </div>
+                        <p  v-if="form.alert_exec_type === 'simple'" style="color: #e4956d;font-size: 12px;margin:5px 0 0 0;">(普通模式下，秒、分钟小于60，小时小于24，且都为整数。)</p>
                     </div>
                 </div>
-                <div class="form-item">
+                <div class="form-item" v-if="form.alert_exec_type === 'complex'">
                     <span class="mustWrite" style="left: -8px;">*</span>
                     <div class="item-label" style="position: absolute;width: 80px;">时间周期：</div>
                     <div class="item-con" style="margin-left: 80px;width: 350px;">
@@ -210,7 +251,7 @@
             </div>
             <div class="btn-wapper" style="display: flex;">
                 <el-button @click="active = 1" type="primary">上一步</el-button>
-                <el-button type="primary"  @click="commitFunc" :disabled="(form.alert_name === '' || form.alert_cron === '') ? true : false">提交</el-button>
+                <el-button type="primary"  @click="commitFunc" :disabled="(form.alert_name === '' || (form.alert_exec_type === 'simple' ? (form.alert_time_cycle_num === '' ? true : false) : (form.alert_cron === '' ? true :false))) ? true : false">提交</el-button>
             </div>
         </div>
         <div class="con-wapper" v-show="active === 3">
@@ -270,16 +311,16 @@
                         <!--<el-form-item label="Value" v-else-if="fieldType[form.field] === 'ip'">
                             <el-input v-model="form.value" size="mini"></el-input>
                         </el-form-item>
-                        &lt;!&ndash;date&ndash;&gt;
-                        <el-form-item label="Value" v-else-if="fieldType[form.field] === 'date'">
+                        &lt;!&ndash;date&ndash;&gt;-->
+                        <el-form-item label="Value" v-else-if="fieldType[formDialog.field] === 'date'">
                             <el-date-picker
                                 style="width: 100%;"
-                                v-model="form.value"
+                                v-model="formDialog.value"
                                 type="datetime"
                                 value-format="yyyy-MM-dd HH:mm:ss"
                                 placeholder="选择日期时间">
                             </el-date-picker>
-                        </el-form-item>-->
+                        </el-form-item>
                         <!--Boolean-->
                         <el-form-item label="Value" v-else-if="fieldType[formDialog.field] === 'boolean'">
                             <el-select v-model="formDialog.value" placeholder="请选择" style="width: 100%">
@@ -432,6 +473,11 @@
                     template_name:'',
                     pre_index_name:'',
                     suffix_index_name:'',
+                    alert_exec_type:'simple',
+                    alert_time_cycle_num:'15',
+                    alert_time_cycle_type:'second',
+                    alert_assetGroup_id:'',
+                    alert_equipment_id:'',
                     datefield:'',
                     alert_search_filters:'',
                     alert_cron:'',
@@ -489,6 +535,10 @@
                         label: 'IPv4 Range'
                     }
                 ],
+                //资产组
+                assetGroupOptions:[],
+                //资产
+                assetOptions:[],
                 //x轴时间间隔
                 timeIntervalArr:[
                     /*{
@@ -545,6 +595,8 @@
             }
         },
         created(){
+            this.getAssetGroup();
+            this.getAsset();
             //数据源监听
             bus.$on(this.busNameObj.busIndexName,(arr)=>{
                 //还原配置
@@ -617,8 +669,9 @@
                     this.defaultVal = strObj.date
                     setTimeout(()=>{
                         this.changeOver = true;
-                    },1000)
-
+                    },1500)
+                    this.getAssetGroup();
+                    this.getAsset(this.form.alert_assetGroup_id);
                 }
 
             },
@@ -751,11 +804,48 @@
             }
         },
         methods:{
+            /*执行时间数据改变*/
+            timeCycleNumChange(val){
+                this.form.alert_time_cycle_num = Math.floor(val)
+                //判断值合法性
+                if(this.form.alert_time_cycle_num <= 0){//不合法
+                    this.form.alert_time_cycle_num = 1;
+                }else{//合法
+                    //判断时间类型
+                    if(this.form.alert_time_cycle_type === 'second' || this.form.alert_time_cycle_type === 'minute'){//分秒 值不能超过59
+                        if(val > 59){
+                            this.form.alert_time_cycle_num = 59;
+                        }
+                    }else{ //时间
+                        if(val > 23){
+                            this.form.alert_time_cycle_num = 23;
+                        }
+                    }
+                }
+            },
+            /*执行时间类型改变*/
+            timeCycleTypeChange(val){
+                //判断时间类型
+                if(val === 'second' || val === 'minute'){//分秒 值不能超过59
+                    if(this.form.alert_time_cycle_num > 59){
+                        this.form.alert_time_cycle_num = 59;
+                    }
+                }else{ //时间
+                    if(this.form.alert_time_cycle_num > 23){
+                        this.form.alert_time_cycle_num = 23;
+                    }
+                }
+            },
             /*还原配置*/
             initialize(){
                 this.form.alert_name = '';
                 this.form.alert_cron = '';
                 this.form.alert_note = '';
+                this.form.alert_assetGroup_id='';
+                this.form.alert_equipment_id='';
+                this.form.alert_exec_type='simple';
+                this.form.alert_time_cycle_num='' ;
+                this.form.alert_time_cycle_type='second';
                 this.form.alert_search_filters = '';
                 this.form.alert_search_metric = [];
                 this.form.alert_search_bucket = [];
@@ -920,6 +1010,58 @@
                 }else{
                     layer.msg('请先选择数据源',{icon:5})
                 }
+            },
+            /*获取资产组*/
+            getAssetGroup(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupList4Combobox.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success = 'true'){
+                                this.assetGroupOptions = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+            /*资产组改变事件*/
+            assetGroupChange(val){
+                this.form.alert_asset = [];
+                this.alarmList = [];
+                this.form.alert_conditions = [];
+                this.getAsset(val);
+            },
+            /*获取资产*/
+            getAsset(asset_group_id){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetList4Combobox.do',this.$qs.stringify({
+                        asset_group_id:asset_group_id
+                    }))
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success = 'true'){
+                                this.assetOptions = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
+            /*资产改变事件*/
+            assetChange(){
+                this.alarmList = [];
+                this.form.alert_conditions = [];
             },
             /*获取字段*/
             getFields(){

@@ -24,7 +24,7 @@
                         <ul class="bell-ul" v-if="alertCount !== 0">
                             <li class="bell-li" title="点击查看具体告警信息" @click="goToAlert()">
                                 <p class="top-p"><b class="name-b">最近{{this.$store.state.beforeDay}}天</b></p>
-                                <p class="bottom-p">发生告警次数为<b class="high-b">{{alertCount}}</b></p>
+                                <p class="bottom-p">发生告警次数为 <b class="high-b"> {{alertCount}}</b></p>
                             </li>
                         </ul>
                         <ul class="bell-ul" v-if="bellArr.length">

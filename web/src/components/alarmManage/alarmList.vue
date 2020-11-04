@@ -230,7 +230,7 @@
             })
         },
         beforeDestroy(){
-            bus.$off(this,busName)
+            bus.$off(this.busName)
         },
         methods:{
             /*添加告警*/

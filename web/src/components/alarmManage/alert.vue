@@ -180,11 +180,6 @@
                             start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
                             picker.$emit('pick', [start, end]);
                         }
-                    }, {
-                        text: '全部',
-                        onClick(picker) {
-                            picker.$emit('pick', ['', '']);
-                        }
                     }]
                 },
                 leftAlertData:[],
@@ -295,7 +290,7 @@
             },
             /*时间改变*/
             timeChange(){
-                this.activeNames=[]
+                this.activeNames=[];
                 this.param.endtime= this.dateVal[1];
                 this.param.starttime=this.dateVal[0];
                 this.getAlertData(this.param);
@@ -355,9 +350,10 @@
             },
             /*快照弹窗*/
             showDialog(item){
-                this.snapshotDialog = true
-                item.result = JSON.parse(item.result)
-                this.dialogObj = item;
+                this.snapshotDialog = true;
+                let obj = JSON.parse(JSON.stringify(item))
+                obj.result = JSON.parse(obj.result)
+                this.dialogObj = obj;
             }
         },
         components:{

@@ -473,21 +473,21 @@
                     template_name:'',
                     pre_index_name:'',
                     suffix_index_name:'',
-                    alert_exec_type:'simple',
-                    alert_time_cycle_num:'15',
-                    alert_time_cycle_type:'second',
-                    alert_assetGroup_id:'',
-                    alert_equipment_id:'',
+                    alert_exec_type:'simple',//执行周期类型
+                    alert_time_cycle_num:'15',//简单 - 执行周期数值
+                    alert_time_cycle_type:'second',//简单 - 执行周期数值类型
+                    alert_assetGroup_id:'',//资产组id
+                    alert_equipment_id:'',//资产id
                     datefield:'',
-                    alert_search_filters:'',
-                    alert_cron:'',
-                    alert_note:'',
+                    alert_search_filters:'',//过滤条件
+                    alert_cron:'',//高级 - 执行周期
+                    alert_note:'',//说明
                     alert_search_metric:[],
                     alert_search_bucket:[],
-                    alert_conditions:[],
-                    alert_structure:'',
-                    alert_time:'15-min',
-                    alert_time_type : 'last'
+                    alert_conditions:[],//告警条件
+                    alert_structure:'',//前端结构
+                    alert_time:'15-min',//高级 - 执行周期 - 时间周期
+                    alert_time_type : 'last' //高级 - 执行周期 - 时间周期类型
                 },
                 //参数
                 paramObj:{},

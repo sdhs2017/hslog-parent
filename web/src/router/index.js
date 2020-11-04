@@ -517,12 +517,18 @@ export default new Router({
                     component: resolve => require(['../components/alarmManage/addAlarm.vue'], resolve),
                     meta: { title: '添加告警' }
                 },
-               /* {
+                {
                     path: '/alert',
                     name:'alert',
                     component: resolve => require(['../components/alarmManage/alert.vue'], resolve),
                     meta: { title: '告警' }
-                },*/
+                },
+               {
+                    path: '/alarmExecuteDetail',
+                    name:'alarmExecuteDetail',
+                    component: resolve => require(['../components/alarmManage/alarmExecuteDetail.vue'], resolve),
+                    meta: { title: '告警' }
+                },
                 {
                     path: '/fileLogSearch',
                     name:'fileLogSearch',

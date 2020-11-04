@@ -21,20 +21,26 @@
                         placement="bottom"
                         width="200"
                         trigger="click">
+                        <ul class="bell-ul" v-if="alertCount !== 0">
+                            <li class="bell-li" title="点击查看具体告警信息" @click="goToAlert()">
+                                <p class="top-p"><b class="name-b">最近{{this.$store.state.beforeDay}}天</b></p>
+                                <p class="bottom-p">发生告警次数为<b class="high-b">{{alertCount}}</b></p>
+                            </li>
+                        </ul>
                         <ul class="bell-ul" v-if="bellArr.length">
                             <li class="bell-li" @click="goToThreat(item)" v-for="(item,index) in bellArr" :key="index" title="点击查看具体信息">
-                                <p class="top-p"><b class="name-b">{{item.name}} : </b></p>
+                                <p class="top-p"><b class="name-b">{{item.name}}(资产) : </b></p>
                                 <p class="bottom-p">
                                     <span v-if="item.high_risk !== 0">高危事件数 <b class="high-b">{{item.high_risk}}</b></span>
                                     <span  v-if="item.moderate_risk !== 0">    中危事件数 <b class="center-b">{{item.moderate_risk}}</b></span>
                                 </p>
                             </li>
                         </ul>
-                        <ul class="bell-ul" v-else>
+                        <ul class="bell-ul" v-if="alertCount == 0 && bellArr.length === 0">
                             <li style="text-align: center;">暂无告警事件</li>
                         </ul>
                         <el-button slot="reference" class="bell-wapper">
-                            <el-badge :value="bellArr.length" :hidden="bellArr.length === 0" :max="99" class="item">
+                            <el-badge :value="bellArr.length + alertCount" :hidden="bellArr.length === 0 && alertCount === 0" :max="99" class="item">
                                 <i class="el-icon-bell"></i>
                             </el-badge>
                         </el-button>
@@ -87,10 +93,15 @@
 </template>
 <script>
     import bus from '../common/bus';
-    import {checkStrong,jumpHtml} from  '../../../static/js/common.js'
+    import {checkStrong,jumpHtml,dateFormat} from  '../../../static/js/common.js'
     export default {
         data() {
             return {
+                alertCount:0,
+                alertParam:{
+                    starttime:'',
+                    endtime:''
+                },
                 bellArr:[],
                 loading:false,
                 collapse: false,
@@ -121,6 +132,14 @@
             }
         },
         created(){
+            //设置时间
+            const end = new Date();
+            const start = new Date();
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
+            this.alertParam.endtime= dateFormat('yyyy-mm-dd HH:MM:SS',end);
+            this.alertParam.starttime= dateFormat('yyyy-mm-dd HH:MM:SS',start);
+            //获得alert
+            this.getAlertData();
             //获取系统菜单
             this.getSystem();
             //获取用户信息
@@ -288,9 +307,25 @@
                         })
                 })
             },
+            /*获取alert信息*/
+            getAlertData(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/alert/getAlertFireCount.do',this.$qs.stringify(this.alertParam ))
+                        .then(res=>{
+                            this.alertCount = Number(res.data.message)
+                        })
+                        .catch(err=>{
+
+                        })
+                })
+            },
             //点击跳转到潜在威胁分析页面
             goToThreat(item){
                 jumpHtml('equipmentThreat'+item.id,'equipment/equipmentThreat.vue',{ name:item.name,id: item.id ,logType:item.logType},'威胁分析')
+            },
+            //点击跳转到告警页面
+            goToAlert(){
+                this.$router.push('/alert');
             }
         },
         mounted(){

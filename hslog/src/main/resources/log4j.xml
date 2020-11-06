@@ -20,7 +20,7 @@
             <!-- 设置日志输出的最小级别 -->
             <param name="levelMin" value="info" /> 
              <!-- 设置日志输出的最大级别 -->
-            <param name="levelMax" value="warn" /> 
+            <param name="levelMax" value="error" />
             <!-- 设置日志输出的xxx，默认是false --> 
             <param name="AcceptOnMatch" value="true" />  <!-- 答案：http://bbs.csdn.net/topics/350195913 -->
         </filter>  
@@ -44,12 +44,7 @@
         定义全局的日志输出级别,但是在输出目的地的配置中配置的具体输出级别优先级高于全局定义的优先级。  
         如果在railyFile中定义<param name="Threshold" value="info"></param>，那么将会把info以上级别的信息输出  
      -->    
-    <root>  
-  		  <!-- <level value="off" /> -->
-        <priority value="debug" />  
-        <appender-ref ref="console" />  
-        <appender-ref ref="file" />  
-    </root>  
+
    <!--  定义单独的类的日志级别    Logger类是Category类的子类-->
     <category name="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
        <priority value="info"/>
@@ -65,76 +60,53 @@
        <priority value="info"/>
        <appender-ref ref="console"/>
     </category>
-    
-    <logger name="org.springframework.web.servlet.DispatcherServlet">  
-        <level value="info" />  
-    </logger>  
-    <!--    <logger name="org.springframework.web.servlet.DispatcherServlet"  >  
-        <level value="debug" /> 
-        <appender-ref ref="console"/> 
-    </logger> -->
-    <logger name="org.mybatis.spring" additivity="false">  
-        <level value="info" />   
-    </logger>  
-      
-    <logger name="net.sf.ehcache">  
-        <level value="ERROR" />  
-    </logger>  
-    <logger name="com.mchange.v2">  
-        <level value="ERROR" />  
-    </logger>  
-      
-    <logger name="java.sql">  
-        <level value="info" /> 
-    </logger>  
-     <logger name="log4j.logger.java.sql.ResultSet" level="info" additivity="false">
-      <appender-ref ref="console"/>
-    </logger>
-    <logger name=" org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
-        <level value="off" />
-      </logger>
-      
-  <!--     
-      <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
- <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
-  <layout class="org.apache.log4j.PatternLayout">
-   <param name="ConversionPattern" value="[%d{dd/MM/yy hh:mm:ss:sss z}] %5p %c{2}: %m%n" />
-  </layout>
- </appender>
- <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
-  <param name="file" value="${user.home}/foss-framework.log" />
-  <param name="append" value="true" />
-  <param name="maxFileSize" value="10MB" />
-  <param name="maxBackupIndex" value="100" />
-  <layout class="org.apache.log4j.PatternLayout">
-   <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n" />
-  </layout>
- </appender>
-      
-      
-      
-       下面是打印mybatis语句的配置
- <logger name="com.ibatis" additivity="true"> 
-  <level value="DEBUG" /> 
- </logger> 
- <logger name="Java.sql.Connection" additivity="true"> 
-  <level value="DEBUG" /> 
- </logger> 
- <logger name="java.sql.Statement" additivity="true"> 
-  <level value="DEBUG" /> 
- </logger> 
- <logger name="java.sql.PreparedStatement" additivity="true"> 
-  <level value="DEBUG" /> 
- </logger> 
- <logger name="java.sql.ResultSet" additivity="true"> 
-  <level value="DEBUG" /> 
- </logger> 
- 
- <root>
-  <level value="DEBUG" />
-  <appender-ref ref="CONSOLE" />
-  <appender-ref ref="FILE" />
- </root> -->
+    <root>
+        <!-- <level value="off" /> -->
+        <priority value="info" />
+        <appender-ref ref="console" />
+        <appender-ref ref="file" />
+    </root>
+    <!--
+        <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">
+   <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
+    <layout class="org.apache.log4j.PatternLayout">
+     <param name="ConversionPattern" value="[%d{dd/MM/yy hh:mm:ss:sss z}] %5p %c{2}: %m%n" />
+    </layout>
+   </appender>
+   <appender name="FILE" class="org.apache.log4j.RollingFileAppender">
+    <param name="file" value="${user.home}/foss-framework.log" />
+    <param name="append" value="true" />
+    <param name="maxFileSize" value="10MB" />
+    <param name="maxBackupIndex" value="100" />
+    <layout class="org.apache.log4j.PatternLayout">
+     <param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n" />
+    </layout>
+   </appender>
+
+
+
+         下面是打印mybatis语句的配置
+   <logger name="com.ibatis" additivity="true">
+    <level value="DEBUG" />
+   </logger>
+   <logger name="Java.sql.Connection" additivity="true">
+    <level value="DEBUG" />
+   </logger>
+   <logger name="java.sql.Statement" additivity="true">
+    <level value="DEBUG" />
+   </logger>
+   <logger name="java.sql.PreparedStatement" additivity="true">
+    <level value="DEBUG" />
+   </logger>
+   <logger name="java.sql.ResultSet" additivity="true">
+    <level value="DEBUG" />
+   </logger>
+
+   <root>
+    <level value="DEBUG" />
+    <appender-ref ref="CONSOLE" />
+    <appender-ref ref="FILE" />
+   </root> -->
       
       
 </log4j:configuration>  

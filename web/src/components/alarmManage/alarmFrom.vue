@@ -1197,6 +1197,8 @@
                 this.formDialog =JSON.parse(JSON.stringify(this.alarmList[i]));
                 this.dialogType = 'resive';
                 this.alarmDialog = true;
+                this.getOperatorData(this.formDialog.fieldType)
+
             },
             /*获取field数据*/
             getFieldData(val){
@@ -1243,14 +1245,14 @@
                 })
             },
             /*获取operator数据*/
-            getOperatorData(field){
+            getOperatorData(fieldType){
                 this.$nextTick(()=>{
-                    this.loading = true;
+                    this.alarmLoading = true;
                     this.$axios.post(this.$baseUrl+'/alert/getOperatorByFiledType.do',this.$qs.stringify({
-                        fieldType:this.fieldType[field]
+                        fieldType:fieldType
                     }))
                         .then(res=>{
-                            this.loading = false;
+                            this.alarmLoading = false;
                             this.operatorOpt = [];
                             res.data.forEach(item =>{
                                 this.operatorOpt.push({
@@ -1260,7 +1262,7 @@
                             })
                         })
                         .catch(err=>{
-                            this.loading = false;
+                            this.alarmLoading = false;
                         })
                 })
             },
@@ -1275,7 +1277,7 @@
                 this.formDialog.operator = '';
                 this.formDialog.fieldType = this.fieldType[val];
                 //获取operator集合
-                this.getOperatorData(val)
+                this.getOperatorData(this.formDialog.fieldType)
             },
             /*operator改变事件*/
             operatorChange(){

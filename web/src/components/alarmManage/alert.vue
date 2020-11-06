@@ -48,7 +48,7 @@
                 <div class="left-wapper" style="width: 50%">
                     <el-collapse-item v-for="(litem,li) in leftAlertData" :key="li" class="alert-item" :name="li">
                         <template slot="title">
-                            <div class="tit-wapper" @click="getExecuteList(litem)">
+                            <div class="tit-wapper" @click="headClick(litem)">
                                 <div class="i-wapper">
                                     <i class="el-icon-warning"></i>
                                 </div>
@@ -63,19 +63,18 @@
                         </template>
                         <p style="margin: 10px 0;color: #e4956d;">执行详情（快照）</p>
                         <div class="execute-wapper">
-                            <!--<div v-for="(lexecuteItem,lindex) in litem.fire_list " :key="lindex" class="execute-item">
-                                <span class="execute-time">{{lexecuteItem.run_time}}</span>
-                                <span class="execute-msg">{{lexecuteItem.result}}</span>
-                                <span class="execute-btn" @click="showDialog(lexecuteItem)">快照详情</span>
-                            </div>-->
                             <vBasetable :tableHead="tableHead" :height="200" :tableData="litem.fire_list"></vBasetable>
+                            <div class="alarm-table-page">
+<!--                                <span>共检索到告警数量为 <b>{{litem.fire_count}}</b> 个</span>-->
+                                <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,litem)" :current-page.sync="litem.current_page" :page-size="size" :total="Number(litem.fire_count)"></el-pagination>
+                            </div>
                         </div>
                     </el-collapse-item>
                 </div>
                 <div class="right-wapper" style="width: 50%">
                     <el-collapse-item v-for="(ritem,ri) in rightAlertData" :key="ri" class="alert-item">
                         <template slot="title">
-                            <div class="tit-wapper" @click="getExecuteList(ritem)">
+                            <div class="tit-wapper" @click="headClick(ritem)">
                                 <div class="i-wapper">
                                     <i class="el-icon-warning"></i>
                                 </div>
@@ -90,12 +89,11 @@
                         </template>
                         <p style="margin: 10px 0;color: #e4956d;">执行详情（快照）</p>
                         <div class="execute-wapper">
-                            <!--<div v-for="(rexecuteItem,rindex) in ritem.fire_list " :key="rindex" class="execute-item">
-                                <span class="execute-time">{{rexecuteItem.run_time}}</span>
-                                <span class="execute-condition">{{setAlertCondition(rexecuteItem.alert_conditions)}}</span>
-                                <span class="execute-btn" @click="showDialog(rexecuteItem)">快照详情</span>
-                            </div>-->
                             <vBasetable :tableHead="tableHead" :height="200" :tableData="ritem.fire_list"></vBasetable>
+                            <div class="alarm-table-page">
+<!--                                <span>共检索到告警数量为 <b>{{ritem.fire_count}}</b> 个</span>-->
+                                <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,ritem)" :current-page.sync="ritem.current_page" :page-size="size" :total="Number(ritem.fire_count)"></el-pagination>
+                            </div>
                         </div>
                     </el-collapse-item>
                 </div>
@@ -162,6 +160,7 @@
                     starttime:'',
                     endtime:''
                 },
+                size:15,
                 tableHead:[
                     {
                         prop:'run_time',
@@ -355,7 +354,16 @@
                 this.param.starttime=this.dateVal[0];
                 this.getAlertData(this.param);
             },
+            /**/
+            headClick(item){
+                //判断是否已经请求过
+                if(!item.firstSearched){//否
+                    this.getExecuteList(item,1);
+                    //添加已请求标识
+                    item.firstSearched = true;
+                }
 
+            },
             /*获取告警*/
             getAlertData(param){
                 this.$nextTick(()=>{
@@ -384,29 +392,30 @@
                 })
             },
             /*获取快照*/
-            getExecuteList(item){
-                if(item.fire_list.length === 0){//第一次加载 请求数据
-                    this.$nextTick(()=>{
-                        this.loading = true;
-                        this.$axios.post(this.$baseUrl+'/alert/getAlertFireList.do',this.$qs.stringify({
-                            alert_id:item.alert_id,
-                            starttime:this.dateVal[0],
-                            endtime:this.dateVal[1]
-                        }))
-                            .then(res=>{
-                                this.loading = false;
-                                let obj = res.data;
-                                if(obj.success === "true"){
-                                    item.fire_list = obj.data;
-                                }else{
-                                    layer.msg(obj.message,{icon:5})
-                                }
-                            })
-                            .catch(err=>{
-                                this.loading = false;
-                            })
-                    })
-                }
+            getExecuteList(item,page){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/alert/getAlertFireList.do',this.$qs.stringify({
+                        alert_id:item.alert_id,
+                        pageIndex:page,
+                        pageSize:this.size,
+                        starttime:this.dateVal[0],
+                        endtime:this.dateVal[1]
+                    }))
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success === "true"){
+                                item.fire_count = obj.data.count
+                                item.fire_list = obj.data.list;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
             },
             /*快照弹窗*/
             showDialog(item){
@@ -414,6 +423,11 @@
                 let obj = JSON.parse(JSON.stringify(item))
                 obj.result = JSON.parse(obj.result)
                 this.dialogObj = obj;
+            },
+            /*分页*/
+            handleCurrentChange(page,item){
+                item.current_page = page;
+                this.getExecuteList(item,page)
             }
         },
         components:{
@@ -489,7 +503,7 @@
         color: #fff;
     }
     .alert-wapper .execute-wapper{
-        max-height: 200px;
+        max-height: 240px;
         overflow: auto;
         /*margin-top: 20px;*/
         margin-right: 20px;
@@ -552,5 +566,9 @@
     .snapshot-wapper .txt{
         color: #4ca2fb;
         width: calc(100% - 130px);
+    }
+    .alarm-table-page{
+        display: flex;
+        justify-content: flex-end;
     }
 </style>

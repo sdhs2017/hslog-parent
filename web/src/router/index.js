@@ -428,6 +428,12 @@ export default new Router({
                     meta: { title: '全文检索' }
                 },
                 {
+                    path: '/complexSearch',
+                    name:'complexSearch',
+                    component: resolve => require(['../components/logsManage/complexSearch.vue'], resolve),
+                    meta: { title: '复合查询' }
+                },
+                {
                     path: '/accurateSearch2',
                     name:'accurateSearch2',
                     component: resolve => require(['../components/logsManage/accurateSearch2.vue'], resolve),

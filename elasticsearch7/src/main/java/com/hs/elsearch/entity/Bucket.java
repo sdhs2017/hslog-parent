@@ -54,7 +54,6 @@ public class Bucket{
         this.intervalValue = intervalValue;
         this.size = size;
         this.sort = sort;
-        this.ranges = ranges;
     }
     public String getAggType() {
         return aggType;

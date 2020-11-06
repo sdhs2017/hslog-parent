@@ -10,6 +10,11 @@ import com.hs.elsearch.util.ErrorInfoException;
 import com.hs.elsearch.util.StringUtil;
 import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
+import org.elasticsearch.action.search.MultiSearchRequest;
+import org.elasticsearch.action.search.MultiSearchResponse;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.common.io.stream.StreamOutput;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.index.query.*;
@@ -76,6 +81,7 @@ public class SearchDaoImpl implements ISearchDao {
         String dateField = conditions.getDateField();//时间范围对应的字段名
         List<Filter> filter_visual = conditions.getFilters_visual();//filter
         List<Filter> filter_dashboard = conditions.getFilters_dashboard();//filter
+        List<Filter> filter_alert = conditions.getFilters_alert();
         List<Map<String,String>> filter_table = conditions.getFilters_table();//filter
         String queryBox = conditions.getQueryBox();//查询框
         //最外层query的定义
@@ -167,8 +173,11 @@ public class SearchDaoImpl implements ISearchDao {
         //------处理filters------
         addFilters(boolQueryBuilder,filter_visual);//图表
         addFilters(boolQueryBuilder,filter_dashboard);//dashboard
+        //alert filters
+        addFilters(boolQueryBuilder,filter_alert);
         //------处理table的点击事件产生的查询条件----
         addFilters4Table(boolQueryBuilder,filter_table);
+
 
         //存在时间类型字段，需要添加时间范围参数查询
         if(dateField!=null&&!"".equals(dateField)){
@@ -208,6 +217,44 @@ public class SearchDaoImpl implements ISearchDao {
             //是否启用
             if(filter.isEnable()){
                 switch(filter.getOperator()){
+                    case ElasticConstant.ALERT_OP_IS:
+                        boolQueryBuilder.filter(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
+                        break;
+                    case ElasticConstant.ALERT_OP_IS_NOT:
+                        boolQueryBuilder.mustNot(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
+                        break;
+                    case ElasticConstant.ALERT_OP_GT:
+                        if("date".equals(filter.getFieldType())){
+                            //date类型，添加format
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gt(filter.getValue()).format(dateFormat));
+                        }else{
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gt(filter.getValue()));
+                        }
+                        break;
+                    case ElasticConstant.ALERT_OP_GTE:
+                        if("date".equals(filter.getFieldType())){
+                            //date类型，添加format
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getValue()).format(dateFormat));
+                        }else{
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getValue()));
+                        }
+                        break;
+                    case ElasticConstant.ALERT_OP_LT:
+                        if("date".equals(filter.getFieldType())){
+                            //date类型，添加format
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lt(filter.getValue()).format(dateFormat));
+                        }else{
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lt(filter.getValue()));
+                        }
+                        break;
+                    case ElasticConstant.ALERT_OP_LTE:
+                        if("date".equals(filter.getFieldType())){
+                            //date类型，添加format
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lte(filter.getValue()).format(dateFormat));
+                        }else{
+                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lte(filter.getValue()));
+                        }
+                        break;
                     case ElasticConstant.OP_IS_MATCH:
                         boolQueryBuilder.filter(QueryBuilders.matchPhraseQuery(filter.getField(),filter.getValue()));
                         break;
@@ -718,6 +765,7 @@ public class SearchDaoImpl implements ISearchDao {
      * @param sorts
      */
     private void buildSourceAndSort(SearchConditions conditions,String[] includeSource,List<SortBuilder> sorts){
+        //要显示字段
         if(conditions.getDataTableColumns().size()>0){
             //遍历字段
             for(int i=0;i<conditions.getDataTableColumns().size();i++){
@@ -728,6 +776,12 @@ public class SearchDaoImpl implements ISearchDao {
                 }
                 //要显示字段
                 includeSource[i] = column.getField();
+            }
+        }
+        //单独的排序字段
+        if(conditions.getSortColumns().size()>0){
+            for(DataTableColumn column:conditions.getSortColumns()){
+                sorts.add(SortBuilders.fieldSort(column.getField()).order("asc".equals(column.getSort())?SortOrder.ASC:SortOrder.DESC));
             }
         }
     }
@@ -749,6 +803,23 @@ public class SearchDaoImpl implements ISearchDao {
         return aggregations;
     }
 
+    /**
+     * 直接返回response原始数据
+     * @param conditions 查询条件
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public SearchResponse getResponse(SearchConditions conditions) throws Exception {
+        //查询条件 query(增加了filter的处理)
+        BoolQueryBuilder boolQueryBuilder = buildQuery(conditions);
+        //聚合条件
+        List<AggregationBuilder> aggregationBuilder = buildAggregations(conditions);
+        // 返回聚合的内容，boolQueryBuilder以及aggregationBuilder都为空时，可以正常进行查询。
+        SearchResponse response = searchTemplate.getAggregationsByBuilder2Response(boolQueryBuilder, aggregationBuilder,conditions.getSize(),conditions.getIndex_name());
+
+        return response;
+    }
     /**
      * 获取查询，无聚合
      * @param conditions
@@ -781,25 +852,44 @@ public class SearchDaoImpl implements ISearchDao {
     }
 
     public static void main(String[] args) {
-        Map<String,String> map = new HashMap<>();
-        map.put("usr_pct","usr_pct");
-        AggregationBuilder aggregationBuilder = AggregationBuilders.dateHistogram("day").field("@timestamp").format("yyyy-MM-dd HH:mm:ss");
-        aggregationBuilder.subAggregation(AggregationBuilders.max("usr_pct").field("system.core.user.pct"));
-        aggregationBuilder.subAggregation(new BucketSelectorPipelineAggregationBuilder("sss",map,new Script("params.usr_pct>0.5")));
-        System.out.println(aggregationBuilder.toString());
+//        Map<String,String> map = new HashMap<>();
+//        map.put("usr_pct","usr_pct");
+//        AggregationBuilder aggregationBuilder = AggregationBuilders.dateHistogram("day").field("@timestamp").format("yyyy-MM-dd HH:mm:ss");
+//        aggregationBuilder.subAggregation(AggregationBuilders.max("usr_pct").field("system.core.user.pct"));
+//        aggregationBuilder.subAggregation(new BucketSelectorPipelineAggregationBuilder("sss",map,new Script("params.usr_pct>0.5")));
+//        System.out.println(aggregationBuilder.toString());
+//
+//        // 通过日志内容匹配进行告警
+//        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+//        boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").gte("2020-09-04 11:00:00").lte("2020-09-04 12:00:00"));
+//        boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message","Started Session"));
+//
+//        AggregationBuilder aggregationBuilder1 = AggregationBuilders.terms("ip_count").field("fields.ip");
+//        aggregationBuilder1.subAggregation(AggregationBuilders.count("count").field("fields.ip.raw"));
+//        Map<String,String> maps = new HashMap<>();
+//        maps.put("count","count");
+//        aggregationBuilder1.subAggregation( new BucketSelectorPipelineAggregationBuilder("大于10次登陆",maps,new Script("params.count>10")));
+//        aggregationBuilder1.subAggregation( new BucketScriptPipelineAggregationBuilder("",maps,new Script("")));
+//        System.out.println(aggregationBuilder1.toString());
 
-        // 通过日志内容匹配进行告警
-        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
-        boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").gte("2020-09-04 11:00:00").lte("2020-09-04 12:00:00"));
-        boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message","Started Session"));
+        MultiSearchRequest request = new MultiSearchRequest();
+        SearchRequest firstSearchRequest = new SearchRequest();
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("fields.ip", "192.168.200.15"));
+        searchSourceBuilder.size(5);
+        firstSearchRequest.source(searchSourceBuilder);
+        firstSearchRequest.indices("winlogbeat-*");
+        request.add(firstSearchRequest);
 
-        AggregationBuilder aggregationBuilder1 = AggregationBuilders.terms("ip_count").field("fields.ip");
-        aggregationBuilder1.subAggregation(AggregationBuilders.count("count").field("fields.ip.raw"));
-        Map<String,String> maps = new HashMap<>();
-        maps.put("count","count");
-        aggregationBuilder1.subAggregation( new BucketSelectorPipelineAggregationBuilder("大于10次登陆",maps,new Script("params.count>10")));
-        aggregationBuilder1.subAggregation( new BucketScriptPipelineAggregationBuilder("",maps,new Script("")));
-        System.out.println(aggregationBuilder1.toString());
+        SearchRequest secondSearchRequest = new SearchRequest();
+        searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(QueryBuilders.matchQuery("message", "sshd"));
+        searchSourceBuilder.size(5);
+        secondSearchRequest.source(searchSourceBuilder);
+        firstSearchRequest.indices("winlogbeat-*");
+        request.add(secondSearchRequest);
+
+        //MultiSearchResponse response = client.msearch(request, RequestOptions.DEFAULT);
 
     }
 }

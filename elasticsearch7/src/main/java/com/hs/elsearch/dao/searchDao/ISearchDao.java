@@ -2,6 +2,7 @@ package com.hs.elsearch.dao.searchDao;
 
 import com.hs.elsearch.entity.SearchConditions;
 import com.hs.elsearch.entity.VisualParam;
+import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
@@ -18,7 +19,13 @@ public interface ISearchDao {
      * @throws Exception
      */
     public Aggregations getAggregation(SearchConditions conditions) throws Exception;
-
+    /**
+     * 直接返回response原始数据
+     * @param conditions 查询条件
+     * @return
+     * @throws Exception
+     */
+    public SearchResponse getResponse(SearchConditions conditions) throws Exception;
     /**
      * 普通查询，无聚合 直接返回原始数据的接口
      * @param conditions

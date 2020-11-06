@@ -1,5 +1,6 @@
 package com.hs.elsearch.template;
 
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.*;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
@@ -29,9 +30,9 @@ import java.util.concurrent.TimeUnit;
  * @author: jiyourui
  * @create: 2020-08-12 11:05
  **/
+@Slf4j
 public class BulkTemplate_BulkProcessor {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BulkTemplate_BulkProcessor.class);
 
     RestHighLevelClient restHighLevelClient;
 
@@ -64,7 +65,7 @@ public class BulkTemplate_BulkProcessor {
             public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
                 //重写afterBulk方法，每次批量请求结束后执行，可以在这里知道是否有错误发生。
                 if (response.hasFailures()) {
-                    LOGGER.error("Bulk [{}] executed with failures,response = {}", executionId, response.buildFailureMessage());
+                    log.error("Bulk [{}] executed with failures,response = {}", executionId, response.buildFailureMessage());
                 } else {
                     //System.out.println(format.format(new Date())+" Bulk [{"+executionId+"}] completed in {"+response.getTook().getMillis()+"} milliseconds");
                     //LOGGER.info("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
@@ -75,7 +76,7 @@ public class BulkTemplate_BulkProcessor {
             @Override
             public void afterBulk(long executionId, BulkRequest request, Throwable failure) {
                 //重写方法，如果发生错误就会调用。
-                LOGGER.error("Failed to execute bulk", failure);
+                log.error("Failed to execute bulk", failure);
             }
         };
 
@@ -103,9 +104,9 @@ public class BulkTemplate_BulkProcessor {
         try {
             bulkProcessor.awaitClose(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            LOGGER.error("Failed to close bulkProcessor", e);
+            log.error("Failed to close bulkProcessor", e);
         }
-        LOGGER.info("bulkProcessor closed!");
+        log.info("bulkProcessor closed!");
     }
 
 

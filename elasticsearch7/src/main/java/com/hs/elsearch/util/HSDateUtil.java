@@ -1,10 +1,9 @@
 package com.hs.elsearch.util;
 
+import javafx.scene.control.Alert;
+
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class HSDateUtil {
     //时间戳，用来匹配传入的时间参数，进行转换
@@ -87,6 +86,9 @@ public class HSDateUtil {
         cal.set(Calendar.MILLISECOND, 0);
 
         return cal.getTime();
+    }
+    public static Map<String,String> getStartEndTime(Alert alert){
+        return null;
     }
     public static void main(String[] args){
         dateArea2Indices("2019-08-01 12:00:00","2019-08-02 12:00:01","winlogbeat-*");

@@ -5,6 +5,8 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.util.MappingField;
 import com.hs.elsearch.util.MappingUtil;
+import com.mysql.jdbc.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
@@ -32,9 +34,9 @@ import java.util.Map;
  * value为一个List<MappingField>用来存储该类型对应的所有字段信息
  * 单例实现
  */
+@Slf4j
 public enum SearchCache {
     INSTANCE;
-    private static Logger logger = Logger.getLogger(SearchCache.class);
     //服务于可视化模块
     private Cache<String, List<MappingField>> biCache = Caffeine.newBuilder()
             .maximumSize(100)//最大条数，
@@ -66,84 +68,100 @@ public enum SearchCache {
         //写入cache是否成功，用来判断是否有数据写入
         boolean result = false;
         try{
-            //获取template的数据
-            List<IndexTemplateMetaData> list = logIndexDao.getTemplateData(templateName);
-            //由于API仅提供类似正则匹配的模糊查询，返回的都是list，但是对于本功能而言，需要返回唯一一条记录
-            for(IndexTemplateMetaData itmd:list){
-                //获取mapping信息
-                MappingMetaData mmd = itmd.mappings();
-                String name = itmd.name();
-                //获取mapping信息
-                Map<String, Object> sourceMap = mmd.getSourceAsMap();
-                //获取所有字段信息
-                List<MappingField> fieldList = MappingUtil.getAllListMetadataBySourceMap(sourceMap);
-                //定义不同类型的list
-                List<MappingField> forNumber = new ArrayList<>();
-                List<MappingField> forNumberOrDate = new ArrayList<>();
-                List<MappingField> forTermsList = new ArrayList<>();
-                List<MappingField> forDateList = new ArrayList<>();
-                List<MappingField> forIpList = new ArrayList<>();
-                //用来进行filter字段的显示，除geo_point类型外的其他所有类型都包括
-                List<MappingField> forAllExceptGeoPointList = new ArrayList<>();
-                //所有字段，用来进行动态表格的字段显示
-                List<MappingField> forAllList = new ArrayList<>();
-                Map<String,String> mappingMap = new HashMap<>();
-                //遍历list，放到cache中
-                for(MappingField mf :fieldList){
-                    mappingMap.put(mf.getFieldName(),mf.getFieldType());
-                    forAllList.add(mf);
-                    switch(mf.getFieldType()){
-                        //number类型
-                        case "long":case "integer":case "short":case "byte":case "double":case "float":case "half_float":case "scaled_float":
-                            forTermsList.add(mf);
-                            forNumber.add(mf);
-                            forNumberOrDate.add(mf);
-                            forAllExceptGeoPointList.add(mf);
-                            break;
-                        case "date":
-                            forDateList.add(mf);
-                            forNumberOrDate.add(mf);
-                            forAllExceptGeoPointList.add(mf);
-                            break;
-                        case "keyword":
-                            forTermsList.add(mf);
-                            forAllExceptGeoPointList.add(mf);
-                            break;
-                        case "ip":
-                            forIpList.add(mf);
-                            forTermsList.add(mf);
-                            forAllExceptGeoPointList.add(mf);
-                            break;
-                        case "geo_point":
-                            //forIpList.add(mf);
-                            break;
-                        case "text":
-                            forAllExceptGeoPointList.add(mf);
-                            break;
-                        case "boolean":
-                            forAllExceptGeoPointList.add(mf);
-                            break;
-                        default:
-                            //其他类型需要对fielddata进行判定，为true时,作为keyword存储
-                            if(mf.getFieldData()){
+            if(StringUtils.isNullOrEmpty(templateName)){
+                //alert返回字段
+                List<MappingField> alertField = new ArrayList<>();
+                MappingField name = new MappingField();
+                name.setFieldName("name");
+                name.setFieldType("keyword");
+                MappingField value = new MappingField();
+                value.setFieldName("value");
+                value.setFieldType("double");
+                alertField.add(name);
+                alertField.add(value);
+                this.biCache.put("alertAgg",alertField);
+            }else{
+                //获取template的数据
+                List<IndexTemplateMetaData> list = logIndexDao.getTemplateData(templateName);
+                //由于API仅提供类似正则匹配的模糊查询，返回的都是list，但是对于本功能而言，需要返回唯一一条记录
+                for(IndexTemplateMetaData itmd:list){
+                    //获取mapping信息
+                    MappingMetaData mmd = itmd.mappings();
+                    String name = itmd.name();
+                    //获取mapping信息
+                    Map<String, Object> sourceMap = mmd.getSourceAsMap();
+                    //获取所有字段信息
+                    List<MappingField> fieldList = MappingUtil.getAllListMetadataBySourceMap(sourceMap);
+                    //定义不同类型的list
+                    List<MappingField> forNumber = new ArrayList<>();
+                    List<MappingField> forNumberOrDate = new ArrayList<>();
+                    List<MappingField> forTermsList = new ArrayList<>();
+                    List<MappingField> forDateList = new ArrayList<>();
+                    List<MappingField> forIpList = new ArrayList<>();
+                    //用来进行filter字段的显示，除geo_point类型外的其他所有类型都包括
+                    List<MappingField> forAllExceptGeoPointList = new ArrayList<>();
+                    //所有字段，用来进行动态表格的字段显示
+                    List<MappingField> forAllList = new ArrayList<>();
+                    Map<String,String> mappingMap = new HashMap<>();
+                    //遍历list，放到cache中
+                    for(MappingField mf :fieldList){
+                        mappingMap.put(mf.getFieldName(),mf.getFieldType());
+                        forAllList.add(mf);
+                        switch(mf.getFieldType()){
+                            //number类型
+                            case "long":case "integer":case "short":case "byte":case "double":case "float":case "half_float":case "scaled_float":
                                 forTermsList.add(mf);
-                            }
-                            break;
+                                forNumber.add(mf);
+                                forNumberOrDate.add(mf);
+                                forAllExceptGeoPointList.add(mf);
+                                break;
+                            case "date":
+                                forDateList.add(mf);
+                                forNumberOrDate.add(mf);
+                                forAllExceptGeoPointList.add(mf);
+                                break;
+                            case "keyword":
+                                forTermsList.add(mf);
+                                forAllExceptGeoPointList.add(mf);
+                                break;
+                            case "ip":
+                                forIpList.add(mf);
+                                forTermsList.add(mf);
+                                forAllExceptGeoPointList.add(mf);
+                                break;
+                            case "geo_point":
+                                //forIpList.add(mf);
+                                break;
+                            case "text":
+                                forAllExceptGeoPointList.add(mf);
+                                break;
+                            case "boolean":
+                                forAllExceptGeoPointList.add(mf);
+                                break;
+                            default:
+                                //其他类型需要对fielddata进行判定，为true时,作为keyword存储
+                                if(mf.getFieldData()){
+                                    forTermsList.add(mf);
+                                }
+                                break;
+                        }
                     }
+                    //放入cache中
+                    this.biCache.put(name+"Number",forNumber);
+                    this.biCache.put(name+"NumberOrDate",forNumberOrDate);
+                    this.biCache.put(name+"Terms",forTermsList);
+                    this.biCache.put(name+"Date",forDateList);
+                    this.biCache.put(name+"Ip",forIpList);
+                    this.biCache.put(name+"AllExceptGeo",forAllExceptGeoPointList);
+                    this.biCache.put(name+"All",forAllList);
+                    this.mappingCache.put(name,mappingMap);
+                    result = true;
                 }
-                //放入cache中
-                this.biCache.put(name+"Number",forNumber);
-                this.biCache.put(name+"NumberOrDate",forNumberOrDate);
-                this.biCache.put(name+"Terms",forTermsList);
-                this.biCache.put(name+"Date",forDateList);
-                this.biCache.put(name+"Ip",forIpList);
-                this.biCache.put(name+"AllExceptGeo",forAllExceptGeoPointList);
-                this.biCache.put(name+"All",forAllList);
-                this.mappingCache.put(name,mappingMap);
-                result = true;
             }
+
+
         }catch(Exception e){
-            logger.error("template信息初始化到cache失败！"+e.getMessage());
+            log.error("template信息初始化到cache失败！"+e.getMessage());
         }
         return result;
     }

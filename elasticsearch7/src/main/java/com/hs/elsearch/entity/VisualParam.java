@@ -218,7 +218,7 @@ public class VisualParam {
             //其他参数处理
             BeanUtils.populate(this,map);
         }catch(Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return this;
     }

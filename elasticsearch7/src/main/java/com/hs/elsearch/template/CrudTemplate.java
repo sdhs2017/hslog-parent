@@ -1,5 +1,6 @@
 package com.hs.elsearch.template;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeRequest;
@@ -28,9 +29,8 @@ import java.util.Map;
  * @author: jiyourui
  * @create: 2019-11-25 09:50
  **/
+@Slf4j
 public class CrudTemplate {
-
-    private static Logger logger = Logger.getLogger(CrudTemplate.class);
 
     RestHighLevelClient restHighLevelClient;
 
@@ -183,7 +183,7 @@ public class CrudTemplate {
 
         // 判断是否存在错误提交
         if (bulkResponse.hasFailures()){
-            logger.error("批量提交异常"+bulkResponse.toString());
+            log.error("批量提交异常"+bulkResponse.toString());
             // 如果存在报错则返回false
             return false;
         }else {
@@ -210,7 +210,7 @@ public class CrudTemplate {
 
         // 判断是否存在错误提交
         if (bulkResponse.hasFailures()){
-            logger.error("批量提交异常"+bulkResponse.toString());
+            log.error("批量提交异常"+bulkResponse.toString());
             // 如果存在报错则返回false
             return false;
         }else {

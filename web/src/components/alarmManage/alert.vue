@@ -63,11 +63,12 @@
                         </template>
                         <p style="margin: 10px 0;color: #e4956d;">执行详情（快照）</p>
                         <div class="execute-wapper">
-                            <div v-for="(lexecuteItem,lindex) in litem.fire_list " :key="lindex" class="execute-item">
+                            <!--<div v-for="(lexecuteItem,lindex) in litem.fire_list " :key="lindex" class="execute-item">
                                 <span class="execute-time">{{lexecuteItem.run_time}}</span>
                                 <span class="execute-msg">{{lexecuteItem.result}}</span>
                                 <span class="execute-btn" @click="showDialog(lexecuteItem)">快照详情</span>
-                            </div>
+                            </div>-->
+                            <vBasetable :tableHead="tableHead" :height="200" :tableData="litem.fire_list"></vBasetable>
                         </div>
                     </el-collapse-item>
                 </div>
@@ -89,11 +90,12 @@
                         </template>
                         <p style="margin: 10px 0;color: #e4956d;">执行详情（快照）</p>
                         <div class="execute-wapper">
-                            <div v-for="(rexecuteItem,rindex) in ritem.fire_list " :key="rindex" class="execute-item">
+                            <!--<div v-for="(rexecuteItem,rindex) in ritem.fire_list " :key="rindex" class="execute-item">
                                 <span class="execute-time">{{rexecuteItem.run_time}}</span>
-                                <span class="execute-msg">{{rexecuteItem.result}}</span>
+                                <span class="execute-condition">{{setAlertCondition(rexecuteItem.alert_conditions)}}</span>
                                 <span class="execute-btn" @click="showDialog(rexecuteItem)">快照详情</span>
-                            </div>
+                            </div>-->
+                            <vBasetable :tableHead="tableHead" :height="200" :tableData="ritem.fire_list"></vBasetable>
                         </div>
                     </el-collapse-item>
                 </div>
@@ -116,6 +118,10 @@
                     <span class="txt">{{setAlertCondition(dialogObj.alert_conditions)}}</span>
                 </p>
                 <p>
+                    <span class="tit">匹配结果数 :</span>
+                    <span class="txt">{{dialogObj.match_size}}</span>
+                </p>
+                <p>
                     <span class="tit">执行周期 :</span>
                     <span class="txt">{{setAlertExcute(dialogObj)}}</span>
                 </p>
@@ -132,7 +138,7 @@
                     <span class="txt">{{dialogObj.alert_equipment_name}}</span>
                 </p>-->
                 <p>
-                    <span class="tit">详情 :</span>
+                    <span class="tit">结果 :</span>
                     <span class="txt"><jsonView :data="dialogObj.result" theme="one-dark" :line-height="20" :deep="5" class="jsonView"></jsonView></span>
                 </p>
             </div>
@@ -142,6 +148,7 @@
 
 <script>
     import jsonView from 'vue-json-views'
+    import vBasetable from '../common/Basetable2';
     import {dateFormat} from  '../../../static/js/common.js'
     export default {
         name: "alert",
@@ -155,6 +162,59 @@
                     starttime:'',
                     endtime:''
                 },
+                tableHead:[
+                    {
+                        prop:'run_time',
+                        label:'执行时间',
+                        width:'150',
+                        formatData:(val,obj)=>{
+                            return `<span style="color: #F56C6C;">${val}</span>`
+                        }
+                    },
+                    {
+                        prop:'alert_conditions',
+                        label:'条件',
+                        width:'',
+                        formatData:(val,obj)=>{
+                            return `<span style="color: #F56C6C;">${this.setAlertCondition(val)}</span>`
+                        }
+                    },
+                    {
+                        prop:'match_size',
+                        label:'匹配结果数',
+                        width:'90',
+                        formatData:(val,obj)=>{
+                            return `<span style="color: #F56C6C;">${val}</span>`
+                        }
+                    },
+                    {
+                        prop:'state',
+                        label:'操作',
+                        width:'90',
+                        clickFun:(item)=>{
+                            this.showDialog(item)
+                        },
+                        formatData:(val,obj)=>{
+                            return `<span style="color: #F56C6C;">快照详情</span>`
+                        }
+                    },
+                    /*{
+                        prop:'tools',
+                        label:'操作',
+                        width:'',
+                        btns:[
+                            {
+                                icon:'el-icon-camera',
+                                text:'查看快照',
+                                clickFun:(row,index)=>{
+                                    this.dialogTitle = row.time;
+                                    this.snapshotDialog = true
+                                    // this.detailAlarm(row.alert_id)
+                                }
+                            },
+                        ]
+                    }*/
+                ],
                 pickerOptions: {
                     shortcuts: [{
                         text: '最近一周',
@@ -357,7 +417,8 @@
             }
         },
         components:{
-            jsonView
+            jsonView,
+            vBasetable
         }
     }
 </script>
@@ -433,7 +494,7 @@
         /*margin-top: 20px;*/
         margin-right: 20px;
         background: #496180;
-        padding: 10px;
+        /*padding: 10px;*/
     }
     .execute-item{
         border-bottom:1px dashed #3e536e;

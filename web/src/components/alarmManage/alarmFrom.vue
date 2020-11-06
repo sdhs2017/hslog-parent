@@ -1,12 +1,63 @@
 <template>
     <div v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
         <el-steps :active="active" simple>
+            <el-step title="基本信息" icon="el-icon-edit-outline"></el-step>
             <el-step title="数据源" icon="el-icon-coin"></el-step>
             <el-step title="选择字段" icon="el-icon-thumb"></el-step>
-            <el-step title="完善信息" icon="el-icon-edit-outline"></el-step>
             <el-step title="完成" icon="el-icon-success"></el-step>
         </el-steps>
         <div class="con-wapper" v-show="active === 0">
+            <div class="form-con">
+                <div class="form-item">
+                    <span class="mustWrite" style="left: 23px;">*</span>
+                    <div class="item-label" style="position: absolute;width: 80px;">名称：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <el-input v-model="form.alert_name" size="mini" placeholder="名称"></el-input>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <span class="mustWrite" style="left: -8px;">*</span>
+                    <div class="item-label" style="position: absolute;width: 80px;top: 0;">执行周期：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <template>
+                            <el-radio v-model="form.alert_exec_type" label="simple">普通</el-radio>
+                            <el-radio v-model="form.alert_exec_type" label="complex">高级</el-radio>
+                        </template>
+                        <div v-if="form.alert_exec_type === 'simple'" style="display:flex;margin-top: 10px;">
+                            <el-input v-model="form.alert_time_cycle_num" size="mini" type="number" style="margin-right: 10px;" min="1" @change="timeCycleNumChange"></el-input>
+                            <el-select v-model="form.alert_time_cycle_type" placeholder="请选择" size="mini" @change="timeCycleTypeChange">
+                                <el-option label="秒" value="second"></el-option>
+                                <el-option label="分钟" value="minute"></el-option>
+                                <el-option label="小时" value="hour"></el-option>
+                            </el-select>
+                        </div>
+                        <div v-if="form.alert_exec_type === 'complex'" style="margin-top: 10px;">
+                            <el-input v-model="form.alert_cron" size="mini" placeholder="请输入cron表达式"></el-input>
+                        </div>
+                        <p  v-if="form.alert_exec_type === 'simple'" style="color: #e4956d;font-size: 12px;margin:5px 0 0 0;">(普通模式下，秒、分钟小于60，小时小于24，且都为整数。)</p>
+                    </div>
+                </div>
+                <div class="form-item" v-if="form.alert_exec_type === 'complex'">
+                    <span class="mustWrite" style="left: -8px;">*</span>
+                    <div class="item-label" style="position: absolute;width: 80px;">时间周期：</div>
+                    <div class="item-con" style="margin-left: 80px;width: 350px;">
+                        <date-layout :busName="busNameObj.busDateName" :defaultVal="defaultVal"></date-layout>
+                    </div>
+                </div>
+                <div class="form-item">
+                    <!--                    <span class="mustWrite" >*</span>-->
+                    <div class="item-label" style="position: absolute;top: 5px;width: 80px;">说明：</div>
+                    <div class="item-con" style="margin-left: 80px;">
+                        <el-input v-model="form.alert_note" size="mini" type="textarea" rows="10" placeholder="说明"></el-input>
+                    </div>
+                </div>
+            </div>
+            <div class="btn-wapper" style="display: flex;">
+<!--                <el-button @click="active = 1" type="primary">上一步</el-button>-->
+                <el-button type="primary"  @click="active = 1" :disabled="(form.alert_name === '' || (form.alert_exec_type === 'simple' ? (form.alert_time_cycle_num === '' ? true : false) : (form.alert_cron === '' ? true :false))) ? true : false">下一步</el-button>
+            </div>
+        </div>
+        <div class="con-wapper" v-show="active === 1">
             <div class="form-con">
                 <div class="form-item">
                     <span class="mustWrite" style="left: -10px;">*</span>
@@ -14,8 +65,8 @@
                 </div>
                 <div class="form-item">
 <!--                    <span class="mustWrite" >*</span>-->
-                    <div class="item-label" style="position: absolute; top: 9px;">筛选：</div>
-                    <div class="item-con" style="margin-left: 56px;">
+                    <div class="item-label" style="position: absolute; top: 9px;width: 64px;">筛选：</div>
+                    <div class="item-con" style="margin-left: 66px;">
                         <queryFilter
                             :busFilterName="this.busNameObj.busFilterName"
                             :defaultFilterArr="this.defaultFilter"
@@ -29,7 +80,7 @@
                     </div>
                 </div>
                 <div class="form-item">
-                    <div class="item-label" style="position: absolute; top: 9px;">统计：</div>
+                    <div class="item-label" style="position: absolute; top: 9px;width: 64px;">统计：</div>
                     <div class="item-con" style="margin-left: 58px;" v-loading="leftYLoading" element-loading-background="rgba(48, 62, 78, 0.5)">
                         <el-collapse v-model="configOpened">
                             <el-collapse-item class="tablist" v-for="(yItem,i) in yAxisArr" :key="i" name="1">
@@ -65,7 +116,7 @@
                     </div>
                 </div>
                 <div class="form-item" >
-                    <div class="item-label" style="position: absolute; top: 9px;">分组：</div>
+                    <div class="item-label" style="position: absolute; top: 9px;width: 64px;">分组：</div>
                     <div class="item-con" style="margin-left: 58px;" v-loading="leftXLoading" element-loading-background="rgba(48, 62, 78, 0.5)">
                         <el-collapse v-model="configOpened">
                             <el-collapse-item class="tablist" v-for="(xItem,i) in xAxisArr" :key="i" name="1">
@@ -152,7 +203,7 @@
                 <div class="form-item">
                     <div class="item-label" style="position: absolute;width: 64px;">资产组：</div>
                     <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <el-select v-model="form.alert_assetGroup_id" placeholder="" size="mini" @change="assetGroupChange">
+                        <el-select v-model="form.alert_assetGroup_id" placeholder="" size="mini" clearable @change="assetGroupChange" :class="{emptyClass:form.alert_assetGroup_id === '' ? true : false}">
                             <el-option
                                 v-for="item in assetGroupOptions"
                                 :key="item.value"
@@ -160,12 +211,13 @@
                                 :value="item.value">
                             </el-option>
                         </el-select>
+                        <span v-if="form.alert_assetGroup_id !== ''" @click="form.alert_assetGroup_id = ''" style="color: #409eff;font-size: 12px;cursor:pointer;">清空</span>
                     </div>
                 </div>
                 <div class="form-item">
                     <div class="item-label" style="position: absolute;width: 64px;">资产：</div>
                     <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <el-select v-model="form.alert_equipment_id" placeholder="" size="mini" @change="assetChange">
+                        <el-select v-model="form.alert_equipment_id" placeholder="" size="mini" clearable @change="assetChange" :class="{emptyClass:form.alert_equipment_id === '' ? true : false}">
                             <el-option
                                 v-for="item in assetOptions"
                                 :key="item.value"
@@ -173,14 +225,16 @@
                                 :value="item.value">
                             </el-option>
                         </el-select>
+                        <span v-if="form.alert_equipment_id !== ''"  @click="form.alert_equipment_id = ''" style="color: #409eff;font-size: 12px;cursor:pointer;">清空</span>
                     </div>
                 </div>
             </div>
-            <div class="btn-wapper">
+            <div  class="btn-wapper" style="display: flex;">
+                <el-button @click="active = 0" type="primary">上一步</el-button>
                 <el-button type="primary" @click="getFields()" :disabled="isCanCreate1">下一步</el-button>
             </div>
         </div>
-        <div class="con-wapper" v-show="active === 1">
+        <div class="con-wapper" v-show="active === 2">
             <div class="form-con">
                 <div class="form-item">
                     <span class="mustWrite" >*</span>
@@ -199,61 +253,11 @@
                 <jsonView :data="this.JSONData" theme="one-dark" :line-height="20" :deep="5" class="jsonView"></jsonView>
             </div>
             <div class="btn-wapper" style="display: flex;">
-                <el-button @click="active = 0" type="primary">上一步</el-button>
-                <el-button @click="active = 2" type="primary" :disabled="(alarmList.length === 0) ? true : false">下一步</el-button>
-            </div>
-        </div>
-        <div class="con-wapper" v-show="active === 2">
-            <div class="form-con">
-                <div class="form-item">
-                    <span class="mustWrite" style="left: 23px;">*</span>
-                    <div class="item-label" style="position: absolute;width: 80px;">名称：</div>
-                    <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <el-input v-model="form.alert_name" size="mini" placeholder="名称"></el-input>
-                    </div>
-                </div>
-                <div class="form-item">
-                    <span class="mustWrite" style="left: -8px;">*</span>
-                    <div class="item-label" style="position: absolute;width: 80px;top: 0;">执行周期：</div>
-                    <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <template>
-                            <el-radio v-model="form.alert_exec_type" label="simple">普通</el-radio>
-                            <el-radio v-model="form.alert_exec_type" label="complex">高级</el-radio>
-                        </template>
-                        <div v-if="form.alert_exec_type === 'simple'" style="display:flex;margin-top: 10px;">
-                            <el-input v-model="form.alert_time_cycle_num" size="mini" type="number" style="margin-right: 10px;" min="1" @change="timeCycleNumChange"></el-input>
-                            <el-select v-model="form.alert_time_cycle_type" placeholder="请选择" size="mini" @change="timeCycleTypeChange">
-                                <el-option label="秒" value="second"></el-option>
-                                <el-option label="分钟" value="minute"></el-option>
-                                <el-option label="小时" value="hour"></el-option>
-                            </el-select>
-                        </div>
-                        <div v-if="form.alert_exec_type === 'complex'" style="margin-top: 10px;">
-                            <el-input v-model="form.alert_cron" size="mini" placeholder="请输入cron表达式"></el-input>
-                        </div>
-                        <p  v-if="form.alert_exec_type === 'simple'" style="color: #e4956d;font-size: 12px;margin:5px 0 0 0;">(普通模式下，秒、分钟小于60，小时小于24，且都为整数。)</p>
-                    </div>
-                </div>
-                <div class="form-item" v-if="form.alert_exec_type === 'complex'">
-                    <span class="mustWrite" style="left: -8px;">*</span>
-                    <div class="item-label" style="position: absolute;width: 80px;">时间周期：</div>
-                    <div class="item-con" style="margin-left: 80px;width: 350px;">
-                        <date-layout :busName="busNameObj.busDateName" :defaultVal="defaultVal"></date-layout>
-                    </div>
-                </div>
-                <div class="form-item">
-<!--                    <span class="mustWrite" >*</span>-->
-                    <div class="item-label" style="position: absolute;top: 5px;width: 80px;">说明：</div>
-                    <div class="item-con" style="margin-left: 80px;">
-                        <el-input v-model="form.alert_note" size="mini" type="textarea" rows="10" placeholder="说明"></el-input>
-                    </div>
-                </div>
-            </div>
-            <div class="btn-wapper" style="display: flex;">
                 <el-button @click="active = 1" type="primary">上一步</el-button>
-                <el-button type="primary"  @click="commitFunc" :disabled="(form.alert_name === '' || (form.alert_exec_type === 'simple' ? (form.alert_time_cycle_num === '' ? true : false) : (form.alert_cron === '' ? true :false))) ? true : false">提交</el-button>
+                <el-button @click="commitFunc" type="primary" :disabled="(alarmList.length === 0) ? true : false">提交</el-button>
             </div>
         </div>
+
         <div class="con-wapper" v-show="active === 3">
             <div class="form-con">
                 <div class="success-wapper">
@@ -691,53 +695,53 @@
                     this.getFieldData()
                 }
             },
+            //数据源
             'form.suffix_index_name'(){
-                //判断是否是修改 还是 添加 页面
-                if(this.alarmId){//修改
-                    //判断是否是第一次填充数据 引起的改变
-                    if(this.changeOver){//是
-                        this.alarmList = [];
-                        this.form.alert_conditions = [];
-                    }
-                }else{
-                    this.alarmList = [];
-                    this.form.alert_conditions = [];
-                }
+                //清空告警条件
+                this.clearAlertCondition()
             },
+            //执行周期 类型
+            'form.alert_exec_type'(){
+                //清空告警条件
+                this.clearAlertCondition()
+            },
+            //执行周期-简单 -数值
+            'form.alert_time_cycle_num'(){
+                //清空告警条件
+                this.clearAlertCondition()
+            },
+            //执行周期-简单 - 类型
+            'form.alert_time_cycle_type'(){
+                //清空告警条件
+                this.clearAlertCondition()
+            },
+            //执行周期-高级 - cron
+            'form.alert_cron'(){
+                //清空告警条件
+                this.clearAlertCondition()
+            },
+            //时间周期
+            'form.alert_time'(){
+                //清空告警条件
+                this.clearAlertCondition()
+            },
+            //分组
             xAxisArr:{
                 handler() {
                     this.$nextTick( ()=> {
-                        //判断是否是修改 还是 添加 页面
-                        if(this.alarmId){//修改
-                            //判断是否是第一次填充数据 引起的改变
-                            if(this.changeOver){//是
-                                this.alarmList = [];
-                                this.form.alert_conditions = [];
-                            }
-                        }else{
-                            this.alarmList = [];
-                            this.form.alert_conditions = [];
-                        }
+                        //清空告警条件
+                        this.clearAlertCondition()
                     })
                 },
                 immediate: false,
                 deep: true
             },
+            //统计
             yAxisArr:{
                 handler() {
                     this.$nextTick( ()=> {
-                        //判断是否是修改 还是 添加 页面
-                        if(this.alarmId){//修改
-                            //判断是否是第一次填充数据 引起的改变
-                            if(this.changeOver){//是
-                                this.alarmList = [];
-                                this.form.alert_conditions = [];
-                            }
-                        }else{
-                            this.alarmList = [];
-                            this.form.alert_conditions = [];
-                        }
-
+                        //清空告警条件
+                        this.clearAlertCondition()
                     })
                 },
                 immediate: false,
@@ -749,21 +753,22 @@
                     if(this.alarmId === ''){
                         //清除第1步后面的参数
                         this.alarmList = [];
-                        this.form.alert_name = '';
+                       /* this.form.alert_name = '';
                         this.form.alert_cron = '';
                         this.form.alert_note = '';
                         this.form.alert_time = '15-min';
-                        this.form.alert_time_type='last';
+                        this.form.alert_time_type='last';*/
                     }
 
                 }else if(this.active === 1){
                     if(this.alarmId === ''){
                         //清除第2步后面的参数
-                        this.form.alert_name = '';
+                        this.alarmList = [];
+                        /*this.form.alert_name = '';
                         this.form.alert_cron = '';
                         this.form.alert_note = '';
                         this.form.alert_time = '15-min';
-                        this.form.alert_time_type='last';
+                        this.form.alert_time_type='last';*/
                     }
 
                 }
@@ -804,6 +809,20 @@
             }
         },
         methods:{
+            /*清空告警条件*/
+            clearAlertCondition(){
+                //判断是否是修改 还是 添加 页面
+                if(this.alarmId){//修改
+                    //判断是否是第一次填充数据 引起的改变
+                    if(this.changeOver){//是
+                        this.alarmList = [];
+                        this.form.alert_conditions = [];
+                    }
+                }else{
+                    this.alarmList = [];
+                    this.form.alert_conditions = [];
+                }
+            },
             /*执行时间数据改变*/
             timeCycleNumChange(val){
                 this.form.alert_time_cycle_num = Math.floor(val)
@@ -1120,7 +1139,6 @@
                     }else{
                         obj.ranges = [];
                     }
-
                     bucketsArr.push(obj)
                 }
 
@@ -1130,6 +1148,7 @@
                 if(this.form.alert_search_filters === ''){
                     this.form.alert_search_filters = []
                 }
+                //时间
                 this.$nextTick(()=>{
                     this.loading = true;
                     this.$axios.post(this.$baseUrl+'/alert/getAlertResult.do',this.$qs.stringify(this.form))
@@ -1137,7 +1156,7 @@
                             this.loading = false;
                             let obj = res.data
                             if (obj.success === 'true'){
-                                this.active = 1;
+                                this.active = 2;
                                 this.JSONData = obj.data
                             }else{
                                 layer.msg(obj.message,{icon:5})
@@ -1553,5 +1572,8 @@
     }
     .success-wapper .text-wapper{
         font-size: 50px;
+    }
+    .emptyClass /deep/ .el-input--mini .el-input__inner{
+        color: #7b8a9a;
     }
 </style>

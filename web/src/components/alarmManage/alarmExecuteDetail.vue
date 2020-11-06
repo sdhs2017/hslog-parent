@@ -97,8 +97,20 @@
                         }
                     },
                     {
-                        prop:'result',
-                        label:'结果',
+                        prop:'alert_conditions',
+                        label:'条件',
+                        width:'',
+                        formatData:(val,obj)=>{
+                            if (obj.alert_fire){
+                                return `<span style="color: #F56C6C;">${this.setAlertCondition(val)}</span>`
+                            } else{
+                                return this.setAlertCondition(val);
+                            }
+                        }
+                    },
+                    {
+                        prop:'match_size',
+                        label:'匹配结果数',
                         width:'',
                         formatData:(val,obj)=>{
                             if (obj.alert_fire){

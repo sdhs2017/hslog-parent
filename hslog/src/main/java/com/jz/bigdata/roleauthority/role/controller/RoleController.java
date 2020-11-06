@@ -8,6 +8,7 @@ import com.jz.bigdata.roleauthority.role.entity.Role;
 import com.jz.bigdata.roleauthority.role.service.IRoleService;
 import com.jz.bigdata.roleauthority.system.entity.System;
 import com.jz.bigdata.roleauthority.system.service.ISystemService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -25,10 +26,10 @@ import java.util.List;
  * @date 2018年5月10日 下午5:54:09
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/role")
 public class RoleController {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource(name="RoleService")
 	private IRoleService roleService;
 	
@@ -40,7 +41,7 @@ public class RoleController {
 		try{
 			return roleService.selectAllRole();
 		}catch (Exception e){
-			logger.error("获取所有角色"+e.getMessage());
+			log.error("获取所有角色"+e.getMessage());
 			return new ArrayList<>();
 		}
 
@@ -57,7 +58,7 @@ public class RoleController {
 				return roleService.update(role)? Constant.successMessage():Constant.failureMessage();
 			}
 		}catch (Exception e){
-			logger.error("增改角色信息失败"+e.getMessage());
+			log.error("增改角色信息失败"+e.getMessage());
 			return Constant.failureMessage("增改角色信息失败！");
 		}
 
@@ -75,7 +76,7 @@ public class RoleController {
 				return  roleService.delete(id)?Constant.successMessage():Constant.failureMessage();
 			}
 		}catch (Exception e){
-			logger.error("删除角色信息"+e.getMessage());
+			log.error("删除角色信息"+e.getMessage());
 			return Constant.failureMessage("删除角色信息失败！");
 		}
 
@@ -92,7 +93,7 @@ public class RoleController {
 				return  roleService.getEntity(id);
 			}
 		}catch (Exception e){
-			logger.error("获取系统信息"+e.getMessage());
+			log.error("获取系统信息"+e.getMessage());
 			return new Role();
 		}
 

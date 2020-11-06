@@ -235,7 +235,7 @@ public class LogServiceImpl implements IlogService {
             List<Map<String, Object>> loglist = this.groupBy(index, types,"event.action", 100,starttime, endtime,safemap);
 
 			if(loglist!=null&&loglist.size()>0&&(loglist.get(0).size()>0)){
-				float per = Float.valueOf(loglist.get(0).get(safeStrategy.getEvent_type()).toString())/safeStrategy.getNumber();
+				float per = Float.valueOf(loglist.get(0).get(safeStrategy.getEvent_type())==null?"0":loglist.get(0).get(safeStrategy.getEvent_type()).toString())/safeStrategy.getNumber();
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put("event_type", safeStrategy.getEvent_type());
 				map.put("per",df.format(per));

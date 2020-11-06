@@ -21,6 +21,9 @@ public class Constant {
 	public static String PACKET_DATE_FIELD = "logdate";
 	//旧流量index名称
 	public static String PACKET_INDEX = "hslog_packet*";
+	//alert index名称
+	public static final String ALERT_SEARCH_INDEX = "alert-default*";
+	public static final String ALERT_WRITE_INDEX = "alert-default";
 	/**
 	 * 	session信息---用户ID
 	 */
@@ -92,6 +95,14 @@ public class Constant {
 	public static final String PHYSICAL_ASSET = "physical";//物理资产
 	public static final String LOGICAL_ASSET = "logical";//逻辑资产
 	public static final String VIRTUAL_ASSET = "virtual";//虚拟资产
+
+	//定时任务变量
+	public static final String QUARTZ_TRIGGER_GROUP="trigger_group";//触发器组名称
+	public static final String QUARTZ_JOB_GROUP="job_group";//任务组名称
+	//计划任务执行状态
+	public static final String ALERT_STATE_RUNNING = "running";//执行中
+	public static final String ALERT_STATE_STOP = "stop";//已停止
+
 
 	/**
 	 * @param tf 返回的success是true还是false

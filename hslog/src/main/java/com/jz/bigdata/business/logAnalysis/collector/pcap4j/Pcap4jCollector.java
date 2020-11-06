@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.PacketListener;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapHandle;
@@ -18,7 +19,7 @@ import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
 
-
+@Slf4j
 public class Pcap4jCollector implements Callable<String>{
 	
 	/**
@@ -48,19 +49,12 @@ public class Pcap4jCollector implements Callable<String>{
         try {
 			handle.loop(-1, listener);
 		} catch (PcapNativeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			//System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
+        	log.error("handle.loop--PcapNativeException--报错信息:"+e.getMessage());
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			//System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
-			e.printStackTrace();
+			log.error("handle.loop--InterruptedException--报错信息:"+e.getMessage());
 		} catch (NotOpenException e) {
-			// TODO Auto-generated catch block
-			//System.out.println("---------------jiyourui----------handle.loop--报错信息:------------"+e.getMessage());
-			e.printStackTrace();
+			log.error("handle.loop--NotOpenException--报错信息:"+e.getMessage());
 		}
-	
 		return null;
 	}
 	
@@ -72,8 +66,7 @@ public class Pcap4jCollector implements Callable<String>{
 		try {
 			handle.breakLoop();
 		} catch (NotOpenException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("closePcap4j--NotOpenException--报错信息:"+e.getMessage());
 		}
 		handle.close();
 	}

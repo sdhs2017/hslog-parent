@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +26,13 @@ import com.jz.bigdata.util.DescribeLog;
 /**
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/asset")
 public class AssetController {
 
 	@Resource(name = "AssetService")
 	private IAssetService assetService;
-
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@ResponseBody
 //	@RequestMapping("/insert")
@@ -106,7 +106,7 @@ public class AssetController {
 		try {
 			list = this.assetService.selectAsset(asset);
 		} catch (Exception e) {
-			logger.error("查询单个资产：失败");
+			log.error("查询单个资产：失败");
 		}
 		return list;
 	}
@@ -140,9 +140,9 @@ public class AssetController {
 		String result = "";
 		try {
 			result = assetService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session);
-			logger.info("查询资产：成功");
+			log.info("查询资产：成功");
 		} catch (Exception e) {
-			logger.error("查询资产：失败");
+			log.error("查询资产：失败");
 			e.printStackTrace();
 		}
 		return result;
@@ -182,7 +182,7 @@ public class AssetController {
 		try {
 			list = this.assetService.selectAsset(asset);
 		} catch (Exception e) {
-			logger.error("查询资产：失败！");
+			log.error("查询资产：失败！");
 			e.printStackTrace();
 		}
 		Map<String,Object> map =new HashMap<>();

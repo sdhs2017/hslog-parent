@@ -29,7 +29,6 @@ public class KafkaConfig {
     public KafkaConfig(){
         System.out.println("---------kafka消费者配置加载-------");
     }
-    private static Logger logger = Logger.getLogger(KafkaConfig.class);
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
     @Bean

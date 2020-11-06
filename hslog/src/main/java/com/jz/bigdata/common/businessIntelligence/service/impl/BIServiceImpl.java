@@ -15,6 +15,7 @@ import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.service.ISearchService;
 import com.hs.elsearch.util.ElasticConstant;
 import com.hs.elsearch.util.MappingField;
+import com.hs.elsearch.util.ValueFormat;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.dao.IBusinessIntelligenceDao;
 import com.jz.bigdata.common.businessIntelligence.entity.*;
@@ -60,17 +61,17 @@ public class BIServiceImpl implements IBIService {
     protected IBusinessIntelligenceDao businessIntelligenceDao;
     @Override
     public List<MappingField> getFieldByXAxisAggregation(String templateName, String indexName, String agg) throws Exception {
-        return getMappingFieldByAggType(templateName,indexName,agg);
+        return getMappingFieldByAggType(templateName,agg);
     }
 
     @Override
     public List<MappingField> getFieldByYAxisAggregation(String templateName, String indexName, String agg) throws Exception {
-        return getMappingFieldByAggType(templateName,indexName,agg);
+        return getMappingFieldByAggType(templateName,agg);
     }
 
     @Override
     public List<MappingField> getFilterField(String templateName, String indexName, String agg) throws Exception {
-        return getMappingFieldByAggType(templateName,indexName,agg);
+        return getMappingFieldByAggType(templateName,agg);
     }
 
 
@@ -262,11 +263,10 @@ public class BIServiceImpl implements IBIService {
 
     /**
      * 根据聚合方式的不同，筛选出符合要求的字段信息
-     * @param indexName 索引名称
      * @param aggType 聚合类型
      * @return
      */
-    private List<MappingField> getMappingFieldByAggType(String templateName, String indexName,String aggType) throws Exception {
+    public List<MappingField> getMappingFieldByAggType(String templateName, String aggType) throws Exception {
         //通过模糊的indexName 获取index列表
 
         //获取indices
@@ -282,37 +282,40 @@ public class BIServiceImpl implements IBIService {
 
             case "Average":case "Sum"://获取所有number类型字段信息
                 //result = formatFields(list,numberTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"Number");
+                result = getFieldByIndexAndAgg(templateName,"Number");
                 break;
             case "Max":case "Min"://获取所有number和date类型字段信息
                 //result = formatFields(list,numberTypes+dateTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"NumberOrDate");
+                result = getFieldByIndexAndAgg(templateName,"NumberOrDate");
                 break;
             case "Terms"://type为keyword，或者fielddata=true
                 //result = formatFields(list,keywordTypes,true);
-                result = getFieldByIndexAndAgg(indexName,templateName,"Terms");
+                result = getFieldByIndexAndAgg(templateName,"Terms");
                 break;
             case "Date Histogram"://获取所有date类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"Date");
+                result = getFieldByIndexAndAgg(templateName,"Date");
                 break;
             case "Range"://获取所有number类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"Number");
+                result = getFieldByIndexAndAgg(templateName,"Number");
                 break;
             case "Date Range"://获取所有date类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"Date");
+                result = getFieldByIndexAndAgg(templateName,"Date");
                 break;
             case "IPv4 Range"://获取所有ip类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(indexName,templateName,"Ip");
+                result = getFieldByIndexAndAgg(templateName,"Ip");
                 break;
             case "AllExceptGeo"://filter字段信息
-                result = getFieldByIndexAndAgg(indexName,templateName,"AllExceptGeo");
+                result = getFieldByIndexAndAgg(templateName,"AllExceptGeo");
                 break;
             case "All"://filter字段信息
-                result = getFieldByIndexAndAgg(indexName,templateName,"All");
+                result = getFieldByIndexAndAgg(templateName,"All");
+                break;
+            case "alertAgg"://alert聚合查询的结果字段，服务于所有template  因此templateNmae为空字符串
+                result = getFieldByIndexAndAgg("","alertAgg");
                 break;
             default:
                 break;
@@ -322,12 +325,11 @@ public class BIServiceImpl implements IBIService {
 
     /**
      * 通过选择的索引或模板 以及聚合方式，返回对应的字段信息
-     * @param indexName 索引名称
      * @param templateName 模板名称
      * @param agg 聚合参数
      * @return
      */
-    private List<MappingField> getFieldByIndexAndAgg(String indexName,String templateName,String agg){
+    private List<MappingField> getFieldByIndexAndAgg(String templateName,String agg){
         List<MappingField> list = SearchCache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
 
         //如果没有获取到mapping信息，尝试更新cache
@@ -407,7 +409,7 @@ public class BIServiceImpl implements IBIService {
         //获取聚合结果
         Aggregations aggregations = searchDao.getAggregation(conditions);
 
-        //根据饼图要求处理数据
+        //处理数据
         if(conditions.getBucketList().size()>0){
             //获取第一个聚合字段信息，用以组装别名，获取对应数据
             //metric 文字块 bucket最多选择一个
@@ -435,7 +437,7 @@ public class BIServiceImpl implements IBIService {
                 dataPoint.put("name",!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():metric.getAggType());
                 NumericMetricsAggregation.SingleValue value = aggregations.get(key);
                 //写入值
-                dataPoint.put("value", (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
+                dataPoint.put("value", ValueFormat.formatterAppendUnit((Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value(),conditions.getUnit()));
                 tempResult.add(dataPoint);
             }
             result.addAll(tempResult);
@@ -723,7 +725,7 @@ public class BIServiceImpl implements IBIService {
             dataPoint.put("name",key+"-"+(StringUtils.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName()));
             //获取metric对应的值
             NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
-            dataPoint.put("value",Double.isInfinite(value.value())||Double.isNaN(value.value())?0:value.value());
+            dataPoint.put("value",ValueFormat.formatterAppendUnit(Double.isInfinite(value.value())||Double.isNaN(value.value())?0:value.value(),conditions.getUnit()));
             result.add(dataPoint);
         }
     }

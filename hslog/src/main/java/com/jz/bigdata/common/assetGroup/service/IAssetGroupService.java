@@ -51,17 +51,26 @@ public interface IAssetGroupService {
 	boolean updateById(AssetGroup assetGroup, HttpSession session);
 
 	/**
-	 * 资产列表
+	 * 资产列表,数据返回格式：穿梭框
 	 * @return
 	 */
 	List<Map<String,String>> getAssetList();
-
+	/**
+	 * 资产列表,数据返回格式：combobox,
+	 * 参数：资产组id
+	 * @return
+	 */
+	List<Map<String,String>> getAssetList4Combobox(String asset_group_id);
 	/**
 	 * 资产组列表
 	 * @return
 	 */
 	List<Map<String,String>> getAssetGroupList();
-
+	/**
+	 * 资产组列表，下拉框添加空选项
+	 * @return
+	 */
+	List<Map<String,String>> getAssetGroupList4Combobox();
 	/**
 	 * 通过资产组id获取对应的dashboard信息
 	 * @param asset_group_id

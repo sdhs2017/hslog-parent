@@ -6,6 +6,7 @@ import javax.servlet.http.HttpSession;
 
 import com.jz.bigdata.roleauthority.menu.entity.Button;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -25,10 +26,10 @@ import java.util.List;
  * @date 2018年5月10日 下午5:54:09
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/menu")
 public class MenuController {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource(name="MenuService")
 	private IMenuService menuService;
 	
@@ -47,7 +48,7 @@ public class MenuController {
 			String systemID = request.getParameter("systemID");
 			return menuService.selectMenu(userID,systemID);
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("用户页面菜单加载失败！");
 		}
 
@@ -59,7 +60,7 @@ public class MenuController {
 		try{
 			return menuService.selectSystemMenu();
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("获取系统及菜单tree失败！");
 		}
 
@@ -72,7 +73,7 @@ public class MenuController {
 			String systemID = request.getParameter("systemID");
 			return menuService.selectMenuBySysID(systemID);
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return new ArrayList<>();
 		}
 
@@ -86,7 +87,7 @@ public class MenuController {
 			String userID=(String) session.getAttribute(Constant.SESSION_USERID);
 			return menuService.selectSystem(userID);
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("获取用户所属系统失败！");
 		}
 
@@ -103,7 +104,7 @@ public class MenuController {
 				return menuService.update(menu,btn)?Constant.successMessage():Constant.failureMessage("父级菜单Id不正确");
 			}
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("增改菜单失败！");
 		}
 
@@ -120,7 +121,7 @@ public class MenuController {
 				return menuService.delete(id)?Constant.successMessage():Constant.failureMessage();
 			}
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("删除菜单失败！");
 		}
 
@@ -137,7 +138,7 @@ public class MenuController {
 				return menuService.getEntity(id);
 			}
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return new Menu();
 		}
 
@@ -151,7 +152,7 @@ public class MenuController {
 			List<String> idList = Arrays.asList(ids.split(","));
 			return menuService.selectSystemMenuByIDs(idList);
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("获取菜单按钮信息失败！");
 		}
 
@@ -173,7 +174,7 @@ public class MenuController {
 			}
 			return menuService.upsertMenuButton(roleID,menuIds)?Constant.successMessage():Constant.failureMessage();
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return Constant.failureMessage("配置角色的菜单及按钮信息失败！");
 		}
 
@@ -187,7 +188,7 @@ public class MenuController {
 			String userID=(String) session.getAttribute(Constant.SESSION_USERID);
 			return menuService.selectButtonListByUser(userID);
 		}catch(Exception e){
-			logger.error(""+e.getMessage());
+			log.error(""+e.getMessage());
 			return new ArrayList<>();
 		}
 

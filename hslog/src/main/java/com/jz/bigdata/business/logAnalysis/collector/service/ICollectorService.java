@@ -120,5 +120,22 @@ public interface ICollectorService {
 	 * @return
 	 */
 	public boolean bulkProcessorInit();
-
+	/**
+	 * 定时任务将获取的http 根域名  插入到资产表中
+	 */
+	public void insertDomain();
+	/**
+	 * 资产心跳机制
+	 */
+	public void assetsHeartBeat();
+	/**
+	 * 定时任务将获取的http url 插入到serviceInfo表中
+	 * @return
+	 */
+	public void insertUrl();
+	/**
+	 * cache初始化
+	 * 资产/全局配置项
+	 */
+	public void cacheInit();
 }

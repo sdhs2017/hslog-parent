@@ -11,6 +11,7 @@ import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
@@ -37,10 +38,10 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
  * @date 2017年8月16日 下午2:39:47
  * @description
  */
+@Slf4j
 @Service(value = "EquipmentService")
 public class EquipmentServiceImpl implements IEquipmentService {
 
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource
 	private IEquipmentDao equipmentDao;
 
@@ -231,11 +232,11 @@ public class EquipmentServiceImpl implements IEquipmentService {
 						}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
 							return Constant.failureMessage("资产“IP+日志类型”重复，请重新编辑该资产："+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
 						}else{
-							logger.error(e.getMessage());
+							log.error(e.getMessage());
 							return Constant.failureMessage("资产导入batchInsert MySQLIntegrityConstraintViolationException的其他情况: "+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
 						}
 					}else{
-						logger.error(e.getMessage());
+						log.error(e.getMessage());
 						return Constant.failureMessage("资产导入batchInsert 其他异常情况: "+equipment.getName()+" "+equipment.getIp()+" "+equipment.getLogType());
 					}
 				}catch (Exception e){
@@ -399,7 +400,15 @@ public class EquipmentServiceImpl implements IEquipmentService {
  			 */
 			esMap.put("fields.equipmentid", equipment.getId());
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
-			equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
+			if(equipment.getLogType().equals("file")){//文件日志
+				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_file_index())+"");
+			}else if(equipment.getLogType().equals("winlog")||equipment.getLogType().equals("syslog")){//日志
+				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
+			}else{
+				//TODO metric packet等
+				equipment.setLog_count("0");
+			}
+
 		}
 		// 数据添加到map
 		map.put("equipment", listEquipment);
@@ -436,6 +445,19 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		//key ip和日志类型为组合主键，用于日志资产匹配
 		for (int i = 0; i < list.size(); i++) {
 			map.put(list.get(i).getIp() + list.get(i).getLogType(), list.get(i));
+		}
+		return map;
+	}
+
+	@Override
+	public Map<String, Equipment> selectAllEquipment_key_id() {
+		Map<String, Equipment> map = new HashMap<String, Equipment>();
+		List<Equipment> list = equipmentDao.selectAllHostName();
+		Equipment e;
+		String logType = "syslog";
+		//key ip和日志类型为组合主键，用于日志资产匹配
+		for (int i = 0; i < list.size(); i++) {
+			map.put(list.get(i).getId(), list.get(i));
 		}
 		return map;
 	}

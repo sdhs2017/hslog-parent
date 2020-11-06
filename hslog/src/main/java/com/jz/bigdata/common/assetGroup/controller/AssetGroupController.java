@@ -16,6 +16,7 @@ import com.jz.bigdata.common.assetGroup.entity.AssetGroup;
 import com.jz.bigdata.common.assetGroup.service.IAssetGroupService;
 import com.mysql.jdbc.StringUtils;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,14 +31,13 @@ import com.jz.bigdata.util.DescribeLog;
 /**
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/assetGroup")
 public class AssetGroupController {
 
 	@Resource(name = "AssetGroupService")
 	private IAssetGroupService assetGroupService;
-
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@ResponseBody
 	@RequestMapping(value="/insert.do", produces = "application/json; charset=utf-8")
@@ -147,7 +147,7 @@ public class AssetGroupController {
 	}
 	/**
 	 * @param request
-	 * @return 获取资产列表
+	 * @return 获取资产列表,穿梭框
 	 */
 	@ResponseBody
 	@RequestMapping(value="/getAssetList.do", produces = "application/json; charset=utf-8")
@@ -155,6 +155,37 @@ public class AssetGroupController {
 	public String getAssetList(HttpServletRequest request) {
 		try{
 			List<Map<String,String>> result = this.assetGroupService.getAssetList();
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			return Constant.failureMessage("资产组添加失败！");
+		}
+	}
+	/**
+	 * @param request
+	 * @return 获取资产列表,combobox
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getAssetList4Combobox.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产列表")
+	public String getAssetList4Combobox(HttpServletRequest request) {
+		try{
+			String asset_group_id = request.getParameter("asset_group_id");
+			List<Map<String,String>> result = this.assetGroupService.getAssetList4Combobox(asset_group_id);
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			return Constant.failureMessage("资产组添加失败！");
+		}
+	}
+	/**
+	 * @param request
+	 * @return 获取资产列表，服务于alert的combobox，添加空选项
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getAssetGroupList4Combobox.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产组列表")
+	public String getAssetGroupList4Combobox(HttpServletRequest request) {
+		try{
+			List<Map<String,String>> result = this.assetGroupService.getAssetGroupList4Combobox();
 			return Constant.successData(JSONArray.toJSONString(result));
 		}catch(Exception e){
 			return Constant.failureMessage("资产组添加失败！");
@@ -203,20 +234,20 @@ public class AssetGroupController {
 		if(null!=throwable){
 			String throwableInfo = throwable.toString();
 			if(throwableInfo.indexOf("UNIQUE_ASSET_GROUP_NAME")>=0){
-				logger.error("资产组名称重复："+e.getMessage());
+				log.error("资产组名称重复："+e.getMessage());
 				return Constant.failureMessage("资产组名称重复！");
 			}else{
-				logger.error("资产组添加失败"+e.getMessage());
+				log.error("资产组添加失败"+e.getMessage());
 				return Constant.failureMessage("资产组信息添加失败！");
 			}
 		}else if(null!=throwableList){
 			//返回的异常可能是一个数组
 			String throwables = Arrays.toString(throwableList);
 			if(throwables.indexOf("UNIQUE_ASSET_GROUP_NAME")>=0){
-				logger.error("资产组名称重复："+e.getMessage());
+				log.error("资产组名称重复："+e.getMessage());
 				return Constant.failureMessage("资产组名称重复！");
 			}else{
-				logger.error("资产组添加失败"+e.getMessage());
+				log.error("资产组添加失败"+e.getMessage());
 				return Constant.failureMessage("资产组信息添加失败！");
 			}
 		}else{

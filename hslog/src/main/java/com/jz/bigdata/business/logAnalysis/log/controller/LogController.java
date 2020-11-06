@@ -18,19 +18,18 @@ import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.QueryCondition;
 import com.hs.elsearch.entity.VisualParam;
-import com.jz.bigdata.common.asset.cache.AssetCache;
+import com.jz.bigdata.common.alert.entity.AlertSnapshot;
+import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
-import com.jz.bigdata.business.logAnalysis.log.init.DataVisualInit;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfNet;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfSyslog;
 import com.jz.bigdata.util.*;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -49,12 +48,10 @@ import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 
 
 import net.sf.json.JSONArray;
-
+@Slf4j
 @Controller
 @RequestMapping("/log")
 public class LogController extends BaseController{
-
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Resource(name="logService")
 	private IlogService logService;
@@ -239,8 +236,7 @@ public class LogController extends BaseController{
 					return JSONArray.fromObject(map).toString();
 				}
 			} catch (Exception e){
-				e.printStackTrace();
-				logger.error("创建index生命周期报错："+e.getMessage());
+				log.error("创建index生命周期报错："+e.getMessage());
 
 			}
 
@@ -270,7 +266,7 @@ public class LogController extends BaseController{
 				AssetCache.INSTANCE.init(equipmentService,assetService);
 			}catch (Exception e){
 				e.printStackTrace();
-				logger.error("初始化工作五：更新资产缓存信息失败"+e.getMessage());
+				log.error("初始化工作五：更新资产缓存信息失败"+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "资产信息获取失败！");
 				return JSONArray.fromObject(map).toString();
@@ -280,8 +276,7 @@ public class LogController extends BaseController{
 			return JSONArray.fromObject(map).toString();
 
 		} catch (Exception e) {
-			e.printStackTrace();
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 			map.put("state", false);
 			map.put("msg", "数据结构初始化失败！");
 			return JSONArray.fromObject(map).toString();
@@ -333,6 +328,9 @@ public class LogController extends BaseController{
 			logService.initOfElasticsearch("packetbeat-","packetbeat-*",null,settingmap,beatTemplate.getPacketBeatTemplate());
 			logService.initOfElasticsearch("filebeat-","filebeat-*",null,settingmap,beatTemplate.getFileBeatTemplate());
 			logService.initOfElasticsearch("metricbeat-","metricbeat-*",null,settingmap,beatTemplate.getMetricBeatTemplate());
+			//初始化alert-template
+			logService.initOfElasticsearch("alert-","alert-*",null,settingmap4Hsdata,new AlertSnapshot().toMapping());
+
 			/**
 			 * 初始化工作二：在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
 			 */
@@ -349,7 +347,7 @@ public class LogController extends BaseController{
 						return JSONArray.fromObject(map).toString();
 					}
 				}else {
-					logger.info("初始化：备份仓库已经创建完成！！！");
+					log.info("初始化：备份仓库已经创建完成！！！");
 				}
 			} catch (Exception e) {
 				Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
@@ -358,7 +356,7 @@ public class LogController extends BaseController{
 					map.put("msg", "备份仓库初始化失败！");
 					return JSONArray.fromObject(map).toString();
 				}else {
-					logger.info("初始化：备份仓库创建完成！！！");
+					log.info("初始化：备份仓库创建完成！！！");
 				}
 
 			}
@@ -373,11 +371,10 @@ public class LogController extends BaseController{
 					map.put("msg", "创建index生命周期失败！");
 					return JSONArray.fromObject(map).toString();
 				}else{
-					logger.info("初始化：创建索引生命周期管理成功！！！");
+					log.info("初始化：创建索引生命周期管理成功！！！");
 				}
 			} catch (Exception e){
-				e.printStackTrace();
-				logger.error("创建index生命周期报错："+e.getMessage());
+				log.error("创建index生命周期报错："+e.getMessage());
 
 			}
 
@@ -393,12 +390,11 @@ public class LogController extends BaseController{
 						map.put("msg", "开启index生命周期管理失败！");
 						return JSONArray.fromObject(map).toString();
 					}else{
-						logger.info("初始化：开启索引生命周期管理成功！！！");
+						log.info("初始化：开启索引生命周期管理成功！！！");
 					}
 				}
 			} catch (Exception e){
-				e.printStackTrace();
-				logger.error("开启index生命周期管理失败！："+e.getMessage());
+				log.error("开启index生命周期管理失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "开启index生命周期管理失败！");
 				return JSONArray.fromObject(map).toString();
@@ -409,8 +405,7 @@ public class LogController extends BaseController{
 			try{
 				AssetCache.INSTANCE.init(equipmentService,assetService);
 			}catch (Exception e){
-				e.printStackTrace();
-				logger.error("资产信息获取失败！："+e.getMessage());
+				log.error("资产信息获取失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "资产信息获取失败！");
 				return JSONArray.fromObject(map).toString();
@@ -419,10 +414,10 @@ public class LogController extends BaseController{
 			 * 初始化工作六：内置基本报表（数据可视化模块）
 			 */
 			try{
-				DataVisualInit.init(logService);
+				//DataVisualInit.init(logService);
 			}catch (Exception e){
 				e.printStackTrace();
-				logger.error("数据可视化内置报表失败！："+e.getMessage());
+				log.error("数据可视化内置报表失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "数据可视化内置报表失败！");
 				return JSONArray.fromObject(map).toString();
@@ -440,28 +435,28 @@ public class LogController extends BaseController{
 				boolean result = logService.updateClusterSetting(clusterPersistentSetting,null);
 				//配置失败时
 				if(!result){
-					logger.info("cluster-setting配置返回失败！");
+					log.info("cluster-setting配置返回失败！");
 					map.put("state", false);
 					map.put("msg", "集群全局配置失败！");
 					return JSONArray.fromObject(map).toString();
 				}else{
-					logger.info("集群全局配置成功！");
+					log.info("集群全局配置成功！");
 				}
 			}catch (Exception e){
 				e.printStackTrace();
-				logger.error("集群全局配置失败！："+e.getMessage());
+				log.error("集群全局配置失败！："+e.getMessage());
 				map.put("state", false);
 				map.put("msg", "集群全局配置失败！");
 				return JSONArray.fromObject(map).toString();
 			}
 			map.put("state", true);
 			map.put("msg", "初始化成功！");
-			logger.info("初始化工作完成！！！");
+			log.info("初始化工作完成！！！");
 			return JSONArray.fromObject(map).toString();
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			logger.error("初始化工作失败："+e.getMessage());
+			log.error("初始化工作失败："+e.getMessage());
 			map.put("state", false);
 			map.put("msg", "数据结构初始化失败！");
 			return JSONArray.fromObject(map).toString();
@@ -707,7 +702,7 @@ public class LogController extends BaseController{
 			try {
 				loglist = logService.groupBy(index, types,"event.action", 100,starttime, endtime,safemap);
 			} catch (Exception e) {
-				logger.error("统计某时间段内的事件数量"+e.getMessage());
+				log.error("统计某时间段内的事件数量"+e.getMessage());
 				return Constant.failureMessage();
 			}
 
@@ -854,7 +849,7 @@ public class LogController extends BaseController{
 			String replace=result.replace("\\\\005", "<br/>");
 			/*System.out.println("---------------result----------------");
 			System.err.println(result);*/
-			logger.info("查询资产的日志内容");
+			log.info("查询资产的日志内容");
 			return replace;
 		}else {
 			Map<String, Object> allmap = new HashMap<>();
@@ -913,7 +908,7 @@ public class LogController extends BaseController{
 			}
 			map.put("state", true);
 		} catch (Exception e) {
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 			e.printStackTrace();
 			map.put("state", false);
 		}
@@ -986,7 +981,7 @@ public class LogController extends BaseController{
 			try {
 				list = logService.getLogListByBlend(map, starttime, endtime, page, size, types, configProperty.getEs_index());
 			} catch (Exception e) {
-				logger.error("日志精确查询：失败！");
+				log.error("日志精确查询：失败！");
 				e.printStackTrace();
 				allmap.put("count",0);
 				allmap.put("list",null);
@@ -996,12 +991,90 @@ public class LogController extends BaseController{
 			try {
 				list = logService.getLogListByBlend(map, starttime, endtime, page, size, default_types, configProperty.getEs_index());
 			} catch (Exception e) {
-				logger.error("日志精确查询：失败！");
+				log.error("日志精确查询：失败！");
 				e.printStackTrace();
 				allmap.put("count",0);
 				allmap.put("list",null);
 				return JSONArray.fromObject(allmap).toString();
 			}
+		}
+
+		allmap = list.get(0);
+		list.remove(0);
+		allmap.put("list", list);
+		String result = JSONArray.fromObject(allmap).toString();
+		String replace=result.replace("\\\\005", "<br/>");
+
+		return replace;
+	}
+	/**
+	 * 组合查询 文件日志
+	 * @param request
+	 * @author yiyang
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getFilebeatLogListByBlend",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="组合查询文件日志数据")
+	public String getFilebeatLogListByBlend(HttpServletRequest request,HttpSession session) {
+		// receive parameter
+		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, String> map = new ConcurrentHashMap<String, String>();
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		Object pageo = map.get("page");
+		Object sizeo = map.get("size");
+		map.remove("page");
+		map.remove("size");
+		map.remove("exportSize");
+		String page = pageo.toString();
+		String size = sizeo.toString();
+
+		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
+		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+			map.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
+		}
+		// 从参数中将时间条件提出
+		String starttime = "";
+		if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
+			starttime = map.get("starttime");
+			map.remove("starttime");
+
+		}
+		String endtime = "";
+		if (map.get("endtime")!=null&&!map.get("endtime").equals("")){
+			endtime = map.get("endtime");
+			map.remove("endtime");
+		}
+		//参数为  是否完整范式化，false是未完整范式化，对应字段的值为false
+		if(map.get("normalization")!=null&&"false".equals(map.get("normalization"))){
+			// 只有选择范式化失败时，才能查询到范式化失败的数据，否则查询范式化正常的数据
+			map.put("fields.failure","true");
+		}else if(map.get("normalization")!=null&&"true".equals(map.get("normalization"))){
+			map.put("fields.failure","false");
+		}else{
+			//查全部，不需要添加条件
+		}
+		//删除原参数
+		map.remove("normalization");
+
+		List<Map<String, Object>> list = null;
+		Map<String, Object> allmap = new HashMap<>();
+		try {
+			list = logService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_file_index());
+		} catch (Exception e) {
+			log.error("日志精确查询：失败！");
+			e.printStackTrace();
+			allmap.put("count",0);
+			allmap.put("list",null);
+			return JSONArray.fromObject(allmap).toString();
 		}
 
 		allmap = list.get(0);
@@ -1275,7 +1348,7 @@ public class LogController extends BaseController{
 			try {
 				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			} catch (Exception e) {
-				logger.error("DNS日志查询：失败！");
+				log.error("DNS日志查询：失败！");
 				e.printStackTrace();
 				allmap.put("count",0);
 				allmap.put("list",null);
@@ -1286,7 +1359,7 @@ public class LogController extends BaseController{
 			try {
 				list = logService.getListByMap(map,  starttime, endtime, page, size, types, configProperty.getEs_index());
 			} catch (Exception e) {
-				logger.error("DNS日志查询：失败！");
+				log.error("DNS日志查询：失败！");
 				e.printStackTrace();
 				allmap.put("count",0);
 				allmap.put("list",null);
@@ -1371,7 +1444,7 @@ public class LogController extends BaseController{
 		try {
 			list = logService.getLogListByBlend(map,starttime,endtime,page,size,types,configProperty.getEs_index());
 		} catch (Exception e) {
-			logger.error("事件查询：失败！");
+			log.error("事件查询：失败！");
 			e.printStackTrace();
 			allmap.put("count",0);
 			allmap.put("list",null);
@@ -2069,7 +2142,7 @@ public class LogController extends BaseController{
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
-			logger.error("统计各时间段的日志数据量"+e.getMessage());
+			log.error("统计各时间段的日志数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
@@ -2104,7 +2177,7 @@ public class LogController extends BaseController{
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
-			logger.error("统计各时间段的各事件数据量"+e.getMessage());
+			log.error("统计各时间段的各事件数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
@@ -2136,7 +2209,7 @@ public class LogController extends BaseController{
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
-			logger.error("读取日志级别数据量"+e.getMessage());
+			log.error("读取日志级别数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
@@ -2169,7 +2242,7 @@ public class LogController extends BaseController{
 
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
-			logger.error("读取日志事件数据量"+e.getMessage());
+			log.error("读取日志事件数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
@@ -2235,7 +2308,7 @@ public class LogController extends BaseController{
 
 			return Constant.successData(JSONArray.fromObject(result).toString());
 		}catch(Exception e){
-			logger.error("统计各个事件的数据量"+e.getMessage());
+			log.error("统计各个事件的数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}

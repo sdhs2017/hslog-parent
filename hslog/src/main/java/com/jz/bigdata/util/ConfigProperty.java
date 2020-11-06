@@ -156,6 +156,50 @@ public class ConfigProperty {
 	//winlog
 	@Value("#{prop.hsdata_dashboard_winlog_id}")
 	private String hsdata_dashboard_winlog_id;
+	//告警模块示例数据默认查询的时间范围
+	@Value("#{prop.alert_default_area}")
+	private String alert_default_area;
+	//告警模块的template
+	@Value("#{prop.es_alert_templatePattern}")
+	private String es_alert_templatePattern;
+	//告警模块的index
+	@Value("#{prop.es_alert_index}")
+	private String es_alert_index;
+	//文件日志index
+	@Value("#{prop.es_file_index}")
+	private String es_file_index;
+
+	public String getEs_file_index() {
+		return es_file_index;
+	}
+
+	public void setEs_file_index(String es_file_index) {
+		this.es_file_index = es_file_index;
+	}
+
+	public String getEs_alert_templatePattern() {
+		return es_alert_templatePattern;
+	}
+
+	public void setEs_alert_templatePattern(String es_alert_templatePattern) {
+		this.es_alert_templatePattern = es_alert_templatePattern;
+	}
+
+	public String getEs_alert_index() {
+		return es_alert_index;
+	}
+
+	public void setEs_alert_index(String es_alert_index) {
+		this.es_alert_index = es_alert_index;
+	}
+
+	public String getAlert_default_area() {
+		return alert_default_area;
+	}
+
+	public void setAlert_default_area(String alert_default_area) {
+		this.alert_default_area = alert_default_area;
+	}
 
 	public String getHsdata_dashboard_syslog_winlog_id() {
 		return hsdata_dashboard_syslog_winlog_id;

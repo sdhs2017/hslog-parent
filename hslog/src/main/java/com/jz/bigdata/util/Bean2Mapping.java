@@ -64,8 +64,11 @@ public class Bean2Mapping {
 				// user-agent
 				"user_agent_os","user_agent_browser","session_status",
 				"dst_addr_country","dst_addr_province","dst_addr_city",
-				"src_addr_country","src_addr_province","src_addr_city","title"
+				"src_addr_country","src_addr_province","src_addr_city","title",
+				//alert
+				"alert_id","state","alert_name"
 		};
+
 		// 设置join field,通过父子关系使字段关联，一个索引只能建立一个关联字段,nextacknum是parent，acknum是child
 		String [] joinfields = {"nextacknum","acknum"};
 		
@@ -89,6 +92,7 @@ public class Bean2Mapping {
 			if (Arrays.asList(rawkeywords).contains(fields[i].getName())) {
 				fieldstring.append("\t\t\t\t\t\t,\"fields\": " + "{\"raw\": {\"type\": \"keyword\"}}" + "\n");
 			}
+
 			if (fields[i].getName().equals("joinfield")) {
 				fieldstring.append("\t\t\t\t\t\t,\"relations\": {\""+joinfields[0]+"\": \""+joinfields[1]+"\"}" + "\n");
 			}
@@ -124,6 +128,9 @@ public class Bean2Mapping {
 			break;
 		case "Boolean":
 			es = "boolean\"";
+			break;
+		case "Object":
+			es = "object\"";
 			break;
 		default:
 			// 针对id类型的字段设置为keyword

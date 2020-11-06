@@ -1,9 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.collector.pcap4j;
 
 
-import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,11 +10,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.collector.service.ICollectorService;
-import com.jz.bigdata.common.Constant;
-import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
-import org.apache.log4j.Logger;
-import org.elasticsearch.action.bulk.BulkRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.pcap4j.core.PcapPacket;
@@ -32,12 +25,9 @@ import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
-
+@Slf4j
 public class PacketStream {
 
-	
-	final Logger logger = Logger.getLogger(PacketStream.class);
-	
 	private Http http;
 	private DefaultPacket defaultpacket;
 	private Set<String> domainSet ;
@@ -225,7 +215,8 @@ public class PacketStream {
                 defaultpacket.setEncryption_based_protection_protocol(GetEncryptionProtocol(packet));
             }
             json = gson.toJson(defaultpacket);
-            logger.error(json);
+            log.error(json);
+			log.error(ee.getMessage());
             /*try {
             	System.out.println("异常数据，提示requests size:" + requests.size());
                 requests.add(logCurdDao.insertNotCommit(logCurdDao.checkOfIndex(configProperty.getEs_old_index(),defaultpacket.getIndex_suffix(),defaultpacket.getLogdate()), LogType.LOGTYPE_DEFAULTPACKET, json));
@@ -235,10 +226,10 @@ public class PacketStream {
             } catch (Exception e) {
                 e.printStackTrace();
             }*/
-            ee.printStackTrace();
+            //ee.printStackTrace();
         } catch (Exception e) {
-			//logger.error("----------------jiyourui-----gotPacket------报错信息：-----"+e.getMessage());
-			e.printStackTrace();
+			log.error("-----------gotPacket------报错信息：-----"+e.getMessage());
+			//e.printStackTrace();
 		}
 		
 

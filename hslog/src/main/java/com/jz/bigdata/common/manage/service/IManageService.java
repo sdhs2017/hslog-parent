@@ -38,7 +38,14 @@ public interface IManageService {
 	 * @return
 	 */
 	public Map<String, String> doshell(String shell,String filepath);
-
+	/**
+	 * 定时任务--对昨天的index segments进行合并操作
+	 * @return
+	 */
 	public String indexForceMerge();
-
+	/**
+	 * Event
+	 * @return
+	 */
+	public String updateRisk();
 }

@@ -8,6 +8,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -27,10 +28,10 @@ import com.jz.bigdata.util.Uuid;
  * @date 2017年8月1日 上午10:09:08
  * @description 用户管理相关模块
  */
+@Slf4j
 @Controller
 @RequestMapping("/user")
 public class UserController {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource(name = "UserService")
 	private IUserService userService;
 	
@@ -50,7 +51,7 @@ public class UserController {
 		try{
 			return userService.selectPage(page,session);
 		}catch(Exception e){
-			logger.error("查询所有用户"+e.getMessage());
+			log.error("查询所有用户"+e.getMessage());
 			return null;
 		}
 
@@ -84,7 +85,7 @@ public class UserController {
 			}
 			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 		}catch(Exception e){
-			logger.error("添加或修改用户"+e.getMessage());
+			log.error("添加或修改用户"+e.getMessage());
 			return Constant.failureMessage("添加或修改用户失败！");
 		}
 
@@ -107,7 +108,7 @@ public class UserController {
 			}
 			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 		}catch(Exception e){
-			logger.error("删除用户"+e.getMessage());
+			log.error("删除用户"+e.getMessage());
 			return Constant.failureMessage("删除用户失败");
 		}
 
@@ -125,7 +126,7 @@ public class UserController {
 		try{
 			return userService.selectPage(page,session);
 		}catch(Exception e){
-			logger.error("分页查询用户"+e.getMessage());
+			log.error("分页查询用户"+e.getMessage());
 			return null;
 		}
 
@@ -145,7 +146,7 @@ public class UserController {
 			String id = request.getParameter("id");
 			return userService.selectUser(id);
 		}catch(Exception e){
-			logger.error("查询单个用户信息"+e.getMessage());
+			log.error("查询单个用户信息"+e.getMessage());
 			return null;
 		}
 
@@ -165,7 +166,7 @@ public class UserController {
 			String role = userService.selectUserRole(session);
 			return Constant.successMessage(role);
 		}catch(Exception e){
-			logger.error("查询用户角色信息"+e.getMessage());
+			log.error("查询用户角色信息"+e.getMessage());
 			return Constant.failureMessage("查询用户角色信息失败");
 		}
 
@@ -188,7 +189,7 @@ public class UserController {
 
 			return user;
 		}catch(Exception e){
-			logger.error("根据id查询用户信息"+e.getMessage());
+			log.error("根据id查询用户信息"+e.getMessage());
 			return null;
 		}
 
@@ -210,7 +211,7 @@ public class UserController {
 		try{
 			return this.userService.login(user,session);
 		}catch(Exception e){
-			logger.error("用户登录"+e.getMessage());
+			log.error("用户登录"+e.getMessage());
 			return Constant.failureMessage("用户登录失败！");
 		}
 
@@ -231,7 +232,7 @@ public class UserController {
 			Boolean result = this.userService.checkLogin(session);
 			return result?"{\"success\":\"true\"}":"{\"success\":\"false\"}";
 		}catch(Exception e){
-			logger.error("登录确认失败"+e.getMessage());
+			log.error("登录确认失败"+e.getMessage());
 			return Constant.failureMessage("登录确认失败！");
 		}
 
@@ -251,7 +252,7 @@ public class UserController {
 			Boolean result = this.userService.loginOut(session);
 			return result?"{\"success\":\"true\"}":"{\"success\":\"false\"}";
 		}catch(Exception e){
-			logger.error("退出登录失败"+e.getMessage());
+			log.error("退出登录失败"+e.getMessage());
 			return Constant.failureMessage("退出登录失败");
 		}
 
@@ -273,7 +274,7 @@ public class UserController {
 				return Constant.repetitionMessage();
 			}
 		}catch (Exception e){
-			logger.error("注册用户"+e.getMessage());
+			log.error("注册用户"+e.getMessage());
 			e.getStackTrace();
 		}
 		return result == 2 ? Constant.successMessage() : Constant.failureMessage();
@@ -289,7 +290,7 @@ public class UserController {
 			String oldPassword=request.getParameter("oldPassword");
 			return userService.updatePasswordById(id, password,oldPassword);
 		}catch(Exception e){
-			logger.error("修改密码失败"+e.getMessage());
+			log.error("修改密码失败"+e.getMessage());
 			return Constant.failureMessage("修改密码失败！");
 		}
 

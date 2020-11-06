@@ -47,7 +47,7 @@ public interface IEquipmentService {
 	Set<String> selectAllIPAdress();
 
 	Map<String, Equipment> selectAllEquipment();
-
+	Map<String, Equipment> selectAllEquipment_key_id();
 	Map<String, String> selectLog_level();
 	
 	int upRiskById(String id, int high_risk, int moderate_risk, int low_risk);

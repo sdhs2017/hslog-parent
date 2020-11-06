@@ -40,5 +40,6 @@ public interface IAssetService {
 	List<Asset> selectAllAssetByRisk();
 	
 	int batchUpdate(List<Asset> list);
-	
+
+	public void initEquipmentCache();
 }

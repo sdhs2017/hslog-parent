@@ -325,4 +325,9 @@ public class AssetServiceImpl implements IAssetService {
 		return assetDao.batchUpdate(list);
 	}
 
+	@Override
+	public void initEquipmentCache() {
+
+	}
+
 }

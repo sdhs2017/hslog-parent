@@ -2,7 +2,6 @@ package com.jz.bigdata.business.logAnalysis.ecs.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.HttpRequestParams;
@@ -11,6 +10,7 @@ import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.alarm.service.IAlarmService;
+import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.eventGroup.entity.Event;
@@ -19,9 +19,8 @@ import com.jz.bigdata.common.eventGroup.service.IEventGroupService;
 import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.*;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,9 +29,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,11 +37,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * 符合Elastic Common Schema (ECS)数据格式的查询
  * 公共部分
  */
+@Slf4j
 @Controller
 @RequestMapping("/ecsCommon")
 public class EcsCommonController {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource(name="ecsService")
     private IecsService ecsService;
@@ -95,13 +92,13 @@ public class EcsCommonController {
             count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
             resultMap.put("indices", count);
         } catch (Exception e) {
-            logger.error("查询日志数：失败！");
-            logger.error(e.getMessage());
+            log.error("查询日志数：失败！");
+            log.error(e.getMessage());
             resultMap.put("indices", "获取异常");
         }
         resultList.add(resultMap);
         String result = JSONArray.fromObject(resultList).toString();
-        logger.info("查询日志数：成功！");
+        log.info("查询日志数：成功！");
 
         return result;
     }
@@ -132,14 +129,14 @@ public class EcsCommonController {
             count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
             resultMap.put("indiceserror", count);
         } catch (Exception e) {
-            logger.error("查询error日志数：失败！");
-            logger.error(e.getMessage());
+            log.error("查询error日志数：失败！");
+            log.error(e.getMessage());
             resultMap.put("indiceserror", "获取异常");
         }
 
         resultList.add(resultMap);
         String result = JSONArray.fromObject(resultList).toString();
-        logger.info("查询error日志数：成功！");
+        log.info("查询error日志数：成功！");
 
         return result;
     }
@@ -171,7 +168,7 @@ public class EcsCommonController {
             Map<String, Object> result = ecsService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("统计各时间段的日志数据量"+e.getMessage());
+            log.error("统计各时间段的日志数据量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -197,8 +194,8 @@ public class EcsCommonController {
         try {
             list = ecsService.getListGroupByTime(params.getStartTime(), params.getEndTime(), "@timestamp", size, params.getQueryMap(), index);
         } catch (Exception e) {
-            logger.error("统计各时间段日志数据量：失败！");
-            logger.error(e.getMessage());
+            log.error("统计各时间段日志数据量：失败！");
+            log.error(e.getMessage());
             e.printStackTrace();
         }
         return list;
@@ -233,7 +230,7 @@ public class EcsCommonController {
             Map<String, Object> result = ecsService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("统计各时间段的各事件数据量"+e.getMessage());
+            log.error("统计各时间段的各事件数据量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -308,8 +305,8 @@ public class EcsCommonController {
                 result.put(event_name,eventlist);
             }
         } catch (Exception e) {
-            logger.error("统计各时间段的各事件数据量：失败！");
-            logger.error(e.getMessage());
+            log.error("统计各时间段的各事件数据量：失败！");
+            log.error(e.getMessage());
             e.printStackTrace();
         }
 
@@ -394,8 +391,8 @@ public class EcsCommonController {
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
-            logger.error("精确查询日志事件：失败！");
-            logger.error(e.getMessage());
+            log.error("精确查询日志事件：失败！");
+            log.error(e.getMessage());
             e.printStackTrace();
         }
 
@@ -459,7 +456,7 @@ public class EcsCommonController {
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
-            logger.error("资产日志：查询失败");
+            log.error("资产日志：查询失败");
             e.printStackTrace();
         }
 
@@ -470,7 +467,7 @@ public class EcsCommonController {
 
         String result = JSONArray.fromObject(allmap).toString();
         String replace=result.replace("\\\\005", "<br/>");
-        logger.info("资产日志：查询成功");
+        log.info("资产日志：查询成功");
         return replace;
 
 
@@ -503,7 +500,7 @@ public class EcsCommonController {
             Map<String, Object> result = ecsService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("读取日志级别数据量"+e.getMessage());
+            log.error("读取日志级别数据量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -534,7 +531,7 @@ public class EcsCommonController {
             Map<String, Object> result = ecsService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("读取日志级别数据量"+e.getMessage());
+            log.error("读取日志级别数据量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -561,7 +558,7 @@ public class EcsCommonController {
         try {
             list = ecsService.groupByThenCount(params.getStartTime(),params.getEndTime(),params.getGroupField(),size,params.getQueryMap(),index);
         } catch (Exception e) {
-            logger.error("统计日志级别数据量：失败！");
+            log.error("统计日志级别数据量：失败！");
             e.printStackTrace();
         }
 
@@ -581,12 +578,26 @@ public class EcsCommonController {
         //分页参数
         String page = request.getParameter("page");
         String size = request.getParameter("size");
+        String equipmentid = request.getParameter("fields.equipmentid");
+        Equipment equipmentCache = AssetCache.INSTANCE.getEquipmentMapKeyId().get(equipmentid);
         List<Map<String, Object>> list = null;
-        try {
-            list = ecsService.getLogListByBlend(params.getQueryParam(),params.getStartTime(),params.getEndTime(),page,size,Constant.WINLOG_BEAT_INDEX);
-        } catch (Exception e) {
-            logger.error("资产日志：查询失败");
+        String log_type = null;
+        if(equipmentCache!=null){
+            log_type = equipmentCache.getLogType();
         }
+
+        try {
+            if(log_type!=null&&log_type.equals("file")){
+                list = ecsService.getLogListByBlend(params.getQueryParam(),params.getStartTime(),params.getEndTime(),page,size,configProperty.getEs_file_index());
+            }else{
+                list = ecsService.getLogListByBlend(params.getQueryParam(),params.getStartTime(),params.getEndTime(),page,size,configProperty.getEs_index());
+            }
+
+        } catch (Exception e) {
+            log.error("资产日志：查询失败");
+        }
+
+
 
         Map<String, Object> allmap = new HashMap<>();
         allmap = list.get(0);
@@ -595,7 +606,7 @@ public class EcsCommonController {
 
         String result = JSONArray.fromObject(allmap).toString();
         String replace=result.replace("\\\\005", "<br/>");
-        logger.info("资产日志：查询成功");
+        log.info("资产日志：查询成功");
         return replace;
     }
     /**
@@ -622,8 +633,8 @@ public class EcsCommonController {
         try {
             list = ecsService.getLogListByBlend(params.getQueryParam(),params.getStartTime(),params.getEndTime(),page,size,Constant.WINLOG_BEAT_INDEX);
         } catch (Exception e) {
-            logger.error("精确查询日志事件：失败！");
-            logger.error(e.getMessage());
+            log.error("精确查询日志事件：失败！");
+            log.error(e.getMessage());
         }
 
         Map<String, Object> allmap = new HashMap<>();

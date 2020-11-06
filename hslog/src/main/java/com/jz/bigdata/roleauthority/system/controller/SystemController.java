@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.roleauthority.system.entity.System;
 import com.jz.bigdata.roleauthority.system.service.ISystemService;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -22,10 +23,10 @@ import java.util.List;
  * @date 2018年5月10日 下午5:54:09
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/system")
 public class SystemController {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	@Resource(name="SystemService")
 	private ISystemService systemService;
 	
@@ -37,7 +38,7 @@ public class SystemController {
 		try{
 			return systemService.selectAllSystem();
 		}catch(Exception e){
-			logger.error("获取所有系统"+e.getMessage());
+			log.error("获取所有系统"+e.getMessage());
 			return null;
 		}
 
@@ -54,7 +55,7 @@ public class SystemController {
 				return systemService.update(sys)? Constant.successMessage():Constant.failureMessage();
 			}
 		}catch(Exception e){
-			logger.error("增改系统信息"+e.getMessage());
+			log.error("增改系统信息"+e.getMessage());
 			return Constant.failureMessage("增改系统信息失败！");
 		}
 
@@ -72,7 +73,7 @@ public class SystemController {
 				return  systemService.delete(id)?Constant.successMessage():Constant.failureMessage();
 			}
 		}catch(Exception e){
-			logger.error("删除系统信息"+e.getMessage());
+			log.error("删除系统信息"+e.getMessage());
 			return Constant.failureMessage("删除系统信息失败");
 		}
 
@@ -89,7 +90,7 @@ public class SystemController {
 				return  systemService.getEntity(id);
 			}
 		}catch(Exception e){
-			logger.error("获取系统信息"+e.getMessage());
+			log.error("获取系统信息"+e.getMessage());
 			return null;
 		}
 

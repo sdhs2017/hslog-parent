@@ -604,7 +604,14 @@
             //数据源监听
             bus.$on(this.busNameObj.busIndexName,(arr)=>{
                 //还原配置
-                this.initialize();
+                this.alarmList = [];
+                this.yAxisArr =[];
+                this.xAxisArr=[];
+                this.form.alert_search_filters = '';
+                this.form.alert_search_metric = [];
+                this.form.alert_search_bucket = [];
+                this.form.alert_conditions = [];
+                this.form.alert_structure = '';
                 //设置数据源
                 this.form.suffix_index_name = arr[2];
                 this.form.pre_index_name = arr[1];
@@ -872,7 +879,7 @@
                 this.form.alert_structure = '';
                 this.form.alert_time = '15-min';
                 this.form.alert_time_type = 'last';
-                //this.indexVal = [];
+                this.indexVal = [];
                 this.alarmList = [];
                 this.yAxisArr =[];
                 this.xAxisArr=[];

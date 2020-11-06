@@ -41,7 +41,7 @@
                         </ul>
                         <el-button slot="reference" class="bell-wapper">
                             <el-badge :value="bellArr.length + alertCount" :hidden="bellArr.length === 0 && alertCount === 0" :max="99" class="item">
-                                <i class="el-icon-bell"></i>
+                                <i class="el-icon-message"></i>
                             </el-badge>
                         </el-button>
                     </el-popover>
@@ -425,7 +425,7 @@
         line-height: 50px;
         align-items: center;
     }
-    .header-user-con>div:hover,.el-dropdown-link:hover,.el-icon-bell:hover{
+    .header-user-con>div:hover,.el-dropdown-link:hover,.el-icon-message:hover{
         color: #56a4ef!important;
     }
     .btn-fullscreen{
@@ -450,7 +450,7 @@
         background: #f56c6c;
         color: #fff;
     }
-    .btn-bell .el-icon-bell{
+    .btn-bell .el-icon-message{
         color: #fff;
     }
     .bell-wapper{

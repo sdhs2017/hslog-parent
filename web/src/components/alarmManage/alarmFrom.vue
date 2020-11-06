@@ -313,7 +313,7 @@
                         </el-form-item>
                         <!--ip-->
                         <el-form-item label="Value" v-else-if="fieldType[formDialog.field] === 'ip'">
-                            <el-input v-model="form.value" size="mini"></el-input>
+                            <el-input v-model="formDialog.value" size="mini"></el-input>
                         </el-form-item>
                         <!--date-->
                         <el-form-item label="Value" v-else-if="fieldType[formDialog.field] === 'date'">

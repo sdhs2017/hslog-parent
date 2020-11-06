@@ -1,6 +1,6 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">精确查询</div>
+        <div class="top-title">复合查询</div>
         <div class="search-wapper">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>

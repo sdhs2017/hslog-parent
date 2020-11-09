@@ -11,6 +11,7 @@ import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.HttpRequestUtil;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,11 +32,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * 符合Elastic Common Schema (ECS)数据格式
  * 且数据的event.type为syslog的查询/统计（logstash输出到kafka的syslog）
  */
+@Slf4j
 @Controller
 @RequestMapping("/ecsSyslog")
 public class EcsSyslogController {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource(name="ecsService")
     private IecsService ecsService;
@@ -75,8 +76,8 @@ public class EcsSyslogController {
             count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
             resultMap.put("eventserror", count);
         } catch (Exception e) {
-            logger.error("获取日志级别是error的事件数量：失败！");
-            logger.error(e.getMessage());
+            log.error("获取日志级别是error的事件数量：失败！");
+            log.error(e.getMessage());
             resultMap.put("eventserror", "获取异常");
         }
 
@@ -92,8 +93,8 @@ public class EcsSyslogController {
             count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
             resultMap.put("events", count);
         } catch (Exception e) {
-            logger.error("获取事件数量：失败！");
-            logger.error(e.getMessage());
+            log.error("获取事件数量：失败！");
+            log.error(e.getMessage());
             resultMap.put("events", "获取异常");
         }
         resultList.add(resultMap);
@@ -125,7 +126,7 @@ public class EcsSyslogController {
             try {
                 event_list = ecsService.getCountGroupByEventType(params.getStartTime(),params.getEndTime(),"@timestamp",params.getQueryMap(),configProperty.getEs_index());
             } catch (Exception e) {
-                logger.error("统计各个事件的数据量:失败！");
+                log.error("统计各个事件的数据量:失败！");
                 e.printStackTrace();
             }
             list.add(event_list);

@@ -11,16 +11,15 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.jz.bigdata.common.Constant;
-import com.jz.bigdata.common.asset.cache.AssetCache;
+import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.service.IAssetService;
-import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
+import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
 import org.pcap4j.core.PcapNetworkInterface;
 import org.pcap4j.core.Pcaps;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -35,11 +34,10 @@ import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 
 import net.sf.json.JSONArray;
-
+@Slf4j
 @Controller
 @RequestMapping("/collector")
 public class CollectorController {
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@Resource(name = "CollectorService")
 	private ICollectorService collectorService;
@@ -91,7 +89,7 @@ public class CollectorController {
 			resultInfo = "数据采集器开启失败，请先执行初始化操作";
 			map.put("state", false);
 			map.put("msg", resultInfo);
-			logger.info(resultInfo);
+			log.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		}
 		/**
@@ -102,8 +100,9 @@ public class CollectorController {
 			ConfigurationCache.INSTANCE.init(configurationService);
 		}catch (Exception e){
 			e.printStackTrace();
+			log.error("资产或全局配置信息获取失败:"+e.getMessage());
 			map.put("state", false);
-			map.put("msg", "资产信息获取失败！");
+			map.put("msg", "资产或全局配置信息获取失败！");
 			return JSONArray.fromObject(map).toString();
 		}
 		/**
@@ -117,13 +116,13 @@ public class CollectorController {
 			resultInfo = "数据采集器开启成功";
 			map.put("state", result);
 			map.put("msg", resultInfo);
-			logger.info(resultInfo);
+			log.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		} else {
 			resultInfo = "数据采集器开启失败，请勿重复开启";
 			map.put("state", result);
 			map.put("msg", resultInfo);
-			logger.info(resultInfo);
+			log.info(resultInfo);
 			return JSONArray.fromObject(map).toString();
 		}
 	}
@@ -141,13 +140,13 @@ public class CollectorController {
 				resultInfo = "数据采集器关闭成功";
 				map.put("state", result);
 				map.put("msg", resultInfo);
-				logger.info(resultInfo);
+				log.info(resultInfo);
 				return JSONArray.fromObject(map).toString();
 			} else {
 				resultInfo = "数据采集器关闭失败，已关闭";
 				map.put("state", result);
 				map.put("msg", resultInfo);
-				logger.info(resultInfo);
+				log.info(resultInfo);
 				return JSONArray.fromObject(map).toString();
 			}
 
@@ -442,7 +441,7 @@ public class CollectorController {
 			return collectorService.startAgentKafkaListener();
 		}catch (Exception e){
 			System.out.println("Agent采集器开启失败"+e.getMessage());
-			logger.error("Agent采集器开启失败"+e.getMessage());
+			log.error("Agent采集器开启失败"+e.getMessage());
 			return Constant.failureMessage("Agent采集器开启失败 ！");
 		}
 	}
@@ -483,7 +482,7 @@ public class CollectorController {
 			ConfigurationCache.INSTANCE.init(configurationService);
 			return collectorService.startSyslogKafkaListener();
 		}catch (Exception e){
-			logger.error("Syslog采集器开启失败"+e.getMessage());
+			log.error("Syslog采集器开启失败"+e.getMessage());
 			return Constant.failureMessage("Syslog采集器开启失败！");
 		}
 	}

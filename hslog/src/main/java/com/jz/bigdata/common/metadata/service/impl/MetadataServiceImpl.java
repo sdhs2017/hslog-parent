@@ -7,6 +7,7 @@ import com.jz.bigdata.common.metadata.service.IMetadataService;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
 import com.jz.bigdata.roleauthority.menu.util.TreeBuilder;
 import com.jz.bigdata.util.ComboxEntity;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONString;
@@ -19,10 +20,9 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+@Slf4j
 @Service(value="metadataService")
 public class MetadataServiceImpl implements IMetadataService {
-    private static Logger logger = Logger.getLogger(MetadataServiceImpl.class);
     @Autowired
     protected ILogIndexDao logIndexDao;
     @Override
@@ -137,7 +137,7 @@ public class MetadataServiceImpl implements IMetadataService {
                             indexMenus.add(indexMenu);
                         }
                     }catch(Exception e){
-                        logger.error(pattern+"未找到index");
+                        log.error(pattern+"未找到index");
                     }
 
                 }

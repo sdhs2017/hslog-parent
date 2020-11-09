@@ -4,6 +4,7 @@ import com.hs.elsearch.dao.ecsDao.IEcsSearchDao;
 import com.hs.elsearch.template.CrudTemplate;
 import com.hs.elsearch.template.SearchTemplate;
 import com.hs.elsearch.util.HSDateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.util.Strings;
 import org.apache.log4j.Logger;
@@ -34,9 +35,9 @@ import java.util.*;
  * @author: jiyourui
  * @create: 2020-03-30 14:06
  **/
+@Slf4j
 public class EcsSearchDao implements IEcsSearchDao {
 
-    private static Logger logger = Logger.getLogger(EcsSearchDao.class);
     /**
      * ecs的时间字段，默认用于排序、时间范围查询
      */
@@ -199,6 +200,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                 MatchPhraseQueryBuilder matchPhraseQueryBuilder = QueryBuilders.matchPhraseQuery(ECS_MATCHPHRASE_FIELD, content);
                 matchphraseQuery.must(matchPhraseQueryBuilder);
                 matchphraseQuery.must(otherQueryBuilder);
+                matchphraseQuery.must(dateQueryBuilder);
                 matchCount = searchTemplate.getCountByQuery(matchphraseQuery, indices);
             } else {
                 /**
@@ -209,6 +211,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                 MultiMatchQueryBuilder multiMatchQueryBuilder = QueryBuilders.multiMatchQuery(content.matches("^[a-zA-Z]*") ? Strings.toLowerCase(content) : content, multiQueryField);
                 multiQuery.must(multiMatchQueryBuilder);
                 multiQuery.must(otherQueryBuilder);
+                multiQuery.must(dateQueryBuilder);
                 mutliCount = searchTemplate.getCountByQuery(multiQuery, indices);
             }
 
@@ -546,7 +549,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                 aggregationBuilder.subAggregation(AggregationBuilders.filter("", null));
                 break;
             default:
-                logger.info("ecs search dao 未找到对应的聚合参数");
+                log.info("ecs search dao 未找到对应的聚合参数");
         }
 
 
@@ -582,7 +585,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                     }
                     break;
                 default:
-                    logger.info("ecs search dao 未找到对应的聚合参数");
+                    log.info("ecs search dao 未找到对应的聚合参数");
             }
 
             aggmap.put("hour",key.getHour());

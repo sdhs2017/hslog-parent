@@ -32,6 +32,7 @@ public interface IEquipmentDao {
 	Equipment selectOneEquipment(Equipment equipment);
 	
 	List<Equipment> selectAllHostName();
+	List<Equipment> selectAllHostNameByAssetGroup(@Param("asset_group_id")String asset_group_id);
 	
 	int upRiskById(@Param("id") String id, @Param("high_risk") int high_risk, @Param("moderate_risk") int moderate_risk, @Param("low_risk") int low_risk);
 	

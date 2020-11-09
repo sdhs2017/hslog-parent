@@ -7,6 +7,7 @@ import com.jz.bigdata.common.metadata.service.IMetadataService;
 import com.jz.bigdata.util.ComboxEntity;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
@@ -24,10 +25,10 @@ import java.util.Map;
 /**
  * 获取ES的metadata
  */
+@Slf4j
 @Controller
 @RequestMapping("/metadata")
 public class MetadataController {
-    private static Logger logger = Logger.getLogger(MetadataController.class);
     @Resource(name = "metadataService")
     private IMetadataService iMetadataService;
     @Resource(name ="configProperty")
@@ -45,7 +46,7 @@ public class MetadataController {
                 return Constant.failureMessage("Template数据查询出错");
             }
         }catch(Exception e){
-            logger.error("template数据获取失败");
+            log.error("template数据获取失败");
             return Constant.failureMessage("数据获取失败");
         }
 
@@ -64,7 +65,7 @@ public class MetadataController {
                 return Constant.failureMessage("IndexMapping数据查询出错");
             }
         }catch(Exception e){
-            logger.error("index mapping 获取失败");
+            log.error("index mapping 获取失败");
             return Constant.failureMessage("数据获取失败");
         }
     }
@@ -82,7 +83,7 @@ public class MetadataController {
                 return Constant.failureMessage("Template数据查询出错");
             }
         }catch(Exception e){
-            logger.error("template数据获取失败");
+            log.error("template数据获取失败");
             return Constant.failureMessage("数据获取失败");
         }
 
@@ -100,7 +101,7 @@ public class MetadataController {
                 return Constant.failureMessage("IndexMapping数据查询出错");
             }
         }catch(Exception e){
-            logger.error("index mapping 获取失败");
+            log.error("index mapping 获取失败");
             return Constant.failureMessage("数据获取失败");
         }
     }
@@ -115,7 +116,7 @@ public class MetadataController {
             String es_tempalatePattern = configProperty.getEs_tempalatePattern();
             return iMetadataService.getIndexTree(es_tempalatePattern);
         }catch(Exception e){
-            logger.error("template/index Tree数据获取失败");
+            log.error("template/index Tree数据获取失败");
             return Constant.failureMessage("数据获取失败");
         }
     }
@@ -131,7 +132,7 @@ public class MetadataController {
             List<ComboxEntity> result = iMetadataService.getTemplates(es_tempalatePattern);
             return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("template数据获取失败");
+            log.error("template数据获取失败");
             return Constant.failureMessage("数据获取失败");
         }
     }
@@ -148,7 +149,7 @@ public class MetadataController {
             result.put("dateField", TemplateDateField.getDateField(templateName));//根据template获取其对应的日期字段
             return Constant.successData(JSONObject.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("template数据获取失败");
+            log.error("template数据获取失败");
             return Constant.failureMessage("数据获取失败");
         }
     }
@@ -162,7 +163,7 @@ public class MetadataController {
             String result = iMetadataService.getSuffixIndexByPre(preIndexName);
             return Constant.successData(result);
         }catch(Exception e){
-            logger.error("template数据获取失败");
+            log.error("template数据获取失败");
             return Constant.failureMessage("数据获取失败");
         }
     }

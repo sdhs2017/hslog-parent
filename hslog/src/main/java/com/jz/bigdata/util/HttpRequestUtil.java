@@ -8,10 +8,12 @@ import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchColumn;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchWhere;
 import joptsimple.internal.Strings;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.joda.time.DateTime;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -22,6 +24,7 @@ import java.util.Map;
 /**
  * 处理controller request的工具类
  */
+@Slf4j
 public class HttpRequestUtil {
     //数据转换时用到的gson对象
     private final static Gson gson = new Gson();
@@ -153,6 +156,166 @@ public class HttpRequestUtil {
             searchConditions.setErrorInfo("查询参数异常，请重新设置！");
         }
         return searchConditions;
+    }
+
+    /**
+     * 告警模块的参数处理
+     * @param request
+     * @return
+     */
+    public static SearchConditions getSearchConditionsByRequest4Alert(HttpServletRequest request){
+        SearchConditions searchConditions = new SearchConditions();
+        try {
+            Map<String, String[]> params = request.getParameterMap();
+            //通过bean对应，直接处理部分参数
+            searchConditions.mapToBean(params);
+            //时间范围
+            //Map<String,String> map = getStartEndTimeByLast(configProperty.getAlert_default_area());
+            Map<String,String> map = getTimeAreaByAlertParam(request.getParameter("alert_exec_type"),request.getParameter("alert_time_cycle_num"),request.getParameter("alert_time_cycle_type"),request.getParameter("alert_time_type"),request.getParameter("alert_time"));
+            //赋值，如果起始和截止时间能正常获取
+            if(map.size()==2){
+                searchConditions.setStartTime(map.get("starttime"));
+                searchConditions.setEndTime(map.get("endtime"));
+            }else{
+                //其他情况判定为时间范围数据异常，返回前端显示
+                searchConditions.setErrorInfo("时间查询参数异常！");
+            }
+            //组装要检索的index的名称： 前缀+后缀
+            searchConditions.setIndex_name(searchConditions.getPre_index_name()+searchConditions.getSuffix_index_name());
+            //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
+            if(searchConditions.getIndex_name().indexOf("packet-")>=0){
+                searchConditions.setDateField(Constant.PACKET_DATE_FIELD);
+            }else if(searchConditions.getIndex_name().indexOf("beat")>=0){
+                searchConditions.setDateField(Constant.BEAT_DATE_FIELD);
+            }else{
+                searchConditions.setErrorInfo("数据源异常，请重新选择数据源!");
+            }
+            //处理bucket聚合条件（X轴）
+            String buckets = request.getParameter("alert_search_bucket");
+            if(null!=buckets&&!"".equals(buckets)){
+                //buckets参数包含多个bucket对象
+                JSONArray json = JSONArray.fromObject(buckets);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    Bucket bucket = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Bucket.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=bucket){
+                        //如果聚合类型是range。需要对参数进行再处理
+                        if(bucket.getAggType().indexOf("Range")>=0){
+                            JSONArray rangeArray = JSONObject.fromObject(beanObj).getJSONArray("ranges");
+                            for(Object rangeObj : rangeArray){
+                                Map<String,Object> rangeMap = (Map<String,Object>)rangeObj;
+                                bucket.getRanges().add(rangeMap);
+                            }
+                        }
+                        searchConditions.getBucketList().add(bucket);
+                    }
+                }
+
+            }
+            //处理metric聚合条件（Y轴）
+            String metrics = request.getParameter("alert_search_metric");
+            if(null!=metrics&&!"".equals(metrics)){
+                //buckets参数包含多个bucket对象
+                JSONArray json = JSONArray.fromObject(metrics);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    Metric metric = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Metric.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=metric){
+                        searchConditions.getMetricList().add(metric);
+                    }
+                }
+
+            }
+            //---------处理filter--------
+            String filters_visual = request.getParameter("alert_search_filters");
+            if(null!=filters_visual&&!"".equals(filters_visual)){
+                //filters中包含多个filter
+                JSONArray json = JSONArray.fromObject(filters_visual);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    Filter filter = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Filter.class);
+                    //转换成功时，写入参数对象中
+                    if(null!=filter){
+                        searchConditions.getFilters_alert().add(filter);
+                    }
+                }
+            }
+            //------------设置聚合结果size参数---------
+            //如果metric和bucket都为空，则为查询原始数据，size设置为10，否则为聚合查询，size设置为0
+            if(metrics!=null||buckets!=null){
+                if(JSONArray.fromObject(metrics).size()>0||JSONArray.fromObject(buckets).size()>0){
+                    searchConditions.setSize(0);
+                }else{
+                    searchConditions.setSize(10);
+                }
+            }else{
+                searchConditions.setSize(10);
+            }
+        }catch (Exception e){
+            searchConditions.setErrorInfo("查询参数异常，请重新设置！");
+        }
+        return searchConditions;
+    }
+
+    /**
+     * 根据alert的时间参数获取起始和截止时间
+     * @param alert_exec_type 时间类型 simple/complex
+     * @param alert_time_cycle_num simple：执行周期数值
+     * @param alert_time_cycle_type simple：执行周期类型（second minute hour）
+     * @param alert_time_type complex：最近X分钟/小时    or  精确时间
+     * @param alert_time complex ： 时间值  1-days  / 2020-01-01 00:00:00,2020-01-01 00:01:00
+     * @return
+     */
+    public static Map<String,String> getTimeAreaByAlertParam(String alert_exec_type,String alert_time_cycle_num,String alert_time_cycle_type,String alert_time_type,String alert_time){
+        Map<String,String> timeArea = new HashMap<>();
+        if(alert_exec_type!=null){
+            //如果选择的是普通类型时间
+            if("simple".equals(alert_exec_type)){
+                int alert_time_cycle_num_int = Integer.parseInt(alert_time_cycle_num);
+                String endTime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
+                timeArea.put("endtime",endTime);
+                switch(alert_time_cycle_type){
+                    case "second":
+                        //计算起始时间
+                        timeArea.put("starttime",DateTime.now().minusSeconds(alert_time_cycle_num_int).toString("yyyy-MM-dd HH:mm:ss"));
+                        break;
+                    case "minute":
+                        //计算起始时间
+                        timeArea.put("starttime",DateTime.now().minusMinutes(alert_time_cycle_num_int).toString("yyyy-MM-dd HH:mm:ss"));
+                        break;
+                    case "hour":
+                        //计算起始时间
+                        timeArea.put("starttime",DateTime.now().minusHours(alert_time_cycle_num_int).toString("yyyy-MM-dd HH:mm:ss"));
+                        break;
+                }
+            }else if("complex".equals(alert_exec_type)) {
+                if(alert_time_type!=null){
+                    if("last".equals(alert_time_type)){
+                        //工具类获取时间范围
+                        Map<String,String> timeMap = HttpRequestUtil.getStartEndTimeByLast(alert_time);
+                        timeArea.putAll(timeMap);
+                    }else if("range".equals(alert_time_type)){
+                        //精确时间的起始和截止时间以逗号隔开
+                        String[] timeArray = alert_time.split(",");
+                        if(timeArray.length==2){
+                            timeArea.put("starttime",timeArray[0]);
+                            timeArea.put("endtime",timeArray[1]);
+                        }
+                    }else{
+                        log.error("时间参数异常，alert_time_type："+alert_time_type);
+                    }
+                }
+            }else{
+                //参数异常，不做处理
+                log.error("时间参数异常，alert_exec_type："+alert_exec_type);
+            }
+        }
+        return timeArea;
     }
     /**
      * 处理参数 用于对报表的参数处理,服务于图表模块
@@ -437,7 +600,7 @@ public class HttpRequestUtil {
      * @param last 最近的时间 例：15-min、1-daying
      * @return
      */
-    private static Map<String,String> getStartEndTimeByLast(String last){
+    public static Map<String,String> getStartEndTimeByLast(String last){
         //今天、这周、本月等时间类型对应的格式化定义
         String startPattern = "yyyy-MM-dd 00:00:00";
         String endPattern = "yyyy-MM-dd 23:59:59";

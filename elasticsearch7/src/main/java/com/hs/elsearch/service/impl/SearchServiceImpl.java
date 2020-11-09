@@ -4,6 +4,7 @@ import com.hs.elsearch.dao.searchDao.ISearchDao;
 import com.hs.elsearch.entity.*;
 import com.hs.elsearch.service.ISearchService;
 import com.hs.elsearch.util.ElasticConstant;
+import com.hs.elsearch.util.ValueFormat;
 import joptsimple.internal.Strings;
 import org.elasticsearch.common.text.Text;
 import org.elasticsearch.search.SearchHit;
@@ -207,49 +208,8 @@ public class SearchServiceImpl implements ISearchService {
             dimensions.add(line_name);
             Double pointValue = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
             //数据换算
-            xAxisMap.put(line_name,valueFormatter(pointValue,unit));
+            xAxisMap.put(line_name, ValueFormat.formatter(pointValue, unit));
         }
     }
-    /**
-     * 数据换算
-     * @param value 值
-     * @param unit 换算单位 %/MB/GB/TB
-     * @return
-     */
-    private Object valueFormatter(Double value,String unit){
-        Object result = null;
-        //保留小数点2位
-        DecimalFormat decimalFormat=new DecimalFormat("0.00");
-        if(!Strings.isNullOrEmpty(unit)){
-            try{
-                switch (unit.toUpperCase()){
-                    case "%":
-                        Float folatValue = Float.parseFloat(value.toString());
-                        folatValue = folatValue*100;
-                        result = decimalFormat.format(folatValue);
-                        break;
-                    case "MB":
-                        value = value/1024/1024;//byte -> MB
-                        result = decimalFormat.format(value);
-                        break;
-                    case "GB":
-                        value = value/1024/1024/1024;//byte -> GB
-                        result = decimalFormat.format(value);
-                        break;
-                    case "TB":
-                        value = value/1024/1024/1024/1024;//byte -> TB
-                        result = decimalFormat.format(value);
-                        break;
-                    default:
-                        result = value;
-                        break;
-                }
-            }catch(Exception e){
-                result = value.toString();
-            }
-        }else{
-            result = value;
-        }
-        return result;
-    }
+
 }

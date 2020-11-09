@@ -1,24 +1,16 @@
 package com.jz.bigdata.common.configuration.controller;
 
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
-import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.github.benmanes.caffeine.cache.*;
 import com.jz.bigdata.common.Constant;
-import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.configuration.entity.Configuration;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import com.jz.bigdata.util.DescribeLog;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
-import scala.collection.immutable.Stream;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -26,20 +18,15 @@ import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @description
  * 全局配置项操作
  */
+@Slf4j
 @Controller
 @RequestMapping("/configuration")
 public class ConfigurationController {
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource(name = "ConfigurationService")
     private IConfigurationService configurationService;
@@ -73,7 +60,7 @@ public class ConfigurationController {
                 return Constant.failureMessage("修改配置信息失败");
             }
         }catch (Exception e){
-            logger.error("修改配置信息失败"+e.getMessage());
+            log.error("修改配置信息失败"+e.getMessage());
             return Constant.failureMessage("修改配置信息失败");
         }
     }
@@ -90,7 +77,7 @@ public class ConfigurationController {
                 return Constant.failureMessage("未找到该配置项");
             }
         }catch (Exception e){
-            logger.error("查询配置信息失败"+e.getMessage());
+            log.error("查询配置信息失败"+e.getMessage());
             return Constant.failureMessage("查询配置信息失败");
         }
     }
@@ -108,7 +95,7 @@ public class ConfigurationController {
             }
 
         }catch (Exception e){
-            logger.error("查询配置信息失败"+e.getMessage());
+            log.error("查询配置信息失败"+e.getMessage());
             return Constant.failureMessage("查询配置信息失败");
         }
     }

@@ -34,8 +34,6 @@ import java.util.Map;
 //@Component
 public class SearchTemplate {
 
-    private static Logger logger = Logger.getLogger(SearchTemplate.class);
-
     /*@Autowired
     restHighLevelClient restHighLevelClient;*/
 
@@ -121,7 +119,33 @@ public class SearchTemplate {
 
         return aggregations;
     }
+    /**
+     * 带有条件的聚合查询，agg设置成list是为了应对有多个metric  无bucket的情况
+     * @param queryBuilder
+     * @param aggregationBuilders agg数组
+     * @param indices
+     * @return
+     */
+    public SearchResponse getAggregationsByBuilder2Response(QueryBuilder queryBuilder,List<AggregationBuilder> aggregationBuilders,Integer size,String... indices) throws Exception {
+        SearchRequest searchRequest = new SearchRequest(indices);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        if (queryBuilder!=null){
+            searchSourceBuilder.query(queryBuilder);
+        }
+        if (aggregationBuilders!=null){
+            for(AggregationBuilder aggregationBuilder:aggregationBuilders){
+                searchSourceBuilder.aggregation(aggregationBuilder);
+            }
+        }
+        if(size!=null){
+            searchSourceBuilder.size(size);
+        }
+        searchRequest.source(searchSourceBuilder);
 
+        SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
+        return response;
+    }
     /**
      * 聚合查询
      * @param aggregationBuilder
@@ -157,7 +181,7 @@ public class SearchTemplate {
      * @return
      * @throws Exception
      */
-    public SearchHits getSearchHitsByBuilder(QueryBuilder queryBuilder,String[] includeSource,List<SortBuilder> sorts, int from, int size,String... indices) throws Exception {
+    public SearchHits getSearchHitsByBuilder(QueryBuilder queryBuilder,String[] includeSource,List<SortBuilder> sorts, Integer from, Integer size,String... indices) throws Exception {
         SearchRequest searchRequest = new SearchRequest(indices);
 
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
@@ -175,7 +199,7 @@ public class SearchTemplate {
             }
         }
         //分页
-        if (from>=0&&size>=0){
+        if (from!=null&&size!=null){
             searchSourceBuilder.from(from).size(size);
         }
         searchRequest.source(searchSourceBuilder);

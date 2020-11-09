@@ -12,6 +12,7 @@ import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.*;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: jiyourui
  * @create: 2020-03-30 09:19
  **/
-
+@Slf4j
 @Controller
 @RequestMapping("/ecsWinlog")
 public class EcsWinlogController {
-
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Resource(name="ecsService")
     private IecsService ecsService;
@@ -128,7 +127,7 @@ public class EcsWinlogController {
         Map<String, Object> map = new HashMap<>();
         try {
             list = ecsService.getListByContent(starttime,endtime,keyWords,mutlifields,querymap,page,size,configProperty.getEs_index());
-            logger.info("全文检索：查询成功");
+            log.info("全文检索：查询成功");
             if (list.size()>0){
                 map = list.get(0);
                 list.remove(0);
@@ -136,7 +135,7 @@ public class EcsWinlogController {
             }
             map.put("state", true);
         } catch (Exception e) {
-            logger.error("全文检索：查询失败"+e.getMessage());
+            log.error("全文检索：查询失败"+e.getMessage());
             e.printStackTrace();
             map.put("state", false);
         }
@@ -210,7 +209,7 @@ public class EcsWinlogController {
         try {
             list = ecsService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_index());
         } catch (Exception e) {
-            logger.error("日志精确查询：失败！");
+            log.error("日志精确查询：失败！");
             e.printStackTrace();
             allmap.put("count",0);
             allmap.put("list",null);
@@ -285,7 +284,7 @@ public class EcsWinlogController {
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
-            logger.error("事件内容：查询失败");
+            log.error("事件内容：查询失败");
             e.printStackTrace();
             allmap.put("count", 0);
             allmap.put("list", null);
@@ -350,7 +349,7 @@ public class EcsWinlogController {
         try {
             list = ecsService.getLogListByBlend(map,starttime,endtime,page,size,configProperty.getEs_index());
         } catch (Exception e) {
-            logger.error("资产日志：查询失败");
+            log.error("资产日志：查询失败");
             e.printStackTrace();
             allmap.put("count", 0);
             allmap.put("list", null);
@@ -363,7 +362,7 @@ public class EcsWinlogController {
 
         String result = JSONArray.fromObject(allmap).toString();
         String replace=result.replace("\\\\005", "<br/>");
-        logger.info("资产日志：查询成功");
+        log.info("资产日志：查询成功");
         return replace;
 
 
@@ -460,10 +459,10 @@ public class EcsWinlogController {
         List<Map<String, Object>> list = new ArrayList<>();
         try {
             list = ecsService.groupByThenCount(starttime,endtime,groupbyfield,size,map,index);
-            logger.error("统计各个日志级别的数据量 : 成功！");
+            log.info("统计各个日志级别的数据量 : 成功！");
         } catch (Exception e) {
-            logger.error("统计各个日志级别的数据量 : 失败！");
-            logger.error(e.getMessage());
+            log.error("统计各个日志级别的数据量 : 失败！");
+            log.error(e.getMessage());
             e.printStackTrace();
         }
 

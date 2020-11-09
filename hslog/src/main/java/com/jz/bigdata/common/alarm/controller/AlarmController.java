@@ -27,8 +27,6 @@ public class AlarmController {
 	private IAlarmService alarmService;
 	
 	/**
-	 * @param request
-	 * @param department
 	 * @return 查询事件信息
 	 */
 	@ResponseBody
@@ -41,8 +39,6 @@ public class AlarmController {
 
 	
 	/**
-	 * @param request
-	 * @param department
 	 * @return 查询事件信息
 	 */
 	@ResponseBody

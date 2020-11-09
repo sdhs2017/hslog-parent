@@ -1,9 +1,10 @@
-package com.jz.bigdata.common.configuration.cache;
+package com.jz.bigdata.common.start_execution.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.jz.bigdata.common.configuration.entity.Configuration;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.Logger;
 
 import java.util.List;
@@ -11,9 +12,9 @@ import java.util.List;
 /**
  * 配置项缓存
  */
+@Slf4j
 public enum ConfigurationCache {
     INSTANCE;
-    private static Logger logger = Logger.getLogger(ConfigurationCache.class);
     //
     private Cache<String, Object> configurationCache = Caffeine.newBuilder()
             .maximumSize(100)//最大条数，

@@ -13,6 +13,7 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.util.BASE64Util;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.POI.ReadExcel;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
  * @date 2017年8月16日 下午2:40:21
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/equipment")
 public class EquipmentController {
@@ -52,8 +54,6 @@ public class EquipmentController {
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
-
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public final static HashMap<String,String> equipment_type = new HashMap<>();
 	static{
@@ -105,15 +105,15 @@ public class EquipmentController {
 				}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
 					return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
 				}else{
-					logger.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
+					log.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
 				}
 			}else{
-				logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
+				log.error("资产维护upsert 其他异常情况！"+e.getMessage());
 			}
 			//其他异常情况
 			return Constant.failureMessage("操作失败！");
 		}catch (Exception e){
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 			return Constant.failureMessage("操作失败！");
 		}
 
@@ -146,15 +146,15 @@ public class EquipmentController {
 				}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
 					return Constant.failureMessage("资产“IP+日志类型”重复，请重新输入！");
 				}else{
-					logger.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
+					log.error("资产维护upsert MySQLIntegrityConstraintViolationException的其他情况！"+e.getMessage());
 				}
 			}else{
-				logger.error("资产维护upsert 其他异常情况！"+e.getMessage());
+				log.error("资产维护upsert 其他异常情况！"+e.getMessage());
 			}
 			//其他异常情况
 			return Constant.failureMessage("操作失败！");
 		}catch (Exception e){
-			logger.error(e.getMessage());
+			log.error(e.getMessage());
 			return Constant.failureMessage("操作失败！");
 		}
 
@@ -178,7 +178,7 @@ public class EquipmentController {
 			}
 			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 		}catch(Exception e){
-			logger.error("删除资产"+e.getMessage());
+			log.error("删除资产"+e.getMessage());
 			return Constant.failureMessage();
 		}
 
@@ -201,7 +201,7 @@ public class EquipmentController {
 			}
 			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
 		}catch(Exception e){
-			logger.error("删除资产"+e.getMessage());
+			log.error("删除资产"+e.getMessage());
 			return Constant.failureMessage();
 		}
 
@@ -221,7 +221,7 @@ public class EquipmentController {
 		try{
 			return equipmentService.selectAll(equipment,session);
 		}catch (Exception e){
-			logger.error("查询所有资产"+e.getMessage());
+			log.error("查询所有资产"+e.getMessage());
 			return Constant.failureMessage();
 		}
 	}
@@ -237,7 +237,7 @@ public class EquipmentController {
 		try{
 			return equipmentService.selectRisk();
 		}catch (Exception e){
-			logger.error("查询所有存在中、高危事件的资产"+e.getMessage());
+			log.error("查询所有存在中、高危事件的资产"+e.getMessage());
 			return Constant.failureMessage();
 		}
 	}
@@ -256,7 +256,7 @@ public class EquipmentController {
 		try {
 			list = this.equipmentService.selectEquipment(equipment);
 		} catch (Exception e) {
-			logger.error("查询单个资产：失败"+e.getMessage());
+			log.error("查询单个资产：失败"+e.getMessage());
 		}
 		return list;
 	}
@@ -291,9 +291,9 @@ public class EquipmentController {
 		String result = "";
 		try {
 			result = equipmentService.selectAllByPage(hostName,name,ip,logType,type, pageIndex, pageSize,session,asset_group_id);
-			logger.info("查询资产：成功");
+			log.info("查询资产：成功");
 		} catch (Exception e) {
-			logger.error("查询资产：失败"+e.getMessage());
+			log.error("查询资产：失败"+e.getMessage());
 		}
 		return result;
 	}
@@ -313,7 +313,7 @@ public class EquipmentController {
 		try {
 			list = this.equipmentService.selectEquipment(equipment);
 		} catch (Exception e) {
-			logger.error("查询资产：失败！");
+			log.error("查询资产：失败！");
 			e.printStackTrace();
 		}
 		Map<String,Object> map =new HashMap<>();
@@ -341,7 +341,7 @@ public class EquipmentController {
 				return Constant.successMessage();
 			}
 		} catch (Exception e) {
-			logger.error("资产名称重复性查询异常！");
+			log.error("资产名称重复性查询异常！");
 			e.printStackTrace();
 			return Constant.failureMessage("资产重复，请重新输入！");
 		}
@@ -358,7 +358,7 @@ public class EquipmentController {
 				return Constant.successMessage();
 			}
 		} catch (Exception e) {
-			logger.error("资产名称重复性查询异常！");
+			log.error("资产名称重复性查询异常！");
 			e.printStackTrace();
 			return Constant.failureMessage("资产重复，请重新输入！");
 		}
@@ -753,11 +753,11 @@ public class EquipmentController {
 					}else if(e.getMessage().indexOf("ipLogTypeUnique")>=0){
 						return Constant.failureMessage("资产“IP+日志类型”重复，请重新编辑该资产！"+ list);
 					}else{
-						logger.error(e.getMessage());
+						log.error(e.getMessage());
 						return Constant.failureMessage("资产导入batchInsert MySQLIntegrityConstraintViolationException的其他情况！"+list);
 					}
 				}else{
-					logger.error(e.getMessage());
+					log.error(e.getMessage());
 					return Constant.failureMessage("资产导入batchInsert 其他异常情况！"+list);
 				}
 			}catch (Exception e) {

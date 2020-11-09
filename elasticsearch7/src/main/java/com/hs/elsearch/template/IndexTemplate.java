@@ -41,7 +41,6 @@ import java.util.concurrent.TimeUnit;
  **/
 public class IndexTemplate {
 
-    private static Logger logger = Logger.getLogger(IndexTemplate.class);
 
     RestHighLevelClient restHighLevelClient;
 

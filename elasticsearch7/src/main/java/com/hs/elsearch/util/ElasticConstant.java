@@ -136,6 +136,66 @@ public class ElasticConstant {
         //boolean
         fieldTypeOperator.put("boolean",booleanOperator);
     }
+
+    /**
+     * 定义alert告警条件中的operator
+     */
+    public static final String ALERT_OP_GT = ">";
+    public static final String ALERT_OP_GTE = ">=";
+    public static final String ALERT_OP_LT = "<";
+    public static final String ALERT_OP_LTE = "<=";
+    public static final String ALERT_OP_IS = "=";
+    public static final String ALERT_OP_IS_NOT = "!=";
+    public static final String ALERT_OP_IS_MATCH = "is match";
+    public static final String ALERT_OP_IS_NOT_MATCH = "is not match";
+    public static final String ALERT_OP_IS_ONE_OF = "is one of";
+    public static final String ALERT_OP_IS_NOT_ONE_OF = "is not one of";
+
+    public static final Map<String, List<String>> fieldTypeOperator_alert = new HashMap<>();
+    private static final List<String> numberDateIpOperator_alert = new ArrayList<>();
+    private static final List<String> DateOperator_alert = new ArrayList<>();
+    private static final List<String> stringOperator_alert = new ArrayList<>();
+    private static final List<String> booleanOperator_alert = new ArrayList<>();
+    static{
+        //数值类型
+        numberDateIpOperator_alert.add(ALERT_OP_GT);
+        numberDateIpOperator_alert.add(ALERT_OP_GTE);
+        numberDateIpOperator_alert.add(ALERT_OP_LT);
+        numberDateIpOperator_alert.add(ALERT_OP_LTE);
+        numberDateIpOperator_alert.add(ALERT_OP_IS);
+        numberDateIpOperator_alert.add(ALERT_OP_IS_NOT);
+        numberDateIpOperator_alert.add(ALERT_OP_IS_ONE_OF);
+        numberDateIpOperator_alert.add(ALERT_OP_IS_NOT_ONE_OF);
+        //日期类型
+        DateOperator_alert.add(ALERT_OP_GT);
+        DateOperator_alert.add(ALERT_OP_GTE);
+        DateOperator_alert.add(ALERT_OP_LT);
+        DateOperator_alert.add(ALERT_OP_LTE);
+        DateOperator_alert.add(ALERT_OP_IS);
+        DateOperator_alert.add(ALERT_OP_IS_NOT);
+//        DateOperator_alert.add(ALERT_OP_IS_ONE_OF);
+//        DateOperator_alert.add(ALERT_OP_IS_NOT_ONE_OF);
+        //字符串
+        stringOperator_alert.add(ALERT_OP_IS);
+        stringOperator_alert.add(ALERT_OP_IS_NOT);
+        stringOperator_alert.add(ALERT_OP_IS_ONE_OF);
+        stringOperator_alert.add(ALERT_OP_IS_NOT_ONE_OF);
+        stringOperator_alert.add(ALERT_OP_IS_MATCH);
+        stringOperator_alert.add(ALERT_OP_IS_NOT_MATCH);
+        //bool
+        booleanOperator_alert.add(ALERT_OP_IS);
+
+        //number类型
+        fieldTypeOperator_alert.put("number",numberDateIpOperator_alert);
+        //date类型
+        fieldTypeOperator_alert.put("date",DateOperator_alert);
+        //ip类型
+        fieldTypeOperator_alert.put("ip",numberDateIpOperator_alert);
+        //string   （text、keyword）
+        fieldTypeOperator_alert.put("string",stringOperator_alert);
+        //boolean
+        fieldTypeOperator_alert.put("boolean",booleanOperator_alert);
+    }
     //字段类型合并机制，参考kibana index pattern
     public static final Map<String,String> IndexPatternType = new HashMap<>();
     static{

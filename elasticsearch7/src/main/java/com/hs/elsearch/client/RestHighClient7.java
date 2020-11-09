@@ -1,5 +1,6 @@
 package com.hs.elsearch.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -16,10 +17,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
-
+@Slf4j
 public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, InitializingBean, DisposableBean {
-
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     //Java High Level REST Client （高版本client）
     private RestHighLevelClient restHighLevelClient;
@@ -39,7 +38,7 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
 
     @Override
     public RestHighLevelClient getObject() throws Exception {
-        logger.info("------------elasticsearch连接初始化成功------------");
+        log.info("------------elasticsearch连接初始化成功------------");
         //System.out.println("------------拿到elasticsearch连接------------");
         return restHighLevelClient;
     }
@@ -63,7 +62,7 @@ public class RestHighClient7 implements FactoryBean<RestHighLevelClient>, Initia
     //初始化client
     private void buildClient() {
 
-        logger.info("------------启动连接elasticsearch-----IP:"+elasticsearchbean.get("es_ip")+"   PORT:"+elasticsearchbean.get("es_port")+"-------");
+        log.info("------------启动连接elasticsearch-----IP:"+elasticsearchbean.get("es_ip")+"   PORT:"+elasticsearchbean.get("es_port")+"-------");
 
         // 通过","获取配置文件中elasticsearch集群的多个节点
         String [] address = elasticsearchbean.get("es_ip").split(",");

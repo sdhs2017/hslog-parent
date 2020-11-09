@@ -48,6 +48,12 @@ public interface IBIService {
      */
     public DocWriteResponse.Result saveVisualization(Visualization visual , String indexName) throws Exception;
     /**
+     * 根据聚合方式的不同，筛选出符合要求的字段信息
+     * @param aggType 聚合类型
+     * @return
+     */
+    public List<MappingField> getMappingFieldByAggType(String templateName, String aggType) throws Exception;
+    /**
      * 保存图表信息
      * @param visual 图表信息bean
      * @return

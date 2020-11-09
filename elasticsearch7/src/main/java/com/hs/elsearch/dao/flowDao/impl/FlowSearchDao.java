@@ -30,8 +30,6 @@ import java.util.*;
  **/
 public class FlowSearchDao implements IFlowSearchDao {
 
-    private static Logger logger = Logger.getLogger(FlowSearchDao.class);
-
     // 默认排序字段
     String orderField = "logdate";
     // 默认排序方式

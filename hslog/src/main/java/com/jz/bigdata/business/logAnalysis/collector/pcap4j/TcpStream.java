@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.index.IndexRequest;
 import org.pcap4j.core.PcapPacket;
@@ -25,7 +26,7 @@ import com.jz.bigdata.business.logAnalysis.log.entity.Tcp;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
 import com.jz.bigdata.util.ConfigProperty;
-
+@Slf4j
 public class TcpStream {
 
 	private String server = "";
@@ -88,7 +89,7 @@ public class TcpStream {
 			http =new Http(packet);
 			json = gson.toJson(http);
 			requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_HTTP, json));
-			System.out.println(http.getIpv4_src_addr());
+			//System.out.println(http.getIpv4_src_addr());
 		}else if (hexstring.contains("170303")||hexstring.contains("160301")||hexstring.contains("150303")||hexstring.contains("160303")||hexstring.contains("140303")) {
 			TcpStream tcpStream=new TcpStream();
 			if (tcpPacket.getHeader().getAck()&&tcpPacket.getHeader().getPsh()) {
@@ -96,18 +97,18 @@ public class TcpStream {
 				https.setProtocol_type(tcpStream.GetEncryptionProtocol(packet));
 				json = gson.toJson(https);
 				requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_HTTPS, json));
-				System.out.println(https.getSource_ip());
+				//System.out.println(https.getSource_ip());
 			}else if (tcpPacket.getHeader().getAck()&&hexstring.indexOf("170303")>40) {
 				https=new Https(packet);
 				https.setProtocol_type(tcpStream.GetEncryptionProtocol(packet));
 				json = gson.toJson(https);
 				requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_HTTPS, json));
-				System.out.println(https.getSource_ip());
+				//System.out.println(https.getSource_ip());
 			}else{
 				tcp=new Tcp(packet);
 				json = gson.toJson(tcp);
 				requests.add(logCrudDao.insertNotCommit(configProperty.getEs_index(), LogType.LOGTYPE_TCP, json));
-				System.out.println(tcp.getSource_ip());
+				//System.out.println(tcp.getSource_ip());
 			}
 //			}else {
 //				System.out.println("---------start------------");
@@ -198,14 +199,13 @@ public class TcpStream {
  	        try {
  	            baKeyword[i] = (byte) (0xff & Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16));
  	        } catch (Exception e) {
- 	            e.printStackTrace();
+ 	        	log.error("hexStringToString异常："+e.getMessage());
  	        }
  	    }
  	    try {
  	        s = new String(baKeyword, "UTF-8");
- 	        new String();
  	    } catch (Exception e1) {
- 	        e1.printStackTrace();
+			log.error("hexStringToString异常："+e1.getMessage());
  	    }
  	    return s;
  	}

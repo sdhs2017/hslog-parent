@@ -16,6 +16,7 @@ import com.jz.bigdata.common.serviceInfo.entity.ServiceInfo;
 import com.jz.bigdata.common.serviceInfo.service.IServiceInfoService;
 import com.jz.bigdata.util.*;
 import joptsimple.internal.Strings;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.collections.map.HashedMap;
@@ -44,11 +45,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: jiyourui
  * @create: 2019-11-01 14:28
  **/
+@Slf4j
 @Controller
 @RequestMapping("/flow")
 public class FlowController {
 
-    protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     //默认查询或聚合结果的条数
     private final int size = 10;
     //数据统计默认时间间隔
@@ -448,7 +449,7 @@ public class FlowController {
     public String getNetworkTopological(HttpServletRequest request) {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        logger.info("进入业务流分析统计   "+format.format(new Date()));
+        log.info("进入业务流分析统计   "+format.format(new Date()));
 
         String index = configProperty.getEs_flow_index();
 
@@ -491,9 +492,9 @@ public class FlowController {
             // 聚合源IP和目的IP
             List<Map<String, Object>> list = null;
             try {
-                logger.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
+                log.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
                 list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
-                logger.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
+                log.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -527,9 +528,9 @@ public class FlowController {
         // 源IP、目的IP的连线，连线次数
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
         try {
-            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
+            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
             linkslist = flowService.groupBys(index,types,groupbys,1000,starttime,endtime,searchmap);
-            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
+            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -537,7 +538,7 @@ public class FlowController {
 
         //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
         Iterator<Map<String, Object>> iterator = linkslist.iterator();
-        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
+        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
         while (iterator.hasNext()) {
             Map<String, Object> linkmap = iterator.next();
             if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
@@ -546,11 +547,11 @@ public class FlowController {
 				System.out.println("包含："+linkmap);
 			}*/
         }
-        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
+        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
         map.put("data", datalist);
         map.put("links", linkslist);
 
-        logger.info("结束业务流分析统计   "+format.format(new Date()));
+        log.info("结束业务流分析统计   "+format.format(new Date()));
         return JSONArray.fromObject(map).toString();
     }
 
@@ -1054,7 +1055,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("通过时间段统计操作系统的种类及数量"+e.getMessage());
+            log.error("通过时间段统计操作系统的种类及数量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1148,7 +1149,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("通过时间段统计浏览器的种类及数量"+e.getMessage());
+            log.error("通过时间段统计浏览器的种类及数量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1202,7 +1203,7 @@ public class FlowController {
             Map<String, LinkedList<Map<String, Object>>> list = flowService.getListByMultiAggregation(params);
             return JSONArray.fromObject(list).toString();
         }catch(Exception e){
-            logger.error("嵌套聚合测试"+e.getMessage());
+            log.error("嵌套聚合测试"+e.getMessage());
             e.printStackTrace();
             return Constant.failureMessage("数据查询失败！");
         }
@@ -1228,7 +1229,7 @@ public class FlowController {
             Map<String, Object> list = flowService.getMultiAggregationDataSet(params);
             return JSONArray.fromObject(list).toString();
         }catch(Exception e){
-            logger.error("嵌套聚合测试"+e.getMessage());
+            log.error("嵌套聚合测试"+e.getMessage());
             e.printStackTrace();
             return Constant.failureMessage("数据查询失败！");
         }
@@ -1267,7 +1268,7 @@ public class FlowController {
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString());
         }catch(Exception e){
-            logger.error("实时统计流量数据访问包长度"+e.getMessage());
+            log.error("实时统计流量数据访问包长度"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1335,7 +1336,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("源ip地址流量"+e.getMessage());
+            log.error("源ip地址流量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1419,7 +1420,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("目的ip地址流量"+e.getMessage());
+            log.error("目的ip地址流量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1478,7 +1479,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("传输层协议长度排行"+e.getMessage());
+            log.error("传输层协议长度排行"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1538,7 +1539,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("应用层协议长度排行"+e.getMessage());
+            log.error("应用层协议长度排行"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1604,7 +1605,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.calculateMBytes(mergeResult);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("源ip地址流量"+e.getMessage());
+            log.error("源ip地址流量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1717,7 +1718,7 @@ public class FlowController {
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString());
         }catch(Exception e){
-            logger.error("全局数据包类型及个数"+e.getMessage());
+            log.error("全局数据包类型及个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1800,7 +1801,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.transAssetName(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("资产（ip） 数据包个数"+e.getMessage());
+            log.error("资产（ip） 数据包个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1877,7 +1878,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.transServiceName(result,serviceInfoService.selectAll());
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            logger.error("资产（服务） 数据包个数"+e.getMessage());
+            log.error("资产（服务） 数据包个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -1952,7 +1953,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("目的端口总流量"+e.getMessage());
+            log.error("目的端口总流量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2063,7 +2064,7 @@ public class FlowController {
             newResult.putAll(newResult4Multicast);
             return Constant.successData(JSONArray.fromObject(newResult).toString());
         }catch(Exception e){
-            logger.error("实时统计流量数据访问包个数"+e.getMessage());
+            log.error("实时统计流量数据访问包个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2163,7 +2164,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("TCP目的端口总流量"+e.getMessage());
+            log.error("TCP目的端口总流量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2237,7 +2238,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("目的端口总流量"+e.getMessage());
+            log.error("目的端口总流量"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2309,7 +2310,7 @@ public class FlowController {
             LinkedHashMap<String,ArrayList<Map<String,Object>>> newResult = ControllerDataTransUtil.convertToDynamicLineData(result);
             return Constant.successData(JSONArray.fromObject(newResult).toString());
         }catch(Exception e){
-            logger.error("实时统计流量数据访问包个数"+e.getMessage());
+            log.error("实时统计流量数据访问包个数"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2399,7 +2400,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("统计应用的平均响应时间"+e.getMessage());
+            log.error("统计应用的平均响应时间"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2448,14 +2449,14 @@ public class FlowController {
             try {
                 list = flowService.groupByThenAvg(types,groupfields,avgfield,size,starttime,endtime,map,index);
             } catch (Exception e) {
-                logger.error("统计应用的平均响应时间报错");
+                log.error("统计应用的平均响应时间报错");
                 e.printStackTrace();
             }
         }else {
             try {
                 list = flowService.groupByThenAvg(types,groupfields,avgfield,size,null,null,null,index);
             } catch (Exception e) {
-                logger.error("统计应用的平均响应时间报错");
+                log.error("统计应用的平均响应时间报错");
                 e.printStackTrace();
             }
         }
@@ -2506,7 +2507,7 @@ public class FlowController {
             Map<String, Object> result = flowService.getMultiAggregationDataSet(params);
             return Constant.successData(JSONArray.fromObject(result).toString()) ;
         }catch(Exception e){
-            logger.error("统计单个应用的功能url平均响应时间"+e.getMessage());
+            log.error("统计单个应用的功能url平均响应时间"+e.getMessage());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2557,14 +2558,14 @@ public class FlowController {
             try {
                 list = flowService.groupByThenAvg(types,groupfields,avgfield,size,starttime,endtime,map,index);
             } catch (Exception e) {
-                logger.error("统计单个应用的功能url平均响应时间报错");
+                log.error("统计单个应用的功能url平均响应时间报错");
                 e.printStackTrace();
             }
         }else {
             try {
                 list = flowService.groupByThenAvg(types,groupfields,avgfield,size,null,null,null,index);
             } catch (Exception e) {
-                logger.error("统计单个应用的功能url平均响应时间报错");
+                log.error("统计单个应用的功能url平均响应时间报错");
                 e.printStackTrace();
             }
         }
@@ -2620,12 +2621,12 @@ public class FlowController {
             // Elasticsearch exception [type=index_not_found_exception, reason=no such index [hslog_packet2020-04-27]]
             String DetailedMessage = exception.getDetailedMessage();
             if (DetailedMessage.indexOf("index_not_found_exception")!=-1){
-                logger.error("未找到合并的索引："+indices);
+                log.error("未找到合并的索引："+indices);
                 return Constant.failureMessage("未找到合并的索引："+indices);
             }
         } catch (Exception e) {
-            logger.error("索引合并失败!");
-            logger.error(e.getMessage());
+            log.error("索引合并失败!");
+            log.error(e.getMessage());
             e.printStackTrace();
             return Constant.failureMessage("索引合并失败！");
         }
@@ -2679,7 +2680,7 @@ public class FlowController {
     public String getNetworkTop(HttpServletRequest request) {
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        logger.info("进入业务流分析统计   "+format.format(new Date()));
+        log.info("进入业务流分析统计   "+format.format(new Date()));
 
         String index = request.getParameter("indices");
         String [] indices = index.split(",");
@@ -2708,9 +2709,9 @@ public class FlowController {
             // 聚合源IP和目的IP
             List<Map<String, Object>> list = null;
             try {
-                logger.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
+                log.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
                 list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
-                logger.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
+                log.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -2744,9 +2745,9 @@ public class FlowController {
         // 源IP、目的IP的连线，连线次数
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
         try {
-            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
+            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
             linkslist = flowService.groupBys(index,types,groupbys,1000,starttime,endtime,searchmap);
-            logger.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
+            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2758,7 +2759,7 @@ public class FlowController {
 
         //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
         Iterator<Map<String, Object>> iterator = linkslist.iterator();
-        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
+        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
         while (iterator.hasNext()) {
             Map<String, Object> linkmap = iterator.next();
             if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
@@ -2767,11 +2768,11 @@ public class FlowController {
 				System.out.println("包含："+linkmap);
 			}*/
         }
-        logger.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
+        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
         map.put("data", datalist);
         map.put("links", linkslist);
 
-        logger.info("结束业务流分析统计   "+format.format(new Date()));
+        log.info("结束业务流分析统计   "+format.format(new Date()));
         return JSONArray.fromObject(map).toString();
     }
 }

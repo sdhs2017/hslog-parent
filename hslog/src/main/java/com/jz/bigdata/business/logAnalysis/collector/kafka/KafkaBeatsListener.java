@@ -7,14 +7,13 @@ import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
-import com.jz.bigdata.common.asset.cache.AssetCache;
+import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.entity.Asset;
-import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.ContextRoles;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.log4j.Logger;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +27,9 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
+@Slf4j
 public class KafkaBeatsListener {
-    private static Logger logger = Logger.getLogger(KafkaConfig.class);
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
     @Autowired
@@ -52,11 +50,11 @@ public class KafkaBeatsListener {
             for(ConsumerRecord<?, String> record:records){
                 request = new IndexRequest();
                 try {
-                    String log = record.value();
+                    String logs = record.value();
                     /**
                      * 将采集到的log转为jsonObject格式
                      */
-                    JsonElement jsonElement = new JsonParser().parse(log);
+                    JsonElement jsonElement = new JsonParser().parse(logs);
                     JsonObject jsonObject= jsonElement.getAsJsonObject();
 
                     //获取数据IP
@@ -414,27 +412,83 @@ public class KafkaBeatsListener {
                             }else{
                                 //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
+                        }else if(beat_type.equals(ContextRoles.FILEBEAT)){
+                            //判断是否在已识别资产里————日志类型可识别
+                            equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_FILE);
+                            //如果该资产在虚拟资产列表中
+                            if(null != equipment){
+                                //补全虚拟资产信息
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
+                                //如果IP在逻辑资产列表中，加上逻辑资产标签
+                                asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
+                                if(asset!=null){
+                                    jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+                                    jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
+                                }
+                                /**
+                                 * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+                                 */
+                                jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+                                /**
+                                 * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+                                 */
+                                String beatdate = jsonObject.get("@timestamp").getAsString();
+                                try {
+                                    Date date = format.parse(beatdate);
+                                    Calendar cal = Calendar.getInstance();
+                                    cal.setTime(date);
+                                    cal.add(Calendar.HOUR_OF_DAY, +8);
+                                    date = cal.getTime();
+                                    jsonObject.addProperty("@timestamp",format.format(date));
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                /**
+                                 * index名称设置
+                                 */
+                                String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+                                //获取所属模块，该字段信息不一定存在
+                                try {
+                                    module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+                                }catch (Exception e){
+                                    module = null;
+                                }
+                                //组装index信息,存在module字段时，index名称中插入module
+                                String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
+                                //批量入库
+                                //indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+                                request.index(index);
+                                request.source(jsonObject.toString(), XContentType.JSON);
+                                //bulkRequest.add(request);
+                                // 将bulkrequest替换为bulkprocessor方式
+                                logCurdDao.bulkProcessor_add(request);
+                            }else{
+                                //虚拟资产中改ip对应资产不包含filebeat，数据暂时不入库
+                            }
                         }else{
-                            logger.info("该跳数据不属于packet/metric/winlog Beat！");
+                            log.info("该跳数据不属于packet/metric/winlog/file Beat！");
                         }
                     }else{
-                        logger.info("数据不在资产池中，IP:"+ipadress+"--"+log);
+                        log.info("数据不在资产池中，IP:"+ipadress+"--"+logs);
                     }
 
                 }catch (NullPointerException e){
                     e.printStackTrace();
-                    logger.error("kafka范式化：获取数据出现空指针情况");
+                    log.error("kafka范式化：获取数据出现空指针情况");
                     continue;
                 }catch (Exception e){
                     e.printStackTrace();
-                    logger.error("范式化失败！！！！");
+                    log.error("范式化失败！！！！");
                     continue;
                 }
             }
 
         }catch(Exception e){
             e.printStackTrace();
-            logger.error("kafka—beats消费数据处理异常："+e.getMessage());
+            log.error("kafka—beats消费数据处理异常："+e.getMessage());
         }
         ack.acknowledge();//提交偏移量
     }

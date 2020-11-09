@@ -17,21 +17,20 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.RemovalCause;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.common.Constant;
-import com.jz.bigdata.common.asset.cache.AssetCache;
+import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.collector.kafka.KafakaOfBeatsCollector;
 import com.jz.bigdata.business.logAnalysis.log.entity.Http;
 import com.jz.bigdata.common.asset.service.IAssetService;
-import com.jz.bigdata.common.configuration.cache.ConfigurationCache;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import com.jz.bigdata.common.serviceInfo.dao.IServiceInfoDao;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.pcap4j.core.*;
 import org.pcap4j.core.BpfProgram.BpfCompileMode;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.stereotype.Service;
@@ -57,10 +56,9 @@ import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.Uuid;
 
 import net.sf.json.JSONArray;
-
+@Slf4j
 @Service(value="CollectorService")
 public class CollectorServiceImpl implements ICollectorService{
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 	/**
 	 * *****************************************默认kafka管理器属性****************************8
 	 */
@@ -75,6 +73,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	Thread t;
 	private final String topic_beats = "beats";
 	private final String topic_all = "all";
+	private final String topic_file = "filebeat";
 	/**
 	 * *****************************************masscan管理器属性****************************8
 	 */
@@ -366,7 +365,7 @@ public class CollectorServiceImpl implements ICollectorService{
 							request.source(json, XContentType.JSON);
 							logCurdDao.bulkProcessor_add(request);
 						} catch (Exception e) {
-							e.printStackTrace();
+							log.error("startPcap4jCollector---removalListener--异常："+e.getMessage());
 						}
 					}
 
@@ -401,12 +400,12 @@ public class CollectorServiceImpl implements ICollectorService{
         try {
 			handle.setFilter(filter, BpfCompileMode.OPTIMIZE);
 		} catch (PcapNativeException e) {
-			//e.printStackTrace();
+			log.error("startPcap4jCollector---PcapNativeException--异常："+e.getMessage());
 			map.put("state", false);
 			map.put("msg", "网卡设置过滤器失败！数据包采集器开启失败！"+e.getMessage());
 			return JSONArray.fromObject(map).toString();
 		} catch (NotOpenException e) {
-			//e.printStackTrace();
+			log.error("startPcap4jCollector---NotOpenException--异常："+e.getMessage());
 			map.put("state", false);
 			map.put("msg", "网卡设置过滤器失败！数据包采集器开启失败！"+e.getMessage());
 			return JSONArray.fromObject(map).toString();
@@ -425,10 +424,7 @@ public class CollectorServiceImpl implements ICollectorService{
         			packetStream = new PacketStream(configProperty,logCurdDao,gson,domainSet,urlmap,httpCache);
             		packetStream.gotPacket(packet);
        			} catch (Exception e) {
-					logger.error("new PacketStream-------报错信息:"+e.getMessage());
-        			//System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getLocalizedMessage());
-       				//System.out.println("---------------jiyourui-----new PacketStream-------报错信息:------------"+e.getMessage());
-       				e.printStackTrace();
+					log.error("new PacketStream-------报错信息:"+e.getMessage());
        			}
            }
         };
@@ -450,7 +446,7 @@ public class CollectorServiceImpl implements ICollectorService{
 				return JSONArray.fromObject(map).toString();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("startPcap4jCollector--异常："+e.getMessage());
 			map.put("state", false);
 			map.put("msg", "数据包采集器开启失败");
 			return JSONArray.fromObject(map).toString();
@@ -592,13 +588,12 @@ public class CollectorServiceImpl implements ICollectorService{
 					return Constant.successMessage("Agent采集启动成功！");
 				}
 			}else{
-				logger.error("ES 批量提交bulk processor初始化失败。");
+				log.error("ES 批量提交bulk processor初始化失败。");
 				return Constant.failureMessage("Agent采集启动失败  ！");
 
 			}
 		}catch(Exception e){
-			System.out.println("kafka-Agent启动失败！"+e.getMessage());
-			logger.error("kafka-Agent启动失败！"+e.getMessage());
+			log.error("kafka-Agent启动失败！"+e.getMessage());
 			registry.getListenerContainer(topic_beats).stop();//启动异常时，需要进行一次关闭
 			return Constant.failureMessage("Agent采集启动失败   ！");
 		}
@@ -615,7 +610,7 @@ public class CollectorServiceImpl implements ICollectorService{
 			}
 			return Constant.successMessage("Agent采集已关闭！");
 		}catch(Exception e){
-			logger.error("kafka-Agent关闭失败！"+e.getMessage());
+			log.error("kafka-Agent关闭失败！"+e.getMessage());
 			return Constant.failureMessage("Agent采集关闭失败！");
 		}
 	}
@@ -642,12 +637,12 @@ public class CollectorServiceImpl implements ICollectorService{
 					return Constant.successMessage("Syslog采集启动成功！");
 				}
 			}else{
-				logger.error("ES 批量提交bulk processor初始化失败。");
+				log.error("ES 批量提交bulk processor初始化失败。");
 				return Constant.failureMessage("Syslog采集启动失败！");
 
 			}
 		}catch(Exception e){
-			logger.error("kafka-Syslog启动失败！"+e.getMessage());
+			log.error("kafka-Syslog启动失败！"+e.getMessage());
 			registry.getListenerContainer(topic_all).stop();//启动异常时，需要进行一次关闭
 			return Constant.failureMessage("Syslog采集启动失败！");
 		}
@@ -664,7 +659,7 @@ public class CollectorServiceImpl implements ICollectorService{
 			}
 			return Constant.successMessage("Syslog采集已关闭！");
 		}catch(Exception e){
-			logger.error("kafka-Syslog关闭失败！"+e.getMessage());
+			log.error("kafka-Syslog关闭失败！"+e.getMessage());
 			return Constant.failureMessage("Syslog采集关闭失败！");
 		}
 	}
@@ -677,7 +672,6 @@ public class CollectorServiceImpl implements ICollectorService{
 			return false;
 		}
 	}
-
 	/**
      * 根据IP获取指定网卡设备
 	* @param NameOrIP 网卡IP或者网卡名
@@ -714,8 +708,7 @@ public class CollectorServiceImpl implements ICollectorService{
 			     
 			 }
 		} catch (PcapNativeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("getCaptureNetworkInterface异常："+e.getMessage());
 		}
         return null;
 	}
@@ -761,7 +754,6 @@ public class CollectorServiceImpl implements ICollectorService{
 	/**
 	 * cache初始化
 	 * 资产/全局配置项
-	 * //TODO BICache
 	 */
 	public void cacheInit(){
 		ConfigurationCache.INSTANCE.init(configurationService);
@@ -841,7 +833,7 @@ public class CollectorServiceImpl implements ICollectorService{
 				funservice.setIp(url.getHost());
 				funservice.setPort(url.getPort()+"");
 			}catch(Exception e){
-				e.printStackTrace();
+				log.error("insertUrl异常"+e.getMessage());
 				//出现异常信息，进行标记
 				funservice.setDescribe("AbnormalUrl");
 			}
@@ -854,7 +846,8 @@ public class CollectorServiceImpl implements ICollectorService{
 		//数据为空时，插入数据会报错
 		if(serviceslist.size()>0){
 			//返回插入的条数
-			int count = serviceInfoService.insertIgnore(serviceslist);
+			//int count = serviceInfoService.insertIgnore(serviceslist);
+			serviceInfoService.insertIgnore(serviceslist);
 		}
 	}
 	/**
@@ -905,8 +898,7 @@ public class CollectorServiceImpl implements ICollectorService{
 				return false;
 			}
 		}catch(Exception e){
-			System.out.println("bulk processor初始化失败！"+e.getMessage());
-			logger.error("bulk processor初始化失败！"+e.getMessage());
+			log.error("bulk processor初始化失败！"+e.getMessage());
 			return false;
 		}
 

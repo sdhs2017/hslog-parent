@@ -9,6 +9,7 @@ public class LogType {
 	public static final String LOGTYPE_WINLOG = "winlog";
 	public static final String LOGTYPE_PACKET = "packet";
 	public static final String LOGTYPE_METRIC = "metric";
+	public static final String LOGTYPE_FILE = "file";
 	public static final String LOGTYPE_SYSLOG = "syslog";
 	public static final String LOGTYPE_MYSQLLOG = "mysql";
 	public static final String LOGTYPE_APPLOG = "applog";

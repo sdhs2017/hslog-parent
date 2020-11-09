@@ -117,6 +117,26 @@
 		<include refid="Base_Column_List" />
 		from equipment where startUp =1
 	</select>
+	<select id="selectAllHostNameByAssetGroup" resultMap="BaseResultMapUserName">
+		<choose>
+			<when test="asset_group_id != null and asset_group_id !=''">
+				select
+				<include refid="Base_Column_List" />
+				from equipment
+				left join asset_group_relations on asset_group_relations.asset_id = equipment.id
+				left join asset_group on asset_group.asset_group_id = asset_group_relations.asset_group_id
+				where startUp =1
+				and asset_group.asset_group_id = #{asset_group_id,jdbcType=VARCHAR}
+			</when>
+			<otherwise>
+				select
+				<include refid="Base_Column_List" />
+				from equipment
+				where startUp =1
+			</otherwise>
+		</choose>
+
+	</select>
 
 
 	<!-- 添加数据 -->

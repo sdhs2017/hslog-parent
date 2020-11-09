@@ -13,6 +13,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.jz.bigdata.common.eventGroup.entity.EventGroup;
 import com.jz.bigdata.common.eventGroup.service.IEventGroupService;
 import com.mysql.jdbc.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -26,14 +27,13 @@ import com.jz.bigdata.util.DescribeLog;
 /**
  * @description
  */
+@Slf4j
 @Controller
 @RequestMapping("/eventGroup")
 public class EventGroupController {
 
 	@Resource(name = "EventGroupService")
 	private IEventGroupService eventGroupService;
-
-	protected final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	@ResponseBody
 	@RequestMapping(value="/insert.do", produces = "application/json; charset=utf-8")
@@ -236,20 +236,20 @@ public class EventGroupController {
 		if(null!=throwable){
 			String throwableInfo = throwable.toString();
 			if(throwableInfo.indexOf("UNIQUE_EVENT_GROUP_NAME")>=0){
-				logger.error("事件组名称重复："+e.getMessage());
+				log.error("事件组名称重复："+e.getMessage());
 				return Constant.failureMessage("事件组名称重复！");
 			}else{
-				logger.error("事件组添加失败"+e.getMessage());
+				log.error("事件组添加失败"+e.getMessage());
 				return Constant.failureMessage("事件组信息添加失败！");
 			}
 		}else if(null!=throwableList){
 			//返回的异常可能是一个数组
 			String throwables = Arrays.toString(throwableList);
 			if(throwables.indexOf("UNIQUE_EVENT_GROUP_NAME")>=0){
-				logger.error("事件组名称重复："+e.getMessage());
+				log.error("事件组名称重复："+e.getMessage());
 				return Constant.failureMessage("事件组名称重复！");
 			}else{
-				logger.error("事件组添加失败"+e.getMessage());
+				log.error("事件组添加失败"+e.getMessage());
 				return Constant.failureMessage("事件组信息添加失败！");
 			}
 		}else{

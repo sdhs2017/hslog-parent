@@ -51,4 +51,5 @@ public interface ISearchService {
      */
     public long getCountByConditionsQuery(SearchConditions conditions) throws Exception;
 
+
 }

@@ -24,6 +24,7 @@ public class ContextRoles {
     public static final String WINLOGBEAT = "winlogbeat";
     public static final String PACKETBEAT = "packetbeat";
     public static final String METRICBEAT = "metricbeat";
+    public static final String FILEBEAT = "filebeat";
 
 
     /**

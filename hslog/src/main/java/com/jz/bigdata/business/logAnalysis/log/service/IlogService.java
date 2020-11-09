@@ -529,4 +529,5 @@ public interface IlogService {
 	 * @return
 	 */
 	public long getCount(Map<String, String> map, String starttime,String endtime, String... indices) throws Exception;
+
 }

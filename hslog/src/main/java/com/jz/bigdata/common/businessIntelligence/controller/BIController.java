@@ -14,6 +14,7 @@ import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.HttpRequestUtil;
 import joptsimple.internal.Strings;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchStatusException;
@@ -32,10 +33,10 @@ import java.util.*;
 /**
  * BI报表
  */
+@Slf4j
 @Controller
 @RequestMapping("/BI")
 public class BIController {
-    private static Logger logger = Logger.getLogger(BIController.class);
     private final String biIndexName = "hsdata";
     @Resource(name = "BIService")
     private IBIService iBIService;
@@ -67,7 +68,7 @@ public class BIController {
             List<MappingField> result = iBIService.getFieldByXAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
-            logger.error("通过X轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
+            log.error("通过X轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -94,7 +95,7 @@ public class BIController {
             List<MappingField> result = iBIService.getFieldByYAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
-            logger.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
+            log.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -120,7 +121,7 @@ public class BIController {
             List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
-            logger.error("通过Filter方式获取对应的列失败："+e.getStackTrace().toString());
+            log.error("通过Filter方式获取对应的列失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -146,7 +147,7 @@ public class BIController {
             List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
-            logger.error("动态表格获取字段失败："+e.getStackTrace().toString());
+            log.error("动态表格获取字段失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -163,7 +164,7 @@ public class BIController {
             String fieldType = request.getParameter("fieldType");
             return JSONArray.fromObject(ElasticConstant.fieldTypeOperator.get(fieldType)).toString();
         }catch(Exception e){
-            logger.error("通过字段类型获取对应的operation,失败："+e.getStackTrace().toString());
+            log.error("通过字段类型获取对应的operation,失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -209,7 +210,7 @@ public class BIController {
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
-            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            log.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -239,7 +240,7 @@ public class BIController {
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
-            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            log.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -265,7 +266,7 @@ public class BIController {
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
-            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            log.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -291,7 +292,7 @@ public class BIController {
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
-            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            log.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败");
         }
     }
@@ -317,7 +318,7 @@ public class BIController {
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
-            logger.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
+            log.error("数据可视化模块聚合查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -343,7 +344,7 @@ public class BIController {
         }catch(ElasticsearchStatusException e){
             return handleElasticException(e);
         }catch(Exception e){
-            logger.error("数据可视化模块查询失败："+e.getStackTrace().toString());
+            log.error("数据可视化模块查询失败："+e.getStackTrace().toString());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -382,7 +383,7 @@ public class BIController {
                 return Constant.failureMessage("数据操作成功");
             }
         }catch(Exception e){
-            logger.error("图表保存"+e.getMessage());
+            log.error("图表保存"+e.getMessage());
             return Constant.failureMessage("数据操作失败");
         }
     }
@@ -419,7 +420,7 @@ public class BIController {
                 return Constant.failureMessage("数据操作成功");
             }
         }catch(Exception e){
-            logger.error("仪表盘保存"+e.getMessage());
+            log.error("仪表盘保存"+e.getMessage());
             return Constant.failureMessage("数据操作失败");
         }
     }
@@ -435,7 +436,7 @@ public class BIController {
             String result = iBIService.getVisualizations(biIndexName,session);
             return Constant.successData(result);
         }catch(Exception e){
-            logger.error("获取图表列表"+e.getMessage());
+            log.error("获取图表列表"+e.getMessage());
             return Constant.successData(null);
         }
     }
@@ -451,7 +452,7 @@ public class BIController {
             String result = iBIService.getDashboards(biIndexName,session);
             return Constant.successData(result);
         }catch(Exception e){
-            logger.error("获取仪表盘列表"+e.getMessage());
+            log.error("获取仪表盘列表"+e.getMessage());
             return Constant.successData(null);
         }
     }
@@ -468,7 +469,7 @@ public class BIController {
             String result = iBIService.getVisualizationById(id,biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
-            logger.error("获取图表详情"+e.getMessage());
+            log.error("获取图表详情"+e.getMessage());
             return Constant.failureMessage("获取图表详情失败");
         }
     }
@@ -485,7 +486,7 @@ public class BIController {
             String result = iBIService.getDashboardTemplates(ids,biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
-            logger.error("获取dashboard的template列表失败"+e.getMessage());
+            log.error("获取dashboard的template列表失败"+e.getMessage());
             return Constant.failureMessage("获取Index Pattern失败!");//前端名称为index pattern，异常返回
         }
     }
@@ -502,7 +503,7 @@ public class BIController {
             String result = iBIService.getDashboardById(id,biIndexName);
             return Constant.successData(result);
         }catch(Exception e){
-            logger.error("获取仪表盘详情"+e.getMessage());
+            log.error("获取仪表盘详情"+e.getMessage());
             return Constant.failureMessage("获取仪表盘详情失败");
         }
     }
@@ -519,7 +520,7 @@ public class BIController {
             String result = iBIService.deleteVisualizationById(id,biIndexName);
             return Constant.successMessage(result);
         }catch(Exception e){
-            logger.error("删除图表"+e.getMessage());
+            log.error("删除图表"+e.getMessage());
             return Constant.failureMessage("删除图表失败");
         }
     }
@@ -536,7 +537,7 @@ public class BIController {
             String result = iBIService.deleteDashboardById(id,biIndexName);
             return Constant.successMessage(result);
         }catch(Exception e){
-            logger.error("删除仪表盘"+e.getMessage());
+            log.error("删除仪表盘"+e.getMessage());
             return Constant.failureMessage("删除仪表盘失败");
         }
     }
@@ -617,14 +618,14 @@ public class BIController {
             String ES_ExceptionTypeThirdLevel = throwable.toString();
             if(ES_ExceptionTypeSecondLevel.indexOf("search_phase_execution_exception")>=0){
                 if(ES_ExceptionTypeThirdLevel.indexOf("too_many_buckets_exception")>=0){
-                    logger.error("数据可视化模块，聚合异常，聚合桶数超出阈值（search.max_buckets）");
+                    log.error("数据可视化模块，聚合异常，聚合桶数超出阈值（search.max_buckets）");
                     return Constant.failureMessage("数据查询失败!<br>请缩小时间范围或增大聚合间隔！");
                 }else{
-                    logger.error("ElasticsearchStatusException->search_phase_execution_exception->"+e.getMessage());
+                    log.error("ElasticsearchStatusException->search_phase_execution_exception->"+e.getMessage());
                     return Constant.failureMessage("数据查询失败");
                 }
             }else{
-                logger.error("ElasticsearchStatusException->非search_phase_execution_exception"+e.getMessage());
+                log.error("ElasticsearchStatusException->非search_phase_execution_exception"+e.getMessage());
                 return Constant.failureMessage("数据查询失败");
             }
         }else if(null!=throwableList){
@@ -658,7 +659,7 @@ public class BIController {
             List<Map<String,String>> result = iBIService.showTables();
             return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("获取数据库所有表"+e.getMessage());
+            log.error("获取数据库所有表"+e.getMessage());
             return Constant.failureMessage("获取数据库表失败");
         }
     }
@@ -675,7 +676,7 @@ public class BIController {
             List<Map<String,String>> result = iBIService.showColumns(tableName);
             return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("获取表的列失败"+e.getMessage());
+            log.error("获取表的列失败"+e.getMessage());
             return Constant.failureMessage("获取数据库表的列信息失败");
         }
     }
@@ -696,7 +697,7 @@ public class BIController {
             Map<String, Object> result = iBIService.getDataByConditions(sqlSearchConditions);
             return Constant.successData(JSONArray.fromObject(result).toString());
         }catch(Exception e){
-            logger.error("数据查询失败"+e.getMessage());
+            log.error("数据查询失败"+e.getMessage());
             return Constant.failureMessage("数据查询失败");
         }
     }

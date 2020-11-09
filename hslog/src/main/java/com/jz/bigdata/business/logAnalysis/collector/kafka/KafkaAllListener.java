@@ -2,17 +2,15 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
-import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
-import com.jz.bigdata.common.asset.cache.AssetCache;
+import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.util.ConfigProperty;
-import com.jz.bigdata.util.ContextRoles;
 import joptsimple.internal.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.log4j.Logger;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.joda.time.DateTime;
@@ -24,14 +22,12 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.support.Acknowledgment;
 
 import javax.annotation.Resource;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
+@Slf4j
 public class KafkaAllListener {
-    private static Logger logger = Logger.getLogger(KafkaConfig.class);
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
     @Autowired
@@ -116,42 +112,42 @@ public class KafkaAllListener {
             builder = new StringBuilder();
             for(ConsumerRecord<?, String> record:records){
                 request = new IndexRequest();
-                String log = record.value();
-                Matcher facility_matcher = facility_pattern.matcher(log);
+                String logs = record.value();
+                Matcher facility_matcher = facility_pattern.matcher(logs);
                 // log4j from logstash
-                Matcher log4j_matcher = log4j_pattern.matcher(log);
+                Matcher log4j_matcher = log4j_pattern.matcher(logs);
 
                 // 防火墙-包过滤日志信息过滤条件
-                Matcher logtype_matcher = logtype_pattern.matcher(log);
-                Matcher dmg_matcher = dmg_pattern.matcher(log);
+                Matcher logtype_matcher = logtype_pattern.matcher(logs);
+                Matcher dmg_matcher = dmg_pattern.matcher(logs);
                 // 防火墙-日志
-                Matcher firewallsDevid_matcher = firewallsDevid_pattern.matcher(log);
-                Matcher firewallsType_matcher = firewallsType_pattern.matcher(log);
-                Matcher firewallsMod_matcher = firewallsMod_pattern.matcher(log);
-                Matcher firewallsMsg_matcher = firewallsMsg_pattern.matcher(log);
+                Matcher firewallsDevid_matcher = firewallsDevid_pattern.matcher(logs);
+                Matcher firewallsType_matcher = firewallsType_pattern.matcher(logs);
+                Matcher firewallsMod_matcher = firewallsMod_pattern.matcher(logs);
+                Matcher firewallsMsg_matcher = firewallsMsg_pattern.matcher(logs);
                 // windows安全审计
-                Matcher win2008matcher = win2008pattern.matcher(log);
-                Matcher win2003matcher = win2003pattern.matcher(log);
+                Matcher win2008matcher = win2008pattern.matcher(logs);
+                Matcher win2003matcher = win2003pattern.matcher(logs);
                 // mysql日志
-                Matcher mysqlmatcher = mysqlpattern.matcher(log);
+                Matcher mysqlmatcher = mysqlpattern.matcher(logs);
                 // netflow日志
-                Matcher netflowmatcher = netflowpattern.matcher(log);
-                Matcher netflow1matcher = netflow1pattern.matcher(log);
+                Matcher netflowmatcher = netflowpattern.matcher(logs);
+                Matcher netflow1matcher = netflow1pattern.matcher(logs);
                 // DNS日志
-                Matcher dnsmatcher = dnspattern.matcher(log);
+                Matcher dnsmatcher = dnspattern.matcher(logs);
                 //dhcp
-                Matcher dhcpmatcher = dhcppattern.matcher(log);
+                Matcher dhcpmatcher = dhcppattern.matcher(logs);
                 //filebeat
-                Matcher filebeatmatcher = filebeatpattern.matcher(log);
+                Matcher filebeatmatcher = filebeatpattern.matcher(logs);
                 //logstash syslog
-                Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(log);
+                Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(logs);
                 if(logstashSyslogMatcher.find()){
                     logType = LogType.LOGTYPE_SYSLOG;
                     try{
                         /**
                          * 将采集到的log转为jsonObject格式
                          */
-                        JsonElement jsonElement = new JsonParser().parse(log);
+                        JsonElement jsonElement = new JsonParser().parse(logs);
                         JsonObject jsonObject= jsonElement.getAsJsonObject();
                         //-----转成ecs
                         Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
@@ -224,7 +220,7 @@ public class KafkaAllListener {
                         }
                     }catch (Exception e){
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+builder.toString());
+                        log.error("范式化失败 ，日志内容："+builder.toString());
                         continue;
                     }
                 }
@@ -232,13 +228,13 @@ public class KafkaAllListener {
                 else if (facility_matcher.find()) {
                     logType = LogType.LOGTYPE_LOG4J;
                     //同步锁，其他试图访问该对象（log）的线程将被阻塞
-                    synchronized (log) {
-                        String logleft = log.substring(0, log.indexOf(facility_matcher.group(0))+facility_matcher.group(0).length());
+                    synchronized (logs) {
+                        String logleft = logs.substring(0, logs.indexOf(facility_matcher.group(0))+facility_matcher.group(0).length());
 
-                        Matcher m = pattern.matcher(log.replace(logleft, ""));
+                        Matcher m = pattern.matcher(logs.replace(logleft, ""));
                         //判断是否符合正则表达式 如果符合，表明这是一条开始数据
                         if(m.find()) {
-                            log = log.replace(logleft, "");
+                            logs = logs.replace(logleft, "");
                             //添加数据
                             builder.append(" \\005 "+log);
                         }else {
@@ -286,7 +282,7 @@ public class KafkaAllListener {
                                     }
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    logger.error("范式化失败 ，日志内容："+builder.toString());
+                                    log.error("范式化失败 ，日志内容："+builder.toString());
                                     //System.out.println("范式化失败 ，日志内容："+builder.toString());
                                     continue;
                                 }
@@ -294,14 +290,14 @@ public class KafkaAllListener {
                                 //清空数据
                                 builder.delete(0, builder.length());
                             }
-                            builder.append(log);
+                            builder.append(logs);
 
                         }
                     }
                 }else if (log4j_matcher.find()) {
                     logType = LogType.LOGTYPE_LOG4J;
                     try {
-                        log4j = new Log4j(log, cal);
+                        log4j = new Log4j(logs, cal);
                         log4j.setHslog_type(logType);
                         ipadress = log4j.getIp();
                         if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
@@ -334,7 +330,7 @@ public class KafkaAllListener {
                         }
                     }catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -345,7 +341,7 @@ public class KafkaAllListener {
                     logType = LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG;
 
                     try {
-                        packetFilteringFirewal = new PacketFilteringFirewal(log);
+                        packetFilteringFirewal = new PacketFilteringFirewal(logs);
                         packetFilteringFirewal.setHslog_type(logType);
                         ipadress = packetFilteringFirewal.getIp();
                         if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
@@ -380,7 +376,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -388,7 +384,7 @@ public class KafkaAllListener {
                 }else if(netflowmatcher.find()||netflow1matcher.find()){
                     logType = LogType.LOGTYPE_NETFLOW;
                     try {
-                        netflow = new Netflow(log, cal, protocolmap);
+                        netflow = new Netflow(logs, cal, protocolmap);
                         netflow.setHslog_type(logType);
 //						netflow=netflow.SetNetflow(log, cal);
                         equipment = AssetCache.INSTANCE.getEquipmentMap().get(netflow.getIp()+logType);
@@ -408,7 +404,7 @@ public class KafkaAllListener {
                         }
                     }catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+log);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -447,7 +443,7 @@ public class KafkaAllListener {
                     //windows、evtsys组件收集日志
                     logType = LogType.LOGTYPE_WINLOG;
                     try {
-                        winlog = new Winlog(log);
+                        winlog = new Winlog(logs);
                         winlog.setHslog_type(logType);
                         ipadress = winlog.getIp();
                         //判断是否在资产ip地址池里
@@ -486,7 +482,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -494,7 +490,7 @@ public class KafkaAllListener {
                 }else if (dnsmatcher.find()) {
                     logType = LogType.LOGTYPE_DNS;
                     try {
-                        dns = new DNS(log);
+                        dns = new DNS(logs);
                         dns.setHslog_type(logType);
                         ipadress = dns.getIp();
                         //判断是否在资产ip地址池里
@@ -533,14 +529,14 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
                 }else if (dhcpmatcher.find()) {
                     logType = LogType.LOGTYPE_DHCP;
                     try {
-                        dhcp = new DHCP(log);
+                        dhcp = new DHCP(logs);
                         dhcp.setHslog_type(logType);
                         ipadress = dhcp.getIp();
                         //判断是否在资产ip地址池里
@@ -579,17 +575,17 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
                 }else if (filebeatmatcher.find()) {
-                    logType = getSubUtilSimple(log,"\"logtype\":\"(.*?)\"");
+                    logType = getSubUtilSimple(logs,"\"logtype\":\"(.*?)\"");
                     if(logType==null) {
                         logType = LogType.LOGTYPE_APP_FILE;
                     }
                     try {
-                        app_file = new App_file(log);
+                        app_file = new App_file(logs);
                         app_file.setHslog_type(logType);
                         ipadress = app_file.getIp();
                         //判断是否在资产ip地址池里
@@ -632,14 +628,14 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
                 }else {
                     logType = LogType.LOGTYPE_SYSLOG;
                     try {
-                        syslog = new Syslog(log);
+                        syslog = new Syslog(logs);
                         syslog.setHslog_type(logType);
                         ipadress = syslog.getIp();
                         //判断是否在资产ip地址池里
@@ -685,7 +681,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        logger.error("范式化失败 ，日志内容："+log);
+                        log.error("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -695,7 +691,7 @@ public class KafkaAllListener {
 
         }catch(Exception e){
             e.printStackTrace();
-            logger.error("kafka—beats消费数据处理异常："+e.getMessage());
+            log.error("kafka—beats消费数据处理异常："+e.getMessage());
         }
         ack.acknowledge();//提交偏移量
     }

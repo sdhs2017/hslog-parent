@@ -21,13 +21,14 @@ public class SearchConditions {
     private String dateField;//时间范围查询时对应的字段
     private Map<String,String> queryParam;//查询条件 查询框和时间范围
     private String errorInfo;//异常信息提示，用于在参数处理时产生异常时进行判定
-    private ArrayList<Bucket> bucketList = new ArrayList<>();//聚合字段（X轴）
+    private ArrayList<Bucket>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      bucketList = new ArrayList<>();//聚合字段（X轴）
     private ArrayList<Metric> metricList = new ArrayList<>();//指标字段（Y轴）
     private ArrayList<QueryCondition> queryConditions = new ArrayList<>();//查询条件
     private String queryConnectionType;//查询条件的连接类型  should/must
     private String unit;//单位，数据换算
     private List<Filter> filters_visual = new ArrayList<>();//图表 filter级
     private List<Filter> filters_dashboard = new ArrayList<>();//dashboard filter级
+    private List<Filter> filters_alert = new ArrayList<>();//alert filter级
     private List<Map<String,String>> filters_table = new ArrayList<>();//
 
     private String queryBox;//query 查询框的内容
@@ -36,6 +37,24 @@ public class SearchConditions {
     private Integer from;//分页起始行，通过page和page_size计算而来
     private Integer size;//最终要展示的数量
     private List<DataTableColumn> dataTableColumns = new ArrayList<>();
+
+    private List<DataTableColumn> sortColumns = new ArrayList<>();//排序字段，用于查询所有数据时，对指定字段进行排序。
+
+    public List<DataTableColumn> getSortColumns() {
+        return sortColumns;
+    }
+
+    public void setSortColumns(List<DataTableColumn> sortColumns) {
+        this.sortColumns = sortColumns;
+    }
+
+    public List<Filter> getFilters_alert() {
+        return filters_alert;
+    }
+
+    public void setFilters_alert(List<Filter> filters_alert) {
+        this.filters_alert = filters_alert;
+    }
 
     public List<Map<String,String>> getFilters_table() {
         return filters_table;

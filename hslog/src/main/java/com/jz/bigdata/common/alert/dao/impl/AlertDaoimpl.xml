@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.alert.dao.IAlertDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+			   type="com.jz.bigdata.common.alert.entity.Alert">
+		<id column="alert_id" jdbcType="VARCHAR" property="alert_id" />
+		<result column="alert_name" jdbcType="VARCHAR" property="alert_name" />
+		<result column="alert_note" jdbcType="VARCHAR" property="alert_note" />
+		<result column="template_name" jdbcType="VARCHAR" property="template_name" />
+		<result column="pre_index_name" jdbcType="VARCHAR" property="pre_index_name" />
+		<result column="suffix_index_name" jdbcType="VARCHAR" property="suffix_index_name" />
+		<result column="alert_search_filters" jdbcType="VARCHAR" property="alert_search_filters" />
+		<result column="alert_search_metric" jdbcType="VARCHAR" property="alert_search_metric" />
+		<result column="alert_search_bucket" jdbcType="VARCHAR" property="alert_search_bucket" />
+		<result column="alert_conditions" jdbcType="VARCHAR" property="alert_conditions" />
+		<result column="alert_cron" jdbcType="VARCHAR" property="alert_cron" />
+		<result column="alert_create_time" jdbcType="VARCHAR" property="alert_create_time" />
+		<result column="alert_create_user" jdbcType="VARCHAR" property="alert_create_user" />
+		<result column="alert_update_time" jdbcType="VARCHAR" property="alert_update_time" />
+		<result column="alert_update_user" jdbcType="VARCHAR" property="alert_update_user" />
+		<result column="alert_state" jdbcType="VARCHAR" property="alert_state" />
+		<result column="alert_structure" jdbcType="VARCHAR" property="alert_structure" />
+		<result column="alert_time" jdbcType="VARCHAR" property="alert_time" />
+		<result column="alert_time_type" jdbcType="VARCHAR" property="alert_time_type" />
+		<result column="alert_exec_type" jdbcType="VARCHAR" property="alert_exec_type" />
+		<result column="alert_time_cycle_num" jdbcType="VARCHAR" property="alert_time_cycle_num" />
+		<result column="alert_time_cycle_type" jdbcType="VARCHAR" property="alert_time_cycle_type" />
+		<result column="alert_assetGroup_id" jdbcType="VARCHAR" property="alert_assetGroup_id" />
+		<result column="alert_equipment_id" jdbcType="VARCHAR" property="alert_equipment_id" />
+	</resultMap>
+	<!--   添加资产组基本信息 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.alert.entity.Alert">
+		insert into alert
+		<!--     格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!--     判断参数是否为空 -->
+			<if test="alert_id != null">
+				alert_id,
+			</if>
+			<if test="alert_name != null">
+				alert_name,
+			</if>
+			<if test="alert_note != null">
+				alert_note,
+			</if>
+			<if test="template_name != null">
+				template_name,
+			</if>
+			<if test="pre_index_name != null">
+				pre_index_name,
+			</if>
+			<if test="suffix_index_name != null">
+				suffix_index_name,
+			</if>
+			<if test="alert_search_filters != null">
+				alert_search_filters,
+			</if>
+			<if test="alert_search_metric != null">
+				alert_search_metric,
+			</if>
+			<if test="alert_search_bucket != null">
+				alert_search_bucket,
+			</if>
+			<if test="alert_conditions != null">
+				alert_conditions,
+			</if>
+			<if test="alert_cron != null">
+				alert_cron,
+			</if>
+			<if test="alert_create_time != null">
+				alert_create_time,
+			</if>
+			<if test="alert_create_user != null">
+				alert_create_user,
+			</if>
+			<if test="alert_state != null">
+				alert_state,
+			</if>
+			<if test="alert_structure != null">
+				alert_structure,
+			</if>
+			<if test="alert_time != null">
+				alert_time,
+			</if>
+			<if test="alert_time_type != null">
+				alert_time_type,
+			</if>
+			<if test="alert_exec_type != null">
+				alert_exec_type,
+			</if>
+			<if test="alert_time_cycle_num != null">
+				alert_time_cycle_num,
+			</if>
+			<if test="alert_time_cycle_type != null">
+				alert_time_cycle_type,
+			</if>
+			<if test="alert_assetGroup_id != null">
+				alert_assetGroup_id,
+			</if>
+			<if test="alert_equipment_id != null">
+				alert_equipment_id,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="alert_id != null">
+				#{alert_id,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_name != null">
+				#{alert_name,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_note != null">
+				#{alert_note,jdbcType=VARCHAR},
+			</if>
+			<if test="template_name != null">
+				#{template_name,jdbcType=VARCHAR},
+			</if>
+			<if test="pre_index_name != null">
+				#{pre_index_name,jdbcType=VARCHAR},
+			</if>
+			<if test="suffix_index_name != null">
+				#{suffix_index_name,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_search_filters != null">
+				#{alert_search_filters,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_search_metric != null">
+				#{alert_search_metric,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_search_bucket != null">
+				#{alert_search_bucket,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_conditions != null">
+				#{alert_conditions,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_cron != null">
+				#{alert_cron,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_create_time != null">
+				#{alert_create_time,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_create_user != null">
+				#{alert_create_user,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_state != null">
+				#{alert_state,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_structure != null">
+				#{alert_structure,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time != null">
+				#{alert_time,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time_type != null">
+				#{alert_time_type,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_exec_type != null">
+				#{alert_exec_type,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time_cycle_num != null">
+				#{alert_time_cycle_num,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time_cycle_type != null">
+				#{alert_time_cycle_type,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_assetGroup_id != null">
+				#{alert_assetGroup_id,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_equipment_id != null">
+				#{alert_equipment_id,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+
+	<select id="getAlertInfoByCondition" parameterType="com.jz.bigdata.common.alert.entity.Alert" resultMap="BaseResultMap">
+		select * from alert
+		where 1=1
+		<if test="alert_name != null and alert_name !=''" >
+			and alert_name LIKE CONCAT('%', #{alert_name}, '%')
+		</if>
+		<if test="startRecord != null and pageSize !=null" >
+			limit #{startRecord},#{pageSize}
+		</if>
+	</select>
+	<select id="getAlertInfoCountByCondition" parameterType="com.jz.bigdata.common.alert.entity.Alert" resultMap="BaseResultMap">
+		select count(1) as count from alert
+		where 1=1
+		<if test="alert_name != null and alert_name !=''" >
+			and alert_name LIKE CONCAT('%', #{alert_name}, '%')
+		</if>
+	</select>
+	<!--  删除资产组 -->
+	<delete id="deleteAlert" parameterType="java.lang.String">
+		delete from alert where alert_id=#{alert_id}
+	</delete>
+	<update id="updateAlertState" parameterType="java.lang.String">
+		update alert
+		set alert_state = #{alert_state,jdbcType=VARCHAR}
+		where alert_id = #{alert_id,jdbcType=VARCHAR}
+	</update>
+	<update id="update" parameterType="com.jz.bigdata.common.alert.entity.Alert">
+		update alert
+		<set>
+			<if test="alert_name != null">
+				alert_name = #{alert_name,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_note != null">
+				alert_note = #{alert_note,jdbcType=VARCHAR},
+			</if>
+			<if test="template_name != null">
+				template_name = #{template_name,jdbcType=VARCHAR},
+			</if>
+			<if test="pre_index_name != null">
+				pre_index_name = #{pre_index_name,jdbcType=VARCHAR},
+			</if>
+			<if test="suffix_index_name != null">
+				suffix_index_name = #{suffix_index_name,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_search_filters != null">
+				alert_search_filters = #{alert_search_filters,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_search_metric != null">
+				alert_search_metric = #{alert_search_metric,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_search_bucket != null">
+				alert_search_bucket = #{alert_search_bucket,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_conditions != null">
+				alert_conditions = #{alert_conditions,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_cron != null">
+				alert_cron = #{alert_cron,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_update_time != null">
+				alert_update_time = #{alert_update_time,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_update_user != null">
+				alert_update_user = #{alert_update_user,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_state != null">
+				alert_state = #{alert_state,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_structure != null">
+				alert_structure = #{alert_structure,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time != null">
+				alert_time = #{alert_time,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time_type != null">
+				alert_time_type = #{alert_time_type,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_exec_type != null">
+				alert_exec_type = #{alert_exec_type,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time_cycle_num != null">
+				alert_time_cycle_num = #{alert_time_cycle_num,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_time_cycle_type != null">
+				alert_time_cycle_type = #{alert_time_cycle_type,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_assetGroup_id != null">
+				alert_assetGroup_id = #{alert_assetGroup_id,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_equipment_id != null">
+				alert_equipment_id = #{alert_equipment_id,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where alert_id = #{alert_id,jdbcType=VARCHAR}
+	</update>
+	<select  id="getAlertInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select * from alert
+		where alert_id = #{alert_id}
+	</select>
+</mapper>

@@ -184,14 +184,55 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 	}
 
 	@Override
+	public List<Map<String, String>> getAssetList4Combobox(String asset_group_id) {
+		List<Map<String, String>> result = new ArrayList<>();
+		//获取所有资产信息
+		List<Equipment> equipmentList = equipmentDao.selectAllHostNameByAssetGroup(asset_group_id);
+		//下拉框，空选项
+		Map<String,String> map_all = new HashMap<>();
+		map_all.put(Constant.COMBOBOX_VALUE,"");
+		map_all.put(Constant.COMBOBOX_LABEL,"不指定资产");
+		result.add(map_all);
+		for(Equipment equipment:equipmentList){
+			Map<String,String> map = new HashMap<>();
+			map.put(Constant.COMBOBOX_VALUE,equipment.getId());
+			map.put(Constant.COMBOBOX_LABEL,equipment.getName());
+			result.add(map);
+		}
+		return result;
+	}
+
+	@Override
 	public List<Map<String, String>> getAssetGroupList() {
-		List<AssetGroup> assetGroups = assetGroupDao.getAssetGroupList();
 		List<Map<String, String>> result = new ArrayList<>();
 		//下拉框，全部
 		Map<String,String> map_all = new HashMap<>();
 		map_all.put(Constant.COMBOBOX_VALUE,"");
 		map_all.put(Constant.COMBOBOX_LABEL,"全部");
 		result.add(map_all);
+		result.addAll(getAssetGroupListCombobox());
+		return result;
+	}
+
+	@Override
+	public List<Map<String, String>> getAssetGroupList4Combobox() {
+		List<Map<String, String>> result = new ArrayList<>();
+		//下拉框，全部
+		Map<String,String> map_all = new HashMap<>();
+		map_all.put(Constant.COMBOBOX_VALUE,"");
+		map_all.put(Constant.COMBOBOX_LABEL,"不指定资产组");
+		result.add(map_all);
+		result.addAll(getAssetGroupListCombobox());
+		return result;
+	}
+
+	/**
+	 * 获取资产组数据的combobox列表
+	 * @return
+	 */
+	public List<Map<String, String>> getAssetGroupListCombobox(){
+		List<AssetGroup> assetGroups = assetGroupDao.getAssetGroupList();
+		List<Map<String, String>> result = new ArrayList<>();
 		//遍历资产组  并重新组装数据
 		for(AssetGroup assetGroup:assetGroups){
 			Map<String,String> map = new HashMap<>();

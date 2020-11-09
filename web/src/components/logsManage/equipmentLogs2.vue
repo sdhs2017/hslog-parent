@@ -64,7 +64,7 @@
                     starttime:'',
                     endtime:'',
                     queryParam: '',
-                    message
+                    message:''
                 },
                 searchUrl:'ecsCommon/getLogListByEquipment.do',//数据地址
                 formConditionsArr:[],//查询条件

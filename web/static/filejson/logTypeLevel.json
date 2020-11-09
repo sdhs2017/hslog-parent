@@ -23,15 +23,5 @@
         "type":"file",
         "label": "file（文件）",
         "level":[]
-    },
-    {
-        "type":"databse",
-        "label": "file（数据库文件）",
-        "level":[]
-    },
-    {
-        "type":"middleware",
-        "label": "file（中间件文件）",
-        "level":[]
     }
 ]

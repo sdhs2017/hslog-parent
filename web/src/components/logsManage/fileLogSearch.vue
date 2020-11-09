@@ -42,11 +42,11 @@
                     label:'全部',
                     value:''
                 },{
-                    label:'file（数据库文件）',
+                    label:'数据库',
                     value:'databse'
                 },{
-                    label:'file（中间件文件）',
-                    value:'middleware\n'
+                    label:'中间件',
+                    value:'middleware'
                 }],//日志类型
                 logLevel:[],//日志级别
                 levelVal:'',//级别内容
@@ -136,7 +136,7 @@
                     ]
                 }
             ]
-            this.getLogType();
+           // this.getLogType();
             //定义七天时间范围
             let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
             let startTime= new Date();

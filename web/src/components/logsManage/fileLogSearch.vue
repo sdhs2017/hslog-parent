@@ -38,7 +38,16 @@
                 tableHead:[],//表头列
                 firstSearch:true,//第一次查询标识（创建分页）
                 logBaseJson:[],
-                logType:[],//日志类型
+                logType:[{
+                    label:'全部',
+                    value:''
+                },{
+                    label:'file（数据库文件）',
+                    value:'databse'
+                },{
+                    label:'file（中间件文件）',
+                    value:'middleware\n'
+                }],//日志类型
                 logLevel:[],//日志级别
                 levelVal:'',//级别内容
                 normalizationVal:'true',//完整范式化
@@ -135,7 +144,7 @@
             startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
             this.searchConditions = {
                 // normalization:'true',
-                // 'agent.type': "",
+                'agent.type': "",
                 endtime: endTime,
                 'fields.ip': "",
                 'fields.equipmentname': "",
@@ -154,16 +163,17 @@
                     },
                     val:''
                 },
-                /*{
+                {
                     label:'日志类型',
                     paramName:'agent.type',
                     type:'select',
-                    itemType:'multiple',
+                    itemType:'',
                     model:{
                         model:''
                     },
                     options:this.logType
                 },
+                /*
                 {
                     label:'日志级别',
                     paramName:'log.level',

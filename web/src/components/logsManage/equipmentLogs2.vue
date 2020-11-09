@@ -63,7 +63,8 @@
                     'fields.equipmentid':'',
                     starttime:'',
                     endtime:'',
-                    queryParam: ''
+                    queryParam: '',
+                    message
                 },
                 searchUrl:'ecsCommon/getLogListByEquipment.do',//数据地址
                 formConditionsArr:[],//查询条件
@@ -175,7 +176,8 @@
                 'fields.equipmentid':'',
                     starttime:startTime,
                     endtime:endTime,
-                    queryParam: ''
+                    queryParam: '',
+                    message:''
             }
             //检索条件
             this.formConditionsArr = [
@@ -198,7 +200,15 @@
                         model:this.levelVal
                     },
                     options:this.logLevel
-                }
+                },{
+                    label:'日志内容',
+                    paramName:'message',
+                    itemType:'',
+                    model:{
+                        model:''
+                    },
+                    type:'input'
+                },
 
             ]
             //鼠标拖选
@@ -388,6 +398,7 @@
                     this.searchConditions={
                         starttime:params.starttime,
                         endtime:params.endtime,
+                        message:'',
                         queryParam:JSON.stringify(queryObj),
                         'fields.equipmentid':this.equipmentId
                     }

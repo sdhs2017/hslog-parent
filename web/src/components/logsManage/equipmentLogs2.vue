@@ -177,7 +177,6 @@
                     starttime:startTime,
                     endtime:endTime,
                     queryParam: '',
-                    message:''
             }
             //检索条件
             this.formConditionsArr = [
@@ -394,11 +393,10 @@
             'equipmentId'(){
                 //检测搜索条件
                 bus.$on(this.busName,(params)=>{
-                    let queryObj = {'log.level':params['log.level'],'fields.equipmentid':this.equipmentId}
+                    let queryObj = {'log.level':params['log.level'],message:params.message,'fields.equipmentid':this.equipmentId}
                     this.searchConditions={
                         starttime:params.starttime,
                         endtime:params.endtime,
-                        message:'',
                         queryParam:JSON.stringify(queryObj),
                         'fields.equipmentid':this.equipmentId
                     }
@@ -443,7 +441,7 @@
                 if(vm.equipmentId === '' || vm.equipmentId !== to.query.id){
                     vm.equipmentId = to.query.id;
                     vm.searchConditions['fields.equipmentid'] = vm.equipmentId;
-                    vm.searchConditions.queryParam = JSON.stringify({'log.level':'','fields.equipmentid':vm.equipmentId})
+                    vm.searchConditions.queryParam = JSON.stringify({'log.level':'','fields.equipmentid':vm.equipmentId,message:''})
                    // console.log(vm.searchConditions)
                     vm.getEquipmentData();
                 }

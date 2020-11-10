@@ -465,6 +465,7 @@ public class KafkaBeatsListener {
                                 //bulkRequest.add(request);
                                 // 将bulkrequest替换为bulkprocessor方式
                                 logCurdDao.bulkProcessor_add(request);
+
                             }else{
                                 //虚拟资产中改ip对应资产不包含filebeat，数据暂时不入库
                             }

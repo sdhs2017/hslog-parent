@@ -43,7 +43,7 @@
                     value:''
                 },{
                     label:'数据库',
-                    value:'databse'
+                    value:'database'
                 },{
                     label:'中间件',
                     value:'middleware'

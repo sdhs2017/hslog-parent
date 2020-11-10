@@ -144,7 +144,7 @@
             startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
             this.searchConditions = {
                 // normalization:'true',
-                'agent.type': "",
+                'fields.file_type': "",
                 endtime: endTime,
                 'fields.ip': "",
                 'fields.equipmentname': "",
@@ -165,7 +165,7 @@
                 },
                 {
                     label:'日志类型',
-                    paramName:'agent.type',
+                    paramName:'fields.file_type',
                     type:'select',
                     itemType:'',
                     model:{
@@ -215,7 +215,7 @@
                 }
 
             ]
-            //判断是否是初始有条件查询 （首页跳转查询） 设置日志级别
+           /* //判断是否是初始有条件查询 （首页跳转查询） 设置日志级别
             if (this.$route.params.logLevel) {
                 let st = ''
                 let et = ''
@@ -224,10 +224,10 @@
                         st = this.$route.params.dateArr[0]
                         et = this.$route.params.dateArr[1]
                     }
-                    /*else{
+                    /!*else{
                         st = dateFormat('yyyy-mm-dd',this.$route.params.dateArr[0])+ ' 00:00:00'
                         et = dateFormat('yyyy-mm-dd',this.$route.params.dateArr[1])+ ' 23:59:59'
-                    }*/
+                    }*!/
                 }
                 this.formConditionsArr[0].model.model=[st,et]
                 this.formConditionsArr[2].model.model=[this.$route.params.logLevel];
@@ -237,7 +237,7 @@
                 //清空日志类型
                 this.formConditionsArr[1].model.model = ''
                 this.searchConditions['agent.type'] = ''
-            }
+            }*/
             //检测搜索条件
             bus.$on(this.busName,(params)=>{
                 this.searchConditions = params;
@@ -284,7 +284,7 @@
             bus.$off('exportFail');
         },
         watch: {
-            '$route' (to, from) { //监听路由是否变化
+            /*'$route' (to, from) { //监听路由是否变化
                 if (this.$route.params.logLevel) {
                     let st = ''
                     let et = ''
@@ -306,7 +306,7 @@
                     this.formConditionsArr[1].model.model = ''
                     this.searchConditions['agent.type'] = ''
                 }
-            }
+            }*/
         },
         methods:{
             //获得日志类型

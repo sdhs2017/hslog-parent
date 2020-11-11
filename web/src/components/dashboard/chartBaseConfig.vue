@@ -1256,13 +1256,16 @@
                     this.yUnit = this.chartsConfig.yNormal.unitValue
                 }
                 //metric指标单位
-                if(this.chartsConfig.style.unitType === ''){
-                    this.yUnit = ''
-                }else if(this.chartsConfig.style.unitType === '%'){
-                    this.yUnit = '%'
-                }else if(this.chartsConfig.style.unitType === 'byte'){
-                    this.yUnit = this.chartsConfig.style.unitValue
+                if(this.chartType === 'metric'){
+                    if(this.chartsConfig.style.unitType === ''){
+                        this.yUnit = ''
+                    }else if(this.chartsConfig.style.unitType === '%'){
+                        this.yUnit = '%'
+                    }else if(this.chartsConfig.style.unitType === 'byte'){
+                        this.yUnit = this.chartsConfig.style.unitValue
+                    }
                 }
+
                 let param = {
                     starttime:this.dateObj.starttime,//起始时间
                     endtime:this.dateObj.endtime,//结束时间

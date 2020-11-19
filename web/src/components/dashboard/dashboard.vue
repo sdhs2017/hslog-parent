@@ -2,9 +2,20 @@
     <div class="content-bg" v-loading="allLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title" style="position: relative;padding-left: 10px;">
             <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
-            <el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
+            <el-dropdown  trigger="click">
+                <el-button type="primary" size="mini" plain>
+                    添加<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item><div @click="drawerState = true" >自定义图表</div></el-dropdown-item>
+                    <el-dropdown-item><div @click="sysDrawerState = true">预设图表</div></el-dropdown-item>
+                    <el-dropdown-item><div @click="wordsState = true; wordType = 'add'" >文字</div></el-dropdown-item>
+                </el-dropdown-menu>
+            </el-dropdown>
+            <el-button  type="primary" size="mini" plain @click="setAssetConditionState = true" >设置资产</el-button>
+            <!--<el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
             <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>
-            <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>
+            <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>-->
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  class="update-btn" v-if="updateBtn"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
             <el-button  type="primary" v-else size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
@@ -254,6 +265,103 @@
                 <el-button type="primary" @click="saveDashBoard" :disabled="dashboardParams.name === '' ? 'disabled' : false">确 定</el-button>
             </div>
         </el-dialog>
+        <!--设置资产条件-->
+        <el-dialog title="设置资产/资产组" :visible.sync="setAssetConditionState" width="500px">
+            <div style="height: 350px;display: flex;color: #fff;justify-content: space-between;" v-loading="setAssetLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+                <div class="set-assetgroup-wapper" style="width: 220px;">
+                    <div style="height: 28px;color: #4ca0f7;">资产组</div>
+                    <div style="height: 270px;overflow: auto;border: 1px solid #3c6c9c;">
+                        <el-checkbox-group v-model="setAssetGroupChecked" class="drawer-list asset-wapper" style="height:calc(100% - 10px);">
+                            <ul>
+                                <li v-for="(item,i) in setAssetGroupList" :key="i" @click="setAssetChecked = []">
+                                    <el-checkbox :label="item.value" style="width: 220px;overflow:hidden;">{{item.label}}</el-checkbox>
+                                </li>
+                            </ul>
+                        </el-checkbox-group>
+                    </div>
+                </div>
+                <div class="set-asset-wapper" style="width: 220px;">
+                    <div style="height: 28px;color: #4ca0f7;">资产</div>
+                    <div style="height: 270px;overflow: auto;border: 1px solid #3c6c9c;">
+                        <el-checkbox-group v-model="setAssetChecked" class="drawer-list asset-wapper" style="height:calc(100% - 10px);">
+                            <ul>
+                                <li v-for="(item,i) in setAssetList" :key="i">
+                                    <el-checkbox :label="item.value" style="width: 220px;overflow:hidden;">{{item.label}}</el-checkbox>
+                                </li>
+                            </ul>
+                        </el-checkbox-group>
+                    </div>
+                </div>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="setAssetConditionState = false">取 消</el-button>
+<!--                <el-button type="primary" @click="setAssetCondition" :disabled="(setAssetChecked.length === 0 && setAssetGroupChecked.length === 0 )? 'disabled' : false">确 定</el-button>-->
+                <el-button type="primary" @click="setAssetCondition">确 定</el-button>
+            </div>
+        </el-dialog>
+        <!--资产-->
+        <div class="asset-condition-box" @click="showAssetList"  @mousedown="move" ref="assetConditionBox" v-loading="ballLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <div class="asset-condition-con asset-ball" v-if="eqDialogState === 'ball'">
+                <div class="asset-ball-top"><i class="el-icon-s-platform"></i></div>
+                <div class="asset-ball-botttom">{{this.checkedAsset.length}}/{{this.assetList.length}}</div>
+            </div>
+            <div class="asset-condition-con" v-else>
+                <div class="asset-condition-tit">
+                    <i class="el-icon-circle-close" @click.stop="closeAssetList" ></i>
+                    <span class="">资产列表</span>
+                    <span></span>
+                </div>
+                <div class="asset-condition-list" v-if="this.assetList.length === 0">
+                    <div style="margin: 10px;text-align: center;margin-top: 50px;">暂未设置任何资产条件</div>
+                    <div style="margin: 10px;text-align: center"><el-button  type="primary" size="mini" plain @click="setAssetConditionState = true" >设置资产</el-button></div>
+                </div>
+                <div class="asset-condition-list" v-if="this.assetList.length === 1 && this.setAssetGroupChecked.length === 0">
+                    <ul style="padding: 10px;height: calc(100% - 30px);overflow: auto">
+                        <li class="asset-li">
+                            <p class="asset-tit">资产名称</p>
+                            <p class="asset-val">{{this.assetInfo.name}}</p>
+                        </li>
+                        <li class="asset-li">
+                            <p class="asset-tit">资产IP</p>
+                            <p class="asset-val">{{this.assetInfo.ip}}</p>
+                        </li>
+                        <li class="asset-li">
+                            <p class="asset-tit">日志类型</p>
+                            <p class="asset-val">{{this.assetInfo.logType}}</p>
+                        </li>
+                        <li class="asset-li">
+                            <p class="asset-tit">主机名</p>
+                            <p class="asset-val">{{this.assetInfo.hostName}}</p>
+                        </li>
+                        <li class="asset-li">
+                            <p class="asset-tit">资产类型</p>
+                            <p class="asset-val">{{this.assetInfo.type}}</p>
+                        </li>
+                        <li class="asset-li">
+                            <p class="asset-tit">是否启用</p>
+                            <p class="asset-val">{{this.assetInfo.startUp === 0 ? '否' : '是'}}</p>
+                        </li>
+                        <li class="asset-li">
+                            <p class="asset-tit">创建时间</p>
+                            <p class="asset-val">{{this.assetInfo.createTime}}</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="asset-condition-list" v-else>
+                    <el-checkbox-group v-model="checkedAsset" class="drawer-list eq-ball-list" style="height:calc(100% - 10px);">
+                        <ul>
+                            <li v-for="(item,i) in assetList" :key="i" @click="assetLiClick = true">
+                                <el-checkbox :label="item.id" style="width: 325px;overflow:hidden;font-size: 12px;">
+                                    <span style="display: inline-block;width: 140px;margin-right: 15px;overflow: hidden;position: relative;top: 5px;">{{item.name}}</span>
+                                    <span>{{item.ip}}</span>
+                                </el-checkbox>
+                            </li>
+                        </ul>
+                    </el-checkbox-group>
+                </div>
+            </div>
+
+        </div>
     </div>
 
 </template>
@@ -290,6 +398,34 @@
         name: "dashboard",
         data() {
             return {
+                setAssetLoading:false,
+                //设置资产条件dialog状态
+                setAssetConditionState:false,
+                //设置资产组集合
+                setAssetGroupList:[],
+                //设置 选中的资产组
+                setAssetGroupChecked:[],
+                oldSetAssetGroupChecked:[],//用于记录选中的资产组
+                //设置资产集合
+                setAssetList:[],
+                //设置 选中的资产组
+                setAssetChecked:[],
+                oldSetAssetChecked:[],//用于记录选中的资产
+                //右侧资产loading
+                ballLoading:false,
+                //资产/资产组 悬浮球状态
+                eqDialogState:'ball',
+                //用于标记右侧资产列表点击过
+                assetLiClick:false,
+                //悬浮球 移动中标识
+                ballTop:'197px',
+                //选中的资产id集合(右侧悬浮窗)
+                checkedAsset:[],
+                //资产集合
+                //assetList:[{id:"NI3fr3QBqKrf67Ha5Dr9"},{id:"NI3fr3QBqKrf67Ha5Dr9"}],
+                assetList:[],
+                //资产信息
+                assetInfo:{},
                 //监听filter事件名
                 busFilterName:'dashboardBusFilterName',
                 //监听Query
@@ -580,7 +716,11 @@
                 //资产表 过滤条件
                 filters_table:'',
                 //表选中的 行
-                selected_row:[]
+                selected_row:[],
+                //用于保存选中的资产组
+                asset_group_ids:'',
+                //用于保存选中的资产
+                asset_ids:'',
             }
         },
         created(){
@@ -648,7 +788,9 @@
                     this.dashboardTit = this.$route.query.name;
                 }
             }
-
+            //获取资产、资产组
+            this.getAssetGroup();
+            this.getAsset('');
         },
         mounted(){
             //获取dashboard数据
@@ -708,6 +850,197 @@
             bus.$off(this.busQueryName)
         },
         methods:{
+            /*获取资产组*/
+            getAssetGroup(){
+                this.$nextTick(()=>{
+                    this.setAssetLoading = true;
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupList4Checkbox.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.setAssetLoading = false;
+                            this.setAssetGroupList = res.data.data;
+                        })
+                        .catch(err=>{
+                             this.setAssetLoading = false;
+                        })
+                })
+            },
+            /*获取资产*/
+            getAsset(groupIds){
+                this.$nextTick(()=>{
+                    this.setAssetLoading = true;
+                    this.$axios.post(this.$baseUrl+'/equipment/getAssetList4Checkbox.do',this.$qs.stringify(
+                        {asset_group_ids:groupIds}
+                    ))
+                        .then(res=>{
+                            this.setAssetLoading = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                //清空选中
+                                //this.setAssetChecked = [];
+                                this.setAssetList = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+
+                        })
+                        .catch(err=>{
+                             this.setAssetLoading = false;
+                        })
+                })
+            },
+            /*设置资产确定按钮*/
+            setAssetCondition(){
+                //保存记录
+                this.oldSetAssetChecked = this.setAssetChecked;
+                this.oldSetAssetGroupChecked = this.setAssetGroupChecked;
+                //定义获取资产的参数
+                let assetGroupIds = '';
+                let assetIds = '';
+                for (let i in this.setAssetGroupChecked){
+                    assetGroupIds += this.setAssetGroupChecked[i] +','
+                }
+                for (let i in this.setAssetChecked){
+                    assetIds += this.setAssetChecked[i] +','
+                }
+                this.asset_group_ids = assetGroupIds;
+                this.asset_ids = assetIds;
+                //获取资产列表 并刷新数据
+                this.getCheckedAsset(assetGroupIds,assetIds,true)
+                //关闭弹窗
+                this.setAssetConditionState = false;
+                //展开右侧悬浮球
+                this.$refs.assetConditionBox.setAttribute('flag', true)
+                this.showAssetList();
+
+            },
+            /*获取已选中的资产，并设置资产条件*/
+            getCheckedAsset(assetGroupIds,assetIds,refreshState){
+                return new Promise((resolve,rej)=>{
+                    this.$nextTick(()=>{
+                        this.ballLoading = true;
+                        this.$axios.post(this.$baseUrl+'/equipment/getEquipmentListByDashboardSet.do',this.$qs.stringify(
+                            {
+                                asset_group_ids:assetGroupIds,
+                                asset_ids:assetIds,
+                            }
+                        ))
+                            .then(res=>{
+                                this.ballLoading = false;
+                                let obj = res.data;
+                                if(obj.success === 'true'){
+                                    this.assetList = obj.data;
+                                    //判断是否是单个资产
+                                    if(this.assetList.length === 1){
+                                        //展示资产数据
+                                        this.setEquipmentType(this.assetList[0])
+                                    }
+                                    //改变点击操作状态
+                                    this.assetLiClick = false;
+                                    //设置选中
+                                    let arr = [];
+                                    let assetIdArr = [];
+                                    for(let i in this.assetList){
+                                        arr.push(this.assetList[i].id)
+                                        //设置资产条件参数
+                                        assetIdArr.push({asset_id:this.assetList[i].id})
+                                    }
+                                    this.filters_table = JSON.stringify(assetIdArr);
+                                    this.checkedAsset = arr;
+                                    if(refreshState){
+                                        //刷新数据
+                                        this.refreshData();
+                                    }
+
+                                    resolve();
+                                }else{
+                                    layer.msg(obj.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                this.ballLoading = false;
+                            })
+                    })
+                })
+
+            },
+            /*移动资产悬浮球*/
+            move(e){
+                $(".asset-condition-box").css("transition","")
+                this.ballMoveing = true;
+                let eTop = $(".asset-condition-box").position().top;
+                let oldTop = e.clientY;
+                let firstTime = new Date().getTime();
+                this.$refs.assetConditionBox.setAttribute('flag', false)
+                document.onmousemove = (e)=>{       //鼠标按下并移动的事件
+                    if(this.eqDialogState === 'ball'){
+                        this.ballTop = (e.clientY-oldTop + eTop)+"px"
+                        $(".asset-condition-box").css("top",this.ballTop)
+                    }
+
+                };
+                document.onmouseup = (e) => {
+                    document.onmousemove = null;
+                    document.onmouseup = null;
+                    const lastTime = new Date().getTime()
+                    //以时间差 来表明是否是拖拽
+                    if ((lastTime - firstTime) < 200) {
+                        this.$refs.assetConditionBox.setAttribute('flag', true)
+                    }
+                };
+            },
+            /*打开资产、资产组列表*/
+            showAssetList(e){
+                let isClick = this.$refs.assetConditionBox.getAttribute('flag')
+                if(isClick !== 'true') {
+                    return false
+                }
+                $(".asset-condition-box").css("transition","all 0.3s linear")
+                $(".asset-condition-box").css({"height":"calc(100vh - 160px)","width":"350px","border-radius":"0","top":"101px","background":"#303e4e"})
+                this.eqDialogState = 'rect'
+
+            },
+            /*关闭资产、资产组列表*/
+            closeAssetList(){
+                $(".asset-condition-box").css("transition","all 0.3s linear")
+                $(".asset-condition-box").css({"height":"50px","width":"50px","border-radius":"100%","top":this.ballTop,"background":"#476b94"})
+                setTimeout(()=>{
+                    this.eqDialogState = 'ball'
+                },300)
+            },
+            /*获取资产类型*/
+            setEquipmentType(data){
+
+                this.$nextTick(()=>{
+                    this.$axios.get('static/filejson/equiptype.json',{})
+                        .then((res)=>{
+                            let typeArr = res.data
+                            let type = '';
+                            console.log(data)
+                            const str = data.type.substring(0,2);
+                            for (let n in typeArr){
+                                let obj = typeArr[n];
+                                if(obj.value == str){
+                                    type += obj.label +'-';
+                                    for(let j in obj.children){
+                                        if(obj.children[j].value ==  data.type){
+                                            type += obj.children[j].label;
+                                            data.type = type;
+                                            break;
+                                        }
+                                    }
+                                    break;
+                                }
+
+
+                            }
+
+                            this.assetInfo = data;
+                        })
+                        .catch((err)=>{
+                            console.log(err)
+                        })
+                })
+            },
             /*设置过滤资产表条件*/
             setFilterTable(params){
                 let arr = [];
@@ -864,6 +1197,7 @@
             },
             /*保存dashboart*/
             saveDashBoard(){
+                //结构
                 let layoutObj = JSON.parse(JSON.stringify(this.layout))
                 for (let i in layoutObj){
                     layoutObj[i].opt = {};
@@ -871,9 +1205,11 @@
                 let params = {
                     title:this.dashboardParams.name,
                     description:this.dashboardParams.des,
-                    option:JSON.stringify(layoutObj),
                     isSaveAs:true,
-                    params:JSON.stringify({filters_dashboard:this.filters})
+                    asset_group_ids:this.asset_group_ids,
+                    asset_ids:this.asset_ids,
+                    params:JSON.stringify({filters_dashboard:this.filters}),
+                    option:JSON.stringify(layoutObj),
                 }
                 //判断是否是修改图表
                 if(this.dashboardId !== ''){
@@ -1032,28 +1368,48 @@
                                     }else{
                                         this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_dashboard);
                                     }
-
                                 }
-                                this.layout = option;
-                                this.$nextTick(()=>{
-                                    //获取echart结构数据
-                                    for(let i in this.layout){
-                                        this.chartsCount = i;
-                                        //判断是否是文字块、系统预设报表还是自定义报表  自定义报表需要获取图表结构
-                                        if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
-                                            this.getEchartsConstruction(this.layout[i])
-                                                .then((res)=>{
-                                                    //获取图例数据
-                                                    return this.getEchartsData(res)
-                                                })
-                                                .then((res)=>{
-                                                    //加载图例
-                                                    return this.creatEcharts(res)
-                                                })
-                                        }
+                                //资产条件
+                                this.asset_group_ids =  obj.data.asset_group_ids
+                                this.asset_ids =  obj.data.asset_ids;
+                                //设置资产选中
+                                if(this.asset_group_ids !== ''){
+                                    this.setAssetGroupChecked = this.asset_group_ids.substr(0,this.asset_group_ids.length - 1).split(',')
+                                }
+                                if(this.asset_ids !== ''){
+                                    this.setAssetChecked = this.asset_ids.substr(0,this.asset_ids.length - 1).split(',')
+                                }
+                                if(this.asset_group_ids !== '' || this.asset_ids !== ''){
+                                    //展开右侧悬浮球
+                                    this.$refs.assetConditionBox.setAttribute('flag', true)
+                                    this.showAssetList();
+                                }
+                                //获取资产条件
+                                this.getCheckedAsset(this.asset_group_ids,this.asset_ids,false)
+                                    .then(()=>{
+                                        this.layout = option;
+                                        this.$nextTick(()=>{
+                                            //获取echart结构数据
+                                            for(let i in this.layout){
+                                                this.chartsCount = i;
+                                                //判断是否是文字块、系统预设报表还是自定义报表  自定义报表需要获取图表结构
+                                                if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
+                                                    this.getEchartsConstruction(this.layout[i])
+                                                        .then((res)=>{
+                                                            //获取图例数据
+                                                            return this.getEchartsData(res)
+                                                        })
+                                                        .then((res)=>{
+                                                            //加载图例
+                                                            return this.creatEcharts(res)
+                                                        })
+                                                }
 
-                                    }
-                                })
+                                            }
+                                        })
+                                    })
+
+
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }
@@ -1540,6 +1896,45 @@
 
         },
         watch:{
+            'setAssetConditionState'(){
+                //弹窗开启
+                if(this.setAssetConditionState){
+                    //保存选中的资产 资产组
+                    this.oldSetAssetGroupChecked = this.setAssetGroupChecked
+                    this.oldSetAssetChecked = this.setAssetChecked
+                }else{//关闭
+                    //判断是否有修改过 但没有保存
+                    if(JSON.stringify(this.oldSetAssetGroupChecked) !== JSON.stringify(this.setAssetGroupChecked)){//未保存  还原
+                        this.setAssetGroupChecked = this.oldSetAssetGroupChecked
+                    }
+                    //判断是否有修改过 但没有保存
+                    if(JSON.stringify(this.oldSetAssetChecked) !== JSON.stringify(this.setAssetChecked)){//未保存  还原
+                        this.setAssetChecked = this.oldSetAssetChecked
+                    }
+                }
+            },
+            /*选中的资产组改变*/
+            'setAssetGroupChecked'(){
+                let groupIds = ''
+                for(let i in this.setAssetGroupChecked){
+                    groupIds += this.setAssetGroupChecked[i]+','
+                }
+                this.getAsset(groupIds)
+            },
+            /*选中的右侧资产列表改变*/
+            'checkedAsset'(){
+                if(this.assetLiClick){
+                    //设置资产条件
+                    let arr = [];
+                    for(let i in this.checkedAsset){
+                        arr.push({asset_id:this.checkedAsset[i]})
+                    }
+                    this.filters_table = JSON.stringify(arr);
+                   //刷新数据
+                    this.refreshData();
+                }
+
+            },
             /*系统报表过滤*/
             'filterText'(val) {
                 this.$refs.tree.filter(val);
@@ -1697,6 +2092,86 @@
 </script>
 
 <style scoped>
+    .asset-condition-box{
+        position: fixed;
+        width: 50px;
+        height: 50px;
+        background: #476b94;
+        border-radius: 100%;
+        right: 26px;
+        top: 197px;
+        /*transition: all 0.3s linear;*/
+        z-index: 1000;
+        box-shadow: -5px 5px 20px #0c101b;
+        overflow: hidden;
+    }
+    .asset-condition-con{
+        width: 350px;
+        height: 100%;
+    }
+    .asset-ball{
+        height: 48px;
+        width: 48px;
+        border: 1px solid #409eff;
+        border-radius: 100%;
+        -webkit-user-select:none;
+        -moz-user-select:none;
+        -ms-user-select:none;
+        user-select:none;
+
+
+    }
+    .asset-ball>div{
+        text-align: center;
+        font-size: 12px;
+        height: 25px;
+
+    }
+    .asset-ball .asset-ball-top{
+        line-height: 30px;
+        font-size: 14px;
+    }
+    .asset-ball-top{
+        /*line-height: 30px;*/
+    }
+    .asset-ball:hover{
+        cursor: pointer;
+        color: #fff;
+    }
+    .asset-condition-tit{
+        width: 330px;
+        height: 50px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #476b94;
+        padding: 0 10px;
+        font-weight: 600;
+    }
+    .asset-condition-tit i:hover{
+        cursor: pointer;
+        color: #F56C6C;
+    }
+    .asset-condition-list{
+        height: calc(100% - 50px);
+    }
+    .asset-li{
+        margin-bottom: 2px;
+    }
+    .asset-tit{
+        font-size: 13px;
+        background: #37516d;
+        padding: 8px;
+    }
+    .asset-val{
+        text-align: center;
+        background: #2f455c;
+        padding: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        color: #409eff;
+    }
+
     .top-zz{
         text-align: center;
         width: 100%;
@@ -1856,6 +2331,16 @@
         color: #fff;
         margin-left: 30px;
         font-size: 13px;
+    }
+    .eq-ball-list /deep/ .el-checkbox__label{
+        color: #fff;
+        margin-left: 5px;
+        font-size: 12px;
+    }
+    .asset-wapper /deep/ .el-checkbox__label{
+        color: #fff;
+        margin-left: 0px;
+        font-size: 12px;
     }
     .drawer-tools{
         width: 100%;

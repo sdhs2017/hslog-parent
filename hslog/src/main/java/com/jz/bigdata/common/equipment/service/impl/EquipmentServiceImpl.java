@@ -404,8 +404,12 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_file_index())+"");
 			}else if(equipment.getLogType().equals("winlog")||equipment.getLogType().equals("syslog")){//日志
 				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
+			}else if(equipment.getLogType().equals("metric")){//指标
+				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_metric_index())+"");
+			}else if(equipment.getLogType().equals("packet")){//流量
+				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_packet_index())+"");
 			}else{
-				//TODO metric packet等
+				//其他情况
 				equipment.setLog_count("0");
 			}
 
@@ -548,5 +552,26 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		List<Equipment> list = equipmentDao.selectRisk();
 		return JSONArray.fromObject(list).toString();
 	}
+
+	@Override
+	public List<Map<String, String>> getAssetList4Checkbox(String asset_group_ids) {
+		List<Map<String, String>> result = new ArrayList<>();
+		//根据资产组条件
+		List<Equipment> equipmentList = equipmentDao.getEquipmentListByAssetGroupIds(asset_group_ids.split(","));
+		for(Equipment equipment:equipmentList){
+			Map<String,String> map = new HashMap<>();
+			map.put(Constant.COMBOBOX_VALUE,equipment.getId());
+			map.put(Constant.COMBOBOX_LABEL,equipment.getName());
+			result.add(map);
+		}
+		return result;
+	}
+
+	@Override
+	public List<Equipment> getEquipmentListByDashboardSet(String[] asset_group_ids, String[] asset_ids) {
+		List<Equipment> equipmentList = equipmentDao.getEquipmentListByDashboardSet(asset_group_ids,asset_ids);
+		return equipmentList;
+	}
+
 
 }

@@ -59,4 +59,18 @@ public interface IEquipmentService {
 	boolean checkNameUnique(Equipment equipment);
 	boolean checkIpAndLogTypeUnique(Equipment equipment);
 	String selectRisk();
+
+	/**
+	 * 根据资产组id获取不属于资产组的资产列表
+	 * @param asset_group_ids
+	 * @return
+	 */
+	public List<Map<String,String>> getAssetList4Checkbox(String asset_group_ids);
+	/**
+	 * dashboard设置资产/资产组后根据资产和资产组参数返回资产信息
+	 * @param asset_group_ids
+	 * @param asset_ids
+	 * @return
+	 */
+	public List<Equipment> getEquipmentListByDashboardSet(String[] asset_group_ids,String[] asset_ids);
 }

@@ -209,11 +209,13 @@ public class BIServiceImpl implements IBIService {
             //将数据赋值给bean，方便回显
             dashboard.setId(map.get("id").toString());
             Map<String,Object> visualization = (HashMap<String,Object>)map.get("dashboard");
+            //TODO 通过map直接转dashboard对象
             dashboard.setDescription(visualization.get("description").toString());
             dashboard.setTitle(visualization.get("title").toString());
             dashboard.setOption(visualization.get("option").toString());
             dashboard.setParams(visualization.get("params")==null?"":visualization.get("params").toString());
-
+            dashboard.setAsset_ids(visualization.get("asset_ids")==null?"":visualization.get("asset_ids").toString());
+            dashboard.setAsset_group_ids(visualization.get("asset_group_ids")==null?"":visualization.get("asset_group_ids").toString());
         }
         return JSONObject.fromObject(dashboard).toString();
     }
@@ -432,7 +434,7 @@ public class BIServiceImpl implements IBIService {
                 //定义数据点，包含name和value属性，eg:{value: 335, name: '192.168.2.1'}
                 Map<String,Object> dataPoint = new HashMap<>();
                 //图例名称
-                String key = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField());
+                String key = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()).replace(".","_");
                 //写入图例名称
                 dataPoint.put("name",!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():metric.getAggType());
                 NumericMetricsAggregation.SingleValue value = aggregations.get(key);

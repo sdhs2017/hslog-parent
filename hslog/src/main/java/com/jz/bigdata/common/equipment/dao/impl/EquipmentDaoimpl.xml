@@ -137,6 +137,44 @@
 		</choose>
 
 	</select>
+	<select id="getEquipmentListByAssetGroupIds" parameterType="java.lang.String" resultMap="BaseResultMapUserName">
+		select equipment.* from equipment where 1=1
+
+		and id not in (
+		select id from equipment
+		left join asset_group_relations on asset_group_relations.asset_id = equipment.id
+		where asset_group_relations.asset_group_id in
+
+		<foreach item="ids" index="index" collection="array" open="("
+				 separator="," close=")">
+			#{ids}
+		</foreach>
+		group by id
+		)
+
+
+	</select>
+	<select id="getEquipmentListByDashboardSet" parameterType="java.lang.String" resultMap="BaseResultMapUserName">
+		select equipment.* from equipment
+		left join (
+		select asset_id from asset_group_relations where asset_group_id in
+		<foreach item="asset_group_ids_item" index="index" collection="asset_group_ids" open="("
+				 separator="," close=")">
+			#{asset_group_ids_item}
+		</foreach>
+		group by asset_id
+		) as _asset_group on _asset_group.asset_id = equipment.id
+		where _asset_group.asset_id is not null or equipment.id in
+		<foreach item="asset_ids_item" index="index" collection="asset_ids" open="("
+				 separator="," close=")">
+			#{asset_ids_item}
+		</foreach>
+
+
+
+
+
+	</select>
 
 
 	<!-- 添加数据 -->

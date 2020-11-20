@@ -197,7 +197,7 @@ public class SearchServiceImpl implements ISearchService {
      */
     private void setData(ArrayList<Metric> metricList,MultiBucketsAggregation.Bucket bucket,LinkedHashMap<String,Object> xAxisMap,LinkedHashSet<String> dimensions,String nextKey,String unit){
         for(Metric metric:metricList){
-            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
+            NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()).replace(".","_"));
             //图例名称，如果别名是null 则显示聚合类型名称，否则显示别名
             //String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():(metric.getAliasName()));
             String line_name = nextKey+("".equals(metric.getAliasName())?metric.getAggType():(metric.getAliasName()==null?"":metric.getAliasName()));

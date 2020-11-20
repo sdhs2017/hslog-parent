@@ -73,4 +73,18 @@ public interface IEquipmentDao {
 	 * @return
 	 */
 	List<Equipment> getEquipmentListByAssetGroupId(@Param("asset_group_id")String asset_group_id);
+	/**
+	 * 通过资产组ids获取不属于资产组的资产列表
+	 * @param ids
+	 * @return
+	 */
+	List<Equipment> getEquipmentListByAssetGroupIds(String[] ids);
+
+	/**
+	 * dashboard设置资产/资产组后根据资产和资产组参数返回资产信息
+	 * @param asset_group_ids
+	 * @param asset_ids
+	 * @return
+	 */
+	List<Equipment> getEquipmentListByDashboardSet(@Param("asset_group_ids")String[] asset_group_ids,@Param("asset_ids")String[] asset_ids);
 }

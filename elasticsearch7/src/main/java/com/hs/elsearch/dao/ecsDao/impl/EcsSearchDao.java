@@ -115,6 +115,8 @@ public class EcsSearchDao implements IEcsSearchDao {
                        }
                    }
                    boolQueryBuilder.must(eventboolQueryBuilder);
+               }else if(entry.getKey().equals("message")){//日志内容模糊查询
+                   boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message",entry.getValue()));
                }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
@@ -282,7 +284,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         } else {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
         }
-
+        HighlightBuilder highlightBuilder = null;//高亮字段
         // 其他查询条件处理
         if (map != null && !map.isEmpty()) {
             for (Map.Entry<String, String> entry : map.entrySet()) {
@@ -320,6 +322,12 @@ public class EcsSearchDao implements IEcsSearchDao {
                     boolQueryBuilder.must(eventboolQueryBuilder);
                 }else if(entry.getKey().equals("message")){//日志内容模糊查询
                     boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message",entry.getValue()));
+                    // 构建高亮体，指定包含查询条件的所有列都高亮
+                    highlightBuilder = new HighlightBuilder().field("message").requireFieldMatch(false);
+                    //highlightBuilder.preTags("<span style=\"color:red\">");
+                    highlightBuilder.preTags("<span style=\"background: #dea081;padding: 2px;\">");
+                    highlightBuilder.postTags("</span>");
+                    highlightBuilder.fragmentSize(500);
                 }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
@@ -330,7 +338,8 @@ public class EcsSearchDao implements IEcsSearchDao {
         // 构建排序体,指定排序字段
         SortBuilder sortBuilder = SortBuilders.fieldSort(ECS_DATE_FIELD).order(desc);
 
-        return searchTemplate.getListByBuilder(boolQueryBuilder, sortBuilder, from, size, indices);
+        //return searchTemplate.getListByBuilder(boolQueryBuilder, sortBuilder, from, size, indices);
+        return searchTemplate.getListByBuilder(boolQueryBuilder, sortBuilder, highlightBuilder, from, size, indices);
     }
 
     @Override

@@ -8,11 +8,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Strings;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.util.BASE64Util;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.POI.ReadExcel;
+import com.sun.tools.internal.jxc.ap.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -260,8 +262,50 @@ public class EquipmentController {
 		}
 		return list;
 	}
+	/**
+	 * @param request
+	 * @return 获取资产列表,dashboard 设置资产/资产组 ，点击资产组后加载不包含在资产组中的资产
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getAssetList4Checkbox.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="dashboard设置资产/资产组时获取资产列表")
+	public String getAssetList4Checkbox(HttpServletRequest request) {
+		try{
+			String asset_group_ids = request.getParameter("asset_group_ids");
+			if(asset_group_ids==null){
+				return Constant.failureMessage("参数异常！");
+			}else{
+				List<Map<String,String>> result = this.equipmentService.getAssetList4Checkbox(asset_group_ids);
+				return Constant.successData(JSONArray.toJSONString(result));
+			}
 
-	
+		}catch(Exception e){
+			return Constant.failureMessage("获取资产列表失败！");
+		}
+	}
+	/**
+	 * @param request
+	 * @return 获取资产列表,dashboard 设置资产/资产组后，悬浮窗要加载的资产信息
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getEquipmentListByDashboardSet.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="dashboard获取资产列表（或单个资产）")
+	public String getEquipmentListByDashboardSet(HttpServletRequest request) {
+		try{
+			String asset_group_ids = request.getParameter("asset_group_ids");
+			String asset_ids = request.getParameter("asset_ids");
+			if(asset_group_ids==null||asset_ids==null){
+				return Constant.failureMessage("参数异常！");
+			}else{
+				List<Equipment> result = this.equipmentService.getEquipmentListByDashboardSet(asset_group_ids.split(","),asset_ids.split(","));
+				return Constant.successData(JSONArray.toJSONString(result));
+			}
+
+		}catch(Exception e){
+			return Constant.failureMessage("获取资产/资产列表失败！");
+		}
+	}
+
 	/**
 	 * @param request
 	 * @param session

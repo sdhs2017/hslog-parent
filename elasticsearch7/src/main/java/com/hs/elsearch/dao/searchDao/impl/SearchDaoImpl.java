@@ -732,7 +732,7 @@ public class SearchDaoImpl implements ISearchDao {
      */
     private AggregationBuilder getMetricAggBuilder(Metric metric){
         AggregationBuilder metricBuilder = null;
-        String aliasName = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField());//别名
+        String aliasName = !Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()).replace(".","_");//别名
         switch(metric.getAggType().toUpperCase()){
             case "SUM":
                 // 在bucket上聚合metric查询sum

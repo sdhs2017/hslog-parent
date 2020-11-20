@@ -115,6 +115,8 @@ public class EcsSearchDao implements IEcsSearchDao {
                        }
                    }
                    boolQueryBuilder.must(eventboolQueryBuilder);
+               }else if(entry.getKey().equals("message")){//日志内容模糊查询
+                   boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message",entry.getValue()));
                }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));

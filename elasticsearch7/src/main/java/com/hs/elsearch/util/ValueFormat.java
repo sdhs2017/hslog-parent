@@ -5,7 +5,18 @@ import joptsimple.internal.Strings;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
+/**
+ * 处理es返回的value值
+ * 根据前端设置单位进行处理
+ * 支持byte类型和百分比的转换
+ */
 public class ValueFormat {
+    /**
+     * 只将数值进行转换，不带单位
+     * @param value
+     * @param unit
+     * @return
+     */
     public static Object formatter(Double value,String unit){
         Object result;
         //保留小数点2位
@@ -14,9 +25,9 @@ public class ValueFormat {
             try{
                 switch (unit.toUpperCase()){
                     case "%":
-                        Float folatValue = Float.parseFloat(value.toString());
-                        folatValue = folatValue*100;
-                        result = decimalFormat.format(folatValue);
+                        Float floatValue = Float.parseFloat(value.toString());
+                        floatValue = floatValue*100;
+                        result = decimalFormat.format(floatValue);
                         break;
                     case "MB":
                         value = value/1024/1024;//byte -> MB
@@ -42,6 +53,13 @@ public class ValueFormat {
         }
         return result;
     }
+
+    /**
+     * 将数值转换并带上单位
+     * @param value
+     * @param unit
+     * @return
+     */
     public static Object formatterAppendUnit(Double value,String unit){
         Object result;
         //保留小数点2位
@@ -50,9 +68,9 @@ public class ValueFormat {
             try{
                 switch (unit.toUpperCase()){
                     case "%":
-                        Float folatValue = Float.parseFloat(value.toString());
-                        folatValue = folatValue*100;
-                        result = decimalFormat.format(folatValue)+unit;
+                        Float floatValue = Float.parseFloat(value.toString());
+                        floatValue = floatValue*100;
+                        result = decimalFormat.format(floatValue)+unit;
                         break;
                     case "MB":
                         value = value/1024/1024;//byte -> MB

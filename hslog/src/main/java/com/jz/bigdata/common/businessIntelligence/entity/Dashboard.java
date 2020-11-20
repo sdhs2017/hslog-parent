@@ -11,6 +11,24 @@ public class Dashboard {
     private String data;//查询结果
     private Boolean editable;//是否可编辑
     private Boolean deletable;//是否可删除
+    private String asset_ids;//增加的资产ids
+    private String asset_group_ids;//增加的资产组ids
+
+    public String getAsset_ids() {
+        return asset_ids;
+    }
+
+    public void setAsset_ids(String asset_ids) {
+        this.asset_ids = asset_ids;
+    }
+
+    public String getAsset_group_ids() {
+        return asset_group_ids;
+    }
+
+    public void setAsset_group_ids(String asset_group_ids) {
+        this.asset_group_ids = asset_group_ids;
+    }
 
     public Boolean getEditable() {
         return editable;

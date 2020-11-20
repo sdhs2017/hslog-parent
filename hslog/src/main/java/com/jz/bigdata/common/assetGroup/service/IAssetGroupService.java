@@ -77,4 +77,9 @@ public interface IAssetGroupService {
 	 * @return
 	 */
 	Map<String,Object> getDashboardInfo (String asset_group_id);
+	/**
+	 * 获取资产组数据的combobox列表
+	 * @return
+	 */
+	public List<Map<String, String>> getAssetGroupListCombobox();
 }

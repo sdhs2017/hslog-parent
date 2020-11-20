@@ -178,6 +178,21 @@ public class AssetGroupController {
 	}
 	/**
 	 * @param request
+	 * @return 获取资产列表，服务于alert的combobox，不添加空选项，用于dashboard设置资产/资产组
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getAssetGroupList4Checkbox.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="dashboard获取资产组列表")
+	public String getAssetGroupList4Checkbox(HttpServletRequest request) {
+		try{
+			List<Map<String,String>> result = this.assetGroupService.getAssetGroupListCombobox();
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			return Constant.failureMessage("资产组添加失败！");
+		}
+	}
+	/**
+	 * @param request
 	 * @return 获取资产列表，服务于alert的combobox，添加空选项
 	 */
 	@ResponseBody

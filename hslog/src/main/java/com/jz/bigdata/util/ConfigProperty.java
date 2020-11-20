@@ -168,6 +168,28 @@ public class ConfigProperty {
 	//文件日志index
 	@Value("#{prop.es_file_index}")
 	private String es_file_index;
+	//指标日志index
+	@Value("#{prop.es_metric_index}")
+	private String es_metric_index;
+	//流量日志index
+	@Value("#{prop.es_packet_index}")
+	private String es_packet_index;
+
+	public String getEs_metric_index() {
+		return es_metric_index;
+	}
+
+	public void setEs_metric_index(String es_metric_index) {
+		this.es_metric_index = es_metric_index;
+	}
+
+	public String getEs_packet_index() {
+		return es_packet_index;
+	}
+
+	public void setEs_packet_index(String es_packet_index) {
+		this.es_packet_index = es_packet_index;
+	}
 
 	public String getEs_file_index() {
 		return es_file_index;

@@ -945,9 +945,10 @@
                 //关闭弹窗
                 this.setAssetConditionState = false;
                 //展开右侧悬浮球
-                this.$refs.assetConditionBox.setAttribute('flag', true)
-                this.showAssetList();
-
+                if(assetGroupIds !== '' || assetIds !== ''){
+                    this.$refs.assetConditionBox.setAttribute('flag', true)
+                    this.showAssetList();
+                }
             },
             /*获取已选中的资产，并设置资产条件*/
             getCheckedAsset(assetGroupIds,assetIds,refreshState){
@@ -1302,7 +1303,8 @@
             },
             /*刷新dashboard*/
             refreshDashboard(){
-                this.loading = true;
+                this.getCheckedAsset(this.asset_group_ids,this.asset_ids,true);
+               /* this.loading = true;
                 //获取数据
                 for(let i in this.layout) {
                     this.chartsCount += 1;
@@ -1320,7 +1322,7 @@
                     } else if (this.layout[i].chartType == 'systemChart') {
 
                     }
-                }
+                }*/
             },
             /*刷新数据*/
             refreshData(){

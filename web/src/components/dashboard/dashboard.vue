@@ -13,6 +13,8 @@
                 </el-dropdown-menu>
             </el-dropdown>
             <el-button  type="primary" size="mini" plain @click="setAssetConditionState = true" >设置资产</el-button>
+            <span style="font-size: 13px;text-shadow: none" v-if="this.setAssetGroupChecked.length !== 0">已选资产组:{{this.assetGroupShow}};</span>
+            <span style="font-size: 13px;text-shadow: none" v-if="this.setAssetChecked.length !== 0">已选资产:{{this.assetShow}}</span>
             <!--<el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
             <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>-->
@@ -273,7 +275,7 @@
                     <div style="height: 270px;overflow: auto;border: 1px solid #3c6c9c;">
                         <el-checkbox-group v-model="setAssetGroupChecked" class="drawer-list asset-wapper" style="height:calc(100% - 10px);">
                             <ul>
-                                <li v-for="(item,i) in setAssetGroupList" :key="i" @click="setAssetChecked = []">
+                                <li v-for="(item,i) in setAssetGroupList" :key="i">
                                     <el-checkbox :label="item.value" style="width: 220px;overflow:hidden;">{{item.label}}</el-checkbox>
                                 </li>
                             </ul>
@@ -308,7 +310,7 @@
             <div class="asset-condition-con" v-else>
                 <div class="asset-condition-tit">
                     <i class="el-icon-circle-close" @click.stop="closeAssetList" ></i>
-                    <span class="">资产列表</span>
+                    <span class="">资产</span>
                     <span></span>
                 </div>
                 <div class="asset-condition-list" v-if="this.assetList.length === 0">
@@ -317,9 +319,8 @@
                 </div>
                 <div class="asset-condition-list" v-if="this.assetList.length === 1 && this.setAssetGroupChecked.length === 0">
                     <ul style="padding: 10px;height: calc(100% - 30px);overflow: auto">
-                        <li class="asset-li">
-                            <p class="asset-tit">资产名称</p>
-                            <p class="asset-val">{{this.assetInfo.name}}</p>
+                        <li class="asset-li" style="color: #e4956d;background: 0;justify-content: center;font-size: 19px;font-weight: 600;margin: 20px 0;border: 0;width: 100%">
+                            {{this.assetInfo.name}}
                         </li>
                         <li class="asset-li">
                             <p class="asset-tit">资产IP</p>
@@ -849,7 +850,42 @@
             bus.$off(this.busFilterName)
             bus.$off(this.busQueryName)
         },
+        computed:{
+            assetGroupShow(){
+                let groupName = '';
+                if(this.setAssetGroupChecked.length === 1){
+                    for(let i in this.setAssetGroupChecked){
+                        for(let j in this.setAssetGroupList){
+                            if(this.setAssetGroupChecked[i] === this.setAssetGroupList[j].value){
+                                groupName += this.setAssetGroupList[j].label + ' '
+                            }
+                        }
+                    }
+                }else{
+                    groupName = this.setAssetGroupChecked.length+'个'
+                }
+
+                return groupName
+            },
+            assetShow(){
+                let assetName = '';
+                if(this.setAssetChecked.length === 1){
+                    for(let i in this.setAssetChecked){
+                        for(let j in this.setAssetList){
+                            if(this.setAssetChecked[i] === this.setAssetList[j].value){
+                                assetName += this.setAssetList[j].label + ' '
+                            }
+                        }
+                    }
+                }else{
+                    assetName = this.setAssetChecked.length+'个'
+                }
+
+                return assetName
+            }
+        },
         methods:{
+            /*显示已选资产*/
             /*获取资产组*/
             getAssetGroup(){
                 this.$nextTick(()=>{
@@ -995,7 +1031,7 @@
                     return false
                 }
                 $(".asset-condition-box").css("transition","all 0.3s linear")
-                $(".asset-condition-box").css({"height":"calc(100vh - 160px)","width":"350px","border-radius":"0","top":"101px","background":"#303e4e"})
+                $(".asset-condition-box").css({"height":"550px","width":"350px","border-radius":"0","top":"151px","background":"#303e4e"})
                 this.eqDialogState = 'rect'
 
             },
@@ -1914,13 +1950,13 @@
                 }
             },
             /*选中的资产组改变*/
-            'setAssetGroupChecked'(){
+            /*'setAssetGroupChecked'(){
                 let groupIds = ''
                 for(let i in this.setAssetGroupChecked){
                     groupIds += this.setAssetGroupChecked[i]+','
                 }
                 this.getAsset(groupIds)
-            },
+            },*/
             /*选中的右侧资产列表改变*/
             'checkedAsset'(){
                 if(this.assetLiClick){
@@ -2096,8 +2132,9 @@
         position: fixed;
         width: 50px;
         height: 50px;
-        background: #476b94;
+        /*background: #476b94;*/
         border-radius: 100%;
+        background:rgb(48, 75, 103)!important;
         right: 26px;
         top: 197px;
         /*transition: all 0.3s linear;*/
@@ -2118,7 +2155,8 @@
         -moz-user-select:none;
         -ms-user-select:none;
         user-select:none;
-
+        background: #409eff;
+        color: #fff;
 
     }
     .asset-ball>div{
@@ -2144,7 +2182,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #476b94;
+        /*background: #476b94;*/
+        background: #409eff;
+        color: #fff;
         padding: 0 10px;
         font-weight: 600;
     }
@@ -2156,17 +2196,30 @@
         height: calc(100% - 50px);
     }
     .asset-li{
+        margin: 0 auto;
         margin-bottom: 2px;
+        display: flex;
+        background: #37516d;
+        height: 36px;
+        align-items: center;
+        border-radius: 5px;
+        border: 1px solid #37516d;
+
+    }
+    .asset-li:nth-child(odd){
+        background: #2f455c;
+        width: 95%;
     }
     .asset-tit{
         font-size: 13px;
-        background: #37516d;
+        /*background: #37516d;*/
         padding: 8px;
+        width: 80px;
+        text-align: end;
     }
     .asset-val{
         text-align: center;
-        background: #2f455c;
-        padding: 8px;
+        padding-left:20px;
         font-size: 15px;
         font-weight: 600;
         color: #409eff;

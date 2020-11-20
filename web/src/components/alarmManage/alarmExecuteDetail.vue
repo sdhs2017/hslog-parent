@@ -17,6 +17,7 @@
                     end-placeholder="结束日期"
                     :picker-options="pickerOptions">
                 </el-date-picker>
+                <el-button size="mini" type="primary" plain @click="refrshData">刷新</el-button>
             </div>
         </div>
         <div class="execute-list-wapper">
@@ -221,7 +222,7 @@
             const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
-            this.dateVal = [dateFormat('yyyy-mm-dd HH:MM:SS',start),dateFormat('yyyy-mm-dd HH:MM:SS',end)]
+            this.dateVal = [dateFormat('yyyy-mm-dd HH:MM:SS',start),dateFormat('yyyy-mm-dd',end)+' 23:59:59']
             this.param.endtime= this.dateVal[1];
             this.param.starttime=this.dateVal[0];
             this.getAlarmExecute(this.param,1);
@@ -304,6 +305,11 @@
                     }
                     return  time;
                 }
+            },
+            /*刷新*/
+            refrshData(){
+                this.getAlarmExecute(this.param,1)
+                this.c_page = 1;
             },
             /*获取执行结果*/
             getAlarmExecute(searchObj,page){

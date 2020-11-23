@@ -1303,7 +1303,27 @@
             },
             /*刷新dashboard*/
             refreshDashboard(){
-                this.getCheckedAsset(this.asset_group_ids,this.asset_ids,true);
+                this.getCheckedAsset(this.asset_group_ids,this.asset_ids,false)
+                    .then(()=>{
+                        //获取数据
+                        for(let i in this.layout) {
+                            this.chartsCount += 1;
+                            //判断是否是文字块  不是则是图表类型 需要获取图表结构
+                            if (this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart') {
+                                this.getEchartsConstruction(this.layout[i])
+                                    .then((res) => {
+                                        //获取图例数据
+                                        return this.getEchartsData(res)
+                                    })
+                                    .then((res) => {
+                                        //加载图例
+                                        return this.creatEcharts(res)
+                                    })
+                            } else if (this.layout[i].chartType == 'systemChart') {
+
+                            }
+                        }
+                    })
                /* this.loading = true;
                 //获取数据
                 for(let i in this.layout) {

@@ -8,7 +8,7 @@ const state = { //一般通过外部文件引入的，东西很多的。
                 //定义数据 --- 类似data
     logshowcolumn:{},
     closeState:false,
-    beforeDay:7,
+    beforeDay:1,
     tagRouteList:[]
 }
 const mutations = {

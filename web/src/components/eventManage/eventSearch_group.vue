@@ -363,15 +363,29 @@
             },
             /*检索按钮*/
             searchBtn(){
+                let reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+
                 if(this.eventSearchCondition.starttime === '' || this.eventSearchCondition.endtime === ''){
                     layer.msg('查询时间条件不允许为空，时间跨度过大可能导致相应慢',{icon:5})
                 }else{
+                    if(this.eventSearchCondition['fields.ip'] !== ''){
+                        if(!reg.test(this.eventSearchCondition['fields.ip'])){
+                            layer.msg('目的地址不合法',{icon:5})
+                            return false
+                        }
+                    }
+                    if(this.eventSearchCondition['source.ip'] !== ''){
+                        if(!reg.test(this.eventSearchCondition['source.ip'])){
+                            layer.msg('源地址不合法',{icon:5})
+                            return false
+                        }
+                    }
                     this.getEventsData(1,this.eventSearchCondition);
                     this.c_page = 1;
                     this.saveCondition = this.eventSearchCondition;
                 }
 
-            },
+                },
             /*获得事件列表数据*/
             getEventsData(page,params){
                 this.loading = true;

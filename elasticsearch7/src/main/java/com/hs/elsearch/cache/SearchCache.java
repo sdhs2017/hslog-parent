@@ -136,6 +136,7 @@ public enum SearchCache {
                                 forAllExceptGeoPointList.add(mf);
                                 break;
                             case "boolean":
+                                forTermsList.add(mf);
                                 forAllExceptGeoPointList.add(mf);
                                 break;
                             default:

@@ -7,17 +7,21 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.hs.elsearch.entity.Bucket;
 import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.QueryCondition;
 import com.hs.elsearch.entity.VisualParam;
+import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.alert.entity.AlertSnapshot;
 import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
@@ -2181,6 +2185,15 @@ public class LogController extends BaseController{
 			return Constant.failureMessage("数据查询失败！");
 		}
 	}
+
+	/**
+	 * 安徽项目特供，将首页饼图和柱状图放到cache中，1小时过期时间
+	 */
+//	private Cache<String, String> logCache = Caffeine.newBuilder()
+//			.maximumSize(10)//最大条数，
+//			.expireAfterWrite(1, TimeUnit.HOURS)//过期时间，1h
+//			.recordStats()
+//			.build();
 	/**
 	 * @param request
 	 * 统计各个日志级别的数据量
@@ -2191,12 +2204,22 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/getCountGroupByLogLevel_barAndPie", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="读取日志级别数据量")
 	public String getCountGroupByLogLevel_barAndPie(HttpServletRequest request) {
+
 		//处理参数
 		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
 		//参数异常
 		if(!Strings.isNullOrEmpty(params.getErrorInfo())){
 			return Constant.failureMessage(params.getErrorInfo());
 		}
+		//自动刷新参数，auto为自动刷新。manual为手动刷新。自动刷新启用缓存机制
+//		String refresh = request.getParameter("refresh");
+//		if(refresh!=null&&"auto".equals(refresh)){
+//			//安徽特供 cache
+//			String result_cache = logCache.getIfPresent("getCountGroupByLogLevel_barAndPie");
+//			if(null!=result_cache){
+//				return Constant.successData(result_cache) ;
+//			}
+//		}
 		//index 和 日期字段初始化
 		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
 		//X轴，日志级别（log.level）
@@ -2207,11 +2230,16 @@ public class LogController extends BaseController{
 		params.getMetricList().add(metric);
 		try{
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+			//安徽特供，如果是自动刷新的，写入cache
+//			if(refresh!=null&&"auto".equals(refresh)){
+//				logCache.put("getCountGroupByLogLevel_barAndPie",JSONArray.fromObject(result).toString());
+//			}
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
 			log.error("读取日志级别数据量"+e.getMessage());
 			return Constant.failureMessage("数据查询失败！");
 		}
+
 	}
 	/**
 	 * @param request

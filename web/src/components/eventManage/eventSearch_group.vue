@@ -60,6 +60,14 @@
                 </el-select>
             </div>
             <div>
+                <span class="input-lable">目的地址</span>
+                <el-input size="mini" v-model="eventSearchCondition['fields.ip']" placeholder="" style="border-radius: 0"></el-input>
+            </div>
+            <div>
+                <span class="input-lable">源地址</span>
+                <el-input size="mini" v-model="eventSearchCondition['source.ip']" placeholder="" style="border-radius: 0"></el-input>
+            </div>
+            <div>
                 <span class="input-lable">事件类型</span>
                 <el-input size="mini" v-model="eventSearchCondition['winlog.task']" placeholder="" style="border-radius: 0"></el-input>
             </div>
@@ -238,6 +246,8 @@
                     'event.action':'',
                     'agent.type':'',
                     event_group_id:'',
+                    'fields.ip':'',
+                    'source.ip':'',
                     endtime: '',
                     starttime: ''
                 },
@@ -257,6 +267,8 @@
                 'winlog.task':'',
                 'event.action':'',
                 'agent.type':'',
+                'fields.ip':'',
+                'source.ip':'',
                 event_group_id:'',
                 endtime: endTime,
                 starttime: startTime

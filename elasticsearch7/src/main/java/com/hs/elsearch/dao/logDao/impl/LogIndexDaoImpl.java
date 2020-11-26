@@ -37,6 +37,11 @@ public class LogIndexDaoImpl implements ILogIndexDao {
     }
 
     @Override
+    public Boolean putMapping(String index, String mappingproperties) throws Exception {
+        return indexTemplate.putMapping(index,mappingproperties);
+    }
+
+    @Override
     public Boolean indexExists(String... indices) throws Exception {
         return indexTemplate.indexExists(indices);
     }

@@ -14,6 +14,7 @@ import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.service.ISearchService;
 import com.hs.elsearch.util.ElasticConstant;
+import com.hs.elsearch.util.FieldsValueFormatter;
 import com.hs.elsearch.util.MappingField;
 import com.hs.elsearch.util.ValueFormat;
 import com.jz.bigdata.common.Constant;
@@ -392,7 +393,7 @@ public class BIServiceImpl implements IBIService {
                 dataPoint.put("name",key);
                 NumericMetricsAggregation.SingleValue value = aggregations.get(key);
                 //写入值
-                dataPoint.put("value", (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value());
+                dataPoint.put("value", ValueFormat.formatter(value,conditions.getUnit(),metric));
                 tempResult.add(dataPoint);
             }
             result.add(tempResult);
@@ -439,7 +440,7 @@ public class BIServiceImpl implements IBIService {
                 dataPoint.put("name",!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():metric.getAggType());
                 NumericMetricsAggregation.SingleValue value = aggregations.get(key);
                 //写入值
-                dataPoint.put("value", ValueFormat.formatterAppendUnit((Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value(),conditions.getUnit()));
+                dataPoint.put("value", ValueFormat.formatterAppendUnit(value,conditions.getUnit(),metric));
                 tempResult.add(dataPoint);
             }
             result.addAll(tempResult);
@@ -727,7 +728,7 @@ public class BIServiceImpl implements IBIService {
             dataPoint.put("name",key+"-"+(StringUtils.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName()));
             //获取metric对应的值
             NumericMetricsAggregation.SingleValue value = bucket.getAggregations().get(!Strings.isNullOrEmpty(metric.getAliasName())?metric.getAliasName():(metric.getAggType()+"-"+metric.getField()));
-            dataPoint.put("value",ValueFormat.formatterAppendUnit(Double.isInfinite(value.value())||Double.isNaN(value.value())?0:value.value(),conditions.getUnit()));
+            dataPoint.put("value",ValueFormat.formatterAppendUnit(value,conditions.getUnit(),metric));
             result.add(dataPoint);
         }
     }

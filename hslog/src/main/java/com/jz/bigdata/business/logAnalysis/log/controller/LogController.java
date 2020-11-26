@@ -22,6 +22,7 @@ import com.hs.elsearch.entity.Metric;
 import com.hs.elsearch.entity.QueryCondition;
 import com.hs.elsearch.entity.VisualParam;
 import com.hs.elsearch.util.MappingField;
+import com.jz.bigdata.business.logAnalysis.log.init.DataVisualInit;
 import com.jz.bigdata.common.alert.entity.AlertSnapshot;
 import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
@@ -34,6 +35,7 @@ import com.jz.bigdata.util.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -325,7 +327,36 @@ public class LogController extends BaseController{
 			// 默认1000，数据字段过多，需要调整配置
 			settingmap4Hsdata.put("mapping.total_fields.limit", configProperty.getEs_mapping_total_fields_limit());
 			logService.initOfElasticsearch("hsdata","hsdata*",null,settingmap4Hsdata,new HSData().toMapping());
-			//初始化beat template
+
+			try{
+				//检查是否需要更新index（hsdata）字段
+				//1.查看是否已存在名称为hsdata的index
+				if(logService.indexExists("hsdata")){
+					//如果存在，更新index的mapping信息
+					//TODO 也可以先使用mapping信息对比来确认是否需要更新
+					/***********************************
+					 * json内容比对 首先需要将两个mapping字段内容排序，用到alibaba json工具类JSONObject.parse
+					 * 顺序一致后，发现我们自己生成的json的boolean字段的值时带引号的 "true"。 es返回的不带，可以通过调整代码解决
+					 * 比对通过string equals即可
+					 ***********************************/
+					Boolean result = logService.putIndexMapping("hsdata",new HSData().toMapping());
+
+					if (!result) {
+						map.put("state", true);
+						map.put("msg", "index-mapping更新失败！");
+						return JSONArray.fromObject(map).toString();
+					}else{
+						log.info("hsdata mapping更新完成！");
+					}
+				}
+			}catch (Exception e){
+				log.error("hsdata mapping 更新失败："+e.getMessage());
+				map.put("state", true);
+				map.put("msg", "index-mapping更新失败！");
+				return JSONArray.fromObject(map).toString();
+			}
+
+
 
 			logService.initOfElasticsearch("auditbeat-","auditbeat-*",null,settingmap,beatTemplate.getAuditBeatTemplate());
 			logService.initOfElasticsearch("winlogbeat-","winlogbeat-*",null,settingmap,beatTemplate.getWinlogBeatTemplate());
@@ -418,7 +449,7 @@ public class LogController extends BaseController{
 			 * 初始化工作六：内置基本报表（数据可视化模块）
 			 */
 			try{
-				//DataVisualInit.init(logService);
+				DataVisualInit.init(logService);
 			}catch (Exception e){
 				e.printStackTrace();
 				log.error("数据可视化内置报表失败！："+e.getMessage());

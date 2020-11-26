@@ -28,6 +28,7 @@ import com.jz.bigdata.roleauthority.user.service.IUserService;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -1527,6 +1528,16 @@ public class LogServiceImpl implements IlogService {
 	public boolean indexExists(String index) throws Exception {
 
 		return logIndexDao.indexExists(index);
+	}
+
+	@Override
+	public Map<String, MappingMetaData> getIndexMappingData(String... indexname) throws Exception {
+		return logIndexDao.getIndexMappingData(indexname);
+	}
+
+	@Override
+	public boolean putIndexMapping(String index, String mapping) throws Exception {
+		return logIndexDao.putMapping(index,mapping);
 	}
 
 	@Override

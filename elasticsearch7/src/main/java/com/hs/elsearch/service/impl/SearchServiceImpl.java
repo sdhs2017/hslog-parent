@@ -206,9 +206,9 @@ public class SearchServiceImpl implements ISearchService {
             //String line_name = nextKey+(Strings.isNullOrEmpty(metric.getAliasName())?metric.getAggType():metric.getAliasName());
             //在最后一级的聚合遍历中，生成图例
             dimensions.add(line_name);
-            Double pointValue = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
+            //Double pointValue = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
             //数据换算
-            xAxisMap.put(line_name, ValueFormat.formatter(pointValue, unit));
+            xAxisMap.put(line_name, ValueFormat.formatter(value, unit,metric));
         }
     }
 

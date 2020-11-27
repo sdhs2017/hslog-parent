@@ -396,7 +396,7 @@
                 let arr = setChartParam(obj);
                 this.barParam = arr[0];
                 this.intervalObjBar = arr[1];
-                this.getBarPieEchartData(this.barParam,true,false);
+                this.getBarPieEchartData(this.barParam,true,false,'manual');
             })
             /*监听日期改变*/
             bus.$on('changeDatePie',(obj)=>{
@@ -404,7 +404,7 @@
                 let arr = setChartParam(obj);
                 this.pieParam = arr[0];
                 this.intervalObjPie = arr[1];
-                this.getBarPieEchartData(this.barParam,false,true);
+                this.getBarPieEchartData(this.barParam,false,true,'manual');
             })
             /*监听日期改变*/
             bus.$on('changeDateLine',(obj)=>{
@@ -425,8 +425,8 @@
             // //获取日志条数方法
              this.getLogsTotle();
              this.getErrorLogTotle();
-            // //获取柱状图
-            this.getBarPieEchartData(this.barParam,true,true);
+            // //获取柱状图,饼图
+            this.getBarPieEchartData(this.barParam,true,true,'auto');
             // //获取折线图数据  轮训 1min
             //this.getLineEchartData();
             //setInterval(this.getLineEchartData,60000);
@@ -552,13 +552,14 @@
                 })
             },
             //获取柱状图 饼图 数据
-            getBarPieEchartData(params,bar,pie){
+            getBarPieEchartData(params,bar,pie,refreshVal){
                 if(bar){
                     this.barloading = true
                 }
                 if(pie){
                     this.pieloading = true
                 }
+                params.refresh = refreshVal
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/log/getCountGroupByLogLevel_barAndPie.do',this.$qs.stringify(params))
                         .then((res) => {

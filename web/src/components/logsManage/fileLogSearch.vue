@@ -30,7 +30,7 @@
                     detailData:{},//弹窗数据
                     layerState:false//弹窗状态
                 },
-                busName:'accurateSearch2',
+                busName:'fileLogSearch',
                 words:'',//检索条件
                 searchConditions:{},
                 searchUrl:'log/getFilebeatLogListByBlend.do',//数据地址

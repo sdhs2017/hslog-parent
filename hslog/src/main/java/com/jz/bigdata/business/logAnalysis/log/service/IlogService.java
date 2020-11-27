@@ -11,6 +11,7 @@ import com.hs.elsearch.entity.VisualParam;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 
 public interface IlogService {
 
@@ -42,7 +43,22 @@ public interface IlogService {
 	 * @return 存在返回true，不存在false
 	 */
 	public boolean indexExists(String index) throws Exception;
+	/**
+	 * 获取index mapping信息
+	 * @param indexname 索引名称，支持多个一起查询
+	 * @return
+	 * @throws Exception
+	 */
+	public Map<String, MappingMetaData> getIndexMappingData(String ...indexname) throws Exception;
 
+	/**
+	 * 更新index的mapping信息，mapping一致或新的mapping只是新增了字段，则返回true。
+	 * @param index 索引名称
+	 * @param mapping 字段属性
+	 * @return
+	 * @throws Exception
+	 */
+	public boolean putIndexMapping(String index,String mapping) throws Exception;
 	/**
 	 * 创建elasticsearch的index和type，并配置mapping
 	 * @param index 索引名称

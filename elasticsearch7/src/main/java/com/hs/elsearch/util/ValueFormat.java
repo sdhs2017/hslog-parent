@@ -1,6 +1,8 @@
 package com.hs.elsearch.util;
 
+import com.hs.elsearch.entity.Metric;
 import joptsimple.internal.Strings;
+import org.elasticsearch.search.aggregations.metrics.NumericMetricsAggregation;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -17,7 +19,9 @@ public class ValueFormat {
      * @param unit
      * @return
      */
-    public static Object formatter(Double value,String unit){
+    public static Object formatter(NumericMetricsAggregation.SingleValue value,String unit,Metric metric){
+        //先将数值转成double
+        Double double_value = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
         Object result;
         //保留小数点2位
         DecimalFormat decimalFormat=new DecimalFormat("0.00");
@@ -25,42 +29,43 @@ public class ValueFormat {
             try{
                 switch (unit.toUpperCase()){
                     case "%":
-                        Float floatValue = Float.parseFloat(value.toString());
+                        Float floatValue = Float.parseFloat(double_value.toString());
                         floatValue = floatValue*100;
                         result = decimalFormat.format(floatValue);
                         break;
                     case "MB":
-                        value = value/1024/1024;//byte -> MB
-                        result = decimalFormat.format(value);
+                        double_value = double_value/1024/1024;//byte -> MB
+                        result = decimalFormat.format(double_value);
                         break;
                     case "GB":
-                        value = value/1024/1024/1024;//byte -> GB
-                        result = decimalFormat.format(value);
+                        double_value = double_value/1024/1024/1024;//byte -> GB
+                        result = decimalFormat.format(double_value);
                         break;
                     case "TB":
-                        value = value/1024/1024/1024/1024;//byte -> TB
-                        result = decimalFormat.format(value);
+                        double_value = double_value/1024/1024/1024/1024;//byte -> TB
+                        result = decimalFormat.format(double_value);
                         break;
                     default:
-                        result = value;
+                        result = double_value;
                         break;
                 }
             }catch(Exception e){
-                result = value.toString();
+                result = double_value.toString();
             }
         }else{
-            result = value;
+            result = FieldsValueFormatter.formatter(metric.getField(),double_value);
         }
         return result;
     }
 
     /**
-     * 将数值转换并带上单位
+     * 将数值转换并带上单位，需要给数字添加千分位
      * @param value
      * @param unit
      * @return
      */
-    public static Object formatterAppendUnit(Double value,String unit){
+    public static Object formatterAppendUnit(NumericMetricsAggregation.SingleValue value, String unit,Metric metric){
+        Double double_value = (Double.isInfinite(value.value())||Double.isNaN(value.value()))?0:value.value();
         Object result;
         //保留小数点2位
         DecimalFormat decimalFormat=new DecimalFormat("0.00");
@@ -68,31 +73,44 @@ public class ValueFormat {
             try{
                 switch (unit.toUpperCase()){
                     case "%":
-                        Float floatValue = Float.parseFloat(value.toString());
+                        Float floatValue = Float.parseFloat(double_value.toString());
                         floatValue = floatValue*100;
                         result = decimalFormat.format(floatValue)+unit;
                         break;
                     case "MB":
-                        value = value/1024/1024;//byte -> MB
-                        result =  addThousandSeparator(decimalFormat.format(value))+unit;
+                        double_value = double_value/1024/1024;//byte -> MB
+                        result =  addThousandSeparator(decimalFormat.format(double_value))+unit;
                         break;
                     case "GB":
-                        value = value/1024/1024/1024;//byte -> GB
-                        result = addThousandSeparator(decimalFormat.format(value))+unit;
+                        double_value = double_value/1024/1024/1024;//byte -> GB
+                        result = addThousandSeparator(decimalFormat.format(double_value))+unit;
                         break;
                     case "TB":
-                        value = value/1024/1024/1024/1024;//byte -> TB
-                        result = addThousandSeparator(decimalFormat.format(value))+unit;
+                        double_value = double_value/1024/1024/1024/1024;//byte -> TB
+                        result = addThousandSeparator(decimalFormat.format(double_value))+unit;
                         break;
                     default:
-                        result = addThousandSeparator(value+"");
+                        //不进行任何单位转换时，需要对count类型的结果取整
+                        if("Count".equals(metric.getAggType())){
+                            result = addThousandSeparator(double_value.intValue()+"");
+                        }else{
+                            result = addThousandSeparator(double_value+"");
+                        }
+
                         break;
                 }
             }catch(Exception e){
-                result = value.toString();
+                result = double_value.toString();
             }
         }else{
-            result = addThousandSeparator(value+"");
+            //不进行任何单位转换时，需要对count类型的结果取整
+            if("Count".equals(metric.getAggType())){
+                Object value_obj = FieldsValueFormatter.formatter(metric.getField(),double_value);
+                //count取整，主要是出去默认保留的以为小数（例：100.0）
+                result = addThousandSeparator(Double.valueOf(value_obj.toString()).intValue()+"");
+            }else{
+                result = addThousandSeparator(FieldsValueFormatter.formatter(metric.getField(),double_value)+"");
+            }
         }
         return result;
     }

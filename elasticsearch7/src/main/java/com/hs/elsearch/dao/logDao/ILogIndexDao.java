@@ -28,6 +28,14 @@ public interface ILogIndexDao {
     public Boolean addMapping(String index, String type, Map<String, Object> settings, String mappingproperties) throws Exception;
 
     /**
+     * 更新index的mapping信息
+     * @param index 索引名
+     * @param mappingproperties 字段类型信息
+     * @return
+     * @throws Exception
+     */
+    public Boolean putMapping(String index,String mappingproperties) throws Exception;
+    /**
      * 查询索引是否存在
      * @param indices 索引名称
      * @return

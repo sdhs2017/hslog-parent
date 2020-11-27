@@ -60,6 +60,14 @@
                 </el-select>
             </div>
             <div>
+                <span class="input-lable">目的地址</span>
+                <el-input size="mini" v-model="eventSearchCondition['fields.ip']" placeholder="" style="border-radius: 0"></el-input>
+            </div>
+            <div>
+                <span class="input-lable">源地址</span>
+                <el-input size="mini" v-model="eventSearchCondition['source.ip']" placeholder="" style="border-radius: 0"></el-input>
+            </div>
+            <div>
                 <span class="input-lable">事件类型</span>
                 <el-input size="mini" v-model="eventSearchCondition['winlog.task']" placeholder="" style="border-radius: 0"></el-input>
             </div>
@@ -238,6 +246,8 @@
                     'event.action':'',
                     'agent.type':'',
                     event_group_id:'',
+                    'fields.ip':'',
+                    'source.ip':'',
                     endtime: '',
                     starttime: ''
                 },
@@ -257,6 +267,8 @@
                 'winlog.task':'',
                 'event.action':'',
                 'agent.type':'',
+                'fields.ip':'',
+                'source.ip':'',
                 event_group_id:'',
                 endtime: endTime,
                 starttime: startTime
@@ -351,15 +363,29 @@
             },
             /*检索按钮*/
             searchBtn(){
+                let reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+
                 if(this.eventSearchCondition.starttime === '' || this.eventSearchCondition.endtime === ''){
                     layer.msg('查询时间条件不允许为空，时间跨度过大可能导致相应慢',{icon:5})
                 }else{
+                    if(this.eventSearchCondition['fields.ip'] !== ''){
+                        if(!reg.test(this.eventSearchCondition['fields.ip'])){
+                            layer.msg('目的地址不合法',{icon:5})
+                            return false
+                        }
+                    }
+                    if(this.eventSearchCondition['source.ip'] !== ''){
+                        if(!reg.test(this.eventSearchCondition['source.ip'])){
+                            layer.msg('源地址不合法',{icon:5})
+                            return false
+                        }
+                    }
                     this.getEventsData(1,this.eventSearchCondition);
                     this.c_page = 1;
                     this.saveCondition = this.eventSearchCondition;
                 }
 
-            },
+                },
             /*获得事件列表数据*/
             getEventsData(page,params){
                 this.loading = true;

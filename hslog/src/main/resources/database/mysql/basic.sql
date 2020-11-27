@@ -1199,7 +1199,8 @@ CREATE TABLE `HS_RoleMenu`  (
 DROP TABLE IF EXISTS `HS_RoleMenuButton`;
 CREATE TABLE `HS_RoleMenuButton`  (
                                       `fk_menuAndButon_id` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-                                      `fk_roleid` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL
+                                      `fk_roleid` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
+                                      UNIQUE INDEX `UNIQUE_KEY`(`fk_menuAndButon_id`, `fk_roleid`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 
 -- ----------------------------

@@ -360,7 +360,7 @@
                     //layer.load(1);
                     //this.$axios.get('../../../static/filejson/data.json','')
                     this.$axios.post(this.$baseUrl+'/flow/getMap.do',this.$qs.stringify({
-                        timeInterval:259200
+                        timeInterval:86400
                     }))
                         .then(res=> {
                             //layer.closeAll('loading');

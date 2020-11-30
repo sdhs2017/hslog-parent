@@ -12,7 +12,7 @@
                     <el-dropdown-item><div @click="wordsState = true; wordType = 'add'" >文字</div></el-dropdown-item>
                 </el-dropdown-menu>
             </el-dropdown>
-            <el-button  type="primary" size="mini" plain @click="setAssetConditionState = true" >设置资产</el-button>
+            <el-button  type="primary" size="mini" plain @click="setAssetConditionState = true" style="position:relative;z-index: 2;">设置资产</el-button>
             <span style="font-size: 13px;text-shadow: none" v-if="this.setAssetGroupChecked.length !== 0">已选资产组:{{this.assetGroupShow}};</span>
             <span style="font-size: 13px;text-shadow: none" v-if="this.setAssetChecked.length !== 0">已选资产:{{this.assetShow}}</span>
             <!--<el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
@@ -1668,6 +1668,16 @@
                                             }
                                             return value;
                                         }
+                                        //处理x轴文字过长 显示省略号
+                                        obj.opt.xAxis.axisLabel.formatter= function (value, index) {
+                                            let str = ''
+                                            if(value.length > 20){
+                                                str = JSON.stringify(value.slice(0,20))+'...'
+                                            }else{
+                                                str = value
+                                            }
+                                            return str;
+                                        }
                                         for(let i=0;i<xL;i++){
                                             if(colorIndex === this.color1.length){
                                                 colorIndex = 0;
@@ -1694,6 +1704,16 @@
                                                 value = value / 10000000 + "千万";
                                             }
                                             return value;
+                                        }
+                                        //处理x轴文字过长 显示省略号
+                                        obj.opt.xAxis.axisLabel.formatter= function (value, index) {
+                                            let str = ''
+                                            if(value.length > 20){
+                                                str = JSON.stringify(value.slice(0,20))+'...'
+                                            }else{
+                                                str = value
+                                            }
+                                            return str;
                                         }
                                         for(let i=0;i<xL;i++){
                                             if(colorIndex === this.color1.length){

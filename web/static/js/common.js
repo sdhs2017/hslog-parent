@@ -300,6 +300,34 @@ function setChartParam(obj) {
     return [param,intervalObj]
 }
 
+/*
+* echarts 鼠标悬停 x轴名称过长 换行处理 方法
+*
+*
+* */
+function changeEchartsTooltip(params) {
+    let arr = params[0].value;
+    let str = ''
+    let xname = params[0].value.xAxis;
+    let le = 50;
+    for(let i in arr){
+        if(i !== 'xAxis' ){
+            str +='&nbsp;&nbsp;'+ i + ' : '+ arr[i] + '<br>'
+        }
+
+    }
+    let newName = ''
+    for(let i=0;i<xname.length;i++){
+        if(i % le === 0 && i !== 0){
+            newName += xname[i] +'<br>'
+        }else{
+            newName += xname[i]
+        }
+    }
+    return newName +'<br>' + str
+
+
+}
 
 export {
     downloadToPDF,
@@ -312,5 +340,6 @@ export {
     dateFormat,
     baseUrl,
     getBtn,
-    setChartParam
+    setChartParam,
+    changeEchartsTooltip
 }

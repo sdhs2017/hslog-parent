@@ -379,7 +379,7 @@
     import vEcharts from '../common/echarts'
     import vBasetable from '../common/Basetable2';
     import bus from '../common/bus';
-    import {dateFormat,jumpHtml,setChartParam} from "../../../static/js/common";
+    import {dateFormat,jumpHtml,setChartParam,changeEchartsTooltip} from "../../../static/js/common";
     import allComps from '../charts/index'
     const echarts = require('echarts');
     //特殊表格id
@@ -1678,6 +1678,11 @@
                                             }
                                             return str;
                                         }
+                                        //处理x轴名称
+                                        obj.opt.tooltip.formatter = function(params){
+                                            return changeEchartsTooltip(params)
+                                        }
+
                                         for(let i=0;i<xL;i++){
                                             if(colorIndex === this.color1.length){
                                                 colorIndex = 0;
@@ -1714,6 +1719,10 @@
                                                 str = value
                                             }
                                             return str;
+                                        }
+                                        //处理x轴名称
+                                        obj.opt.tooltip.formatter = function(params){
+                                            return changeEchartsTooltip(params)
                                         }
                                         for(let i=0;i<xL;i++){
                                             if(colorIndex === this.color1.length){
@@ -2357,7 +2366,7 @@
         width: 100%;
         position: relative;
         height: calc(100% - 50px);
-        overflow: hidden;
+        /*overflow: hidden;*/
         /*z-index: 101;*/
         /*width: 613px;
         height: 260px;*/

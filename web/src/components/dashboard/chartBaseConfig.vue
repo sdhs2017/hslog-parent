@@ -468,7 +468,7 @@
 
 <script>
     import dateLayout from '../common/dateLayout'
-    import {setChartParam} from "../../../static/js/common";
+    import {setChartParam,changeEchartsTooltip} from "../../../static/js/common";
     import bus from '../common/bus';
     import jsonView from 'vue-json-views'
     import queryFilter from '../dashboard/queryFilter'
@@ -1342,7 +1342,10 @@
                         trigger: 'axis',
                         axisPointer: {
                             type: 'shadow'
-                        }
+                        },
+                       formatter:(params)=>{
+                           return changeEchartsTooltip(params)
+                       }
                     },
                     toolbox: {
                         show:this.chartsConfig.toolbox.show,
@@ -1382,6 +1385,7 @@
                         },
                         axisLine:this.chartsConfig.xNormal.axisLine,
                         axisLabel:this.chartsConfig.xNormal.axisLabel,
+
                     },
                     yAxis: {
                         name:this.chartsConfig.yNormal.name+' '+ this.yUnit,
@@ -1404,6 +1408,16 @@
                         }
                     },
                     series: []
+                }
+                //处理x轴文字过长 显示省略号
+                this.opt.xAxis.axisLabel.formatter= function (value, index) {
+                    let str = ''
+                    if(value.length > 20){
+                        str = JSON.stringify(value.slice(0,20))+'...'
+                    }else{
+                        str = value
+                    }
+                    return str;
                 }
                 //循环创建图表的维度
                 let xL = data.dimensions.length - 1;//维度
@@ -1450,6 +1464,9 @@
                         trigger: 'axis',
                         axisPointer: {
                             type: 'cross'
+                        },
+                        formatter:(params)=>{
+                            return changeEchartsTooltip(params)
                         }
                     },
                     toolbox: {
@@ -1513,6 +1530,16 @@
                         }
                     },
                     series: []
+                }
+                //处理x轴文字过长 显示省略号
+                this.opt.xAxis.axisLabel.formatter= function (value, index) {
+                    let str = ''
+                    if(value.length > 20){
+                        str = JSON.stringify(value.slice(0,20))+'...'
+                    }else{
+                        str = value
+                    }
+                    return str;
                 }
                 let xL = data.dimensions.length - 1;
                 let colorIndex = 0;//颜色索引

@@ -95,7 +95,7 @@
                 //目的地址、资产ip参数
                 params:{
                     intervalValue:'5',
-                    intervalType:'second',
+                    intervalType:'minute',
                     starttime:'',
                     endtime:'',
                     last:'1-hour'
@@ -110,12 +110,12 @@
                 },
                 intervalObj:{
                     state:true,
-                    interval:'5000'
+                    interval:'300000'
                 },
                 eData:[[{"name":"jinan","value":[120.3719,36.0986]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Hangzhou","value":[120.1619,30.294]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Singapore","value":[103.8547,1.2929]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Beijing","value":[116.3889,39.9288]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Tokyo","value":[139.7532,35.6882]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Mountain View","value":[-122.0748,37.4043]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Central","value":[114.15,22.2909]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Seattle","value":[-122.3451,47.6348]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Qingdao","value":[120.3694,36.066]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Ashburn","value":[-77.4728,39.0481]}],[{"name":"Hangzhou","value":[120.1619,30.294]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Mountain View","value":[-122.0748,37.4043]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Beijing","value":[116.3889,39.9288]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Singapore","value":[103.8547,1.2929]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Central","value":[114.15,22.2909]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Tokyo","value":[139.7532,35.6882]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Seattle","value":[-122.3451,47.6348]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Ashburn","value":[-77.4728,39.0481]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"San Francisco","value":[-122.4121,37.7506]},{"name":"jinan","value":[120.3719,36.0986]}]],
                 option:{},
                 interTime:'',
-                timeInterval:5000,
+                timeInterval:300000,
                 //数据日期间隔
                 dataTime:3600,
                 fullscreen:false,

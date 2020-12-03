@@ -33,7 +33,19 @@
                     <div class="eq-type">
                         <!--<i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
                         <i class="el-icon-data-line"  v-else></i>-->
-                        <i class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+                        <el-popover
+                            v-if="i.logType === 'metric' || i.logType === 'packet'"
+                            placement="right"
+                            width="150"
+                            trigger="click">
+                            <div style="min-height: 65px;" v-loading="chartsloading"  element-loading-background="rgba(48, 62, 78, 0.5)"  element-loading-spinner="el-icon-loading">
+                               <div v-for="(ec,ei) in eqChartList"class="eq-chart-item" @click="goToDashboard(i,ec.id)" >
+                                   {{ec.name}}
+                               </div>
+                            </div>
+                            <el-button slot="reference" title="查看资产报表" @click="getEquipmentCharts(i)"><i class="el-icon-s-data go_metric" ></i></el-button>
+                        </el-popover>
+                        <i v-else class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>
                     </div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
@@ -137,6 +149,7 @@
                 },//结果状态参数集合
                 importState:false,//导入框状态
 			    loading:false,
+                chartsloading:false,
                 checkList:[],
 			    zzIndex:-2,
                 busName:'searchEquipment2',
@@ -154,7 +167,9 @@
                 typeArr:[],
                 selectEquipmentId:'',//日志页面跳转过来的资产id
                 equipmentList:[],
-                formConditionsArr:[]
+                formConditionsArr:[],
+                //可跳转的资产图表集合
+                eqChartList:[]
             }
 		},
         created(){
@@ -420,6 +435,33 @@
             equipmentLogs(rowData,index){
                 //跳转页面
                 jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
+            },
+            /*获取资产图表*/
+            getEquipmentCharts(i){
+                this.$nextTick(()=>{
+                    this.eqChartList = []
+                    this.chartsloading = true;
+                    this.$axios.post(this.$baseUrl+'/equipment/getDashboardsInfo.do ',this.$qs.stringify({
+                        logType:i.logType
+                    }))
+                        .then(res=>{
+                            this.chartsloading = false;
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                this.eqChartList = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.chartsloading = false;
+                        })
+                })
+            },
+            /*查看资产dashboard*/ //rowData:资产数据 dID：dashboard ID
+            goToDashboard(rowData,dId){
+                //dId = 'CMCPunUBEtm5D8ifHXoY'
+                jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
             },
             /*查看资产图表*/
             equipmentEcharts(rowData,index){
@@ -714,6 +756,26 @@
     }
     .eq-type .go_metric:hover{
         color: #E4956D;
+    }
+    .eq-type /deep/ .el-button{
+        background: #2f455c;
+        color: #359bd6;
+        width: 30px;
+        height: 30px;
+        text-align: center;
+        padding: 0!important;
+        border-radius: 100%;
+        border: 0;
+        font-size: 18px;
+    }
+    .eq-chart-item{
+        padding:5px 2px;
+        color: #409eff;
+        border-bottom: 1px dashed #345a7d;
+    }
+    .eq-chart-item:hover{
+        background: #345a7d;
+        cursor: pointer;
     }
     .eq-t-span{
         color: #fff;

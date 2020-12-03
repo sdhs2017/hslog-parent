@@ -766,7 +766,7 @@
                 this.busQueryName = 'eqDashboardQuery'+this.$route.query.eid;
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
-                    this.equipmentId = this.$route.query.eid;
+                    //this.equipmentId = this.$route.query.eid;
                     this.dashboardTit = this.$route.query.name;
                 }
             }else if(JSON.stringify(this.$route.query) !== "{}" && this.$route.query.type === "assetGroupEdit"){
@@ -785,7 +785,7 @@
 
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
-                    this.assetGroupId = this.$route.query.eid;
+                   // this.assetGroupId = this.$route.query.eid;
                     this.dashboardTit = this.$route.query.name;
                 }
             }
@@ -1437,6 +1437,17 @@
                                 if(this.asset_ids !== ''){
                                     this.setAssetChecked = this.asset_ids.substr(0,this.asset_ids.length - 1).split(',')
                                 }
+                                //根据资产、资产组 跳转  设置资产条件
+                                if(this.$route.query.type === "EQedit"){
+                                    this.asset_ids =  this.$route.query.eid
+                                    this.setAssetChecked=[this.$route.query.eid]
+                                }
+
+                                if(this.$route.query.type === "assetGroupEdit"){
+                                    this.asset_group_ids =  this.$route.query.eid
+                                    this.setAssetGroupChecked=[this.$route.query.eid]
+                                }
+
                                 if(this.asset_group_ids !== '' || this.asset_ids !== ''){
                                     //展开右侧悬浮球
                                     this.$refs.assetConditionBox.setAttribute('flag', true)

@@ -58,7 +58,7 @@
                     <div class="item-con">
                         <div class="con-tit">实时流量数据访问包大小</div>
                         <div class="con">
-                            <allflow_timeline :params="param2" :setIntervalObj="intervalObj" :baseConProp="{title:''}"></allflow_timeline>
+                            <allflow_timeline :params="param2" :setIntervalObj="param2IntervalObj" :baseConProp="{title:''}"></allflow_timeline>
                         </div>
                     </div>
                     <div class="item-con">
@@ -100,6 +100,10 @@
                     endtime:'',
                     last:'1-hour'
                 },
+                intervalObj:{
+                    state:true,
+                    interval:'300000'
+                },
                 //实时流量参数
                 param2:{
                     intervalValue:'5',
@@ -108,9 +112,9 @@
                     endtime:'',
                     last:'5-min'
                 },
-                intervalObj:{
+                param2IntervalObj:{
                     state:true,
-                    interval:'300000'
+                    interval:'5000'
                 },
                 eData:[[{"name":"jinan","value":[120.3719,36.0986]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Hangzhou","value":[120.1619,30.294]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Singapore","value":[103.8547,1.2929]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Beijing","value":[116.3889,39.9288]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Tokyo","value":[139.7532,35.6882]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Mountain View","value":[-122.0748,37.4043]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Central","value":[114.15,22.2909]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Seattle","value":[-122.3451,47.6348]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Qingdao","value":[120.3694,36.066]}],[{"name":"jinan","value":[120.3719,36.0986]},{"name":"Ashburn","value":[-77.4728,39.0481]}],[{"name":"Hangzhou","value":[120.1619,30.294]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Mountain View","value":[-122.0748,37.4043]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Beijing","value":[116.3889,39.9288]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Singapore","value":[103.8547,1.2929]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Central","value":[114.15,22.2909]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Tokyo","value":[139.7532,35.6882]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Seattle","value":[-122.3451,47.6348]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"Ashburn","value":[-77.4728,39.0481]},{"name":"jinan","value":[120.3719,36.0986]}],[{"name":"San Francisco","value":[-122.4121,37.7506]},{"name":"jinan","value":[120.3719,36.0986]}]],
                 option:{},

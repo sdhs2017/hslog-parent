@@ -3,6 +3,7 @@
         <div class="top-title">资产组
             <div class="btn-wapper">
                 <el-button type="primary" size="mini" plain @click="goToAddAssetGroup">添加</el-button>
+                <el-button type="danger" size="mini" plain :disabled="checkList.length === 0"  @click="removeGroup">删除</el-button>
                 <el-button type="success" size="mini" plain  @click="refresh">刷新</el-button>
             </div>
         </div>
@@ -10,36 +11,40 @@
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
         <div class="group-wapper" >
-            <div class="asset-item" v-for="(item,i) in assetGroupList" :key="i">
-                <div class="group-top">
-                    <div class="group-name" :title="item.asset_group_name">{{item.asset_group_name}}</div>
-                    <div class="group-btn">
-                        <i class="el-icon-edit editGroup" title="修改" @click="goToEditAssetGroup(item)"></i>
-                        <i class="el-icon-close removeGroup" title="删除" @click="removeAssetGroup(item.asset_group_id)"></i>
-                    </div>
-                    <el-popover
-                        placement="right"
-                        width="150"
-                        trigger="click">
-                        <div style="min-height: 65px;" v-loading="chartsloading"  element-loading-background="rgba(48, 62, 78, 0.5)"  element-loading-spinner="el-icon-loading">
-                            <div v-for="(dc,di) in dashboardList"class="eq-chart-item" @click="goToDashboard(item,dc.id)" >
-                                {{dc.name}}
-                            </div>
+            <el-checkbox-group v-model="checkList">
+                <div class="asset-item" v-for="(item,i) in assetGroupList" :key="i">
+                    <div class="group-top">
+                        <el-checkbox :label="item.asset_group_id"></el-checkbox>
+                        <div class="group-name" :title="item.asset_group_name">{{item.asset_group_name}}</div>
+                        <div class="group-btn">
+                            <i class="el-icon-edit editGroup" title="修改" @click="goToEditAssetGroup(item)"></i>
+<!--                            <i class="el-icon-close removeGroup" title="删除" @click="removeAssetGroup(item.asset_group_id)"></i>-->
                         </div>
-                        <el-button slot="reference" title="查看报表" @click="getAssetGroupCharts(item)"><i class="el-icon-s-data go_metric" ></i></el-button>
-                    </el-popover>
+                        <el-popover
+                            placement="right"
+                            width="150"
+                            trigger="click">
+                            <div style="min-height: 65px;" v-loading="chartsloading"  element-loading-background="rgba(48, 62, 78, 0.5)"  element-loading-spinner="el-icon-loading">
+                                <div v-for="(dc,di) in dashboardList"class="eq-chart-item" @click="goToDashboard(item,dc.id)" >
+                                    {{dc.name}}
+                                </div>
+                            </div>
+                            <el-button slot="reference" title="查看报表" @click="getAssetGroupCharts(item)"><i class="el-icon-s-data go_metric" ></i></el-button>
+                        </el-popover>
+                    </div>
+                    <div class="eq-tit"><span>所在资产</span><span class="goToEqGroupSpan" title="查看所在资产" @click="goToEqGroup(item.asset_group_id)">({{item.asset_group_relations.length}})</span></div>
+                    <div class="eq-list">
+                        <div title="点击查看资产信息" class="eq-item" v-for="(eq,ei) in item.asset_group_relations" :key="ei" @click="goToEq(eq.asset_id)">{{eq.asset_name}}</div>
+                    </div>
+                    <div class="create-time react"><b><i class="el-icon-time"></i> :</b> {{item.create_time}}</div>
+                    <div class="group-location react"><b><i class="el-icon-location-outline"></i> :</b> {{item.asset_group_area}}</div>
+                    <div class="group-user react"><b><i class="el-icon-user"></i> :</b> {{item.asset_group_person}}</div>
+                    <div class="group-desc" :title="item.asset_group_note"><b><i class="el-icon-notebook-2"></i> :</b> {{item.asset_group_note}}</div>
+                    <div class="circle-wapper"></div>
                 </div>
-                <div class="eq-tit"><span>所在资产</span><span class="goToEqGroupSpan" title="查看所在资产" @click="goToEqGroup(item.asset_group_id)">({{item.asset_group_relations.length}})</span></div>
-                <div class="eq-list">
-                    <div title="点击查看资产信息" class="eq-item" v-for="(eq,ei) in item.asset_group_relations" :key="ei" @click="goToEq(eq.asset_id)">{{eq.asset_name}}</div>
-                </div>
-                <div class="create-time react"><b><i class="el-icon-time"></i> :</b> {{item.create_time}}</div>
-                <div class="group-location react"><b><i class="el-icon-location-outline"></i> :</b> {{item.asset_group_area}}</div>
-                <div class="group-user react"><b><i class="el-icon-user"></i> :</b> {{item.asset_group_person}}</div>
-                <div class="group-desc" :title="item.asset_group_note"><b><i class="el-icon-notebook-2"></i> :</b> {{item.asset_group_note}}</div>
-                <div class="circle-wapper"></div>
-            </div>
+            </el-checkbox-group>
         </div>
+
         <div class="equipment-table-page">
             <span>共检索到资产组数量为 <b>{{allCounts}}</b> 个</span>
             <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="allCounts"></el-pagination>
@@ -98,6 +103,8 @@
                 c_page:1,//当前页码
                 size:15,//每页的数量
                 allCounts:0,//总数
+                //选中删除的资产组id集合
+                checkList:[],
             }
         },
         created(){
@@ -230,6 +237,39 @@
                     layer.close();
                 })
             },
+            removeGroup(){
+                let ids = ''
+                for(let i in this.checkList){
+                    ids +=  this.checkList[i] +','
+                }
+                //询问框
+                layer.confirm('您确定删除么？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    this.loading = true
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/assetGroup/delete.do',this.$qs.stringify({asset_group_ids:ids}))
+                            .then((res)=>{
+                                this.loading = false
+                                if(res.data.success == "true"){
+                                    layer.msg("删除成功",{icon:1});
+                                    this.c_page = 1;
+                                    this.getAssetGroup(this.conditionFrom,1)
+                                }else{
+                                    layer.msg(res.data.message,{icon:5});
+                                }
+
+                            })
+                            .catch((err)=>{
+                                this.loading = false;
+                                layer.msg("删除失败",{icon:5});
+                            })
+                    })
+                }, function(){
+                    layer.close();
+                })
+
+            },
             /*分页*/
             handleCurrentChange(page){
                 //获取数据
@@ -305,12 +345,12 @@
         text-overflow: ellipsis;
         overflow: hidden;
         word-break: break-all;
-        padding-left: 10px;
+        padding-left: 5px;
     }
     .asset-item .group-btn{
         display: flex;
         font-size: 13px;
-        width: 34px;
+        width: 20px;
         margin: 0;
         justify-content: space-around;
         align-items: center;
@@ -340,6 +380,11 @@
         font-size: 20px;
         margin-right: 5px;
     }
+    .group-top /deep/ .el-checkbox{
+        width: 15px;
+        overflow: hidden;
+    }
+
     .eq-chart-item{
         padding:5px 2px;
         color: #409eff;

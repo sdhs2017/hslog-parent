@@ -152,11 +152,14 @@
             },
             /*查看资产dashboard*/ //rowData:资产数据 dID：dashboard ID
             goToDashboard(item,dId){
-                //dId = 'CMCPunUBEtm5D8ifHXoY'
-                jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:dId,type:'assetGroupEdit' },'查看')
+                if(dId === ''){
+                    this.$router.push('/customChart')
+                }else{
+                    jumpHtml('assetGroupDashboard'+item.asset_group_id,'dashboard/dashboard.vue',{ name:item.asset_group_name+'统计',eid: item.asset_group_id,id:dId,type:'assetGroupEdit' },'查看')
+                }
             },
             /*跳转资产组报表*/
-            goToDashboard(item){
+           /* goToDashboard(item){
                 this.$nextTick(()=>{
                     this.loading = true;
                     this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupDashboardInfo.do',this.$qs.stringify({
@@ -177,7 +180,7 @@
                         })
                 })
 
-            },
+            },*/
             /*刷新*/
             refresh(){
                 this.c_page = 1;

@@ -460,8 +460,12 @@
             },
             /*查看资产dashboard*/ //rowData:资产数据 dID：dashboard ID
             goToDashboard(rowData,dId){
+                if(dId === ''){
+                    this.$router.push('/customChart')
+                }else{
+                    jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
+                }
                 //dId = 'CMCPunUBEtm5D8ifHXoY'
-                jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
             },
             /*查看资产图表*/
             equipmentEcharts(rowData,index){

@@ -8,7 +8,8 @@ import com.jz.bigdata.util.Bean2Mapping;
  * 图表数据bean
  */
 public class Visualization {
-    private String id;//index _id
+    private String id;//报表的id
+    private String index_id;//写入es后，es自动生成的id
     private String title;//标题
     private String description;//描述
     private String type;//图表类型 //TODO 使用枚举类定义图表类型
@@ -22,6 +23,14 @@ public class Visualization {
     private Boolean editable;//是否可编辑，默认可编辑
     private Boolean deletable;//是否可删除，默认可删除
     private String group_name;//分组
+
+    public String getIndex_id() {
+        return index_id;
+    }
+
+    public void setIndex_id(String index_id) {
+        this.index_id = index_id;
+    }
 
     public String getGroup_name() {
         return group_name;

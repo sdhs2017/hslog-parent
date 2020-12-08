@@ -14,6 +14,15 @@ import com.jz.bigdata.util.Bean2Mapping;
 public class HSData {
     private Visualization visualization;//图表
     private Dashboard dashboard;//仪表盘
+    private boolean built_in;//是否为内置报表
+
+    public boolean isBuilt_in() {
+        return built_in;
+    }
+
+    public void setBuilt_in(boolean built_in) {
+        this.built_in = built_in;
+    }
 
     public Dashboard getDashboard() {
         return dashboard;
@@ -35,7 +44,7 @@ public class HSData {
         String visualFieldString =new Visualization().toMapping();
         //仪表盘mapping
         String dashboardFieldString =new Dashboard().toMapping();
-        String hsdataTemplate = "{\n"+"\t\t\"properties\":{\n" +visualFieldString+","+ dashboardFieldString+"\t\t\n" + "\t\t\t\t}"+"}";
+        String hsdataTemplate = "{\n"+"\t\t\"properties\":{\n\"built_in\":{\"type\":\"boolean\"}," +visualFieldString+","+ dashboardFieldString+"\t\t\n" + "\t\t\t\t}"+"}";
         return hsdataTemplate;
     }
     public static void main(String[] args){

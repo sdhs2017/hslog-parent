@@ -813,4 +813,23 @@ public class EquipmentController {
 
 	}
 
+	/**
+	 * 资产概览点击右上角图表，根据资产的日志类型，获取可显示的dashboard的列表信息
+	 * @param request
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getDashboardsInfo", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产对应的dashboard信息")
+	public String getDashboardsInfo(HttpServletRequest request){
+		String logType = request.getParameter("logType");
+		try{
+			List<Map<String,String>> result = equipmentService.getDashboardsInfo(logType);
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			log.error("获取资产对应的dashboard信息失败："+e.getMessage());
+			return Constant.failureMessage("获取dashboard信息失败！");
+		}
+
+	}
 }

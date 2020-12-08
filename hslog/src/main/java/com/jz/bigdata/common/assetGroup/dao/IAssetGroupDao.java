@@ -30,17 +30,17 @@ public interface IAssetGroupDao {
 
 	/**
 	 * 删除资产组
-	 * @param asset_group_id
+	 * @param asset_group_ids
 	 * @return
 	 */
-	int deleteAssetGroup(@Param("asset_group_id")String asset_group_id);
+	int deleteAssetGroup(String[] asset_group_ids);
 
 	/**
 	 * 删除资产/资产组关系表
-	 * @param asset_group_id
+	 * @param asset_group_ids
 	 * @return
 	 */
-	int deleteAssetGroupRelations(@Param("asset_group_id")String asset_group_id);
+	int deleteAssetGroupRelations(String[] asset_group_ids);
 
 	/**
 	 * 通过资产组id获取资产组信息

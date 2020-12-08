@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
+import com.jz.bigdata.util.*;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -22,11 +23,6 @@ import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
-
-import com.jz.bigdata.util.BASE64Util;
-import com.jz.bigdata.util.ConfigProperty;
-import com.jz.bigdata.util.JavaBeanUtil;
-import com.jz.bigdata.util.Uuid;
 
 import net.sf.json.JSONArray;
 import org.springframework.transaction.annotation.Propagation;
@@ -571,6 +567,22 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	public List<Equipment> getEquipmentListByDashboardSet(String[] asset_group_ids, String[] asset_ids) {
 		List<Equipment> equipmentList = equipmentDao.getEquipmentListByDashboardSet(asset_group_ids,asset_ids);
 		return equipmentList;
+	}
+
+	@Override
+	public List<Map<String, String>> getDashboardsInfo(String logType) {
+		//最终要返回的菜单
+		List<Map<String,String>> result = new ArrayList<>();
+		result.addAll(DashboardConfig.SIEM);//菜单第一项都是SIEM
+		if("metric".equals(logType)){
+			result.addAll(DashboardConfig.METRIC_DASHBOARDS_ASSET);
+		}else if("packet".equals(logType)){
+			result.addAll(DashboardConfig.PACKET_DASHBOARDS_ASSET);
+		}else{
+			//TODO
+			//winlog syslog待完成
+		}
+		return result;
 	}
 
 

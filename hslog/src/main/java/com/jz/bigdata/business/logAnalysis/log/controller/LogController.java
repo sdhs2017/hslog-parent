@@ -7,22 +7,15 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Strings;
 import com.google.gson.*;
-import com.hs.elsearch.entity.Bucket;
-import com.hs.elsearch.entity.Metric;
-import com.hs.elsearch.entity.QueryCondition;
-import com.hs.elsearch.entity.VisualParam;
-import com.hs.elsearch.util.MappingField;
-import com.jz.bigdata.business.logAnalysis.log.init.DataVisualInit;
+import com.hs.elsearch.entity.*;
+import com.hs.elsearch.service.ISearchService;
 import com.jz.bigdata.common.alert.entity.AlertSnapshot;
 import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
@@ -35,7 +28,7 @@ import com.jz.bigdata.util.*;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
-import org.elasticsearch.cluster.metadata.MappingMetaData;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -83,8 +76,12 @@ public class LogController extends BaseController{
 	@Resource(name ="BeatTemplate")
 	private BeatTemplate beatTemplate;
 
+	@Resource(name ="HsData")
+	private HsData hsData;
+	@Autowired
+	protected ISearchService searchService;
 
-
+	private final String hsdataIndexName = "hsdata";//内置报表
 
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
 	//json处理全局对象
@@ -92,6 +89,18 @@ public class LogController extends BaseController{
 	//默认查询types
 	String[] default_types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
 
+	/**
+	 * @param request
+	 * @return 删除结果String（DELETED、NOT_FOUND、NOOP）
+	 */
+	@ResponseBody
+	@RequestMapping("/test_hsdata")
+	@DescribeLog(describe="测试")
+	public String test_hsdata(HttpServletRequest request) {
+
+		hsData.initHsData();
+		return null;
+	}
 
 	/**
 	 * 轮巡导出状态
@@ -331,7 +340,7 @@ public class LogController extends BaseController{
 			try{
 				//检查是否需要更新index（hsdata）字段
 				//1.查看是否已存在名称为hsdata的index
-				if(logService.indexExists("hsdata")){
+				if(logService.indexExists(hsdataIndexName)){
 					//如果存在，更新index的mapping信息
 					//TODO 也可以先使用mapping信息对比来确认是否需要更新
 					/***********************************
@@ -339,7 +348,7 @@ public class LogController extends BaseController{
 					 * 顺序一致后，发现我们自己生成的json的boolean字段的值时带引号的 "true"。 es返回的不带，可以通过调整代码解决
 					 * 比对通过string equals即可
 					 ***********************************/
-					Boolean result = logService.putIndexMapping("hsdata",new HSData().toMapping());
+					Boolean result = logService.putIndexMapping(hsdataIndexName,new HSData().toMapping());
 
 					if (!result) {
 						map.put("state", true);
@@ -347,7 +356,23 @@ public class LogController extends BaseController{
 						return JSONArray.fromObject(map).toString();
 					}else{
 						log.info("hsdata mapping更新完成！");
+						try{
+							boolean res = logService.deleteRemovedHsdata(hsdataIndexName);
+							if(res){
+								//更新其他报表
+								hsData.initHsData();
+							}else{
+								map.put("state", true);
+								map.put("msg", "内置报表比对失败！");
+								return JSONArray.fromObject(map).toString();
+							}
+						}catch(Exception e){
+							log.error("内置报表hsdata比对删除失败！");
+						}
 					}
+				}else{
+					//直接更新报表
+					hsData.initHsData();
 				}
 			}catch (Exception e){
 				log.error("hsdata mapping 更新失败："+e.getMessage());

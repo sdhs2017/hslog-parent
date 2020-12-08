@@ -1,10 +1,7 @@
 package com.jz.bigdata.business.logAnalysis.log.service;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.hs.elsearch.entity.VisualParam;
@@ -425,6 +422,13 @@ public interface IlogService {
 	 */
 	public boolean createRepositories(String repositoryName,String repoPath) throws Exception;
 
+	/**
+	 * 内置报表更新时，与系统原有的内置报表进行比对，删除更新后不存在的内置报表
+	 * 判定依据为_id
+	 * @param indexName
+	 * @return
+	 */
+	public boolean deleteRemovedHsdata(String indexName) throws Exception;
 	/**
 	 * 获取备份仓库信息
 	 * @param repositoryName

@@ -7,6 +7,7 @@ import com.hs.elsearch.util.ErrorInfoException;
 import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
+import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
@@ -37,7 +38,7 @@ import java.util.*;
 @Controller
 @RequestMapping("/BI")
 public class BIController {
-    private final String biIndexName = "hsdata";
+    private final String biIndexName = "hsdata_test1";
     @Resource(name = "BIService")
     private IBIService iBIService;
     @Resource(name ="configProperty")

@@ -22,15 +22,11 @@ import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
+import com.jz.bigdata.util.*;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
-
-import com.jz.bigdata.util.BASE64Util;
-import com.jz.bigdata.util.ConfigProperty;
-import com.jz.bigdata.util.JavaBeanUtil;
-import com.jz.bigdata.util.Uuid;
 
 import net.sf.json.JSONArray;
 import org.springframework.transaction.annotation.Propagation;
@@ -99,9 +95,9 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 
 	@Override
 	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
-	public boolean delete(String asset_group_id) {
-		assetGroupDao.deleteAssetGroup(asset_group_id);
-		assetGroupDao.deleteAssetGroupRelations(asset_group_id);
+	public boolean delete(String[] asset_group_ids) {
+		assetGroupDao.deleteAssetGroup(asset_group_ids);
+		assetGroupDao.deleteAssetGroupRelations(asset_group_ids);
 		return true;
 	}
 
@@ -145,7 +141,7 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 		assetGroupDao.update(assetGroup);
 		/*---------处理资产组对应的资产信息------*/
 		//先删除原有关系表中的信息
-		assetGroupDao.deleteAssetGroupRelations(assetGroup.getAsset_group_id());
+		assetGroupDao.deleteAssetGroupRelations(assetGroup.getAsset_group_id().split(","));
 		//拆分资产ids
 		//String[] asset_ids = assetGroup.getAsset_ids().split(",");
 		for(String asset_id:assetGroup.getAsset_ids()){
@@ -239,6 +235,55 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 			map.put(Constant.COMBOBOX_VALUE,assetGroup.getAsset_group_id());
 			map.put(Constant.COMBOBOX_LABEL,assetGroup.getAsset_group_name());
 			result.add(map);
+		}
+		return result;
+	}
+
+	@Override
+	public List<Map<String, String>> getDashboardsInfo(String asset_group_id) {
+		List<Map<String,String>> result = new ArrayList<>();
+		result.addAll(DashboardConfig.SIEM);//菜单第一项都是SIEM
+		//通过资产组id获取对应的资产信息列表
+		List<Equipment> equipmentList = equipmentDao.getEquipmentListByAssetGroupId(asset_group_id);
+		//资产组对应资产id
+		String[] asset_ids = new String[equipmentList.size()];
+		//用于判断使用哪种dashboard
+		Boolean syslog=false;
+		Boolean winlog=false;
+		Boolean metric=false;
+		Boolean packet=false;
+		Boolean other=false;
+		//遍历
+		for(int i=0;i<equipmentList.size();i++){
+			asset_ids[i] = equipmentList.get(i).getId();
+			if("syslog".equals(equipmentList.get(i).getLogType())){
+				syslog=true;
+			}else if("winlog".equals(equipmentList.get(i).getLogType())){
+				winlog=true;
+			}else if("metric".equals(equipmentList.get(i).getLogType())){
+				metric=true;
+			}else if("packet".equals(equipmentList.get(i).getLogType())){
+				packet=true;
+			}{
+				other=true;
+			}
+		}
+		//result.put("asset_ids",asset_ids);
+		//根据类型种类加载可用dashboard菜单
+		if(syslog&winlog){
+			result.addAll(DashboardConfig.SYSLOG_DASHBOARDS_ASSET_GROUP);
+			result.addAll(DashboardConfig.WINLOG_DASHBOARDS_ASSET_GROUP);
+			result.addAll(DashboardConfig.SYSLOG_WINLOG_DASHBOARDS_ASSET_GROUP);
+		}else if(syslog){
+			result.addAll(DashboardConfig.SYSLOG_DASHBOARDS_ASSET_GROUP);
+		}else if(winlog){
+			result.addAll(DashboardConfig.WINLOG_DASHBOARDS_ASSET_GROUP);
+		}else if(metric){
+			result.addAll(DashboardConfig.METRIC_DASHBOARDS_ASSET_GROUP);
+		}else if(packet){
+			result.addAll(DashboardConfig.PACKET_DASHBOARDS_ASSET_GROUP);
+		}else{
+
 		}
 		return result;
 	}

@@ -26,7 +26,7 @@ public interface IAssetGroupService {
 	 * @param asset_group_id
 	 * @return
 	 */
-	boolean delete(String asset_group_id);
+	boolean delete(String[] asset_group_id);
 
 	/**
 	 * 通过id获取资产组信息
@@ -82,4 +82,10 @@ public interface IAssetGroupService {
 	 * @return
 	 */
 	public List<Map<String, String>> getAssetGroupListCombobox();
+	/**
+	 * 根据资产组id获取dashboard的信息
+	 * @param asset_group_id
+	 * @return
+	 */
+	public List<Map<String,String>> getDashboardsInfo(String asset_group_id);
 }

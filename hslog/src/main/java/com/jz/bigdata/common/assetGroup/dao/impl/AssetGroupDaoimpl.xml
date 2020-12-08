@@ -109,13 +109,21 @@
 		(#{asset_id,jdbcType=VARCHAR},#{asset_type,jdbcType=VARCHAR},#{asset_name,jdbcType=VARCHAR},#{asset_ip,jdbcType=VARCHAR},#{asset_group_id,jdbcType=VARCHAR},#{asset_group_name,jdbcType=VARCHAR},#{asset_logType,jdbcType=VARCHAR})
 	</insert>
 	<!--  删除资产组 -->
-	<delete id="deleteAssetGroup" parameterType="java.lang.String">
-		delete from asset_group where asset_group_id=#{asset_group_id}
-	</delete>
+	<update id="deleteAssetGroup" parameterType="java.lang.String">
+		delete from asset_group where asset_group_id in
+		<foreach item="asset_group_ids" index="index" collection="array" open="("
+				 separator="," close=")">
+			#{asset_group_ids}
+		</foreach>
+	</update>
 	<!--  删除资产/资产组关系表 -->
-	<delete id="deleteAssetGroupRelations" parameterType="java.lang.String">
-		delete from asset_group_relations where asset_group_id=#{asset_group_id}
-	</delete>
+	<update id="deleteAssetGroupRelations" parameterType="java.lang.String">
+		delete from asset_group_relations where asset_group_id in
+		<foreach item="asset_group_ids" index="index" collection="array" open="("
+				 separator="," close=")">
+			#{asset_group_ids}
+		</foreach>
+	</update>
 	<select  id="selectAssetGroupInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">
 		select asset_group.*,asset_group_relations.asset_id,asset_group_relations.asset_name from asset_group
 		left join asset_group_relations on asset_group_relations.asset_group_id = asset_group.asset_group_id

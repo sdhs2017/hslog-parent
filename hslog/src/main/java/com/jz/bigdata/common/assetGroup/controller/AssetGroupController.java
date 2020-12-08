@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.util.DescribeLog;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 
 /**
@@ -65,8 +66,9 @@ public class AssetGroupController {
 	@DescribeLog(describe="删除资产组")
 	public String delete(HttpServletRequest request) {
 		try{
-			String id = request.getParameter("asset_group_id");
-			boolean	result = this.assetGroupService.delete(id);
+			String ids = request.getParameter("asset_group_ids");
+			String[] idsArray = ids.split(",");
+			boolean	result = this.assetGroupService.delete(idsArray);
 			if(result){
 				return Constant.successMessage();
 			}else{
@@ -237,6 +239,26 @@ public class AssetGroupController {
 		}catch(Exception e){
 			return Constant.failureMessage("获取资产组信息失败！");
 		}
+	}
+
+	/**
+	 * 通过资产组id，获取资产组中资产的日志类别有多少种，再加载可显示数据的dashboard的列表信息
+	 * @param request
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getDashboardsInfo", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产组对应的dashboard信息")
+	public String getDashboardsInfo(HttpServletRequest request){
+		String asset_group_id = request.getParameter("asset_group_id");
+		try{
+			List<Map<String,String>> result = this.assetGroupService.getDashboardsInfo(asset_group_id);
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			log.error("获取资产组对应的dashboard信息失败："+e.getMessage());
+			return Constant.failureMessage("获取dashboard信息失败！");
+		}
+
 	}
 	/**
 	 * 资产组增改异常处理，资产组名称重复问题

@@ -73,4 +73,11 @@ public interface IEquipmentService {
 	 * @return
 	 */
 	public List<Equipment> getEquipmentListByDashboardSet(String[] asset_group_ids,String[] asset_ids);
+
+	/**
+	 * 根据资产类型获取dashboard的信息
+	 * @param logType
+	 * @return
+	 */
+	public List<Map<String,String>> getDashboardsInfo(String logType);
 }

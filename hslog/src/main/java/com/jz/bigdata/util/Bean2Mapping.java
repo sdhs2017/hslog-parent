@@ -34,7 +34,6 @@ public class Bean2Mapping {
 				// 防火墙字段
 				"from","devid","dname","logtype","mod","act","sa","da","pa",
 				// filebeat
-
 				"host"};
 		// 设置需要分词的字段
 		String [] analyzer = {

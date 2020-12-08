@@ -4,12 +4,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
@@ -20,17 +15,23 @@ import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.dao.logDao.ILogSearchDao;
+import com.hs.elsearch.dao.searchDao.ISearchDao;
+import com.hs.elsearch.entity.Filter;
+import com.hs.elsearch.entity.SearchConditions;
 import com.hs.elsearch.entity.VisualParam;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
+import com.jz.bigdata.util.HsData;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,6 +81,10 @@ public class LogServiceImpl implements IlogService {
 
 	@Resource(name = "AssetService")
 	private IAssetService assetService;
+	@Resource(name ="HsData")
+	private HsData hsData;
+	@Autowired
+	protected ISearchDao searchDao;
 	// es 排序方式
 	private SortOrder sortOrder;
 	@Autowired
@@ -1544,6 +1549,38 @@ public class LogServiceImpl implements IlogService {
 	public boolean createRepositories(String repositoryName, String repoPath) throws Exception {
 
 		return logIndexDao.createRepositories(repositoryName, repoPath);
+	}
+
+	@Override
+	public boolean deleteRemovedHsdata(String indexName) throws Exception {
+		//比对报表
+		//a.获取当前系统所有内置报表
+		SearchConditions conditions = new SearchConditions();
+		conditions.setIndex_name(indexName);
+		conditions.setFrom(0);
+		conditions.setPage_size(9999);
+		Filter filter = new Filter();
+		filter.setField("built_in");
+		filter.setOperator("is match");
+		filter.setValue("true");
+		filter.setEnable(true);
+		conditions.getFilters_dashboard().add(filter);
+		//获取查询结果
+		SearchHits searchHits = searchDao.getSearchHitsByBuilder(conditions);
+		SearchHit[] searchHitsArray = searchHits.getHits();
+		//b.获取要更新的全部内置报表
+		Set<String> newBuiltIn = hsData.getHsDataIds();
+		//c.遍历原内置报表，
+		for(SearchHit hitEntity:searchHitsArray){
+			if(!newBuiltIn.contains(hitEntity.getId())){
+				//id多余的删除
+				logCrudDao.deleteById(indexName,"",hitEntity.getId());
+			}else{
+				//其他的不处理
+
+			}
+		}
+		return true;
 	}
 
 	@Override

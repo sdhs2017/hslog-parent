@@ -135,6 +135,8 @@ public class SearchServiceImpl implements ISearchService {
                 for(MultiBucketsAggregation.Bucket xAxisBucket:terms.getBuckets()) {
                     //第一级聚合的结果作为X轴显示
                     String xAxisValue = xAxisBucket.getKeyAsString();
+                    //去掉换行符
+                    xAxisValue = xAxisValue.replaceAll("\\n","").replaceAll("\\r","").replaceAll("\\t","");
                     LinkedHashMap<String,Object> xAxisMap = new LinkedHashMap<>();
                     xAxisMap.put(ElasticConstant.XAXIS,xAxisValue);
                     //如果bucket聚合只有一层

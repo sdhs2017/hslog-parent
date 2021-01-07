@@ -19,8 +19,9 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -30,7 +31,7 @@ import java.util.*;
  * @create: 2019-11-11 10:27
  **/
 public class LogSearchDaoImpl implements ILogSearchDao {
-
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     // 默认排序字段
     String orderField = "logdate";
 
@@ -48,8 +49,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -59,7 +58,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 针对elasticsearch7版本将types转为hslog_type字段查询
         if (types!=null&&!types.equals("")){
@@ -116,8 +115,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -127,7 +124,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("@timestamp").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
@@ -177,8 +174,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -188,7 +183,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
@@ -254,8 +249,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -265,7 +258,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 其他查询条件处理
@@ -364,9 +357,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         // 模糊匹配
         BoolQueryBuilder wildcardQuery = QueryBuilders.boolQuery();
 
-        // 查询条件-时间范围
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        QueryBuilder dateQueryBuilder = QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date()));
+        QueryBuilder dateQueryBuilder = QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time));
 
         // 构建排序体,指定排序字段
         SortBuilder sortBuilder = SortBuilders.fieldSort(orderField).order(desc);
@@ -534,8 +525,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -545,7 +534,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 针对elasticsearch7版本将types转为hslog_type字段查询
@@ -581,8 +570,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
     public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -592,7 +579,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 针对elasticsearch7版本将types转为hslog_type字段查询
         if (types!=null&&!types.equals("")){
@@ -629,8 +616,6 @@ public class LogSearchDaoImpl implements ILogSearchDao {
     public List<Map<String, Object>> getLogListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -640,7 +625,7 @@ public class LogSearchDaoImpl implements ILogSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 针对elasticsearch7版本将types转为hslog_type字段查询

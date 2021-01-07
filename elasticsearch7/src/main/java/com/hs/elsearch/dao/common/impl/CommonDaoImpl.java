@@ -2,10 +2,13 @@ package com.hs.elsearch.dao.common.impl;
 
 import com.hs.elsearch.dao.common.ICommonDao;
 import com.hs.elsearch.entity.HttpRequestParams;
+import com.hs.elsearch.template.IndexTemplate;
 import com.hs.elsearch.template.SearchTemplate;
 import com.hs.elsearch.util.HSDateUtil;
+import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.script.Script;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
@@ -14,6 +17,7 @@ import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,6 +27,8 @@ import java.util.Map;
 public class CommonDaoImpl implements ICommonDao {
     @Autowired
     SearchTemplate searchTemplate;
+    @Autowired
+    IndexTemplate indexTemplate;
     @Override
     public List<Map<String, Object>> getListByDateHistogramAggregation(HttpRequestParams params) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -74,5 +80,20 @@ public class CommonDaoImpl implements ICommonDao {
 
         }
         return list;
+    }
+
+    @Override
+    public boolean reindex(Script script, String target_index, String... source_indices) throws IOException {
+        return indexTemplate.reindex(script,target_index,source_indices);
+    }
+
+    @Override
+    public boolean updateIndexSettings(Settings settings, String... indices) throws IOException {
+        return indexTemplate.updateIndexSettings(settings,indices);
+    }
+
+    @Override
+    public boolean deleteIndices(String... indices) throws Exception {
+        return indexTemplate.deleteIndex(indices);
     }
 }

@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -42,7 +41,6 @@ public class BulkTemplate_BulkProcessor {
 
     private BulkProcessor bulkProcessor;
 
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     //@PostConstruct
     public void init(int bulkActions,int concurrentRequests) {

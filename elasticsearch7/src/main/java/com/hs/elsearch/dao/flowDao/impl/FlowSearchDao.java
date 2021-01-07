@@ -19,7 +19,8 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -29,6 +30,7 @@ import java.util.*;
  * @create: 2019-11-05 15:09
  **/
 public class FlowSearchDao implements IFlowSearchDao {
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // 默认排序字段
     String orderField = "logdate";
@@ -47,8 +49,6 @@ public class FlowSearchDao implements IFlowSearchDao {
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
@@ -57,7 +57,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 针对elasticsearch7版本将types转为hslog_type字段查询
@@ -103,8 +103,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getListByAggregation(String[] types, String starttime, String endtime, String groupByField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
@@ -113,7 +111,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 针对elasticsearch7版本将types转为hslog_type字段查询
@@ -164,8 +162,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getListByAggregations(String[] types, String starttime, String endtime, String[] groupByFields, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
@@ -173,7 +169,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
@@ -238,8 +234,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<List<Map<String, Object>>> getListByAggregation(String[] types, String starttime, String endtime, String[] groupByFields, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
@@ -248,7 +242,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 针对elasticsearch7版本将types转为hslog_type字段查询
@@ -350,8 +344,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getListBySumOfAggregation(String[] types, String starttime, String endtime, String groupByField, String sumField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
@@ -359,7 +351,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 针对elasticsearch7版本将types转为hslog_type字段查询
         if (types!=null&&!types.equals("")){
@@ -413,8 +405,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getListByAvgOfAggregation(String[] types, String starttime, String endtime, String groupByField, String avgField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
@@ -422,7 +412,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 针对elasticsearch7版本将types转为hslog_type字段查询
         if (types!=null&&!types.equals("")){
@@ -477,8 +467,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getListBySumOfMetrics(String[] types, String starttime, String endtime, String sumField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
@@ -486,7 +474,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 针对elasticsearch7版本将types转为hslog_type字段查询
         if (types!=null&&!types.equals("")){
@@ -529,8 +517,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getListByCountOfMetrics(String[] types, String starttime, String endtime, String countField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
         }else if (starttime!=null&&!starttime.equals("")) {
@@ -538,7 +524,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 针对elasticsearch7版本将types转为hslog_type字段查询
         if (types!=null&&!types.equals("")){
@@ -604,8 +590,6 @@ public class FlowSearchDao implements IFlowSearchDao {
     public List<Map<String, Object>> getFlowListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String[] types, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
@@ -614,7 +598,7 @@ public class FlowSearchDao implements IFlowSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery("logdate").format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 针对elasticsearch7版本将types转为hslog_type字段查询

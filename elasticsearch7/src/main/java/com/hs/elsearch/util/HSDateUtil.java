@@ -1,15 +1,23 @@
 package com.hs.elsearch.util;
 
 import javafx.scene.control.Alert;
+import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
-
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+@Slf4j
 public class HSDateUtil {
-    //时间戳，用来匹配传入的时间参数，进行转换
-    private static final SimpleDateFormat sdf_time = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    /********DateTimeFormatter线程安全********/
+    // 时间戳，用来匹配传入的时间参数，进行转换
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     //日期格式，用来进行输出,2020.03.01
-    private static final SimpleDateFormat sd_date = new SimpleDateFormat("yyyy.MM.dd");
+    private static final DateTimeFormatter dtf_date = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     /**
      * 将时间范围内的日期进行返回，返回的日期格式为  前缀+2020.01.01*
@@ -20,18 +28,22 @@ public class HSDateUtil {
      * @return
      */
     public static String[] dateArea2Indices(String startTime,String endTime,String... prefixes){
-        Date begin;//开始时间
-        Date end;//截止时间
+
+        LocalDateTime ldt_start = LocalDateTime.parse(startTime,dtf_time);
+        LocalDateTime ldt_end = LocalDateTime.parse(endTime,dtf_time);
+        //时分秒清零
+        ldt_start = ldt_start.withHour(0).withMinute(0).withSecond(0);
+        ldt_end = ldt_end.withHour(0).withMinute(0).withSecond(0);
         try{
-            begin = clearHms(sdf_time.parse(startTime));
-            end = clearHms(sdf_time.parse(endTime));
-            String[] result = findIndices(begin,end,prefixes);
+            String[] result = findIndices(ldt_start,ldt_end,prefixes);
             return result;
         }catch(Exception e){
+            log.error("index根据日期范围拆分异常：startTime："+startTime+"-----endTime:"+endTime);
             //出现异常，使用*进行查询，防止系统抛出异常
             return new String[]{"*"};
         }
     }
+
 
     /**
      * 根据时间范围和前缀，返回  前缀+yyyy.MM.dd*的索引名称
@@ -40,58 +52,27 @@ public class HSDateUtil {
      * @param prefixes
      * @return
      */
-    private static String[] findIndices(Date dBegin, Date dEnd,String... prefixes) {
+    private static String[] findIndices(LocalDateTime dBegin, LocalDateTime dEnd,String... prefixes) {
         List<String> lDate = new ArrayList<String>();
         for(String prefix:prefixes){
             //第一天,将index中的*替换为日期+*
-            lDate.add(prefix.replace("*",sd_date.format(dBegin)+"*"));
-            Calendar calBegin = Calendar.getInstance();
-            // 使用给定的 Date 设置此 Calendar 的时间
-            calBegin.setTime(dBegin);
-
-            Calendar calEnd = Calendar.getInstance();
-            // 使用给定的 Date 设置此 Calendar 的时间
-            calEnd.setTime(dEnd);
-
+            lDate.add(prefix.replace("*",dtf_date.format(dBegin)+"*"));
             // 此日期是否在指定日期之后
-            while (dEnd.after(calBegin.getTime()))
+            //对应将时间的时分秒清零，防止出现2020-01-01 12:00:00和2020-01-01 13:00:00 时，计算出现问题
+            while (dBegin.isBefore(dEnd))
             {
                 // 根据日历的规则，为给定的日历字段添加或减去指定的时间量
-                calBegin.add(Calendar.DAY_OF_MONTH, 1);
-                lDate.add(prefix.replace("*",sd_date.format(calBegin.getTime())+"*"));
-                //System.out.println(prefix.replace("*",sd_date.format(calBegin.getTime())+"*"));
+                dBegin = dBegin.plusDays(1);
+                lDate.add(prefix.replace("*",dtf_date.format(dBegin)+"*"));
+
             }
         }
         return lDate.toArray(new String[lDate.size()]);
     }
 
-    /**
-     * 将date的时分秒清零，方便计算日期
-     * @param date
-     * @return
-     */
-    private static Date clearHms(Date date){
-        Calendar cal = Calendar.getInstance();
-
-        cal.setTime(date);
-
-        // 将时分秒,毫秒域清零
-
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-
-        cal.set(Calendar.MINUTE, 0);
-
-        cal.set(Calendar.SECOND, 0);
-
-        cal.set(Calendar.MILLISECOND, 0);
-
-        return cal.getTime();
-    }
-    public static Map<String,String> getStartEndTime(Alert alert){
-        return null;
-    }
-    public static void main(String[] args){
-        dateArea2Indices("2019-08-01 12:00:00","2019-08-02 12:00:01","winlogbeat-*");
+    public static void main(String[] args) {
+        //DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        // 获取日期
+        //System.out.println(LocalDateTime.now().format(dtf_time));
     }
 }
-

@@ -12,14 +12,17 @@ import org.elasticsearch.action.admin.indices.open.OpenIndexRequest;
 import org.elasticsearch.action.admin.indices.open.OpenIndexResponse;
 import org.elasticsearch.action.admin.indices.settings.put.UpdateSettingsRequest;
 import org.elasticsearch.action.admin.indices.template.delete.DeleteIndexTemplateRequest;
+import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.ElasticsearchClient;
 import org.elasticsearch.client.RequestOptions;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.indexlifecycle.*;
 import org.elasticsearch.client.indices.*;
+import org.elasticsearch.client.tasks.TaskSubmissionResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
 import org.elasticsearch.common.collect.ImmutableOpenMap;
@@ -27,7 +30,14 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.engine.SegmentsStats;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.reindex.BulkByScrollResponse;
+import org.elasticsearch.index.reindex.ReindexAction;
+import org.elasticsearch.index.reindex.ReindexRequest;
+import org.elasticsearch.index.reindex.ReindexRequestBuilder;
 import org.elasticsearch.repositories.fs.FsRepository;
+import org.elasticsearch.script.Script;
 
 import java.io.IOException;
 import java.util.*;
@@ -562,5 +572,77 @@ public class IndexTemplate {
         //restHighLevelClient.index(indexRequest,RequestOptions.DEFAULT).en
 
 
+    }
+
+    /**
+     * reindex
+     * POST _reindex
+     * {
+     *   "source": {
+     *     "index": "test_source01,test_source02"
+     *   },
+     *   "dest": {
+     *     "index": "test_des"
+     *   },
+     *   "script": { ###将field1/2/3 3个字段分别于ip name state 对应，不过不使用remove，field123也会写入到新index中
+     *     "source": "ctx._source.ip = ctx._source.remove(\"field1\");ctx._source.name = ctx._source.remove(\"field2\");ctx._source.state = ctx._source.remove(\"field3\")"
+     *   }
+     * }
+     * 将源index的数据重新写入到新index中
+     * @param script 用户进行reindex过程中的复杂处理逻辑，比如
+     * @param source_indices 源index名称,可以是多个
+     * @param target_index 目的index名称
+     * @return
+     * @throws IOException
+     */
+    public boolean reindex(Script script, String target_index,String... source_indices) throws IOException {
+        ReindexRequest reindexRequest = new ReindexRequest();
+        reindexRequest.setSourceIndices(source_indices);
+        reindexRequest.setDestIndex(target_index);
+        reindexRequest.setRefresh(true);
+        if(script!=null){
+            reindexRequest.setScript(script);
+        }
+
+        BulkByScrollResponse bulkResponse =
+                restHighLevelClient.reindex(reindexRequest, RequestOptions.DEFAULT);
+        //获取reindex失败信息
+        List<BulkItemResponse.Failure> failures = bulkResponse.getBulkFailures();
+        //如果失败信息列表有内容，返回失败。
+        //TODO 返回更详细的成功及失败信息。
+        if(failures.size()>0){
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+
+    /**
+     * 更新index的setting信息
+     * PUT test003/_settings
+     * {
+     *   "index": {
+     *     "blocks": {
+     *       "read_only":true,
+     *       "read_only_allow_delete":true
+     *     }
+     *   }
+     * }
+     * @param settings index的setting信息
+     * @param indices
+     * @return
+     * @throws IOException
+     */
+    public boolean updateIndexSettings(Settings settings,String... indices) throws IOException {
+
+        UpdateSettingsRequest request = new UpdateSettingsRequest(indices);
+        request.settings(settings);//更新的setting
+        AcknowledgedResponse updateSettingsResponse =
+                restHighLevelClient.indices().putSettings(request, RequestOptions.DEFAULT);
+
+        boolean acknowledged = updateSettingsResponse.isAcknowledged();
+
+        return acknowledged;
     }
 }

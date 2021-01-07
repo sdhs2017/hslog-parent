@@ -86,7 +86,6 @@ public class SearchTemplate {
                 searchSourceBuilder.aggregation(aggregationBuilder);
             }
             searchRequest.source(searchSourceBuilder);
-
             SearchResponse response = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
 
             Aggregations aggregations= response.getAggregations();

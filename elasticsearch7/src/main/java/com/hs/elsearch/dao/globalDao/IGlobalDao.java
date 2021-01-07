@@ -20,4 +20,6 @@ public interface IGlobalDao {
      * @throws Exception
      */
     public ClusterGetSettingsResponse getClusterSetting() throws Exception;
+
+
 }

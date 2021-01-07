@@ -25,8 +25,9 @@ import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
@@ -37,7 +38,7 @@ import java.util.*;
  **/
 @Slf4j
 public class EcsSearchDao implements IEcsSearchDao {
-
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     /**
      * ecs的时间字段，默认用于排序、时间范围查询
      */
@@ -65,8 +66,6 @@ public class EcsSearchDao implements IEcsSearchDao {
 
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -76,7 +75,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         } else if (endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         } else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 其他查询条件
@@ -155,8 +154,6 @@ public class EcsSearchDao implements IEcsSearchDao {
         //RangeQueryBuilder dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date()));
         //查询时间范围
 
-        // 时间段处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         RangeQueryBuilder dateQueryBuilder = null;
         //如果有时间范围参数
         if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
@@ -169,7 +166,7 @@ public class EcsSearchDao implements IEcsSearchDao {
             dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime);
         }else{
             //默认的时间范围
-            dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date()));
+            dateQueryBuilder = QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time));
         }
         // 构建排序体,指定排序字段
         SortBuilder sortBuilder = SortBuilders.fieldSort(ECS_DATE_FIELD).order(desc);
@@ -271,8 +268,6 @@ public class EcsSearchDao implements IEcsSearchDao {
     public List<Map<String, Object>> getLogListByMap(Map<String, String> map, String starttime, String endtime, Integer from, Integer size, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -282,7 +277,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         } else if (endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         } else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         HighlightBuilder highlightBuilder = null;//高亮字段
         // 其他查询条件处理
@@ -346,8 +341,6 @@ public class EcsSearchDao implements IEcsSearchDao {
     public List<Map<String, Object>> getListByAggregation(String starttime, String endtime, String groupByField, int size, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -357,7 +350,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
         // 其他查询条件处理
         if (map!=null&&!map.isEmpty()) {
@@ -398,8 +391,6 @@ public class EcsSearchDao implements IEcsSearchDao {
     public List<Map<String, Object>> getListByDateHistogramAggregation(String starttime, String endtime, String dateHistogramField, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -409,7 +400,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 其他查询条件处理--不分词查询
@@ -497,8 +488,6 @@ public class EcsSearchDao implements IEcsSearchDao {
     public List<Map<String, Object>> getListByDateHistogramAggregation(String starttime, String endtime, String dateHistogramField, String subField, String subAggsType, Map<String, String> map, String... indices) throws Exception {
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
 
-        // 时间段查询条件处理
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         if (starttime!=null&&!starttime.equals("")&&endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
@@ -508,7 +497,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         }else if (endtime!=null&&!endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(endtime));
         }else {
-            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(format.format(new Date())));
+            boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").lte(LocalDateTime.now().format(dtf_time)));
         }
 
         // 其他查询条件处理--不分词查询

@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import scala.collection.immutable.ListSet;
 
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class BIDaoImpl implements IBIDao {

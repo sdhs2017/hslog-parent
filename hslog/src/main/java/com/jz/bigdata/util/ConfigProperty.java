@@ -175,6 +175,29 @@ public class ConfigProperty {
 	@Value("#{prop.es_packet_index}")
 	private String es_packet_index;
 
+	//数据可视化模块 index
+	@Value("#{prop.es_hsdata_index}")
+	private String es_hsdata_index;
+	//filebeat收取cvs/json日志对应前缀
+	@Value("#{prop.es_filelog_pre}")
+	private String es_filelog_pre;
+
+	public String getEs_filelog_pre() {
+		return es_filelog_pre;
+	}
+
+	public void setEs_filelog_pre(String es_filelog_pre) {
+		this.es_filelog_pre = es_filelog_pre;
+	}
+
+	public String getEs_hsdata_index() {
+		return es_hsdata_index;
+	}
+
+	public void setEs_hsdata_index(String es_hsdata_index) {
+		this.es_hsdata_index = es_hsdata_index;
+	}
+
 	public String getEs_metric_index() {
 		return es_metric_index;
 	}

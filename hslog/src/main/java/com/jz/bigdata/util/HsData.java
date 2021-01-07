@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * @Author: yiyang
  * @Date: 2020/12/3 13:45
- * @Description: dashboard初始化报表
+ * @Description: 数据可视化模块 初始化报表
  */
 @Slf4j
 @Component("HsData")
@@ -32,6 +32,8 @@ public class HsData {
     protected ILogCrudDao logCurdDao;
     @Value(value="classpath:database/es/hsdata.json")
     private Resource hsdata_json;
+    @javax.annotation.Resource(name ="configProperty")
+    private ConfigProperty configProperty;
 
     /**
      * 初始化可视化报表中的数据
@@ -57,7 +59,7 @@ public class HsData {
                 //System.out.println(obj.getAsJsonObject().get("_id").toString());
                 //System.out.println(obj.getAsJsonObject().get("_source").toString());
                 IndexRequest request = new IndexRequest();
-                request.index("hsdata_test1");
+                request.index(configProperty.getEs_hsdata_index());
                 request.id(obj.getAsJsonObject().get("_id").getAsString());
                 request.source(obj.getAsJsonObject().get("_source").toString(), XContentType.JSON);
                 logCurdDao.bulkProcessor_add(request);

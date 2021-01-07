@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.assetGroup.service.impl;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,7 +40,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service(value = "AssetGroupService")
 public class AssetGroupServiceImpl implements IAssetGroupService {
 	// 设置日期格式
-	private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
 	@Resource
 	private IAssetGroupDao assetGroupDao;
 
@@ -66,7 +68,7 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 		//当前用户信息
 		assetGroup.setCreate_user_id(session.getAttribute(Constant.SESSION_USERID).toString());
 		//插入时间
-		assetGroup.setCreate_time(df.format(new Date()));
+		assetGroup.setCreate_time(LocalDateTime.now().format(dtf_time));
 		//保存
 		assetGroupDao.insert(assetGroup);
 		/*---------处理资产组对应的资产信息------*/
@@ -136,7 +138,7 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 		//当前用户信息
 		assetGroup.setUpdate_user_id(session.getAttribute(Constant.SESSION_USERID).toString());
 		//插入时间
-		assetGroup.setUpdate_time(df.format(new Date()));
+		assetGroup.setUpdate_time(LocalDateTime.now().format(dtf_time));
 		//保存
 		assetGroupDao.update(assetGroup);
 		/*---------处理资产组对应的资产信息------*/

@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,7 +53,9 @@ import com.jz.bigdata.util.ConfigProperty;
 
 @Service(value="logService")
 public class LogServiceImpl implements IlogService {
-
+	//日期时间格式
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	private static final DateTimeFormatter dtf_time_yyyyMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	//@Autowired protected CrudTemplate clientTemplate;
     @Autowired protected ILogCrudDao logCrudDao;
 
@@ -158,13 +164,10 @@ public class LogServiceImpl implements IlogService {
 		if (equipmentid!=null&&!equipmentid.equals("")){
 			map.put("equipmentid",equipmentid);
 		}
-		Date nowTime = new Date();
-		SimpleDateFormat yyyyMMdd_format = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 判断传入的时间参数是否是今天，是则进入，否则else
-		if (today.equals(yyyyMMdd_format.format(nowTime))) {
+		if (today.equals(LocalDateTime.now().format(dtf_time_yyyyMMdd))) {
 			String starttime = today+" 00:00:00";
-			String endtime = format.format(nowTime);
+			String endtime = LocalDateTime.now().format(dtf_time);
 			list = logSearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
 		}else {
 			String starttime = today+" 00:00:00";
@@ -280,10 +283,6 @@ public class LogServiceImpl implements IlogService {
 	public List<Map<String, Object>> getEventListGroupByTime(String index,String[] types,String today,String equipmentid,String eventtype,int i) throws Exception {
 
 
-		Date nowTime = new Date();
-		SimpleDateFormat yyyyMMdd_format = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
 		ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 		// 针对事件查询的必加字段
 		map.put("event_type","");
@@ -298,9 +297,9 @@ public class LogServiceImpl implements IlogService {
 
 		List<Map<String, Object>> list = null;
 		// 判断传入的时间参数是否是今天，是则进入，否则else
-		if (today.equals(yyyyMMdd_format.format(nowTime))) {
+		if (today.equals(LocalDateTime.now().format(dtf_time_yyyyMMdd))) {
 			String starttime = today+" 00:00:00";
-			String endtime = format.format(nowTime);
+			String endtime = LocalDateTime.now().format(dtf_time);
 			list = logSearchDao.getListByDateHistogramAggregation(types,starttime,endtime,"logdate",map,index);
 		}else {
 			String starttime = today+" 00:00:00";
@@ -324,10 +323,6 @@ public class LogServiceImpl implements IlogService {
 	public List<Map<String, Object>> getEventListGroupByEventType(String index,String[] types,String today,String equipmentid,String groupby) throws Exception {
 
 
-		Date nowTime = new Date();
-		SimpleDateFormat yyyyMMdd_format = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
 		ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
 		// 针对事件查询的必加字段
 		map.put("event_type","");
@@ -337,9 +332,9 @@ public class LogServiceImpl implements IlogService {
 
 		List<Map<String, Object>> list = null;
 		// 判断传入的时间参数是否是今天，是则进入，否则else
-		if (today.equals(yyyyMMdd_format.format(nowTime))) {
+		if (today.equals(LocalDateTime.now().format(dtf_time_yyyyMMdd))) {
 			String starttime = today+" 00:00:00";
-			String endtime = format.format(nowTime);
+			String endtime = LocalDateTime.now().format(dtf_time);
 			list = logSearchDao.getListByAggregation(types,starttime,endtime,groupby,10,map,index);
 		}else {
 			String starttime = today+" 00:00:00";
@@ -1607,6 +1602,11 @@ public class LogServiceImpl implements IlogService {
 
 	}
 
+	/**
+	 * 未使用
+	 * @return
+	 * @throws Exception
+	 */
 	@Override
 	public boolean createIndexRegularly() throws Exception {
 

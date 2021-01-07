@@ -168,14 +168,13 @@ public class MetadataServiceImpl implements IMetadataService {
         for(IndexTemplateMetaData template:list){
             //将所有的template进行筛选，只选择
             //TODO 加上beat的筛选，后期需要进行
-            if(template.name().indexOf(es_tempalatePattern.replace("*",""))>=0||template.name().indexOf("beat-")>=0){
+            if(template.name().indexOf(es_tempalatePattern.replace("*",""))>=0||template.name().indexOf("beat-")>=0||template.name().indexOf("hsfile-")>=0){
                 ComboxEntity ce = new ComboxEntity();
                 ce.setLabel(template.name());
                 ce.setValue(template.name());
                 comboxEntityList.add(ce);
             }
         }
-
         return comboxEntityList;
     }
 

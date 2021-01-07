@@ -214,11 +214,10 @@ public class CollectorController {
 	@ResponseBody
 	@RequestMapping(value = "/startPcap4jCollector", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "开启pcap4j抓取数据包")
-	public String startPcap4jCollector(HttpServletRequest request) {
-		
+	public String startPcap4jCollector() throws InterruptedException {
+
+		System.out.println("-----------------------startPcap4jCollector-----------------");
 		Map<String, Object> map = new HashMap<>();
-		// 判断index是否存在，如果不存在提示执行初始化操作
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
 		// 判断index是否存在，如果不存在提示执行初始化操作
 		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
@@ -336,7 +335,6 @@ public class CollectorController {
 	@RequestMapping(value = "/startKafkaOfBeatsCollector", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "开启数据采集器")
 	public String startKafkaOfBeatsCollector() {
-
 		Map<String, Object> map = new HashMap<>();
 
 
@@ -431,7 +429,8 @@ public class CollectorController {
 	@ResponseBody
 	@RequestMapping(value = "/startAgentKafkaListener", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "开启AgentKafkaListener")
-	public String startKafkaBeatsListener() {
+	public String startAgentKafkaListener() {
+		System.out.println("-----------------------startKafkaBeatsListener-----------------");
 		try{
 			/**
 			 *更新资产、全局配置缓存信息
@@ -474,6 +473,7 @@ public class CollectorController {
 	@RequestMapping(value = "/startSyslogKafkaListener", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe = "开启SyslogKafkaListener")
 	public String startSyslogKafkaListener() {
+		System.out.println("-----------------------startSyslogKafkaListener-----------------");
 		try{
 			/**
 			 *更新资产、全局配置缓存信息

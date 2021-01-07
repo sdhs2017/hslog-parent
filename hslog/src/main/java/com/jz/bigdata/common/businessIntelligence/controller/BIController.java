@@ -38,11 +38,13 @@ import java.util.*;
 @Controller
 @RequestMapping("/BI")
 public class BIController {
-    private final String biIndexName = "hsdata_test1";
+
     @Resource(name = "BIService")
     private IBIService iBIService;
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
+
+
     @Autowired
     protected ISearchService searchService;
     /**
@@ -362,7 +364,7 @@ public class BIController {
             String isSaveAs = request.getParameter("isSaveAs");
             //用户新建保存或者编辑时另存，需要检测标题是否重复
             if(null!=isSaveAs&&"true".equals(isSaveAs)){
-                if(iBIService.isVisualizationExists(visual.getTitle(),biIndexName)){
+                if(iBIService.isVisualizationExists(visual.getTitle(),configProperty.getEs_hsdata_index())){
                     return Constant.failureMessage("标题名称重复，请修改！");
                 }
             }
@@ -375,7 +377,7 @@ public class BIController {
                 visual.setDeletable(true);
             }
             //visual.setId(UUID.randomUUID().toString());
-            DocWriteResponse.Result result = iBIService.saveVisualization(visual,biIndexName);
+            DocWriteResponse.Result result = iBIService.saveVisualization(visual,configProperty.getEs_hsdata_index());
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");
             } else if (result == DocWriteResponse.Result.UPDATED) {
@@ -400,7 +402,7 @@ public class BIController {
             String isSaveAs = request.getParameter("isSaveAs");
             //用户新建保存或者编辑时另存，需要检测标题是否重复
             if(null!=isSaveAs&&"true".equals(isSaveAs)){
-                if(iBIService.isDashboardExists(dashboard.getTitle(),biIndexName)){
+                if(iBIService.isDashboardExists(dashboard.getTitle(),configProperty.getEs_hsdata_index())){
                     return Constant.failureMessage("标题名称重复，请修改！");
                 }
             }
@@ -412,7 +414,7 @@ public class BIController {
                 dashboard.setDeletable(true);
             }
             //dashboard.setId(UUID.randomUUID().toString());
-            DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,biIndexName);
+            DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,configProperty.getEs_hsdata_index());
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");
             } else if (result == DocWriteResponse.Result.UPDATED) {
@@ -434,7 +436,7 @@ public class BIController {
     @DescribeLog(describe = "获取图表列表")
     public String getVisualizations(HttpServletRequest request,HttpSession session){
         try{
-            String result = iBIService.getVisualizations(biIndexName,session);
+            String result = iBIService.getVisualizations(configProperty.getEs_hsdata_index(),session);
             return Constant.successData(result);
         }catch(Exception e){
             log.error("获取图表列表"+e.getMessage());
@@ -450,7 +452,7 @@ public class BIController {
     @DescribeLog(describe = "获取仪表盘列表")
     public String getDashboards(HttpServletRequest request,HttpSession session){
         try{
-            String result = iBIService.getDashboards(biIndexName,session);
+            String result = iBIService.getDashboards(configProperty.getEs_hsdata_index(),session);
             return Constant.successData(result);
         }catch(Exception e){
             log.error("获取仪表盘列表"+e.getMessage());
@@ -467,7 +469,7 @@ public class BIController {
     public String getVisualizationById(HttpServletRequest request){
         try{
             String id = request.getParameter("id");
-            String result = iBIService.getVisualizationById(id,biIndexName);
+            String result = iBIService.getVisualizationById(id,configProperty.getEs_hsdata_index());
             return Constant.successData(result);
         }catch(Exception e){
             log.error("获取图表详情"+e.getMessage());
@@ -484,7 +486,7 @@ public class BIController {
     public String getDashboardTemplates(HttpServletRequest request,HttpSession session){
         try{
             String ids = request.getParameter("ids");
-            String result = iBIService.getDashboardTemplates(ids,biIndexName);
+            String result = iBIService.getDashboardTemplates(ids,configProperty.getEs_hsdata_index());
             return Constant.successData(result);
         }catch(Exception e){
             log.error("获取dashboard的template列表失败"+e.getMessage());
@@ -501,7 +503,7 @@ public class BIController {
     public String getDashboardById(HttpServletRequest request){
         try{
             String id = request.getParameter("id");
-            String result = iBIService.getDashboardById(id,biIndexName);
+            String result = iBIService.getDashboardById(id,configProperty.getEs_hsdata_index());
             return Constant.successData(result);
         }catch(Exception e){
             log.error("获取仪表盘详情"+e.getMessage());
@@ -518,7 +520,7 @@ public class BIController {
     public String deleteVisualizationById(HttpServletRequest request){
         try{
             String id = request.getParameter("id");
-            String result = iBIService.deleteVisualizationById(id,biIndexName);
+            String result = iBIService.deleteVisualizationById(id,configProperty.getEs_hsdata_index());
             return Constant.successMessage(result);
         }catch(Exception e){
             log.error("删除图表"+e.getMessage());
@@ -535,7 +537,7 @@ public class BIController {
     public String deleteDashboardById(HttpServletRequest request){
         try{
             String id = request.getParameter("id");
-            String result = iBIService.deleteDashboardById(id,biIndexName);
+            String result = iBIService.deleteDashboardById(id,configProperty.getEs_hsdata_index());
             return Constant.successMessage(result);
         }catch(Exception e){
             log.error("删除仪表盘"+e.getMessage());

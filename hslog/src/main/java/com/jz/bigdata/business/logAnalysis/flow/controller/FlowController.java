@@ -35,7 +35,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,7 +51,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Controller
 @RequestMapping("/flow")
 public class FlowController {
-
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter dtf_time_ms = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
     //默认查询或聚合结果的条数
     private final int size = 10;
     //数据统计默认时间间隔
@@ -131,7 +134,7 @@ public class FlowController {
     @RequestMapping("/getTopGroupByIPOrPort")
     @DescribeLog(describe="统计netflow源IP、目的IP、源端口、目的端口的数量")
     public String getTopGroupByIPOrPort(HttpServletRequest request) {
-        String index = configProperty.getEs_old_index();
+        String index = configProperty.getEs_flow_index();
         // 默认需要统计的4个属性，目的ip、源ip、目的端口、源端口
         String [] groupbys = {"ipv4_dst_addr.raw","ipv4_src_addr.raw","l4_dst_port","l4_src_port"};
         String [] types = {"defaultpacket"};
@@ -448,9 +451,6 @@ public class FlowController {
     @DescribeLog(describe="通过netflow数据获取网络拓扑数据")
     public String getNetworkTopological(HttpServletRequest request) {
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        log.info("进入业务流分析统计   "+format.format(new Date()));
-
         String index = configProperty.getEs_flow_index();
 
         // 双向划线
@@ -461,19 +461,17 @@ public class FlowController {
         String endtime = request.getParameter("endtime");
         Map<String, String> searchmap = new HashMap<>();
         // 设置时间段为一周
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(new Date());
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        LocalDateTime now = LocalDateTime.now();
+
         if (endtime!=null&&!endtime.equals("")) {
             endtime = endtime+" 23:59:59";
         }else {
-            endtime = sdf.format(cal.getTime());
+            endtime = now.format(dtf_time);
         }
         if (starttime!=null&&!starttime.equals("")) {
             starttime = starttime+" 00:00:00";
         }else {
-            cal.add(Calendar.DATE, -7);
-            starttime = sdf.format(cal.getTime());
+            starttime = now.minusDays(7).format(dtf_time);
         }
 
 		/*searchmap.put("starttime", starttime);
@@ -492,9 +490,9 @@ public class FlowController {
             // 聚合源IP和目的IP
             List<Map<String, Object>> list = null;
             try {
-                log.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
+                //log.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
                 list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
-                log.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
+                //log.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -528,9 +526,9 @@ public class FlowController {
         // 源IP、目的IP的连线，连线次数
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
         try {
-            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
+            //log.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
             linkslist = flowService.groupBys(index,types,groupbys,1000,starttime,endtime,searchmap);
-            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
+            //log.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -538,7 +536,7 @@ public class FlowController {
 
         //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
         Iterator<Map<String, Object>> iterator = linkslist.iterator();
-        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
+        //log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
         while (iterator.hasNext()) {
             Map<String, Object> linkmap = iterator.next();
             if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
@@ -547,11 +545,11 @@ public class FlowController {
 				System.out.println("包含："+linkmap);
 			}*/
         }
-        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
+        //log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
         map.put("data", datalist);
         map.put("links", linkslist);
 
-        log.info("结束业务流分析统计   "+format.format(new Date()));
+        //log.info("结束业务流分析统计   "+format.format(new Date()));
         return JSONArray.fromObject(map).toString();
     }
 
@@ -1878,7 +1876,7 @@ public class FlowController {
             Map<String, Object> newResult = ControllerDataTransUtil.transServiceName(result,serviceInfoService.selectAll());
             return Constant.successData(JSONArray.fromObject(newResult).toString()) ;
         }catch(Exception e){
-            log.error("资产（服务） 数据包个数"+e.getMessage());
+            log.error("资产（服务） 数据包个数"+e.getStackTrace());
             return Constant.failureMessage("数据查询失败！");
         }
     }
@@ -2607,16 +2605,16 @@ public class FlowController {
         int segments = Integer.valueOf(request.getParameter("segments"));
 
         HashMap result = new HashMap();
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
         try {
-            Date startdate = new Date();
-            System.out.println("开始时间：" + format.format(startdate));
+            LocalDateTime startdate = LocalDateTime.now();
+            System.out.println("开始时间：" + startdate.format(dtf_time));
             result = logService.indexForceMerge(segments, true, indices);
-            Date enddate = new Date();
-            System.out.println("结束时间：" + format.format(enddate));
+            LocalDateTime enddate = LocalDateTime.now();
+            System.out.println("结束时间：" + enddate.format(dtf_time));
             // 响应时间计算
-            long times = enddate.getTime() - startdate.getTime();
-            System.out.println("时间差：" + times + " ms");
+            Duration duration = Duration.between(startdate,  enddate);
+            System.out.println("时间差："+duration.toMillis() +" ms");
         } catch (ElasticsearchStatusException exception ) {
             // Elasticsearch exception [type=index_not_found_exception, reason=no such index [hslog_packet2020-04-27]]
             String DetailedMessage = exception.getDetailedMessage();
@@ -2651,16 +2649,17 @@ public class FlowController {
         String size = "10";
         HashMap map = new HashMap();
         String [] type = {"defaultpacket"};
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         try {
-            Date startdate = new Date();
-            System.out.println("开始时间："+format.format(startdate));
+
+            LocalDateTime startdate = LocalDateTime.now();
+            System.out.println("开始时间：" + startdate.format(dtf_time));
             list = flowService.getFlowListByBlend(map, null, null, "1", size, type, indices);
-            Date enddate = new Date();
-            System.out.println("结束时间："+format.format(enddate));
+            LocalDateTime enddate = LocalDateTime.now();
+            System.out.println("结束时间：" + enddate.format(dtf_time));
             // 响应时间计算
-            long times = enddate.getTime() - startdate.getTime();
-            System.out.println("时间差："+times +" ms");
+            Duration duration = Duration.between(startdate,  enddate);
+            System.out.println("时间差："+duration.toMillis() +" ms");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -2679,8 +2678,7 @@ public class FlowController {
     @DescribeLog(describe="通过netflow数据获取网络拓扑数据")
     public String getNetworkTop(HttpServletRequest request) {
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-        log.info("进入业务流分析统计   "+format.format(new Date()));
+        log.info("进入业务流分析统计   "+LocalDateTime.now().format(dtf_time));
 
         String index = request.getParameter("indices");
         String [] indices = index.split(",");
@@ -2701,17 +2699,17 @@ public class FlowController {
         Map<String,Object> tMap = new HashMap<>();
 
 
-        Date startdate = new Date();
-        System.out.println("聚合开始时间："+format.format(startdate));
+        LocalDateTime startdate = LocalDateTime.now();
+        System.out.println("聚合开始时间："+startdate.format(dtf_time));
         // 聚合源IP和目的IP，处理他们的数据，得到一个以key（IP地址），value（相同IP：源IP访问量和目的IP访问量之和）的map
         for(String param:groupbys) {
 
             // 聚合源IP和目的IP
             List<Map<String, Object>> list = null;
             try {
-                log.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+format.format(new Date()));
+                log.warn("两次聚合查询（源IP，目的IP），聚合查询开始  "+LocalDateTime.now().format(dtf_time));
                 list = flowService.groupBy(index,types,param,100,starttime,endtime,searchmap);
-                log.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+format.format(new Date()));
+                log.warn("两次聚合查询（源IP，目的IP），聚合查询结束  "+LocalDateTime.now().format(dtf_time));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -2745,21 +2743,22 @@ public class FlowController {
         // 源IP、目的IP的连线，连线次数
         // linkslist = logService.groupBy(index, types, groupbys, searchmap,1000);
         try {
-            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+format.format(new Date()));
+            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询开始  "+LocalDateTime.now().format(dtf_time));
             linkslist = flowService.groupBys(index,types,groupbys,1000,starttime,endtime,searchmap);
-            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+format.format(new Date()));
+            log.warn("源IP与目的IP之间的访问次数聚合，聚合查询结束  "+LocalDateTime.now().format(dtf_time));
         } catch (Exception e) {
             e.printStackTrace();
         }
-        Date enddate = new Date();
-        System.out.println("聚合结束时间："+format.format(enddate));
+        LocalDateTime enddate = LocalDateTime.now();
+        System.out.println("聚合结束时间："+enddate.format(dtf_time));
         // 响应时间计算
-        long times = enddate.getTime() - startdate.getTime();
-        System.out.println("聚合耗时："+times +" ms");
+        Duration duration = Duration.between(startdate,  enddate);
+
+        System.out.println("聚合耗时："+duration.toMillis() +" ms");
 
         //遍历删除,通过遍历连线的list判断source和target两个值是否在tMap的key中，如果不在则删除该连线map
         Iterator<Map<String, Object>> iterator = linkslist.iterator();
-        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+format.format(new Date()));
+        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历开始  "+LocalDateTime.now().format(dtf_time));
         while (iterator.hasNext()) {
             Map<String, Object> linkmap = iterator.next();
             if (!(tMap.containsKey(linkmap.get("source"))&&tMap.containsKey(linkmap.get("target")))) {
@@ -2768,11 +2767,11 @@ public class FlowController {
 				System.out.println("包含："+linkmap);
 			}*/
         }
-        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+format.format(new Date()));
+        log.warn("通过遍历聚合得到的访问次数，删除IP不存在连线，遍历结束  "+LocalDateTime.now().format(dtf_time));
         map.put("data", datalist);
         map.put("links", linkslist);
 
-        log.info("结束业务流分析统计   "+format.format(new Date()));
+        log.info("结束业务流分析统计   "+LocalDateTime.now().format(dtf_time));
         return JSONArray.fromObject(map).toString();
     }
 }

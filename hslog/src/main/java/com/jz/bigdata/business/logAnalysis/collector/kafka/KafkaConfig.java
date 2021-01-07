@@ -2,8 +2,10 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.jz.bigdata.util.ConfigProperty;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -13,6 +15,9 @@ import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.AbstractMessageListenerContainer;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListener;
+import org.springframework.kafka.listener.config.ContainerProperties;
 
 import javax.annotation.Resource;
 import java.util.HashMap;
@@ -39,11 +44,12 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(1);//消费线程数，跟partation一致
         factory.setBatchListener(true); // 设置批量消费方式
-        factory.getContainerProperties().setPollTimeout(3000);
+        factory.getContainerProperties().setPollTimeout(3000);//超时时间
         //配置手动提交offset
         factory.getContainerProperties().setAckMode(AbstractMessageListenerContainer.AckMode.MANUAL);
-        // 禁止自动启动
-        factory.setAutoStartup(false);
+        //设置自动启动kafka的消费者（即：所有@kafkalistener注解的方法）
+        //factory.setAutoStartup(true);
+        factory.setAutoStartup(false);//本地环境不开启
         return factory;
     }
 
@@ -79,5 +85,4 @@ public class KafkaConfig {
     public KafkaAllListener KafkaAllListener(){
         return new KafkaAllListener();
     }
-
 }

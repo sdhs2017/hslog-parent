@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.equipment.service.impl;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -37,7 +38,9 @@ import org.springframework.transaction.interceptor.TransactionAspectSupport;
 @Slf4j
 @Service(value = "EquipmentService")
 public class EquipmentServiceImpl implements IEquipmentService {
-
+	//日期时间格式
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	private static final DateTimeFormatter dtf_time_zero = DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00");
 	@Resource
 	private IEquipmentDao equipmentDao;
 
@@ -82,9 +85,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				equipment.setDepartmentId(user.getDepartmentId());
 				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
 				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
 				// 获取日期
-				equipment.setCreateTime(df.format(new Date()));
+				equipment.setCreateTime(LocalDateTime.now().format(dtf_time));
 //				equipment.setState(1);
 				equipmentDao.insert(equipment);
 				return 2;
@@ -119,10 +121,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			int result = 0;
 			//id不为空，说明是资产的update
 			if(equipment.getId()!=null&&!"".equals(equipment.getId())){
-				// 设置日期格式
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				// 获取日期
-				equipment.setUpDateTime(df.format(new Date()));
+				equipment.setUpDateTime(LocalDateTime.now().format(dtf_time));
 				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
 				result = equipmentDao.updateById(equipment);
 				if(isAssetGroup){
@@ -136,9 +136,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				equipment.setDepartmentId(user.getDepartmentId());
 				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
 				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
 				// 获取日期
-				equipment.setCreateTime(df.format(new Date()));
+				equipment.setCreateTime(LocalDateTime.now().format(dtf_time));
 				result = equipmentDao.insert(equipment);
 			}
 			return result;
@@ -163,10 +162,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 			//id不为空，说明是资产的update
 			if(equipment.getId()!=null&&!"".equals(equipment.getId())){
-				// 设置日期格式
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 				// 获取日期
-				equipment.setUpDateTime(df.format(new Date()));
+				equipment.setUpDateTime(LocalDateTime.now().format(dtf_time));
 				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
 				return equipmentDao.updateById(equipment);
 			}else{
@@ -176,9 +173,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				equipment.setDepartmentId(user.getDepartmentId());
 				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
 				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
 				// 获取日期
-				equipment.setCreateTime(df.format(new Date()));
+				equipment.setCreateTime(LocalDateTime.now().format(dtf_time));
 				return equipmentDao.insert(equipment);
 			}
 		} else {
@@ -207,9 +203,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				equipment.setDepartmentId(user.getDepartmentId());
 				equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
 				equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
-				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");// 设置日期格式
 				// 获取日期
-				equipment.setCreateTime(df.format(new Date()));
+				equipment.setCreateTime(LocalDateTime.now().format(dtf_time));
 				try {
 					switch (equipmentDao.insert(equipment)){
 						case 1:
@@ -269,10 +264,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 */
 	@Override
 	public int updateById(Equipment equipment, HttpSession session) {
-		// 设置日期格式
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 获取日期
-		equipment.setUpDateTime(df.format(new Date()));
+		equipment.setUpDateTime(LocalDateTime.now().format(dtf_time));
 		equipment.setDepartmentNodeId((int) session.getAttribute(Constant.SESSION_DEPARTMENTNODEID));
 		// equipment.setDepartmentId(Integer.valueOf(session.getAttribute(Constant.SESSION_DEPARTMENTID).toString()));
 		// equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
@@ -324,11 +317,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// System.out.println(equipment.getConfidentiality());
 
 		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
-		// 设置日期格式
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		SimpleDateFormat startdf = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
-		String starttime = startdf.format(new Date());
-		String endtime = df.format(new Date());
+		String starttime = LocalDateTime.now().format(dtf_time_zero);
+		String endtime = LocalDateTime.now().format(dtf_time);
 		Map<String, String> esMap = new HashMap<>();
 		Map<String, Object> equipmentmap = (Map<String, Object>) listEquipment.get(0);
 
@@ -382,11 +372,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// System.err.println(listEquipment.get(0).getCreateTime());
 
 		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
-		// 设置日期格式
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		SimpleDateFormat startdf = new SimpleDateFormat("yyyy-MM-dd 00:00:00");
-		String starttime = startdf.format(new Date());
-		String endtime = df.format(new Date());
+		String starttime = LocalDateTime.now().format(dtf_time_zero);
+		String endtime = LocalDateTime.now().format(dtf_time);
 		for(Equipment equipment : listEquipment) {
 			Map<String, String> esMap = new HashMap<>();
 			//esMap.put("equipmentid", equipment.getId());

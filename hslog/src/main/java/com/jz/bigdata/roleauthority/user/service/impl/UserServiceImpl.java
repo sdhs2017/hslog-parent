@@ -1,6 +1,8 @@
 package com.jz.bigdata.roleauthority.user.service.impl;
 
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,6 +40,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
  */
 @Service(value="UserService")
 public class UserServiceImpl implements IUserService {
+
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	@Resource
 	private IUserDao userDao;
 	
@@ -221,10 +225,11 @@ public class UserServiceImpl implements IUserService {
 				map.put("message", "登录失败，账号或密码错误");
 			}
 			//计算当前时间之前的半小时的起始和截至时间
-			Date date=new Date();
-			SimpleDateFormat df=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String startTime =df.format(new Date(date.getTime() -  30 * 60 * 1000));
-			String endTime=df.format(date);
+			LocalDateTime end = LocalDateTime.now();
+			//当前时间-截止时间
+			String endTime = end.format(dtf_time);
+			//起始时间
+			String startTime = end.minusMinutes(30).format(dtf_time);
 
 			// 查询半小时以内近5次的账号登录状态
 			List<Note> list=noteDao.selectLimitNote(user.getPhone(), startTime, endTime);

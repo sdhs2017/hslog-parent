@@ -1,7 +1,8 @@
 package com.jz.bigdata.business.logAnalysis.collector.service.impl;
 
 import java.net.URI;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.FutureTask;
@@ -59,6 +60,8 @@ import net.sf.json.JSONArray;
 @Slf4j
 @Service(value="CollectorService")
 public class CollectorServiceImpl implements ICollectorService{
+
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	/**
 	 * *****************************************默认kafka管理器属性****************************8
 	 */
@@ -624,6 +627,10 @@ public class CollectorServiceImpl implements ICollectorService{
 		}
 	}
 
+	/**
+	 * 开启 kafka sysylog采集
+	 * @return
+	 */
 	@Override
 	public String startSyslogKafkaListener() {
 		try{
@@ -810,7 +817,6 @@ public class CollectorServiceImpl implements ICollectorService{
 	 */
 	public void insertUrl()  {
 
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 资产表获取domain
 		//List<Equipment> list = equipmentService.selectAllHostName();
 
@@ -826,7 +832,7 @@ public class CollectorServiceImpl implements ICollectorService{
 			String protocol = getSubUtilSimple(key.getKey(), "^(.*?)[://]");
 			String relativeUrl = getSubUtilSimple(key.getKey(), "[:][0-9]{1,5}(.*?)$");
 			funservice.setId(Uuid.getUUID());
-			funservice.setCreateTime(format.format(new Date()));
+			funservice.setCreateTime(LocalDateTime.now().format(dtf_time));
 			try{
 				URI url = new URI(key.getKey());
 				//funservice.setEquipmentId(equipment.getId());

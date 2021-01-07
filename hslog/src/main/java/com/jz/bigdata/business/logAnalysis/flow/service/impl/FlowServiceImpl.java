@@ -86,7 +86,6 @@ public class FlowServiceImpl implements IflowService {
             fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
             sizeInt = Integer.parseInt(size);
         }
-        System.out.println("------1.1--------");
         List<Map<String, Object>> list = new ArrayList<>();
         //日志总量
         count = flowSearchDao.getFlowCount(map,starttime,endtime,types,indices);

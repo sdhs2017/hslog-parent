@@ -35,8 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service(value = "EventGroupService")
 public class EventGroupServiceImpl implements IEventGroupService {
-	// 设置日期格式
-	private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	@Resource
 	private IEventGroupDao eventGroupDao;
 

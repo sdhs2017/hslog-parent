@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -284,7 +286,6 @@ public class Winlog {
 		Matcher PRImatcher = PRIpattern.matcher(log);
 
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
 		if (matcher.find()) {
 			if (PRImatcher.find()) {
 				String PRI = PRImatcher.group(0);

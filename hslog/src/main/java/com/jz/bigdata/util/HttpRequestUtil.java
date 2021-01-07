@@ -15,11 +15,16 @@ import org.joda.time.DateTime;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAdjusters;
+import java.time.temporal.TemporalField;
+import java.time.temporal.TemporalUnit;
+import java.time.temporal.WeekFields;
+import java.util.*;
 
 /**
  * 处理controller request的工具类
@@ -28,7 +33,13 @@ import java.util.Map;
 public class HttpRequestUtil {
     //数据转换时用到的gson对象
     private final static Gson gson = new Gson();
-
+    //今天、这周、本月等时间类型对应的格式化定义
+    private static final String startPattern = "yyyy-MM-dd 00:00:00";
+    private static final String endPattern = "yyyy-MM-dd 23:59:59";
+    private static final String simple = "yyyy-MM-dd HH:mm:ss";
+    private static final DateTimeFormatter dtf_start = DateTimeFormatter.ofPattern(startPattern);
+    private static final DateTimeFormatter dtf_end = DateTimeFormatter.ofPattern(endPattern);
+    private static final DateTimeFormatter dtf_simple = DateTimeFormatter.ofPattern(simple);
     /**
      * 处理参数 用于对报表的参数处理
      * @param request
@@ -601,11 +612,8 @@ public class HttpRequestUtil {
      * @return
      */
     public static Map<String,String> getStartEndTimeByLast(String last){
-        //今天、这周、本月等时间类型对应的格式化定义
-        String startPattern = "yyyy-MM-dd 00:00:00";
-        String endPattern = "yyyy-MM-dd 23:59:59";
-        SimpleDateFormat startSdf = new SimpleDateFormat(startPattern);
-        SimpleDateFormat endSdf = new SimpleDateFormat(endPattern);
+
+
         Map<String,String> map = new HashMap<>();
         //判定参数是否为空
         if(null!=last&&""!=last){
@@ -613,8 +621,7 @@ public class HttpRequestUtil {
             //只有长度为2时才会处理
             if(lastArgs.length==2){
                 //定义时间对象，并初始化年月日
-                Calendar cal = Calendar.getInstance();
-                cal.set(cal.get(Calendar.YEAR), cal.get(Calendar.MONDAY), cal.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
+                LocalDateTime now = LocalDateTime.now();
                 //当前时间，一般作为截至时间
                 String endTime = DateTime.now().toString("yyyy-MM-dd HH:mm:ss");
                 //第一位是数字
@@ -628,28 +635,26 @@ public class HttpRequestUtil {
                         map.put("endtime", DateTime.now().toString(endPattern));
                         break;
                     case "weeking"://这周
-                        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);//本周第一天
-                        map.put("starttime", startSdf.format(cal.getTime()));
-                        cal.add(Calendar.DAY_OF_WEEK, 6);//本周最后一天
-                        map.put("endtime", endSdf.format(cal.getTime()));
+                        TemporalField fieldISO = WeekFields.of(Locale.FRANCE).dayOfWeek();//法国时间，周一为第一天，中国显示的是周日
+                        map.put("starttime", now.with(fieldISO,1).format(dtf_start));//本周第一天
+                        map.put("endtime", now.with(fieldISO,7).format(dtf_end));//本周第七天
                         break;
                     case "monthing"://本月
-                        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMinimum(Calendar.DAY_OF_MONTH));//本月第一天
-                        map.put("starttime", startSdf.format(cal.getTime()));
-                        cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));//本月最后一天
-                        map.put("endtime", endSdf.format(cal.getTime()));
+                        map.put("starttime", now.with(TemporalAdjusters.firstDayOfMonth()).format(dtf_start));//本月第一天
+                        map.put("endtime", now.with(TemporalAdjusters.lastDayOfMonth()).format(dtf_end));//本月最后一天
                         break;
                     case "min"://最近N分钟
                         map.put("endtime",endTime);
-                        map.put("starttime",DateTime.now().minusMinutes(timeNumber).toString("yyyy-MM-dd HH:mm:ss"));
+                        map.put("starttime",now.minusMinutes(timeNumber).format(dtf_simple));
+
                         break;
                     case "hour"://最近N小时
                         map.put("endtime",endTime);
-                        map.put("starttime",DateTime.now().minusHours(timeNumber).toString("yyyy-MM-dd HH:mm:ss"));
+                        map.put("starttime",now.minusHours(timeNumber).format(dtf_simple));
                         break;
                     case "day"://最近N天
                         map.put("endtime",endTime);
-                        map.put("starttime",DateTime.now().minusDays(timeNumber).toString("yyyy-MM-dd HH:mm:ss"));
+                        map.put("starttime",now.minusDays(timeNumber).format(dtf_simple));
                         break;
                     default:
                         //暂不处理
@@ -713,13 +718,10 @@ public class HttpRequestUtil {
         try{
             //如果没有传时间间隔和间隔类型
             if(Strings.isNullOrEmpty(params.getIntervalType())&&params.getIntervalValue()==0){
-                //计算起始和截止时间的秒数
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                Date starttime = sdf.parse(params.getStartTime());
-                Date endtime = sdf.parse(params.getEndTime());
-                long start = starttime.getTime();
-                long end = endtime.getTime();
-                int areaSeconds = (int)((end - start) / 1000);
+                //计算事件差
+                Duration duration = Duration.between(LocalDateTime.parse(params.getStartTime(),dtf_simple),LocalDateTime.parse(params.getEndTime(),dtf_simple));
+                //秒数
+                int areaSeconds = (int)duration.getSeconds();
                 //通过默认的分隔点数，算出间隔，并取整
                 int intervalValue = areaSeconds/Integer.parseInt(points);
                 params.setIntervalType("second");
@@ -736,8 +738,8 @@ public class HttpRequestUtil {
         //Map<String,String> map = HttpRequestUtil.getStartEndTimeByLast("1-day");
         //System.out.println(map.get("starttime"));
         //System.out.println(map.get("endtime"));
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        System.out.println("".matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")?1:0);
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+//        System.out.println("".matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")?1:0);
 
     }
 }

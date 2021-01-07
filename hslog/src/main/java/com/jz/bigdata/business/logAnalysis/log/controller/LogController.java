@@ -3,7 +3,8 @@ package com.jz.bigdata.business.logAnalysis.log.controller;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -51,7 +52,11 @@ import net.sf.json.JSONArray;
 @Controller
 @RequestMapping("/log")
 public class LogController extends BaseController{
-
+	//常规日期格式处理
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+	//
+	private static final DateTimeFormatter dtf_day = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final DateTimeFormatter dtf_time_file = DateTimeFormatter.ofPattern("yyyy-MM-dd'_'HHmmss");
 	@Resource(name="logService")
 	private IlogService logService;
 
@@ -81,26 +86,13 @@ public class LogController extends BaseController{
 	@Autowired
 	protected ISearchService searchService;
 
-	private final String hsdataIndexName = "hsdata";//内置报表
+
 
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
 	//json处理全局对象
 	private final Gson gson = new GsonBuilder().create();
 	//默认查询types
 	String[] default_types = {LogType.LOGTYPE_LOG4J,LogType.LOGTYPE_WINLOG,LogType.LOGTYPE_SYSLOG,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,LogType.LOGTYPE_UNKNOWN,LogType.LOGTYPE_MYSQLLOG,LogType.LOGTYPE_NETFLOW};
-
-	/**
-	 * @param request
-	 * @return 删除结果String（DELETED、NOT_FOUND、NOOP）
-	 */
-	@ResponseBody
-	@RequestMapping("/test_hsdata")
-	@DescribeLog(describe="测试")
-	public String test_hsdata(HttpServletRequest request) {
-
-		hsData.initHsData();
-		return null;
-	}
 
 	/**
 	 * 轮巡导出状态
@@ -172,136 +164,139 @@ public class LogController extends BaseController{
 		return result;
 	}
 
-	@ResponseBody
-	@RequestMapping(value="/createIndexAndMapping",produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="初始化数据结构")
-	public String createIndexAndMapping(HttpServletRequest request) {
-		Map<String, Object> map= new HashMap<>();
-
-		try {
-
-			/**
-			 * 初始化工作一：elasticsearch7版本创建template，elasticsearch5版本创建当天index
-			 */
-			Map<String, Object> settingmap = new HashMap<>();
-			settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
-			settingmap.put("index.number_of_shards", configProperty.getEs_number_of_shards());
-			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
-			settingmap.put("index.lifecycle.name", "hs_policy");
-			// elasticsearch7 版本初始化template
-			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
-			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
-			logService.initOfElasticsearch(configProperty.getEs_templatename(),"packet-*",null,settingmap,new MappingOfNet().toMapping());
-
-			// 初始化当天的index
-			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-			String index = configProperty.getEs_index().replace("*",format.format(new Date()));
-
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_SYSLOG,settingmap,new Syslog().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_WINLOG,settingmap,new Winlog().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_LOG4J,settingmap,new Log4j().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_MYSQLLOG,settingmap,new Mysql().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,settingmap,new PacketFilteringFirewal().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_NETFLOW,settingmap,new Netflow().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DNS,settingmap,new DNS().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DHCP,settingmap,new DHCP().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_APP_FILE,settingmap,new App_file().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_APP_APACHE,settingmap,new App_file().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_UNKNOWN,settingmap,new Unknown().toMapping());
-			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DEFAULTPACKET,settingmap,new DefaultPacket().toMapping());
-
-
-			// 更新index的settings属性
-			Map<String, Object> setting = new HashMap<>();
-			setting.put("index.max_result_window", configProperty.getEs_max_result_window());
-			setting.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
-			logService.updateSettings(index, setting);
-			/**
-			 * 初始化工作二：在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
-			 */
-			try {
-				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
-				List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
-
-				if(repositories.isEmpty()) {
-					Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
-					if (!result) {
-						map.put("state", true);
-						map.put("msg", "备份仓库初始化失败！");
-						return JSONArray.fromObject(map).toString();
-					}
-				}
-			} catch (Exception e) {
-				Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
-				if (!result) {
-					map.put("state", false);
-					map.put("msg", "备份仓库初始化失败！");
-					return JSONArray.fromObject(map).toString();
-				}
-			}
-
-			/**
-			 * 初始化工作三：在初始化过程中创建index的生命周期
-			 */
-			try {
-				Boolean LifeCycleResult = logService.createLifeCycle("hs_policy",Long.parseLong(configProperty.getEs_days_of_log_storage()));
-				if (!LifeCycleResult){
-					map.put("state", false);
-					map.put("msg", "创建index生命周期失败！");
-					return JSONArray.fromObject(map).toString();
-				}
-			} catch (Exception e){
-				log.error("创建index生命周期报错："+e.getMessage());
-
-			}
-
-			/**
-			 * 初始化工作四：在初始化过程中创建完index的生命周期后开启生命周期管理
-			 */
-			try {
-				String status = logService.getLifecycleManagementStatus();
-				if (status.equals("STOPPED")||status.equals("STOPPING")){
-					Boolean startIndexLifeCyclestatus = logService.startIndexLifeCycle();
-					if (!startIndexLifeCyclestatus){
-						map.put("state", false);
-						map.put("msg", "开启index生命周期管理失败！");
-						return JSONArray.fromObject(map).toString();
-					}
-				}
-			} catch (Exception e){
-				e.printStackTrace();
-				map.put("state", false);
-				map.put("msg", "开启index生命周期管理失败！");
-				return JSONArray.fromObject(map).toString();
-			}
-			/**
-			 *初始化工作五：更新资产缓存信息
-			 */
-			try{
-				AssetCache.INSTANCE.init(equipmentService,assetService);
-			}catch (Exception e){
-				e.printStackTrace();
-				log.error("初始化工作五：更新资产缓存信息失败"+e.getMessage());
-				map.put("state", false);
-				map.put("msg", "资产信息获取失败！");
-				return JSONArray.fromObject(map).toString();
-			}
-			map.put("state", true);
-			map.put("msg", "初始化成功！");
-			return JSONArray.fromObject(map).toString();
-
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			map.put("state", false);
-			map.put("msg", "数据结构初始化失败！");
-			return JSONArray.fromObject(map).toString();
-		}
-
-	}
+	/**
+	 * 已弃用
+	 */
+//	@ResponseBody
+//	@RequestMapping(value="/createIndexAndMapping",produces = "application/json; charset=utf-8")
+//	@DescribeLog(describe="初始化数据结构")
+//	public String createIndexAndMapping(HttpServletRequest request) {
+//		Map<String, Object> map= new HashMap<>();
+//
+//		try {
+//
+//			/**
+//			 * 初始化工作一：elasticsearch7版本创建template，elasticsearch5版本创建当天index
+//			 */
+//			Map<String, Object> settingmap = new HashMap<>();
+//			settingmap.put("index.max_result_window", configProperty.getEs_max_result_window());
+//			settingmap.put("index.number_of_shards", configProperty.getEs_number_of_shards());
+//			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+//			settingmap.put("index.lifecycle.name", "hs_policy");
+//			// elasticsearch7 版本初始化template
+//			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_syslog*",null,settingmap,new MappingOfSyslog().toMapping());
+//			logService.initOfElasticsearch(configProperty.getEs_templatename(),"hslog_packet*",null,settingmap,new MappingOfNet().toMapping());
+//			logService.initOfElasticsearch(configProperty.getEs_templatename(),"packet-*",null,settingmap,new MappingOfNet().toMapping());
+//
+//			// 初始化当天的index
+//			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+//			String index = configProperty.getEs_index().replace("*",format.format(new Date()));
+//
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_SYSLOG,settingmap,new Syslog().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_WINLOG,settingmap,new Winlog().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_LOG4J,settingmap,new Log4j().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_MYSQLLOG,settingmap,new Mysql().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_PACKETFILTERINGFIREWALL_LOG,settingmap,new PacketFilteringFirewal().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_NETFLOW,settingmap,new Netflow().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DNS,settingmap,new DNS().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DHCP,settingmap,new DHCP().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_APP_FILE,settingmap,new App_file().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_APP_APACHE,settingmap,new App_file().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_UNKNOWN,settingmap,new Unknown().toMapping());
+//			logService.initOfElasticsearch(index,null,LogType.LOGTYPE_DEFAULTPACKET,settingmap,new DefaultPacket().toMapping());
+//
+//
+//			// 更新index的settings属性
+//			Map<String, Object> setting = new HashMap<>();
+//			setting.put("index.max_result_window", configProperty.getEs_max_result_window());
+//			setting.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
+//			logService.updateSettings(index, setting);
+//			/**
+//			 * 初始化工作二：在初始化过程中增加备份仓库的建立，节省在安装过程中实施人员的curl命令操作
+//			 */
+//			try {
+//				// 当备份仓库没有建立的情况下，通过名称查询会报missing错误
+//				List<Map<String, Object>> repositories = logService.getRepositoriesInfo(configProperty.getEs_repository_name());
+//
+//				if(repositories.isEmpty()) {
+//					Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
+//					if (!result) {
+//						map.put("state", true);
+//						map.put("msg", "备份仓库初始化失败！");
+//						return JSONArray.fromObject(map).toString();
+//					}
+//				}
+//			} catch (Exception e) {
+//				Boolean result = logService.createRepositories(configProperty.getEs_repository_name(), configProperty.getEs_repository_path());
+//				if (!result) {
+//					map.put("state", false);
+//					map.put("msg", "备份仓库初始化失败！");
+//					return JSONArray.fromObject(map).toString();
+//				}
+//			}
+//
+//			/**
+//			 * 初始化工作三：在初始化过程中创建index的生命周期
+//			 */
+//			try {
+//				Boolean LifeCycleResult = logService.createLifeCycle("hs_policy",Long.parseLong(configProperty.getEs_days_of_log_storage()));
+//				if (!LifeCycleResult){
+//					map.put("state", false);
+//					map.put("msg", "创建index生命周期失败！");
+//					return JSONArray.fromObject(map).toString();
+//				}
+//			} catch (Exception e){
+//				log.error("创建index生命周期报错："+e.getMessage());
+//
+//			}
+//
+//			/**
+//			 * 初始化工作四：在初始化过程中创建完index的生命周期后开启生命周期管理
+//			 */
+//			try {
+//				String status = logService.getLifecycleManagementStatus();
+//				if (status.equals("STOPPED")||status.equals("STOPPING")){
+//					Boolean startIndexLifeCyclestatus = logService.startIndexLifeCycle();
+//					if (!startIndexLifeCyclestatus){
+//						map.put("state", false);
+//						map.put("msg", "开启index生命周期管理失败！");
+//						return JSONArray.fromObject(map).toString();
+//					}
+//				}
+//			} catch (Exception e){
+//				e.printStackTrace();
+//				map.put("state", false);
+//				map.put("msg", "开启index生命周期管理失败！");
+//				return JSONArray.fromObject(map).toString();
+//			}
+//			/**
+//			 *初始化工作五：更新资产缓存信息
+//			 */
+//			try{
+//				AssetCache.INSTANCE.init(equipmentService,assetService);
+//			}catch (Exception e){
+//				e.printStackTrace();
+//				log.error("初始化工作五：更新资产缓存信息失败"+e.getMessage());
+//				map.put("state", false);
+//				map.put("msg", "资产信息获取失败！");
+//				return JSONArray.fromObject(map).toString();
+//			}
+//			map.put("state", true);
+//			map.put("msg", "初始化成功！");
+//			return JSONArray.fromObject(map).toString();
+//
+//		} catch (Exception e) {
+//			log.error(e.getMessage());
+//			map.put("state", false);
+//			map.put("msg", "数据结构初始化失败！");
+//			return JSONArray.fromObject(map).toString();
+//		}
+//
+//	}
 	@ResponseBody
 	@RequestMapping(value="/createIndexAndMapping4Beats",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="初始化数据结构")
-	public String createIndexAndMapping4Beats(HttpServletRequest request){
+	public String createIndexAndMapping4Beats(){
 		Map<String, Object> map= new HashMap<>();
 		try {
 
@@ -340,7 +335,7 @@ public class LogController extends BaseController{
 			try{
 				//检查是否需要更新index（hsdata）字段
 				//1.查看是否已存在名称为hsdata的index
-				if(logService.indexExists(hsdataIndexName)){
+				if(logService.indexExists(configProperty.getEs_hsdata_index())){
 					//如果存在，更新index的mapping信息
 					//TODO 也可以先使用mapping信息对比来确认是否需要更新
 					/***********************************
@@ -348,7 +343,7 @@ public class LogController extends BaseController{
 					 * 顺序一致后，发现我们自己生成的json的boolean字段的值时带引号的 "true"。 es返回的不带，可以通过调整代码解决
 					 * 比对通过string equals即可
 					 ***********************************/
-					Boolean result = logService.putIndexMapping(hsdataIndexName,new HSData().toMapping());
+					Boolean result = logService.putIndexMapping(configProperty.getEs_hsdata_index(),new HSData().toMapping());
 
 					if (!result) {
 						map.put("state", true);
@@ -357,7 +352,7 @@ public class LogController extends BaseController{
 					}else{
 						log.info("hsdata mapping更新完成！");
 						try{
-							boolean res = logService.deleteRemovedHsdata(hsdataIndexName);
+							boolean res = logService.deleteRemovedHsdata(configProperty.getEs_hsdata_index());
 							if(res){
 								//更新其他报表
 								hsData.initHsData();
@@ -738,9 +733,11 @@ public class LogController extends BaseController{
 			types = type.split(",");
 		}
 		String equipmentid = request.getParameter("equipmentid");
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date enddate = new Date();
-		String endtime = format.format(enddate);
+
+		LocalDateTime enddate = LocalDateTime.now();
+
+		String endtime = enddate.format(dtf_time);
+
 		DecimalFormat df = new DecimalFormat("#.00");
 
 		List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -749,11 +746,10 @@ public class LogController extends BaseController{
 		for (SafeStrategy safeStrategy : safelist) {
 			String dates = safeStrategy.getTime();
 			String event_type = safeStrategy.getEvent_type();
-			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(enddate);
-			calendar.add(Calendar.MINUTE, -Integer.valueOf(dates));
-			Date startdate = calendar.getTime();
-			String starttime = format.format(startdate);
+			LocalDateTime startdate = enddate.minusMinutes(Integer.valueOf(dates));
+
+			String starttime = startdate.format(dtf_time);
+
 			ConcurrentHashMap<String,String> safemap = new ConcurrentHashMap<>();
 			safemap.put("fields.equipmentid",equipmentid);
 			safemap.put("event.action",event_type);
@@ -862,8 +858,7 @@ public class LogController extends BaseController{
 				endtime = end.toString();
 				map.remove("endtime");
 			}else {
-				SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-				endtime = format.format(new Date());
+				endtime = LocalDateTime.now().format(dtf_time);
 			}
 
 			Object pageObject = map.get("page");
@@ -1161,8 +1156,7 @@ public class LogController extends BaseController{
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		// 使用手机号作为导出的路径
 		Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
-		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
-		SimpleDateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd'_'HHmmss");
+
 
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 		// 返回結果
@@ -1263,7 +1257,7 @@ public class LogController extends BaseController{
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day), "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
 				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 
 				if (i==forsize&&modsize==0) {
@@ -1290,11 +1284,11 @@ public class LogController extends BaseController{
 				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容" };
 				List<Object> headList = Arrays.asList(head);
 
-				Date date = new Date();
+
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
 				// 开始写入csv文件
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day), "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
 				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 				//  根据导出文件个数返回导出状态
 				if (forsize>0) {

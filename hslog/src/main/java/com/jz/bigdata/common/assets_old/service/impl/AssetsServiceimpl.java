@@ -1,6 +1,7 @@
 package com.jz.bigdata.common.assets_old.service.impl;
 
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,7 +20,7 @@ import net.sf.json.JSONArray;
 
 @Service(value = "assetsService")
 public class AssetsServiceimpl implements IAssetsService{
-	
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	@Resource
 	private IAssetsDao assetsDao;
 	
@@ -54,9 +55,8 @@ public class AssetsServiceimpl implements IAssetsService{
 	 */
 	@Override
 	public int updateById(Assets assets) {
-		SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		// 获取日期
-		assets.setUpDateTime(df.format(new Date()));
+		assets.setUpDateTime(LocalDateTime.now().format(dtf_time));
 		return assetsDao.updateById(assets);
 	}
 
@@ -119,8 +119,7 @@ public class AssetsServiceimpl implements IAssetsService{
 	 */
 	@Override
 	public List<Assets> selectByIncrement() {
-		SimpleDateFormat format=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String date =format.format(new Date());
+		String date =LocalDateTime.now().format(dtf_time);
 		
 		if(oldDate==null||("").equals(oldDate)){
 			oldDate=date;

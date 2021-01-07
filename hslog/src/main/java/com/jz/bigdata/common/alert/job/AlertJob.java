@@ -344,7 +344,7 @@ public class AlertJob implements Job {
             alertSnapshot.setResult(searchConditions.getErrorInfo());//执行结果写入异常信息
             alertSnapshot.setAlert_fire(false);//异常情况
         }
-        System.out.println(gson.toJson(alertSnapshot));
+        //System.out.println(gson.toJson(alertSnapshot));
         //index名称
         //TODO alert index规则调整
         IndexRequest request = new IndexRequest();
@@ -355,6 +355,6 @@ public class AlertJob implements Job {
 
 
         //TODO restful-api
-        System.out.println("................"+map.get("alert_id").toString());
+        //System.out.println("................"+map.get("alert_id").toString());
     }
 }

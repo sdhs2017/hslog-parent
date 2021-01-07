@@ -13,6 +13,8 @@ import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.ContextRoles;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONObject;
+import org.apache.hadoop.util.hash.Hash;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -23,10 +25,9 @@ import org.springframework.kafka.support.Acknowledgment;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Slf4j
 public class KafkaBeatsListener {
@@ -37,7 +38,8 @@ public class KafkaBeatsListener {
     @Autowired
     private KafkaListenerEndpointRegistry registry;
 
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    //SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     private Equipment equipment;//虚拟资产
     private String ipadress;//ip地址
     private String module;// 所属模块
@@ -113,16 +115,9 @@ public class KafkaBeatsListener {
                                         JsonObject jsonObject_6 = new JsonObject();
                                         /**  时间数据 */
                                         String beatdate = jsonObject.get("@timestamp").getAsString();
-                                        try {
-                                            Date date = format.parse(beatdate);
-                                            Calendar cal = Calendar.getInstance();
-                                            cal.setTime(date);
-                                            cal.add(Calendar.HOUR_OF_DAY, +8);
-                                            date = cal.getTime();
-                                            jsonObject_6.addProperty("@timestamp", format.format(date));
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
-                                        }
+                                        //时间+8处理
+                                        LocalDateTime ldt = LocalDateTime.parse(beatdate,dtf_time);
+                                        jsonObject_6.addProperty("@timestamp", ldt.plusHours(8).format(dtf_time));
                                         /** @metadata数据 */
                                         jsonObject_6.add("@metadata", jsonObject.getAsJsonObject("@metadata"));
                                         /**  log-level数据  */
@@ -263,16 +258,8 @@ public class KafkaBeatsListener {
                                          * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
                                          */
                                         String beatdate = jsonObject.get("@timestamp").getAsString();
-                                        try {
-                                            Date date = format.parse(beatdate);
-                                            Calendar cal = Calendar.getInstance();
-                                            cal.setTime(date);
-                                            cal.add(Calendar.HOUR_OF_DAY, +8);
-                                            date = cal.getTime();
-                                            jsonObject.addProperty("@timestamp",format.format(date));
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
-                                        }
+                                        LocalDateTime ldt = LocalDateTime.parse(beatdate,dtf_time);
+                                        jsonObject.addProperty("@timestamp", ldt.plusHours(8).format(dtf_time));
                                         /**
                                          * index名称设置
                                          */
@@ -324,16 +311,8 @@ public class KafkaBeatsListener {
                                  * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
                                  */
                                 String beatdate = jsonObject.get("@timestamp").getAsString();
-                                try {
-                                    Date date = format.parse(beatdate);
-                                    Calendar cal = Calendar.getInstance();
-                                    cal.setTime(date);
-                                    cal.add(Calendar.HOUR_OF_DAY, +8);
-                                    date = cal.getTime();
-                                    jsonObject.addProperty("@timestamp",format.format(date));
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
+                                LocalDateTime ldt = LocalDateTime.parse(beatdate,dtf_time);
+                                jsonObject.addProperty("@timestamp", ldt.plusHours(8).format(dtf_time));
                                 /**
                                  * index名称设置
                                  */
@@ -380,16 +359,8 @@ public class KafkaBeatsListener {
                                  * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
                                  */
                                 String beatdate = jsonObject.get("@timestamp").getAsString();
-                                try {
-                                    Date date = format.parse(beatdate);
-                                    Calendar cal = Calendar.getInstance();
-                                    cal.setTime(date);
-                                    cal.add(Calendar.HOUR_OF_DAY, +8);
-                                    date = cal.getTime();
-                                    jsonObject.addProperty("@timestamp",format.format(date));
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
+                                LocalDateTime ldt = LocalDateTime.parse(beatdate,dtf_time);
+                                jsonObject.addProperty("@timestamp", ldt.plusHours(8).format(dtf_time));
                                 /**
                                  * index名称设置
                                  */
@@ -413,62 +384,75 @@ public class KafkaBeatsListener {
                                 //虚拟资产中改ip对应资产不包含packetbeat，数据暂时不入库
                             }
                         }else if(beat_type.equals(ContextRoles.FILEBEAT)){
-                            //判断是否在已识别资产里————日志类型可识别
-                            equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_FILE);
-                            //如果该资产在虚拟资产列表中
-                            if(null != equipment){
-                                //补全虚拟资产信息
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
-                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
-                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
-                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
-                                //如果IP在逻辑资产列表中，加上逻辑资产标签
-                                asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
-                                if(asset!=null){
-                                    jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
-                                    jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
-                                }
-                                /**
-                                 * 打标签，认为beats的数据都是正常的，设置fields.failure=false
-                                 */
-                                jsonObject.getAsJsonObject("fields").addProperty("failure",false);
-                                /**
-                                 * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
-                                 */
-                                String beatdate = jsonObject.get("@timestamp").getAsString();
-                                try {
-                                    Date date = format.parse(beatdate);
-                                    Calendar cal = Calendar.getInstance();
-                                    cal.setTime(date);
-                                    cal.add(Calendar.HOUR_OF_DAY, +8);
-                                    date = cal.getTime();
-                                    jsonObject.addProperty("@timestamp",format.format(date));
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                                /**
-                                 * index名称设置
-                                 */
-                                String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
-                                //获取所属模块，该字段信息不一定存在
-                                try {
-                                    module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
-                                }catch (Exception e){
-                                    module = null;
-                                }
-                                //组装index信息,存在module字段时，index名称中插入module
-                                String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
-                                //批量入库
-                                //indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
-                                request.index(index);
-                                request.source(jsonObject.toString(), XContentType.JSON);
-                                //bulkRequest.add(request);
-                                // 将bulkrequest替换为bulkprocessor方式
-                                logCurdDao.bulkProcessor_add(request);
-
-                            }else{
-                                //虚拟资产中改ip对应资产不包含filebeat，数据暂时不入库
+                            //CSV文件处理
+                            String message = jsonObject.get("message").getAsString();
+                            //双引号内的逗号不分割  双引号外的逗号进行分割
+                            String[] strArr = message.trim().split(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)",-1);
+                            //组装将要写入ES的数据
+                            Map<String,String> dataMap = new HashMap<>();
+                            for(int i=1;i<=strArr.length;i++){
+                                //dataMap.put("field"+String.format("%0" + String.valueOf(strArr.length).length() + "d", i),strArr[i-1].replaceAll("\"",""));
+                                dataMap.put("field"+ i,strArr[i-1].replaceAll("\"",""));
                             }
+                            request.index("hs_filebeat_test");
+                            request.source(JSONObject.fromObject(dataMap).toString(), XContentType.JSON);
+                            logCurdDao.bulkProcessor_add(request);
+                            //判断是否在已识别资产里————日志类型可识别
+                            //equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_FILE);
+                            //如果该资产在虚拟资产列表中
+//                            if(null != equipment){
+//                                //补全虚拟资产信息
+//                                jsonObject.getAsJsonObject("fields").addProperty("equipmentname", equipment.getName());
+//                                jsonObject.getAsJsonObject("fields").addProperty("equipmentid", equipment.getId());
+//                                jsonObject.getAsJsonObject("fields").addProperty("userid", equipment.getUserId());
+//                                jsonObject.getAsJsonObject("fields").addProperty("deptid", equipment.getDepartmentId());
+//                                //如果IP在逻辑资产列表中，加上逻辑资产标签
+//                                asset = AssetCache.INSTANCE.getAssetMap().get(ipadress);
+//                                if(asset!=null){
+//                                    jsonObject.getAsJsonObject("fields").addProperty("assetid", asset.getId());
+//                                    jsonObject.getAsJsonObject("fields").addProperty("assetname", asset.getName());
+//                                }
+//                                /**
+//                                 * 打标签，认为beats的数据都是正常的，设置fields.failure=false
+//                                 */
+//                                jsonObject.getAsJsonObject("fields").addProperty("failure",false);
+//                                /**
+//                                 * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
+//                                 */
+//                                String beatdate = jsonObject.get("@timestamp").getAsString();
+//                                try {
+//                                    Date date = format.parse(beatdate);
+//                                    Calendar cal = Calendar.getInstance();
+//                                    cal.setTime(date);
+//                                    cal.add(Calendar.HOUR_OF_DAY, +8);
+//                                    date = cal.getTime();
+//                                    jsonObject.addProperty("@timestamp",format.format(date));
+//                                } catch (ParseException e) {
+//                                    e.printStackTrace();
+//                                }
+//                                /**
+//                                 * index名称设置
+//                                 */
+//                                String date = jsonObject.get("@timestamp").getAsString().substring(0,jsonObject.get("@timestamp").getAsString().indexOf("T")).replaceAll("-",".");
+//                                //获取所属模块，该字段信息不一定存在
+//                                try {
+//                                    module = jsonObject.getAsJsonObject("fields").get("module").getAsString().replaceAll("\"","");
+//                                }catch (Exception e){
+//                                    module = null;
+//                                }
+//                                //组装index信息,存在module字段时，index名称中插入module
+//                                String index = Strings.isNullOrEmpty(module)?(beat_type+"-"+date):(beat_type+"-"+module+"-"+date);
+//                                //批量入库
+//                                //indicesrequests.add(logCurdDao.insertNotCommit(index, null, jsonObject.toString()));
+//                                request.index(index);
+//                                request.source(jsonObject.toString(), XContentType.JSON);
+//                                //bulkRequest.add(request);
+//                                // 将bulkrequest替换为bulkprocessor方式
+//                                logCurdDao.bulkProcessor_add(request);
+//
+//                            }else{
+//                                //虚拟资产中改ip对应资产不包含filebeat，数据暂时不入库
+//                            }
                         }else{
                             log.info("该跳数据不属于packet/metric/winlog/file Beat！");
                         }

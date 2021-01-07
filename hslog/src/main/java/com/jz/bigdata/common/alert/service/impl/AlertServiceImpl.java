@@ -25,6 +25,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.quartz.CronScheduleBuilder.cronSchedule;
@@ -32,9 +34,8 @@ import static org.quartz.CronScheduleBuilder.cronSchedule;
 @Service(value="AlertService")
 public class AlertServiceImpl implements IAlertService {
     private static final Gson gson = new Gson();
-    // 设置日期格式
-    private final SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Autowired
     protected ISearchDao searchDao;
     @Autowired
@@ -147,7 +148,7 @@ public class AlertServiceImpl implements IAlertService {
         //当前用户信息
         alert.setAlert_update_user(session.getAttribute(Constant.SESSION_USERID).toString());
         //插入时间
-        alert.setAlert_update_time(df.format(new Date()));
+        alert.setAlert_update_time(LocalDateTime.now().format(dtf_time));
         //更新告警信息
         try{
             alertDao.update(alert);

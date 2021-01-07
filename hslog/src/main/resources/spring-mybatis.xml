@@ -1036,10 +1036,18 @@
 <!--			<value>0 0 1 * * ?</value>-->
 <!--		</property>-->
 <!--	</bean>-->
-	<!--  spring 启动后执行的任务    -->
+
+
+	<!--  计划任务 及cache初始化    -->
 	<bean id="start_execution" class="com.jz.bigdata.common.start_execution.start" scope="singleton" init-method="init"></bean>
 	<bean id="BasicJobsStart" class="com.jz.bigdata.common.start_execution.task.BasicJobsStart" scope="singleton" init-method="start"></bean>
-<!--	 触发器启动-->
+	<!-- 系统初始化及采集器-->
+<!--	<bean id="start_execution_init" class="com.jz.bigdata.business.logAnalysis.log.controller.LogController"  scope="singleton" init-method="createIndexAndMapping4Beats"></bean>-->
+<!--	<bean id="start_execution_syslog" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startSyslogKafkaListener"></bean>-->
+<!--	<bean id="start_execution_agent" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startAgentKafkaListener"></bean>-->
+<!--	<bean id="start_execution_pcap4j" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startPcap4jCollector"></bean>-->
+
+	<!--	 触发器启动-->
 <!--	<bean name="startQuertz" lazy-init="false" autowire="no"-->
 <!--		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">-->
 <!--		<property name="triggers">-->

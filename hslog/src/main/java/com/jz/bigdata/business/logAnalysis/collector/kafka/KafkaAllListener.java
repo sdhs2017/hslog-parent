@@ -24,6 +24,7 @@ import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.support.Acknowledgment;
 
 import javax.annotation.Resource;
+import java.io.FileWriter;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -112,7 +113,7 @@ public class KafkaAllListener {
     public void kafkaListenBatch(List<ConsumerRecord<?, String>> records, Acknowledgment ack){
         IndexRequest request;
         try{
-
+            FileWriter fileWritter = new FileWriter("d:/test.log",true);
             builder = new StringBuilder();
             for(ConsumerRecord<?, String> record:records){
                 request = new IndexRequest();
@@ -212,15 +213,25 @@ public class KafkaAllListener {
                                 request.source(gson.toJson(logstash2ECS), XContentType.JSON);
                                 logCurdDao.bulkProcessor_add(request);
                             }else{
-                                // 判定应收集的日志级别，通过日志级别进行日志过滤
-                                if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1) {
+                                if(equipment!=null){
+                                    // 判定应收集的日志级别，通过日志级别进行日志过滤
+                                    if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1) {
+                                        request.index(logstashIndexName);
+                                        request.source(gson.toJson(logstash2ECS), XContentType.JSON);
+                                        logCurdDao.bulkProcessor_add(request);
+                                    }
+                                }else{
+                                    //logger.info("IP在资产池中，但不是syslog类型:"+ipadress+","+jsonObject.get("@timestamp").getAsString()+"--"+log);
+                                    logger.info("syslog1,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
                                     request.index(logstashIndexName);
                                     request.source(gson.toJson(logstash2ECS), XContentType.JSON);
                                     logCurdDao.bulkProcessor_add(request);
                                 }
+
                             }
                         }else{
-                            //System.out.println("");
+                            //logger.info("syslog数据不在资产池中，IP:"+ipadress+","+jsonObject.get("@timestamp").getAsString()+"--"+log);
+                            logger.info("syslog2,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
                         }
                     }catch (Exception e){
                         e.printStackTrace();

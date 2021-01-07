@@ -56,7 +56,7 @@ public class BulkTemplate_BulkProcessor {
                 double MB = request.estimatedSizeInBytes()/1024/1024;
                 double KB = request.estimatedSizeInBytes()/1024;
                 //System.out.println(format.format(new Date())+"  Executing bulk [{"+ executionId +"}] with {"+ numberOfActions +"} requests, with {"+MB+"} MB, {"+KB+"} KB");
-                LOGGER.info("Executing bulk [{}] with {} requests, with {} MB, {} KB", executionId, numberOfActions,MB,KB);
+                //LOGGER.info("Executing bulk [{}] with {} requests, with {} MB, {} KB", executionId, numberOfActions,MB,KB);
             }
 
 
@@ -64,10 +64,10 @@ public class BulkTemplate_BulkProcessor {
             public void afterBulk(long executionId, BulkRequest request, BulkResponse response) {
                 //重写afterBulk方法，每次批量请求结束后执行，可以在这里知道是否有错误发生。
                 if (response.hasFailures()) {
-                    LOGGER.error("Bulk [{}] executed with failures,response = {}", executionId, response.buildFailureMessage());
+                    //LOGGER.error("Bulk [{}] executed with failures,response = {}", executionId, response.buildFailureMessage());
                 } else {
                     //System.out.println(format.format(new Date())+" Bulk [{"+executionId+"}] completed in {"+response.getTook().getMillis()+"} milliseconds");
-                    LOGGER.info("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
+                    //LOGGER.info("Bulk [{}] completed in {} milliseconds", executionId, response.getTook().getMillis());
                 }
                 //BulkItemResponse[] responses = response.getItems();
             }

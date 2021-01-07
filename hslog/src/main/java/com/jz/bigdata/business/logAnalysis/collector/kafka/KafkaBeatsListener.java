@@ -418,7 +418,8 @@ public class KafkaBeatsListener {
                             logger.info("该跳数据不属于packet/metric/winlog Beat！");
                         }
                     }else{
-                        logger.info("数据不在资产池中，IP:"+ipadress+"--"+log);
+                        //logger.info("数据不在资产池中，IP:"+ipadress+","+jsonObject.get("@timestamp").getAsString()+"--"+log);
+                        logger.info("winlog2,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
                     }
 
                 }catch (NullPointerException e){

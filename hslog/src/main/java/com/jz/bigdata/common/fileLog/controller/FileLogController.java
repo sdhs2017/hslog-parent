@@ -36,7 +36,26 @@ public class FileLogController {
             String fields = request.getParameter("target_index");
 
             List<FileLogFields> list = new ArrayList<>();
-
+            //模拟数据
+            FileLogFields f1 = new FileLogFields();
+            f1.setFileLog_key("WCM_LOG");
+            f1.setFileLog_Name("WCM系统日志");
+            f1.setFileLog_field("LOGUSER");
+            f1.setFileLog_text("操作用户");
+            f1.setFileLog_type("keyword");
+            f2.setFileLog_is_timestamp("0");
+            f1.setFileLog_order(1);
+            list.add(f1);
+            FileLogFields f2 = new FileLogFields();
+            f2.setFileLog_key("WCM_LOG");
+            f2.setFileLog_Name("WCM系统日志");
+            f2.setFileLog_field("LOGDATE");
+            f2.setFileLog_text("操作时间");
+            f2.setFileLog_type("date");
+            f2.setFileLog_format("yyyy-MM-dd HH:mm:ss");
+            f2.setFileLog_is_timestamp("1");
+            f2.setFileLog_order(2);
+            list.add(f2);
             fileLogService.reindex(list);
         }catch(Exception e){
             e.printStackTrace();

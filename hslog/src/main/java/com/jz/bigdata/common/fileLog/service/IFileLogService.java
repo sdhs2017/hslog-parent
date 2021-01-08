@@ -13,9 +13,7 @@ import java.util.List;
 public interface IFileLogService {
     /**
      *
-     * @param list 字段信息
-     * @param source_index
-     * @param target_index
+     * @param list 修改后的字段信息
      * @throws Exception
      */
     public void reindex(List<FileLogFields> list) throws Exception;

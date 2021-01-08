@@ -13,7 +13,15 @@ public class FileLogFields {
     private String fileLog_type;//字段类型（ES）
     private String fileLog_format;//date类型需要的format信息
     private String fileLog_is_timestamp;//是否为日期字段
-    private String fileLog_order;//排序字段，cvs数据顺序一一对应
+    private int fileLog_order;//排序字段，cvs数据顺序一一对应
+
+    public int getFileLog_order() {
+        return fileLog_order;
+    }
+
+    public void setFileLog_order(int fileLog_order) {
+        this.fileLog_order = fileLog_order;
+    }
 
     public String getFileLog_Name() {
         return fileLog_Name;
@@ -69,13 +77,5 @@ public class FileLogFields {
 
     public void setFileLog_is_timestamp(String fileLog_is_timestamp) {
         this.fileLog_is_timestamp = fileLog_is_timestamp;
-    }
-
-    public String getFileLog_order() {
-        return fileLog_order;
-    }
-
-    public void setFileLog_order(String fileLog_order) {
-        this.fileLog_order = fileLog_order;
     }
 }

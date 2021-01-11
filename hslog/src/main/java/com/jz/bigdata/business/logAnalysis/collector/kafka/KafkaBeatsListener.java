@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.NXCache;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.common.asset.cache.AssetCache;
@@ -59,6 +60,20 @@ public class KafkaBeatsListener {
                     JsonElement jsonElement = new JsonParser().parse(log);
                     JsonObject jsonObject= jsonElement.getAsJsonObject();
 
+                    //-----date写入cache--------
+                    if(jsonObject.get("@timestamp")!=null){
+                        String logdate = jsonObject.get("@timestamp").getAsString();
+                        Date newTime = format.parse(logdate);
+                        if(NXCache.INSTANCE.timeMap.containsKey(ipadress+"beats")){
+                            Date oldTime = NXCache.INSTANCE.timeMap.get(ipadress+"beats");
+                            if(oldTime.getTime() < newTime.getTime()){
+                                NXCache.INSTANCE.timeMap.put(ipadress+"beats",newTime);
+                            }
+                        }else{
+                            NXCache.INSTANCE.timeMap.put(ipadress+"beats",newTime);
+                        }
+                    }
+
                     //获取数据IP
                     try{
                         ipadress = jsonObject.getAsJsonObject("fields").get("ip").getAsString().replaceAll("\"","");
@@ -79,6 +94,9 @@ public class KafkaBeatsListener {
                         }
                         //日志类型的判定
                         if(beat_type.equals(ContextRoles.WINLOGBEAT)){
+
+
+
                             //判断是否在已识别资产里————日志类型可识别
                             equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_WINLOG);
                             //如果该资产在虚拟资产列表中
@@ -301,6 +319,13 @@ public class KafkaBeatsListener {
                                 }
                             }else{
                                 //虚拟资产中改ip对应资产不包含winlogbeat，数据暂时不入库
+                                try{
+                                    String level = jsonObject.getAsJsonObject("log").get("level").toString().replaceAll("\"","");
+                                    NXCache.INSTANCE.insert(ipadress,"winlog",level);
+                                }catch (Exception e){
+                                    NXCache.INSTANCE.insert(ipadress,"winlog","other");
+                                }
+
                             }
                         }else if(beat_type.equals(ContextRoles.PACKETBEAT)){
                             //判断是否在已识别资产里————日志类型可识别
@@ -419,7 +444,8 @@ public class KafkaBeatsListener {
                         }
                     }else{
                         //logger.info("数据不在资产池中，IP:"+ipadress+","+jsonObject.get("@timestamp").getAsString()+"--"+log);
-                        logger.info("winlog2,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
+                        //logger.info("winlog2,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
+                        NXCache.INSTANCE.insert(ipadress,"winlog",null);
                     }
 
                 }catch (NullPointerException e){

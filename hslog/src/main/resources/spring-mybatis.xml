@@ -722,7 +722,7 @@
 	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
-				<entry key="es_ip" value="xxx.xxx.xxx.xxx"/>
+				<entry key="es_ip" value="192.168.2.181"/>
 				<entry key="es_port" value="9200"/>
 				<entry key="es_user" value="elastic"/>
 				<entry key="es_password" value="hsdata.123"/>
@@ -972,6 +972,31 @@
 		</property>
 	</bean>
 
+
+	<!-- 农信监控数据定时写入es -->
+	<bean id="NX_Job"
+		  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<!-- 调用类 -->
+		<property name="targetObject">
+			<ref bean="manageService"/>
+		</property>
+		<!--  调用类方法 -->
+		<property name="targetMethod">
+			<value>nx_timeCycle</value>
+		</property>
+	</bean>
+	<!-- 调度任务时间配置 -->
+	<bean id="NX_JobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail">
+			<ref bean="NX_Job"/>
+		</property>
+		<!-- 设置触发时间，5分钟执行一次  每5分钟的0秒 -->
+		<property name="cronExpression">
+			<value>0 */5 * * * ?</value>
+		</property>
+	</bean>
+
+
 	<!-- 触发器启动 -->
 	<bean name="startQuertz" lazy-init="false" autowire="no"
 		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
@@ -990,6 +1015,8 @@
 				<!-- <ref bean="assetsHeartBeatJobTrigger" /> -->
 				<!-- 自动合并index的segments任务  0 0 1 * * ? 每天1点钟执行一次-->
 				<ref bean="forcemergeIndexSegmentsJobTrigger" />
+				<!-- 农信监控数据入库 计划任务-->
+				<ref bean="NX_JobTrigger" />
 			</list>
 		</property>
 		<property name="autoStartup" value="true"/>

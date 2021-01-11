@@ -2,6 +2,8 @@ package com.jz.bigdata.business.logAnalysis.collector.kafka;
 
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.NXCache;
+import com.jz.bigdata.business.logAnalysis.collector.cache.bean.NXBean;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
@@ -154,6 +156,21 @@ public class KafkaAllListener {
                          */
                         JsonElement jsonElement = new JsonParser().parse(log);
                         JsonObject jsonObject= jsonElement.getAsJsonObject();
+                        //-----date写入cache--------
+                        if(jsonObject.get("@timestamp")!=null){
+                            String logdate = jsonObject.get("@timestamp").getAsString();
+                            Date newTime = format.parse(logdate);
+                            if(NXCache.INSTANCE.timeMap.containsKey(ipadress+logType)){
+                                Date oldTime = NXCache.INSTANCE.timeMap.get(ipadress+logType);
+                                if(oldTime.getTime() < newTime.getTime()){
+                                    NXCache.INSTANCE.timeMap.put(ipadress+logType,newTime);
+                                }
+                            }else{
+                                NXCache.INSTANCE.timeMap.put(ipadress+logType,newTime);
+                            }
+                        }
+
+
                         //-----转成ecs
                         Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
                         /**
@@ -219,19 +236,26 @@ public class KafkaAllListener {
                                         request.index(logstashIndexName);
                                         request.source(gson.toJson(logstash2ECS), XContentType.JSON);
                                         logCurdDao.bulkProcessor_add(request);
+                                    }else{
+                                        //-------------------记录未入库数据-------------
+                                        NXCache.INSTANCE.insert(ipadress,logType,severityName.toString());
                                     }
                                 }else{
+                                    //-------------------记录未入库数据-------------
+                                    NXCache.INSTANCE.insert(ipadress,logType,severityName.toString());
                                     //logger.info("IP在资产池中，但不是syslog类型:"+ipadress+","+jsonObject.get("@timestamp").getAsString()+"--"+log);
-                                    logger.info("syslog1,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
-                                    request.index(logstashIndexName);
-                                    request.source(gson.toJson(logstash2ECS), XContentType.JSON);
-                                    logCurdDao.bulkProcessor_add(request);
+                                    //logger.info("syslog1,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
+//                                    request.index(logstashIndexName);
+//                                    request.source(gson.toJson(logstash2ECS), XContentType.JSON);
+//                                    logCurdDao.bulkProcessor_add(request);
                                 }
 
                             }
                         }else{
+                            //-------------------记录未入库数据-------------
+                            NXCache.INSTANCE.insert(ipadress,logType,null);
                             //logger.info("syslog数据不在资产池中，IP:"+ipadress+","+jsonObject.get("@timestamp").getAsString()+"--"+log);
-                            logger.info("syslog2,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
+                            //logger.info("syslog2,"+ipadress+","+jsonObject.get("@timestamp").getAsString());
                         }
                     }catch (Exception e){
                         e.printStackTrace();

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -14,14 +15,23 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import com.alibaba.fastjson.JSONObject;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.business.logAnalysis.collector.cache.NXCache;
+import com.jz.bigdata.business.logAnalysis.collector.cache.bean.NXBean;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.util.ExecuteCmd;
 import org.apache.commons.lang.ArrayUtils;
 import org.elasticsearch.ElasticsearchStatusException;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Service;
 
@@ -56,6 +66,8 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
     @Resource(name = "logService")
     private LogServiceImpl logService;
+    @Autowired
+    protected ILogCrudDao logCurdDao;
 
     @Override
     public Map<String, String> getDiskUsage(String user,String passwd,String host) {
@@ -385,7 +397,33 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
         return JSONArray.fromObject(result).toString();
     }
+    private DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+    /**
+     * 农信定时执行方法，清空数据，写入ES
+     */
+    public void nx_timeCycle(){
+        for (Map.Entry<String, Integer> entry : NXCache.INSTANCE.countMap.entrySet()) {
+            NXBean bean = NXCache.INSTANCE.beanMap.get(entry.getKey());
+            if(bean!=null){
+                bean.setCount(entry.getValue());
+                bean.setTimestamp(LocalDateTime.now().format(dtf));
+            }
+            System.out.println(JSONObject.toJSON(bean));
+            IndexRequest request = new IndexRequest();
+            request.index("hs_nx_loginfo");
+            request.source(gson.toJson(bean), XContentType.JSON);
+            logCurdDao.bulkProcessor_add(request);
+            //清空
+            NXCache.INSTANCE.countMap.put(entry.getKey(),0);
+        }
 
+        //打印信息
+        for(Map.Entry<String, Date> entry : NXCache.INSTANCE.timeMap.entrySet()) {
+            System.out.println("ip+type:"+entry.getKey()+"---maxtime:"+format.format(entry.getValue()));
+        }
+
+    }
     @Override
     protected void executeInternal(JobExecutionContext arg0) throws JobExecutionException {
         // TODO Auto-generated method stub

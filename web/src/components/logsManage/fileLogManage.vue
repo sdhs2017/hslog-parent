@@ -30,15 +30,15 @@
         </div>
         <el-dialog title="编辑" :visible.sync="editForm" width="440px">
             <el-form label-width="110px">
-                <el-form-item label="field:">
+                <el-form-item label="字段代码:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input v-model="currentRightItem.data.file_log_field" class="item"></el-input>
                 </el-form-item>
-                <el-form-item label="text:">
+                <el-form-item label="字段名称:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input v-model="currentRightItem.data.file_log_text" class="item"></el-input>
                 </el-form-item>
-                <el-form-item label="type:">
+                <el-form-item label="字段类型:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-select v-model="currentRightItem.data.file_log_type" @change="typeChange" placeholder="请选择" style="width: 100%;">
                         <el-option
@@ -49,16 +49,16 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="format:">
+                <el-form-item label="日期格式:">
                     <el-input v-model="currentRightItem.data.file_log_format" :disabled="currentRightItem.data.file_log_type === 'date' ? false : 'disabled'" class="item"></el-input>
-                    <span style="color: #8a6226;">只在type为date时生效，且不能为空</span>
+                    <span style="color: #8a6226;">只在字段类型为date时生效，且不能为空</span>
                 </el-form-item>
-                <el-form-item label="is_timestamp:" style="position: relative;top: -10px;">
+                <el-form-item label="设置为日期字段:" style="position: relative;top: -10px;">
                     <el-radio-group v-model="currentRightItem.data.file_log_is_timestamp" :disabled="currentRightItem.data.file_log_type === 'date' ? false : 'disabled'">
                         <el-radio label="true">是</el-radio>
                         <el-radio label="false">否</el-radio>
                     </el-radio-group>
-                    <p style="color: #8a6226;position: relative;top: -10px;">只在type为date时生效，且只存在一个</p>
+                    <p style="color: #8a6226;position: relative;top: -10px;">只在字段类型为date时生效，且只存在一个</p>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -127,15 +127,14 @@
                                 icon:'el-icon-edit',
                                 text:'修改',
                                 btnType: 'editDetails',
-                                formatData:(obj)=>{
-                                  //  console.log(obj.file_log_order)
+                                /*formatData:(obj)=>{
                                     if(obj.file_log_order === 1){
                                         return false
                                     }else{
                                         return true
                                     }
 
-                                },
+                                },*/
                                 clickFun:(row,index)=>{
                                     this.currentRightItem.index = index
                                     this.currentRightItem.data = JSON.parse(JSON.stringify(row));
@@ -354,11 +353,11 @@
                 let index = this.currentRightItem.index
                 let data = this.currentRightItem.data;
                 if(data.file_log_field === ''){
-                    layer.msg('field不能为空',{icon:5})
+                    layer.msg('字段代码不能为空',{icon:5})
                 }else if(data.file_log_text === ''){
-                    layer.msg('text不能为空',{icon:5})
+                    layer.msg('字段名称不能为空',{icon:5})
                 }else if(data.file_log_type === 'date' && data.file_log_format === ''){
-                    layer.msg('type为date时，format不能为空',{icon:5})
+                    layer.msg('字段类型为date时，format不能为空',{icon:5})
                 }else{
                     //赋值
                     for (let i in data){

@@ -1,9 +1,9 @@
 package com.jz.bigdata.common.fileLog.service;
 
-import com.jz.bigdata.common.fileLog.entity.FileLogFields;
+import com.jz.bigdata.common.fileLog.entity.FileLogField;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: yiyang
@@ -16,5 +16,52 @@ public interface IFileLogService {
      * @param list 修改后的字段信息
      * @throws Exception
      */
-    public void reindex(List<FileLogFields> list) throws Exception;
+    public boolean reindex(List<FileLogField> list,String file_log_templateKey,String file_log_templateName) throws Exception;
+    /**
+     * 通过模板的key获取模板字段信息
+     * @param file_log_templateKey
+     * @return
+     */
+    List<FileLogField> getTemplateInfo(String file_log_templateKey);
+    /**
+     * 获取模板基础信息，模板名称及key
+     * @return
+     */
+    List<FileLogField> getTemplateList();
+    /**
+     * 更新文件日志模板信息
+     * @param fileLogField
+     * @return
+     */
+    int update(FileLogField fileLogField);
+
+    /**
+     * 更新文件日志模板的名称
+     * @param file_log_templateKey
+     * @param file_log_templateName
+     * @return
+     */
+    boolean updateTemplateName(String file_log_templateKey,String file_log_templateName);
+
+    /**
+     * 更新字段信息
+     * @param list
+     * @param file_log_templateKey
+     * @return
+     */
+    boolean updateFieldsList(List<FileLogField> list,String file_log_templateKey);
+
+    /**
+     * 获取所有的文件日志模板数据
+     * key为模板的key，value为字段信息list
+     * @return
+     */
+    Map<String,List<FileLogField>> getFileLogInfo();
+
+    /**
+     * 插入文件日志模板字段信息
+     * @param list
+     * @return
+     */
+    boolean insert(List<FileLogField> list);
 }

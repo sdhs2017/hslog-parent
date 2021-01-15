@@ -1,18 +1,23 @@
 package com.jz.bigdata.common.fileLog.controller;
 
-import com.jz.bigdata.common.fileLog.entity.FileLogFields;
+import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.fileLog.entity.FileLogField;
 import com.jz.bigdata.common.fileLog.service.IFileLogService;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.JavaBeanUtil;
+import com.mysql.jdbc.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: yiyang
@@ -26,40 +31,70 @@ public class FileLogController {
     @Resource(name = "FileLogService")
     private IFileLogService fileLogService;
     @ResponseBody
-    @RequestMapping(value="/test.do", produces = "application/json; charset=utf-8")
-    @DescribeLog(describe="测试")
-    public String test(HttpServletRequest request) {
+    @RequestMapping(value="/updateTemplateInfo.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="更新文件日志模板信息")
+    public String updateTemplateInfo(HttpServletRequest request) {
         try{
-            String source_index = request.getParameter("source_index");
-            String target_index = request.getParameter("target_index");
-            //TODO fields转化成对象
-            String fields = request.getParameter("target_index");
+            List<FileLogField> list = new ArrayList<>();
+            String templateInfo = request.getParameter("file_log_fields");
+            String file_log_templateName = request.getParameter("file_log_templateName");
+            String file_log_templateKey = request.getParameter("file_log_templateKey");
+            //更新状态，1为只改file_log_templateName（模板名称），2为改了字段信息（不管模板名称改不改）
+            String updateState = request.getParameter("updateState");
+            boolean result = false;
+            if("1".equals(updateState)){
+                result = fileLogService.updateTemplateName(file_log_templateKey,file_log_templateName);
+            }else{
+                //将参数转化为对象
+                if(null!=templateInfo){
+                    //参数包含多个FileLogFields对象
+                    JSONArray json = JSONArray.fromObject(templateInfo);
+                    //遍历
+                    for(Object beanObj:json.toArray()){
+                        //转bean
+                        FileLogField fileLogField = JavaBeanUtil.mapToBean((Map) JSONObject.fromObject(beanObj), FileLogField.class);
+                        //模板名称更新
+                        fileLogField.setFile_log_templateName(file_log_templateName);
+                        //转换成功时，写入参数对象中
+                        if(null!= fileLogField){
+                            list.add(fileLogField);
+                        }
+                    }
+                }else{
+                    return Constant.failureMessage("参数异常！");
+                }
+                result = fileLogService.reindex(list,file_log_templateKey,file_log_templateName);
 
-            List<FileLogFields> list = new ArrayList<>();
-            //模拟数据
-            FileLogFields f1 = new FileLogFields();
-            f1.setFileLog_key("WCM_LOG");
-            f1.setFileLog_Name("WCM系统日志");
-            f1.setFileLog_field("LOGUSER");
-            f1.setFileLog_text("操作用户");
-            f1.setFileLog_type("keyword");
-            f2.setFileLog_is_timestamp("0");
-            f1.setFileLog_order(1);
-            list.add(f1);
-            FileLogFields f2 = new FileLogFields();
-            f2.setFileLog_key("WCM_LOG");
-            f2.setFileLog_Name("WCM系统日志");
-            f2.setFileLog_field("LOGDATE");
-            f2.setFileLog_text("操作时间");
-            f2.setFileLog_type("date");
-            f2.setFileLog_format("yyyy-MM-dd HH:mm:ss");
-            f2.setFileLog_is_timestamp("1");
-            f2.setFileLog_order(2);
-            list.add(f2);
-            fileLogService.reindex(list);
+            }
+            if(result){
+                return Constant.successMessage("更新成功！");
+            }else{
+                return Constant.failureMessage("更新失败！");
+            }
         }catch(Exception e){
-            e.printStackTrace();
+            log.error("更新文件日志模板信息异常："+e.getMessage());
+            return Constant.failureMessage("更新失败！");
         }
-        return null;
+    }
+    @ResponseBody
+    @RequestMapping(value="/getFileLogTemplateList.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取文件日志模板列表")
+    public String getFileLogTemplateList(HttpServletRequest request) {
+        List<FileLogField> list = fileLogService.getTemplateList();
+        return Constant.successData(JSONArray.fromObject(list).toString());
+    }
+    @ResponseBody
+    @RequestMapping(value="/getFileLogTemplateFields.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取文件日志模板下的字段信息")
+    public String getFileLogTemplateFields(HttpServletRequest request) {
+        String templateKey = request.getParameter("file_log_templateKey");
+        if(StringUtils.isNullOrEmpty(templateKey)){
+            return Constant.failureMessage("参数异常！");
+        }else{
+            List<FileLogField> list = fileLogService.getTemplateInfo(templateKey);
+            return Constant.successData(JSONArray.fromObject(list).toString());
+        }
+
+
     }
 }

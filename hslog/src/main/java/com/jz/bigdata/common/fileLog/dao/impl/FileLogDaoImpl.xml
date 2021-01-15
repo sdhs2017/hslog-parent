@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.fileLog.dao.IFileLogDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+			   type="com.jz.bigdata.common.fileLog.entity.FileLogField">
+		<result column="file_log_templateName" jdbcType="VARCHAR" property="file_log_templateName" />
+		<result column="file_log_templateKey" jdbcType="VARCHAR" property="file_log_templateKey" />
+		<result column="file_log_field" jdbcType="VARCHAR" property="file_log_field" />
+		<result column="file_log_text" jdbcType="VARCHAR" property="file_log_text" />
+		<result column="file_log_type" jdbcType="VARCHAR" property="file_log_type" />
+		<result column="file_log_format" jdbcType="VARCHAR" property="file_log_format" />
+		<result column="file_log_is_timestamp" jdbcType="VARCHAR" property="file_log_is_timestamp" />
+		<result column="file_log_order" jdbcType="INTEGER" property="file_log_order" />
+	</resultMap>
+	<!--   添加文件日志信息-->
+	<insert id="insert" parameterType="com.jz.bigdata.common.fileLog.entity.FileLogField">
+		insert into file_log
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!--     判断参数是否为空 -->
+			<if test="file_log_templateName != null">
+				file_log_templateName,
+			</if>
+			<if test="file_log_templateKey != null">
+				file_log_templateKey,
+			</if>
+			<if test="file_log_field != null">
+				file_log_field,
+			</if>
+			<if test="file_log_text != null">
+				file_log_text,
+			</if>
+			<if test="file_log_type != null">
+				file_log_type,
+			</if>
+			<if test="file_log_format != null">
+				file_log_format,
+			</if>
+			<if test="file_log_is_timestamp != null">
+				file_log_is_timestamp,
+			</if>
+			<if test="file_log_order != null">
+				file_log_order,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="file_log_templateName != null">
+				#{file_log_templateName,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_templateKey != null">
+				#{file_log_templateKey,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_field != null">
+				#{file_log_field,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_text != null">
+				#{file_log_text,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_type != null">
+				#{file_log_type,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_format != null">
+				#{file_log_format,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_is_timestamp != null">
+				#{file_log_is_timestamp,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_order != null">
+				#{file_log_order,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
+	<!--   修改文件日志字段信息 -->
+	<update id="update" parameterType="com.jz.bigdata.common.fileLog.entity.FileLogField">
+		update file_log
+		<set>
+			<if test="file_log_templateName != null">
+				file_log_templateName = #{file_log_templateName,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_field != null">
+				file_log_field = #{file_log_field,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_text != null">
+				file_log_text = #{file_log_text,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_type != null">
+				file_log_type = #{file_log_type,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_format != null">
+				file_log_format = #{file_log_format,jdbcType=VARCHAR},
+			</if>
+			<if test="file_log_is_timestamp != null">
+				file_log_is_timestamp = #{file_log_is_timestamp,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where file_log_templateKey = #{file_log_templateKey,jdbcType=VARCHAR}
+	</update>
+	<insert id="insertList" parameterType="java.util.List">
+		insert into file_log (file_log_templateName,file_log_templateKey,file_log_field,file_log_text,file_log_type,file_log_format,file_log_is_timestamp,file_log_order)
+		values
+		<foreach collection ="list" item="fileLogField" index= "index" separator =",">
+			(
+			#{fileLogField.file_log_templateName}, #{fileLogField.file_log_templateKey},
+			#{fileLogField.file_log_field},#{fileLogField.file_log_text},
+			#{fileLogField.file_log_type}, #{fileLogField.file_log_format},
+			 #{fileLogField.file_log_is_timestamp}, #{fileLogField.file_log_order}
+			)
+		</foreach >
+	</insert>
+	<!--  删除 -->
+	<delete id="delete" parameterType="java.lang.String">
+		delete from file_log where file_log_templateKey=#{file_log_templateKey}
+	</delete>
+	<!-- 系统自带日期字段不允许编辑-->
+	<select id="getTemplateInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select file_log_templateName,file_log_templateKey,file_log_field,file_log_text,file_log_type,file_log_format,file_log_is_timestamp,file_log_order
+		from file_log where file_log_templateKey=#{file_log_templateKey} and file_log_order!=0
+		order by file_log_order
+	</select>
+	<select id="getTemplateList" resultMap="BaseResultMap">
+		select file_log_templateName,file_log_templateKey from file_log
+		group by file_log_templateName,file_log_templateKey
+	</select>
+	<update id="updateTemplateName" parameterType="java.lang.String">
+		update file_log
+		<set>
+			<if test="file_log_templateName != null">
+				file_log_templateName = #{file_log_templateName,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where file_log_templateKey = #{file_log_templateKey,jdbcType=VARCHAR}
+	</update>
+</mapper>

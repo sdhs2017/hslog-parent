@@ -545,7 +545,7 @@ export default new Router({
                     path: '/fileLogManage',
                     name:'fileLogManage',
                     component: resolve => require(['../components/logsManage/fileLogManage.vue'], resolve),
-                    meta: { title: '文件日志管理' }
+                    meta: { title: '文件类日志' }
                 },
                 /*{
                     path: '/panel',

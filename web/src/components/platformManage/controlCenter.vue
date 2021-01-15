@@ -1,19 +1,103 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg"  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title">控制中心</div>
         <div class="control-wapper">
             <div class="serviceConBox">
-                <span>服务状态：</span>
-                <span class="serviceStatus" :style="state==='未开启'?{ color:'#d9534f'}:{ color:'#1ab394'}">{{state}}</span>
+                <div class="beats-status" style="border-right: 1px dashed #40566d;">
+                    <span>Agent采集:</span>
+                    <span class="serviceStatus" :style="beatState==='未开启'?{ color:'#d9534f'}:{ color:'#1ab394'}">{{beatState}}</span>
+                </div>
+                <div class="syslog-status"  style="border-right: 1px dashed #40566d;">
+                    <span>Syslog采集:</span>
+                    <span class="serviceStatus" :style="syslogState==='未开启'?{ color:'#d9534f'}:{ color:'#1ab394'}">{{syslogState}}</span>
+                </div>
+                <div class="file-status">
+                    <span>文件类采集:</span>
+                    <span class="serviceStatus" :style="fileState==='未开启'?{ color:'#d9534f'}:{ color:'#1ab394'}">{{fileState}}</span>
+                </div>
             </div>
             <div class="btnConBox">
                 <div class="btnConBoxTop">
-                    <div class="serviceBtn" id="initialize" title="点击初始化" @click="initialize">
-                        <i class="el-icon-refresh-right"></i>
-                        <p class="btnTitle">初始化</p>
-                        <p class="btnDescribe">对集群的数据结构进行初始化，保证日志数据正常采集到数据中心</p>
+                    <div class="left-wapper serviceBtn">
+                        <div class="scroll-wapper" :style="{left:beatsLeft}">
+                            <div class="play-beats" @click="playBeats">
+                                <div class="play-i">
+                                    <i class="el-icon-caret-right"></i>
+                                </div>
+                                <div class="play-t ">
+                                    <div>
+                                        <p class="btnTitle">开启Agent采集</p>
+                                        <p class="btnDescribe">开始收集各个Agent发送过来的数据，范式化后入库</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stop-beats" @click="stopBeats">
+                                <div class="play-i">
+                                    <i class="el-icon-circle-close"></i>
+                                </div>
+                                <div class="play-t ">
+                                    <div>
+                                        <p class="btnTitle">关闭Agent采集</p>
+                                        <p class="btnDescribe">停止收集各个Agent发送过来的数据</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="serviceBtn" id="play_service" title="点击开启服务" @click="playService">
+                    <div class="right-wapper serviceBtn">
+                        <div class="scroll-wapper" :style="{left:syslogLeft}">
+                            <div class="play-syslog" @click="playSyslog">
+                                <div class="play-i">
+                                    <i class="el-icon-caret-right"></i>
+                                </div>
+                                <div class="play-t ">
+                                    <div>
+                                        <p class="btnTitle">开启Syslog采集</p>
+                                        <p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stop-syslog" @click="stopSyslog">
+                                <div class="play-i">
+                                    <i class="el-icon-circle-close"></i>
+                                </div>
+                                <div class="play-t ">
+                                    <div>
+                                        <p class="btnTitle">关闭Syslog采集</p>
+                                        <p class="btnDescribe">停止收集各个资产发送过来的数据</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-wapper serviceBtn">
+                        <div class="scroll-wapper" :style="{left:fileLeft}">
+                            <div class="play-syslog" @click="playFile">
+                                <div class="play-i">
+                                    <i class="el-icon-caret-right"></i>
+                                </div>
+                                <div class="play-t ">
+                                    <div>
+                                        <p class="btnTitle">开启文件类采集</p>
+                                        <p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="stop-syslog" @click="stopFile">
+                                <div class="play-i">
+                                    <i class="el-icon-circle-close"></i>
+                                </div>
+                                <div class="play-t ">
+                                    <div>
+                                        <p class="btnTitle">关闭文件类采集</p>
+                                        <p class="btnDescribe">停止收集各个资产发送过来的数据</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--<div class="serviceBtn" id="play_service" title="点击开启服务" @click="playService">
                         <div>
                             <i class="el-icon-caret-right"></i>
                         </div>
@@ -23,13 +107,18 @@
                                 <p class="btnDescribe">开始收集各个资产发送过来的日志数据，范式化后入库</p>
                             </div>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
                 <div  class="btnConBoxBottom">
-                    <div class="serviceBtn" id="stop_service" title="点击停止服务" @click="stopService">
-                        <i class="el-icon-circle-close"></i>
-                        <p class="btnTitle">停止服务</p>
-                        <p class="btnDescribe">停止收集各个资产发送过来的日志数据</p>
+                    <!-- <div class="serviceBtn" id="stop_service" title="点击停止服务" @click="stopService">
+                         <i class="el-icon-circle-close"></i>
+                         <p class="btnTitle">停止服务</p>
+                         <p class="btnDescribe">停止收集各个资产发送过来的日志数据</p>
+                     </div>-->
+                    <div class="serviceBtn" id="initialize" title="点击初始化" @click="initialize">
+                        <i class="el-icon-refresh-right"></i>
+                        <p class="btnTitle">初始化</p>
+                        <p class="btnDescribe">对集群的数据结构进行初始化，保证日志数据正常采集到数据中心</p>
                     </div>
                     <div class="serviceBtn" id="backup" title="点击备份数据" @click="backup">
                         <i class="el-icon-printer"></i>
@@ -45,37 +134,46 @@
             </div>
         </div>
     </div>
-    
+
 </template>
 
 <script>
     export default {
-        name: "controlCenter",
+        name: "controlCenter2",
         data() {
             return {
-                state:'未开启',
+                loading:false,
+                beatState:'未开启',
+                syslogState:'未开启',
+                fileState:'未开启',
+                beatsLeft:'-253px',
+                syslogLeft:'0px',
+                fileLeft:'0px',
                 interval:''
             }
         },
         created(){
-            this.getServiceStatus();
+            this.getBeatsState();
+            this.getSyslogState();
             //查看服务状态
-             this.interval = setInterval(this.getServiceStatus,5000);
+            this.interval = setInterval(()=>{
+                this.getBeatsState();
+                this.getSyslogState();
+                this.getFileState();
+            },5000);
         },
         methods:{
-            /*查看服务状态*/
-            getServiceStatus(){
+            /*获取beats服务状态*/
+            getBeatsState(){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/collector/stateKafkaCollector.do','')
+                    this.$axios.post(this.$baseUrl+'/collector/getAgentKafkaListenerState.do','')
                         .then(res =>{
                             if(res.data[0].state === true){
-                                this.state='已开启';
-                               /* $(".serviceStatus").html("已开启");
-                                $(".serviceStatus").css("color","#1ab394");*/
+                                this.beatState='已开启';
+                                this.beatsLeft = '-253px'
                             }else if(res.data[0].state === false){
-                                this.state='未开启';
-                                /*$(".serviceStatus").html("未开启");
-                                $(".serviceStatus").css("color","#d9534f");*/
+                                this.beatState='未开启';
+                                this.beatsLeft = '0px'
                             }else{
                                 console.log(data)
                             }
@@ -85,54 +183,68 @@
                         })
                 })
             },
-            /*初始化*/
-            initialize(){
-                //询问框
-                layer.confirm('是否初始化？', {
-                    btn: ['确定','取消'] //按钮
-                }, (index)=>{
-                    layer.close(index);
-                    layer.load(1)
-                    this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/log/createIndexAndMapping.do','')
-                            .then(res=>{
-                                layer.closeAll('loading');
-                                if(res.data[0].state === true){
-                                    layer.msg(res.data[0].msg,{icon: 1});
-                                }else if(res.data[0].state === false){
-                                    layer.msg(res.data[0].msg,{icon: 5});
-                                }
-                            })
-                            .catch(err=>{
-                                layer.closeAll('loading');
-                                layer.msg('初始化失败',{icon: 5});
-                            })
-                    })
-                }, ()=>{
-                    layer.close();
-                });
+            /*获取syslog服务状态*/
+            getSyslogState(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/collector/getSyslogKafkaListenerState.do','')
+                        .then(res =>{
+                            if(res.data[0].state === true){
+                                this.syslogState='已开启';
+                                this.syslogLeft = '-253px'
+                            }else if(res.data[0].state === false){
+                                this.syslogState='未开启';
+                                this.syslogLeft = '0px'
+                            }else{
+                                console.log(res)
+                            }
+                        })
+                        .catch(err =>{
+
+                        })
+                })
             },
-            /*启动服务*/
-            playService(){
+            /*获取文件类采集服务状态*/
+            getFileState(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/collector/getFileLogKafkaListenerState.do','')
+                        .then(res =>{
+                            if(res.data[0].state === true){
+                                this.fileState='已开启';
+                                this.fileLeft = '-253px'
+                            }else if(res.data[0].state === false){
+                                this.fileState='未开启';
+                                this.fileLeft = '0px'
+                            }else{
+                                console.log(res)
+                            }
+                        })
+                        .catch(err =>{
+
+                        })
+                })
+            },
+            /*开启Agent服务*/
+            playBeats(){
                 //询问框
-                layer.confirm('是否开启服务？', {
+                layer.confirm('是否开启Agent采集？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/collector/startCollectorState.do','')
+                        this.$axios.post(this.$baseUrl+'/collector/startAgentKafkaListener.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
-                                if(res.data[0].state === true){
-                                    layer.msg(res.data[0].msg,{icon: 1});
-                                    this.state = '已开启'
-                                }else if(res.data[0].state === false){
-                                    layer.msg(res.data[0].msg,{icon: 5});
+                                this.loading = false;
+                                if(res.data.success === 'true'){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.beatState='已开启';
+                                    this.beatsLeft = '-253px'
+                                }else if(res.data.success === 'false'){
+                                    layer.msg(res.data.message,{icon: 5});
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('启动失败',{icon: 5});
                             })
                     })
@@ -140,28 +252,217 @@
                     layer.close();
                 });
             },
-            /*停止服务*/
-            stopService(){
+            /*停止Agent服务*/
+            stopBeats(){
                 //询问框
-                layer.confirm('是否停止服务？', {
+                layer.confirm('是否关闭Agent采集服务？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    //关闭轮训
+                    clearInterval(this.interval)
+
+                    layer.close(index);
+                    this.loading = true;
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/collector/stopAgentKafkaListener.do','')
+                            .then(res=>{
+                                this.loading = false;
+                                if(res.data.success === 'true'){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.beatState='未开启';
+                                    this.beatsLeft = '0px'
+                                }else if(res.data.success === 'false'){
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                    this.getFileState();
+                                },5000);
+                            })
+                            .catch(err=>{
+                                this.loading = false;
+                                layer.msg('停止服务失败',{icon: 5});
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                    this.getFileState();
+                                },5000);
+                            })
+                    })
+                }, ()=>{
+                    layer.close();
+                });
+            },
+            /*开启syslog服务*/
+            playSyslog(){
+                //询问框
+                layer.confirm('是否开启syslog采集？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/collector/stopKafkaCollector.do','')
+                        this.$axios.post(this.$baseUrl+'/collector/startSyslogKafkaListener.do  ','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
+                                if(res.data.success === 'true'){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.syslogState='已开启';
+                                    this.syslogLeft = '-253px'
+                                }else if(res.data.success === 'false'){
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                            })
+                            .catch(err=>{
+                                this.loading = false;
+                                layer.msg('启动失败',{icon: 5});
+                            })
+                    })
+                }, ()=>{
+                    layer.close();
+                });
+            },
+            /*停止syslog服务*/
+            stopSyslog(){
+                //询问框
+                layer.confirm('是否关闭syslog采集服务？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    //关闭轮训
+                    clearInterval(this.interval)
+
+                    layer.close(index);
+                    this.loading = true;
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/collector/stopSyslogKafkaListener.do','')
+                            .then(res=>{
+                                this.loading = false;
+                                if(res.data.success === 'true'){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.syslogState='未开启';
+                                    this.syslogLeft = '0px'
+                                }else if(res.data.success === 'false'){
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                    this.getFileState();
+                                },5000);
+                            })
+                            .catch(err=>{
+                                this.loading = false;
+                                layer.msg('停止服务失败',{icon: 5});
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                    this.getFileState();
+                                },5000);
+                            })
+                    })
+                }, ()=>{
+                    layer.close();
+                });
+            },
+            /*开启文件类采集服务*/
+            playFile(){
+                //询问框
+                layer.confirm('是否开启文件类采集？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    layer.close(index);
+                    this.loading = true;
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/collector/startFileLogKafkaListener.do  ','')
+                            .then(res=>{
+                                this.loading = false;
+                                if(res.data.success === 'true'){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.fileState='已开启';
+                                    this.fileLeft = '-253px'
+                                }else if(res.data.success === 'false'){
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                            })
+                            .catch(err=>{
+                                this.loading = false;
+                                layer.msg('启动失败',{icon: 5});
+                            })
+                    })
+                }, ()=>{
+                    layer.close();
+                });
+            },
+            /*停止文件类采集服务*/
+            stopFile(){
+                //询问框
+                layer.confirm('是否关闭文件类采集服务？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    //关闭轮训
+                    clearInterval(this.interval)
+
+                    layer.close(index);
+                    this.loading = true;
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/collector/stopFileLogKafkaListener.do','')
+                            .then(res=>{
+                                this.loading = false;
+                                if(res.data.success === 'true'){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    this.fileState='未开启';
+                                    this.fileLeft = '0px'
+                                }else if(res.data.success === 'false'){
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                    this.getFileState();
+                                },5000);
+                            })
+                            .catch(err=>{
+                                this.loading = false;
+                                layer.msg('停止服务失败',{icon: 5});
+                                //开启轮训
+                                this.interval = setInterval(()=>{
+                                    this.getBeatsState();
+                                    this.getSyslogState();
+                                    this.getFileState();
+                                },5000);
+                            })
+                    })
+                }, ()=>{
+                    layer.close();
+                });
+            },
+            /*初始化*/
+            initialize(){
+                //询问框
+                layer.confirm('是否初始化？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    layer.close(index);
+                    this.loading = true;
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/log/createIndexAndMapping4Beats.do','')
+                            .then(res=>{
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
-                                    this.state = '未开启'
                                 }else if(res.data[0].state === false){
                                     layer.msg(res.data[0].msg,{icon: 5});
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
-                                layer.msg('停止服务失败',{icon: 5});
+                                this.loading = false;
+                                layer.msg('初始化失败',{icon: 5});
                             })
                     })
                 }, ()=>{
@@ -175,11 +476,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/manage/createSnapshotByIndices.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                 }else if(res.data[0].state === false){
@@ -187,7 +488,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('备份失败',{icon: 5});
                             })
                     })
@@ -202,11 +503,11 @@
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     layer.close(index);
-                    layer.load(1)
+                    this.loading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/manage/restore.do','')
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 if(res.data[0].state === true){
                                     layer.msg(res.data[0].msg,{icon: 1});
                                 }else if(res.data[0].state === false){
@@ -214,7 +515,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 layer.msg('恢复失败',{icon: 5});
                             })
                     })
@@ -235,12 +536,12 @@
         font-size: 14px;
     }
     .btnConBox{
-        width:630px;
+        width:788px;
         height:432px;
-        margin:20px auto;
+        margin:10px auto;
     }
     .serviceConBox{
-        width:620px;
+        width:776px;
         height:80px;
         border:2px solid #4781bb;
         margin-bottom:20px;
@@ -251,13 +552,34 @@
         line-height:80px;
         font-size:26px;
         font-weight:600;
+        display: flex;
+    }
+    .serviceConBox>div{
+        text-align: center;
+        width: 50%;
     }
     .btnConBoxTop,.btnConBoxBottom{
         height:220px;
         display: flex;
     }
+    .btnConBoxTop>div{
+        width: 253px;
+        margin-bottom: 10px;
+        border:2px solid #4781bb;
+        float: left;
+        text-align: center;
+        color: #2c76bd;
+        cursor: pointer;
+        background: 0;
+        transition: all .2s linear;
+        overflow: hidden;
+    }
+    .btnConBoxTop .left-wapper{
+        margin-right: 10px;
+
+    }
     .serviceBtn{
-        width: 200px;
+        width: 253px;
         height: 210px;
         float: left;
         text-align: center;
@@ -280,6 +602,24 @@
         font-size: 52px;
         line-height: 95px;
         color: #2c76bd;
+    }
+    .scroll-wapper{
+        height: 210px;
+        position: relative;
+        transition: all 0.3s linear;
+        left: 0;
+        width: 600px;
+    }
+    .scroll-wapper>div{
+        width: 253px;
+        height: 210px;
+        float: left;
+        box-sizing: border-box;
+        padding: 20px;
+        padding-top: 10px;
+    }
+    .play-i i{
+        font-size: 72px;
     }
     #play_service{
         width:410px;

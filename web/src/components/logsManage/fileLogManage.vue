@@ -1,9 +1,9 @@
 <template>
     <div class="content-bg" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div class="top-title">文件日志管理</div>
+        <div class="top-title">文件类日志</div>
         <div class="content-wapper">
             <div class="left-wapper" v-loading="leftLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-                <div class="left-tit">标题</div>
+                <div class="left-tit">模板</div>
                 <div style="overflow-y: auto;height: calc(100% - 60px);">
                     <div :class="item.file_log_templateKey === currentLeftItem.file_log_templateKey ? 'left-item chooseClass' : 'left-item'"
                          v-for="(item,i) in leftData" :key="i"
@@ -93,23 +93,23 @@
                 tableHead:[
                     {
                         prop:'file_log_field',
-                        label:'field',
+                        label:'字段代码',
                         width:''
                     },{
                         prop:'file_log_text',
-                        label:'text',
+                        label:'字段名称',
                         width:''
                     },{
                         prop:'file_log_type',
-                        label:'type',
+                        label:'字段类型',
                         width:''
                     },{
                         prop:'file_log_format',
-                        label:'format',
+                        label:'日期格式',
                         width:''
                     },{
                         prop:'file_log_is_timestamp',
-                        label:'is_timestamp',
+                        label:'设置为日期字段',
                         width:'',
                         formatData:(val)=>{
                             if(val == 'true'){
@@ -127,6 +127,15 @@
                                 icon:'el-icon-edit',
                                 text:'修改',
                                 btnType: 'editDetails',
+                                formatData:(obj)=>{
+                                  //  console.log(obj.file_log_order)
+                                    if(obj.file_log_order === 1){
+                                        return false
+                                    }else{
+                                        return true
+                                    }
+
+                                },
                                 clickFun:(row,index)=>{
                                     this.currentRightItem.index = index
                                     this.currentRightItem.data = JSON.parse(JSON.stringify(row));

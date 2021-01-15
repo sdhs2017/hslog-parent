@@ -127,14 +127,14 @@
                                 icon:'el-icon-edit',
                                 text:'修改',
                                 btnType: 'editDetails',
-                                /*formatData:(obj)=>{
-                                    if(obj.file_log_order === 1){
+                                formatData:(obj)=>{
+                                    if(obj.file_log_order === 0){
                                         return false
                                     }else{
                                         return true
                                     }
 
-                                },*/
+                                },
                                 clickFun:(row,index)=>{
                                     this.currentRightItem.index = index
                                     this.currentRightItem.data = JSON.parse(JSON.stringify(row));

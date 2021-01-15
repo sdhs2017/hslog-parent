@@ -541,6 +541,18 @@ export default new Router({
                     component: resolve => require(['../components/logsManage/fileLogSearch.vue'], resolve),
                     meta: { title: '文件日志查询' }
                 },
+                {
+                    path: '/fileLogManage',
+                    name:'fileLogManage',
+                    component: resolve => require(['../components/logsManage/fileLogManage.vue'], resolve),
+                    meta: { title: '文件日志管理' }
+                },
+                /*{
+                    path: '/panel',
+                    name:'panel',
+                    component: resolve => require(['../components/ef/panel.vue'], resolve),
+                    meta: { title: 'panel' }
+                },*/
                /* {
                     path: '/calendar',
                     name:'calendar',

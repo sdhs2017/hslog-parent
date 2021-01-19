@@ -34,7 +34,7 @@ public interface ICommonDao {
      * @return
      * @throws IOException
      */
-    public boolean updateIndexSettings(Settings settings, String... indices)throws IOException;
+    public boolean updateIndexSettings(Settings settings, String... indices) throws IOException;
 
     /**
      * 删除index 支持批量删除
@@ -43,4 +43,30 @@ public interface ICommonDao {
      * @throws Exception
      */
     public boolean deleteIndices(String... indices) throws Exception;
+
+    /**
+     * 删除template
+     * @param templateName
+     * @return
+     * @throws Exception
+     */
+    public boolean deleteTemplate(String templateName) throws Exception;
+
+    /**
+     * 创建index
+     * @param indexName index名称
+     * @param setting setting信息
+     * @param mappingProperties mapping信息
+     * @return
+     * @throws Exception
+     */
+    public boolean createIndex(String indexName,Settings.Builder setting, String mappingProperties) throws Exception;
+
+    /**
+     * index是否存在
+     * @param indices
+     * @return
+     * @throws Exception
+     */
+    public boolean indexExists(String... indices) throws Exception;
 }

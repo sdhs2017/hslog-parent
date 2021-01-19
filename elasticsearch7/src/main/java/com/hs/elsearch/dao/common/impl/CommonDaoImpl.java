@@ -96,4 +96,19 @@ public class CommonDaoImpl implements ICommonDao {
     public boolean deleteIndices(String... indices) throws Exception {
         return indexTemplate.deleteIndex(indices);
     }
+
+    @Override
+    public boolean deleteTemplate(String templateName) throws Exception {
+        return indexTemplate.deleteTemplate(templateName);
+    }
+
+    @Override
+    public boolean createIndex(String indexName, Settings.Builder setting, String mappingProperties) throws Exception {
+        return indexTemplate.createIndex(indexName,setting,mappingProperties);
+    }
+
+    @Override
+    public boolean indexExists(String... indices) throws Exception {
+        return indexTemplate.indexExists(indices);
+    }
 }

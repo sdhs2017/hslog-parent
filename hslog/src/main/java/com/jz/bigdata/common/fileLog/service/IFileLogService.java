@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.fileLog.service;
 
+import com.hs.elsearch.entity.SearchConditions;
 import com.jz.bigdata.common.fileLog.entity.FileLogField;
 
 import java.util.List;
@@ -23,6 +24,12 @@ public interface IFileLogService {
      * @return
      */
     List<FileLogField> getTemplateInfo(String file_log_templateKey);
+    /**
+     * 通过模板的key获取模板字段信息，不带系统内置日期字段
+     * @param file_log_templateKey
+     * @return
+     */
+    List<FileLogField> getTemplateInfo_without_timestamp(String file_log_templateKey);
     /**
      * 获取模板基础信息，模板名称及key
      * @return
@@ -49,7 +56,7 @@ public interface IFileLogService {
      * @param file_log_templateKey
      * @return
      */
-    boolean updateFieldsList(List<FileLogField> list,String file_log_templateKey);
+    boolean updateFieldsList(List<FileLogField> list,String file_log_templateKey) throws Exception;
 
     /**
      * 获取所有的文件日志模板数据
@@ -64,4 +71,18 @@ public interface IFileLogService {
      * @return
      */
     boolean insert(List<FileLogField> list);
+
+    /**
+     * 根据key获取其字段信息，并组装成动态表头
+     * @param file_log_templateKey
+     * @return
+     */
+    List<Map<String,String>> getTemplateFields(String file_log_templateKey);
+
+    /**
+     * 查询模板数据
+     * @param searchConditions
+     * @return
+     */
+    public String getTemplateData(SearchConditions searchConditions) throws Exception;
 }

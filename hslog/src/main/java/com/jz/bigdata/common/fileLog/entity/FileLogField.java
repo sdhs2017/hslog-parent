@@ -14,6 +14,28 @@ public class FileLogField {
     private String file_log_format;//date类型需要的format信息
     private String file_log_is_timestamp;//是否为日期字段
     private int file_log_order;//排序字段，cvs数据顺序一一对应
+    public FileLogField(){};
+    /**
+     *
+     * @param file_log_templateName 日志类文件模板名称
+     * @param file_log_templateKey 日志类文件模板key
+     * @param file_log_field 字段key
+     * @param file_log_text 字段名称
+     * @param file_log_type 字段类型
+     * @param file_log_format 日期格式
+     * @param file_log_is_timestamp 是否为日期字段
+     * @param file_log_order 排序
+     */
+    public FileLogField(String file_log_templateName,String file_log_templateKey,String file_log_field,String file_log_text,String file_log_type,String file_log_format,String file_log_is_timestamp,int file_log_order){
+        this.file_log_templateName = file_log_templateName;
+        this.file_log_templateKey = file_log_templateKey;
+        this.file_log_field = file_log_field;
+        this.file_log_text = file_log_text;
+        this.file_log_type = file_log_type;
+        this.file_log_format = file_log_format;
+        this.file_log_is_timestamp = file_log_is_timestamp;
+        this.file_log_order = file_log_order;
+    }
 
     public String getFile_log_templateName() {
         return file_log_templateName;

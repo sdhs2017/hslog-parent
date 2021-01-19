@@ -36,6 +36,13 @@ public interface IFileLogDao {
 	int delete(@Param("file_log_templateKey")String file_log_templateKey);
 
 	/**
+	 * 通过模板的key获取模板字段信息，前端字段编辑页面不显示系统自带的日期字段
+	 * @param file_log_templateKey
+	 * @return
+	 */
+	List<FileLogField> getTemplateInfo_without_timestamp(@Param("file_log_templateKey") String file_log_templateKey);
+
+	/**
 	 * 通过模板的key获取模板字段信息
 	 * @param file_log_templateKey
 	 * @return

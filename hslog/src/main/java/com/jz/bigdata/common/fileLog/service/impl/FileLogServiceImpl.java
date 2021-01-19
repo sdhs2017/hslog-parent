@@ -2,19 +2,24 @@ package com.jz.bigdata.common.fileLog.service.impl;
 
 import com.hs.elsearch.dao.common.ICommonDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
+import com.hs.elsearch.entity.SearchConditions;
 import com.jz.bigdata.business.logAnalysis.collector.service.ICollectorService;
 import com.jz.bigdata.business.logAnalysis.log.service.IlogService;
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.common.fileLog.dao.IFileLogDao;
 import com.jz.bigdata.common.fileLog.entity.FileLogField;
 import com.jz.bigdata.common.fileLog.service.IFileLogService;
 import com.jz.bigdata.common.start_execution.cache.FileLogCache;
 import com.jz.bigdata.util.ConfigProperty;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONObject;
+import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.script.Script;
 import org.elasticsearch.script.ScriptType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,7 +51,10 @@ public class FileLogServiceImpl implements IFileLogService {
     private IFileLogDao fileLogDao;
     @Resource(name = "CollectorService")
     private ICollectorService collectorService;
+    @Resource(name = "BIService")
+    private IBIService ibiService;
     @Override
+    @Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
     public boolean reindex(List<FileLogField> newFieldList,String file_log_templateKey,String file_log_templateName) throws Exception {
         //1.停止filebeat
         collectorService.stopFileLogKafkaListener();
@@ -57,34 +65,55 @@ public class FileLogServiceImpl implements IFileLogService {
         String template_name = "";
         StringBuffer templateMapping = new StringBuffer();
         templateMapping.append("{\"properties\":{\"@timestamp\":{\"type\":\"date\"},");
+        //原templateMapping
+        String oldTemplateMapping = null;
+        //原字段信息
+        List<FileLogField> oldFields = new ArrayList<>();
+
         if(newFieldList!=null&&newFieldList.size()>0){
             //组装template名称,必须全小写
             template_name = (configProperty.getEs_filelog_pre()+newFieldList.get(0).getFile_log_templateKey()+"_").toLowerCase();
+            try{
+                //获取原template的mapping信息
+                List< IndexTemplateMetaData > oldTemplate = logIndexDao.getTemplateData(template_name);
+                if(oldTemplate.size()==1){
+                    oldTemplateMapping = JSONObject.fromObject(oldTemplate.get(0).mappings().getSourceAsMap()).toString();
+                }
+            }catch (Exception e){
+                log.error("未获取到template："+template_name+"的mapping 信息！");
+            }
 
+            //获取旧字段信息
+            oldFields = fileLogDao.getTemplateInfo(file_log_templateKey);
             //组装tempalte mapping 以及reindex需要的script
             for(FileLogField fileLogField :newFieldList){
-                //组装templateMapping
-                //date类型需要加format
-                if("date".equals(fileLogField.getFile_log_type())){
-                    templateMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\",\"format\":\""+ fileLogField.getFile_log_format()+"\"},");
+                if("@timestamp".equals(fileLogField.getFile_log_field())){
+                    //@timestamp为内置字段不做处理
                 }else{
-                    templateMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\"},");
+                    //组装templateMapping
+                    //date类型需要加format
+                    if("date".equals(fileLogField.getFile_log_type())){
+                        templateMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\",\"format\":\""+ fileLogField.getFile_log_format()+"\"},");
+                    }else{
+                        templateMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\"},");
+                    }
+
+                    //组装script,根据原fields信息与新fields信息，通过order 一一对应
+                    //如果某字段被标记为日期字段，需要scripts特殊处理
+                    if("true".equals(fileLogField.getFile_log_is_timestamp())){
+                        //定义原数据的时间格式
+                        scriptString.append("def sf = new SimpleDateFormat(\""+ fileLogField.getFile_log_format()+"\");");
+                        scriptString.append("def dt = sf.parse(ctx._source."+ oldFields.get(fileLogField.getFile_log_order()).getFile_log_field()+");");
+                        //新日期的时间格式
+                        scriptString.append("def sf_new = new SimpleDateFormat(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\");");
+                        //写入，该字段为系统默认时间戳，字段名称为@timestamp，默认为系统当前时间，如果用户设置了数据的其他date类型字段为时间戳，
+                        //则需要将设置的时间戳字段的数据写入到@timestamp中，并且进行格式转换
+                        scriptString.append("ctx._source['@timestamp'] = sf_new.format(dt);");
+                    }
+                    //同时，原字段仍要保留
+                    scriptString.append("ctx._source."+ fileLogField.getFile_log_field()+" = ctx._source.remove(\""+ oldFields.get(fileLogField.getFile_log_order()).getFile_log_field()+"\");");
                 }
 
-                //组装script,根据原fields信息与新fields信息，通过order 一一对应
-                //如果某字段被标记为日期字段，需要scripts特殊处理
-                if("true".equals(fileLogField.getFile_log_is_timestamp())){
-                    //定义原数据的时间格式
-                    scriptString.append("def sf = new SimpleDateFormat(\""+ fileLogField.getFile_log_format()+"\");");
-                    scriptString.append("def dt = sf.parse(ctx._source.field"+ fileLogField.getFile_log_order()+");");
-                    //新日期的时间格式
-                    scriptString.append("def sf_new = new SimpleDateFormat(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\");");
-                    //写入，该字段为系统默认时间戳，字段名称为@timestamp，默认为系统当前时间，如果用户设置了数据的其他date类型字段为时间戳，
-                    //则需要将设置的时间戳字段的数据写入到@timestamp中，并且进行格式转换
-                    scriptString.append("ctx._source['@timestamp'] = sf_new.format(dt);");
-                }
-                //同时，原字段仍要保留
-                scriptString.append("ctx._source."+ fileLogField.getFile_log_field()+" = ctx._source.remove(\"field"+ fileLogField.getFile_log_order()+"\");");
             }
         }
         //template收尾处理
@@ -103,8 +132,7 @@ public class FileLogServiceImpl implements IFileLogService {
         settingmap.put("index.lifecycle.name", "hs_policy");
         // 默认1000，数据字段过多，需要调整配置
         settingmap.put("mapping.total_fields.limit", configProperty.getEs_mapping_total_fields_limit());
-        //创建template
-        logService.initOfElasticsearch(template_name,template_name+"*",null,settingmap,templateMapping.toString());
+
         //4.reindex
         //生成script对象
         Script reindexScript = new Script(ScriptType.INLINE, "painless", scriptString.toString(), new HashMap<String, Object>());
@@ -132,47 +160,94 @@ public class FileLogServiceImpl implements IFileLogService {
         String[] indices = logIndexDao.getIndices(template_name+"*");
         //遍历N个index
         for(int i=0;i<indices.length;i++){
+
             String source_index = indices[i];
             //1.设置为只读
-            boolean writeResult = commonDao.updateIndexSettings(onlyReadSetting,source_index);
+            boolean writeResult = false;
+            try{
+                writeResult = commonDao.updateIndexSettings(onlyReadSetting,source_index);
+            }catch(Exception e){
+                log.error("index："+source_index+"设置为只读出现异常！"+e.getMessage());
+            }
             if(writeResult){
                 //2.reindex到临时index
-                boolean result_tmp = commonDao.reindex(null,source_index+"_tmp",source_index);
-
+                boolean result_tmp = false;
+                try{
+                    result_tmp = commonDao.reindex(null,source_index+"_tmp",source_index);
+                }catch (Exception e){
+                    log.error("index:"+source_index+",reindex到临时index："+source_index+"_tmp"+"出现异常"+e.getMessage());
+                }
                 if(result_tmp){//执行成功
                     //3.删除原index
-                    boolean deleteSourceIndexResult = commonDao.deleteIndices(source_index);
+                    boolean deleteSourceIndexResult = false;
+                    try{
+                        deleteSourceIndexResult = commonDao.deleteIndices(source_index);
+                    }catch (Exception e){
+                        log.error("删除index："+source_index+"失败，出现异常："+e.getMessage());
+                    }
                     //如果删除失败，直接返回
                     if(!deleteSourceIndexResult){
                         log.error("删除index:"+source_index+"失败！");
                         //撤销index只读
                         commonDao.updateIndexSettings(cancelOnlyReadSetting,source_index);
+                        //删除临时index
+                        commonDao.deleteIndices(source_index+"_tmp");
+                        //第2-n个index出现异常时的回滚
+                        restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
                         return false;
                     }else{
                         //4.字段信息变化带来的reindex
-                        boolean result = commonDao.reindex(reindexScript,source_index,source_index+"_tmp");
+                        boolean result = false;
+                        try{
+                            //创建template
+                            logService.initOfElasticsearch(template_name,template_name+"*",null,settingmap,templateMapping.toString());
+                            result = commonDao.reindex(reindexScript,source_index,source_index+"_tmp");
+                        }catch(Exception e){
+                            log.error("reindex到新的index"+source_index+"失败："+e.getMessage());
+                        }
                         //5.reindex是否成功
                         if(result){
                             //删除tmp index
-                            boolean deleteTmpIndexResult = commonDao.deleteIndices(source_index+"_tmp");
-                            //如果删除失败，直接返回
+                            boolean deleteTmpIndexResult = false;
+                            try{
+                                deleteTmpIndexResult = commonDao.deleteIndices(source_index+"_tmp");
+                            }catch(Exception e){
+                                log.error("删除临时index失败"+e.getMessage());
+                            }
+                            //如果删除失败
                             if(!deleteTmpIndexResult){
+                                log.error("删除index:"+source_index+"_tmp失败！");
                                 //将前面的reindex及删除功能还原
                                 commonDao.deleteIndices(source_index);//删除target index
                                 commonDao.deleteTemplate(template_name);//删除模板
-                                commonDao.reindex(null,source_index,source_index+"_tmp");//
-                                log.error("删除index:"+source_index+"_tmp失败！");
-                                //基本不会出现失败
+                                commonDao.reindex(null,source_index,source_index+"_tmp");
+                                //第2-n个index出现异常时的回滚
+                                restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
                                 return false;
                             }else{
                                 //删除成功，不做任何操作
                             }
                         }else{
+                            log.error("将index："+source_index+"_tmp   reindex到最终index时失败！");
+                            //判断新index是否创建,如果已创建，将其删除
+                            boolean exists = commonDao.indexExists(source_index);
+                            if(exists){
+                                commonDao.deleteIndices(source_index);
+                            }
                             //reindex失败，将tmpindex重新还原到原index
+                            if(oldTemplateMapping!=null){
+                                //如果原mapping存在，则进行mapping更新
+                                logService.initOfElasticsearch(template_name,template_name+"*",null,settingmap,oldTemplateMapping);
+                            }else{
+                                //否则就进行删除
+                                commonDao.deleteTemplate(template_name);
+                            }
+
+                            //这样reindex就不会受template的影响了
                             commonDao.reindex(null,source_index,source_index+"_tmp");
                             commonDao.deleteIndices(source_index+"_tmp");
-                            log.error("将index："+source_index+"_tmp   reindex到最终index时失败！");
-                            //基本不会出现失败
+                            //第2-n个index出现异常时的回滚
+                            restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
                             return false;
                         }
                     }
@@ -180,11 +255,15 @@ public class FileLogServiceImpl implements IFileLogService {
                     log.error("将index："+source_index+"reindex到临时index时失败！");
                     //撤销index只读
                     commonDao.updateIndexSettings(cancelOnlyReadSetting,source_index);
+                    //第2-n个index出现异常时的回滚
+                    restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
                     return false;
                 }
 
             }else{
                 log.error("index:"+source_index+"设置为只读失败！");
+                //第2-n个index出现异常时的回滚
+                restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
                 return false;
             }
 
@@ -202,6 +281,11 @@ public class FileLogServiceImpl implements IFileLogService {
     @Override
     public List<FileLogField> getTemplateInfo(String file_log_templateKey) {
         return fileLogDao.getTemplateInfo(file_log_templateKey);
+    }
+
+    @Override
+    public List<FileLogField> getTemplateInfo_without_timestamp(String file_log_templateKey) {
+        return fileLogDao.getTemplateInfo_without_timestamp(file_log_templateKey);
     }
 
     @Override
@@ -225,18 +309,9 @@ public class FileLogServiceImpl implements IFileLogService {
     }
 
     @Override
-    @Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
-    public boolean updateFieldsList(List<FileLogField> list,String file_log_templateKey) {
+
+    public boolean updateFieldsList(List<FileLogField> list,String file_log_templateKey) throws Exception {
         fileLogDao.delete(file_log_templateKey);
-        //新增时 需要补上日期字段
-        FileLogField fileLogField_timestamp = new FileLogField();
-        fileLogField_timestamp.setFile_log_templateName(list.size()>0?list.get(0).getFile_log_templateName():file_log_templateKey);
-        fileLogField_timestamp.setFile_log_templateKey(file_log_templateKey);
-        fileLogField_timestamp.setFile_log_field("@timestamp");
-        fileLogField_timestamp.setFile_log_text("日期");
-        fileLogField_timestamp.setFile_log_type("date");
-        fileLogField_timestamp.setFile_log_order(0);
-        list.add(fileLogField_timestamp);
         fileLogDao.insertList(list);
         //更新cache
         FileLogCache.INSTANCE.getFileLogList().put(file_log_templateKey,list);
@@ -268,64 +343,98 @@ public class FileLogServiceImpl implements IFileLogService {
         }
     }
 
+    @Override
+    public List<Map<String, String>> getTemplateFields(String file_log_templateKey) {
+        List<Map<String, String>> result = new ArrayList<>();
+        List<FileLogField> list = getTemplateInfo(file_log_templateKey);
+        for(FileLogField fileLogField:list){
+            Map<String,String> fieldInfo = new HashMap<>();
+            fieldInfo.put("prop",fileLogField.getFile_log_field());
+            fieldInfo.put("label",fileLogField.getFile_log_text());
+            //时间字段全显示，其他字段自动适配
+            if("@timestamp".equals(fileLogField.getFile_log_field())){
+                fieldInfo.put("width","180");
+            }else{
+                fieldInfo.put("width","");
+            }
+
+            result.add(fieldInfo);
+        }
+        return result;
+    }
+
+    @Override
+    public String getTemplateData(SearchConditions searchConditions) throws Exception{
+        return ibiService.getSearchData_dynamicTable(searchConditions);
+    }
+
     /**
      * 在遍历index进行reindex过程中，如果第2-n个index出现reindex失败的情况，则需要将已经reindex的index进行还原
      * @param i
      * @param indices
+     * @param newFields
+     * @param oldFields
      * @return
      */
-    private boolean restoreIndices(int i,String[] indices,String file_log_templateKey) throws Exception {
+    private boolean restoreIndices(int i,String[] indices,List<FileLogField> newFields,List<FileLogField> oldFields,Map<String, Object> settingmap,String template_name) throws Exception {
 
         //i为出错时的下标。大于0则进行还原操作
         if(i>0){
-            //获取原字段信息
-            List<FileLogField> list = fileLogDao.getTemplateInfo(file_log_templateKey);
-
             //创建mapping信息
-            StringBuffer indexMapping = new StringBuffer();
-            indexMapping.append("{\"properties\":{\"@timestamp\":{\"type\":\"date\"},");
+            //TODO 通过es请求获取
+            StringBuffer oldMapping = new StringBuffer();
+            oldMapping.append("{\"properties\":{\"@timestamp\":{\"type\":\"date\"},");
             //script，设置reindex逻辑，将source index字段与target index字段进行对应
             StringBuffer scriptString = new StringBuffer();
             //遍历，组装 mapping信息 及所需script
-            for(FileLogField fileLogField:list){
-                //组装templateMapping
-                //date类型需要加format
-                if("date".equals(fileLogField.getFile_log_type())){
-                    indexMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\",\"format\":\""+ fileLogField.getFile_log_format()+"\"},");
+            for(FileLogField fileLogField:oldFields){
+                if("@timestamp".equals(fileLogField.getFile_log_field())){
+                    //@timestamp为内置字段不做处理
                 }else{
-                    indexMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\"},");
+                    //组装templateMapping
+                    //date类型需要加format
+                    if("date".equals(fileLogField.getFile_log_type())){
+                        oldMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\",\"format\":\""+ fileLogField.getFile_log_format()+"\"},");
+                    }else{
+                        oldMapping.append("\""+ fileLogField.getFile_log_field()+"\":{\"type\":\""+ fileLogField.getFile_log_type()+"\"},");
+                    }
+
+                    //组装script,根据原fields信息与新fields信息，通过order 一一对应
+                    //如果某字段被标记为日期字段，需要scripts特殊处理
+                    if("true".equals(fileLogField.getFile_log_is_timestamp())){
+                        //定义原数据的时间格式
+                        scriptString.append("def sf = new SimpleDateFormat(\""+ fileLogField.getFile_log_format()+"\");");
+                        scriptString.append("def dt = sf.parse(ctx._source."+ newFields.get(fileLogField.getFile_log_order()).getFile_log_field()+");");
+                        //新日期的时间格式
+                        scriptString.append("def sf_new = new SimpleDateFormat(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\");");
+                        //写入，该字段为系统默认时间戳，字段名称为@timestamp，默认为系统当前时间，如果用户设置了数据的其他date类型字段为时间戳，
+                        //则需要将设置的时间戳字段的数据写入到@timestamp中，并且进行格式转换
+                        scriptString.append("ctx._source['@timestamp'] = sf_new.format(dt);");
+                    }
+                    //同时，原字段仍要保留
+                    scriptString.append("ctx._source."+ fileLogField.getFile_log_field()+" = ctx._source.remove(\""+ newFields.get(fileLogField.getFile_log_order()).getFile_log_field()+"\");");
                 }
 
-                //组装script,根据原fields信息与新fields信息，通过order 一一对应
-                //如果某字段被标记为日期字段，需要scripts特殊处理
-                if("true".equals(fileLogField.getFile_log_is_timestamp())){
-                    //定义原数据的时间格式
-                    scriptString.append("def sf = new SimpleDateFormat(\""+ fileLogField.getFile_log_format()+"\");");
-                    scriptString.append("def dt = sf.parse(ctx._source.field"+ fileLogField.getFile_log_order()+");");
-                    //新日期的时间格式
-                    scriptString.append("def sf_new = new SimpleDateFormat(\"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\");");
-                    //写入，该字段为系统默认时间戳，字段名称为@timestamp，默认为系统当前时间，如果用户设置了数据的其他date类型字段为时间戳，
-                    //则需要将设置的时间戳字段的数据写入到@timestamp中，并且进行格式转换
-                    scriptString.append("ctx._source['@timestamp'] = sf_new.format(dt);");
-                }
-                //同时，原字段仍要保留
-                scriptString.append("ctx._source."+ fileLogField.getFile_log_field()+" = ctx._source.remove(\"field"+ fileLogField.getFile_log_order()+"\");");
             }
             //生成script对象
             Script reindexScript = new Script(ScriptType.INLINE, "painless", scriptString.toString(), new HashMap<String, Object>());
             //template收尾处理
-            indexMapping.delete(indexMapping.length()-1,indexMapping.length());
-            indexMapping.append("}}");
+            oldMapping.delete(oldMapping.length()-1,oldMapping.length());
+            oldMapping.append("}}");
             for(int j=0;j<i;j++){
                 String indexName = indices[j];
                 //reindex到临时index
                 commonDao.reindex(null,indexName+"_tmp",indexName);
                 //删除原index
                 commonDao.deleteIndices(indexName);
-                //创新targetindex
-                commonDao.createIndex(indexName,null,indexMapping.toString());
+                //将template 还原
+                logService.initOfElasticsearch(template_name,template_name+"*",null,settingmap,oldMapping.toString());
+
                 //reindex 到新创建的index
-                commonDao.reindex(reindexScript,indexName+"_tmp",indexName);
+                commonDao.reindex(reindexScript,indexName,indexName+"_tmp");
+
+                //删除临时index
+                commonDao.deleteIndices(indexName+"_tmp");
             }
         }
         return true;

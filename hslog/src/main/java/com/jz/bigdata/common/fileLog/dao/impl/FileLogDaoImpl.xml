@@ -111,10 +111,14 @@
 	<delete id="delete" parameterType="java.lang.String">
 		delete from file_log where file_log_templateKey=#{file_log_templateKey}
 	</delete>
-	<!-- 系统自带日期字段不允许编辑-->
-	<select id="getTemplateInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
+	<select id="getTemplateInfo_without_timestamp" parameterType="java.lang.String" resultMap="BaseResultMap">
 		select file_log_templateName,file_log_templateKey,file_log_field,file_log_text,file_log_type,file_log_format,file_log_is_timestamp,file_log_order
 		from file_log where file_log_templateKey=#{file_log_templateKey} and file_log_order!=0
+		order by file_log_order
+	</select>
+	<select id="getTemplateInfo" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select file_log_templateName,file_log_templateKey,file_log_field,file_log_text,file_log_type,file_log_format,file_log_is_timestamp,file_log_order
+		from file_log where file_log_templateKey=#{file_log_templateKey}
 		order by file_log_order
 	</select>
 	<select id="getTemplateList" resultMap="BaseResultMap">

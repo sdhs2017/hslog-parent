@@ -1,8 +1,11 @@
 package com.jz.bigdata.common.fileLog.controller;
 
+import com.hs.elsearch.entity.SearchConditions;
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.configuration.entity.Configuration;
 import com.jz.bigdata.common.fileLog.entity.FileLogField;
 import com.jz.bigdata.common.fileLog.service.IFileLogService;
+import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.JavaBeanUtil;
 import com.mysql.jdbc.StringUtils;
@@ -30,6 +33,8 @@ import java.util.Map;
 public class FileLogController {
     @Resource(name = "FileLogService")
     private IFileLogService fileLogService;
+    @Resource(name ="configProperty")
+    private ConfigProperty configProperty;
     @ResponseBody
     @RequestMapping(value="/updateTemplateInfo.do", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="更新文件日志模板信息")
@@ -96,5 +101,45 @@ public class FileLogController {
         }
 
 
+    }
+    @ResponseBody
+    @RequestMapping(value="/getTemplateFields.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取动态表头")
+    public String getTemplateFields(HttpServletRequest request) {
+        String templateKey = request.getParameter("file_log_templateKey");
+        if(StringUtils.isNullOrEmpty(templateKey)){
+            return Constant.failureMessage("参数异常！");
+        }else{
+            List<Map<String,String>> list = fileLogService.getTemplateFields(templateKey);
+            return Constant.successData(JSONArray.fromObject(list).toString());
+        }
+    }
+    @ResponseBody
+    @RequestMapping(value="/getTemplateData.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取数据")
+    public String getTemplateData(HttpServletRequest request) {
+        try{
+            String templateKey = request.getParameter("file_log_templateKey");
+            String starttime = request.getParameter("starttime");
+            String endtime = request.getParameter("endtime");
+            String page = request.getParameter("page");
+            String size = request.getParameter("size");
+            SearchConditions searchConditions = new SearchConditions();
+            //index名称
+            searchConditions.setIndex_name(configProperty.getEs_filelog_pre()+templateKey+"*");
+            //起始和截止时间
+            searchConditions.setStartTime(starttime);
+            searchConditions.setEndTime(endtime);
+            //分页
+            searchConditions.setPage(Integer.valueOf(page));
+            searchConditions.setPage_size(Integer.valueOf(size));
+            //时间字段
+            searchConditions.setDateField(Constant.BEAT_DATE_FIELD);
+            String result = fileLogService.getTemplateData(searchConditions);
+            return Constant.successData(result);
+        }catch (Exception e){
+            log.error("获取数据失败："+e.getMessage());
+            return Constant.failureMessage("获取数据失败");
+        }
     }
 }

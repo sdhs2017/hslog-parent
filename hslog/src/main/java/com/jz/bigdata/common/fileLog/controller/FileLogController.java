@@ -131,8 +131,14 @@ public class FileLogController {
             searchConditions.setStartTime(starttime);
             searchConditions.setEndTime(endtime);
             //分页
-            searchConditions.setPage(Integer.valueOf(page));
-            searchConditions.setPage_size(Integer.valueOf(size));
+            Integer fromInt = 0;//默认值
+            Integer sizeInt = 10;//默认值
+            if (page!=null&&size!=null) {
+                fromInt = (Integer.parseInt(page)-1)*Integer.parseInt(size);
+                sizeInt = Integer.parseInt(size);
+            }
+            searchConditions.setFrom(fromInt);
+            searchConditions.setPage_size(sizeInt);
             //时间字段
             searchConditions.setDateField(Constant.BEAT_DATE_FIELD);
             String result = fileLogService.getTemplateData(searchConditions);

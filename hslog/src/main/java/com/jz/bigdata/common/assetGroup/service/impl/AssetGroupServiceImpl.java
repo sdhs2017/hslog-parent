@@ -313,15 +313,15 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 			}
 		}
 		result.put("asset_ids",asset_ids);
-		if(syslog&winlog){
-			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_winlog_id());
-		}else if(syslog){
-			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_id());
-		}else if(winlog){
-			result.put("dashboard_id",configProperty.getHsdata_dashboard_winlog_id());
-		}else{
-			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_winlog_id());
-		}
+//		if(syslog&winlog){
+//			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_winlog_id());
+//		}else if(syslog){
+//			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_id());
+//		}else if(winlog){
+//			result.put("dashboard_id",configProperty.getHsdata_dashboard_winlog_id());
+//		}else{
+//			result.put("dashboard_id",configProperty.getHsdata_dashboard_syslog_winlog_id());
+//		}
 		return result;
 	}
 }

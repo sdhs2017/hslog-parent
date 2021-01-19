@@ -5,8 +5,10 @@ import com.jz.bigdata.common.alert.service.IAlertService;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import com.jz.bigdata.common.equipment.service.IEquipmentService;
+import com.jz.bigdata.common.fileLog.service.IFileLogService;
 import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
+import com.jz.bigdata.common.start_execution.cache.FileLogCache;
 import com.jz.bigdata.common.start_execution.task.BasicJobsStart;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,6 +31,8 @@ public class start {
     private ICollectorService collectorService;
     @Resource(name = "AlertService")
     private IAlertService iAlertService;
+    @Resource(name = "FileLogService")
+    private IFileLogService fileLogService;
     /**
      * 启动初始化方法
      */
@@ -36,6 +40,7 @@ public class start {
 
         //2.各种cache
         AssetCache.INSTANCE.init(equipmentService,assetService);//资产初始化（虚拟资产and逻辑资产）
+        FileLogCache.INSTANCE.init(fileLogService);//文件日志模板数据初始化
         ConfigurationCache.INSTANCE.init(configurationService);//mysql全局配置项初始化
         //TODO search cache初始化，目前其初始化逻辑与数据可视化模块绑定，
         //3.bulk_processor (ES 批量提交)

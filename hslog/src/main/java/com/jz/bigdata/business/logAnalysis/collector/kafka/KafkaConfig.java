@@ -85,4 +85,8 @@ public class KafkaConfig {
     public KafkaAllListener KafkaAllListener(){
         return new KafkaAllListener();
     }
+    @Bean
+    public KafkaFileLogListener KafkaFileLogListener(){
+        return new KafkaFileLogListener();
+    }
 }

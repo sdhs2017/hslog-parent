@@ -225,6 +225,7 @@ public class AssetGroupController {
 	}
 	/**
 	 * 获取资产组对应dashboard时的信息。包含该资产组下的资产列表id，以及资产组对应的dashboard的id
+	 * 已弃用
 	 * @param request
 	 * @return
 	 */

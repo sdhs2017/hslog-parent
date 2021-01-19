@@ -114,7 +114,13 @@ public interface ICollectorService {
 	public String startSyslogKafkaListener();
 	public String stopSyslogKafkaListener();
 	public boolean getSyslogKafkaListenerState();
-
+	/**
+	 *开启、关闭 Filelog采集
+	 * @return
+	 */
+	public String startFileLogKafkaListener();
+	public String stopFileLogKafkaListener();
+	public boolean getFileLogKafkaListenerState();
 	/**
 	 * ES 批量提交初始化
 	 * @return

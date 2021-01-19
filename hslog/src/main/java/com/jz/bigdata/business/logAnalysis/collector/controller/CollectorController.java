@@ -11,10 +11,12 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
 import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.fileLog.service.IFileLogService;
 import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.common.configuration.service.IConfigurationService;
+import com.jz.bigdata.common.start_execution.cache.FileLogCache;
 import lombok.extern.slf4j.Slf4j;
 import org.pcap4j.core.PcapAddress;
 import org.pcap4j.core.PcapNativeException;
@@ -56,7 +58,8 @@ public class CollectorController {
 	
 	@Resource(name="logService")
 	private IlogService logService;
-
+	@Resource(name = "FileLogService")
+	private IFileLogService fileLogService;
 
 //	@Resource
 //	private MascanCollector mascanCollector;
@@ -432,6 +435,10 @@ public class CollectorController {
 	public String startAgentKafkaListener() {
 		System.out.println("-----------------------startKafkaBeatsListener-----------------");
 		try{
+			// 判断index是否存在，如果不存在提示执行初始化操作
+			if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
+				return Constant.failureMessage("采集器开启失败，请先执行初始化操作");
+			}
 			/**
 			 *更新资产、全局配置缓存信息
 			 */
@@ -475,6 +482,10 @@ public class CollectorController {
 	public String startSyslogKafkaListener() {
 		System.out.println("-----------------------startSyslogKafkaListener-----------------");
 		try{
+			// 判断index是否存在，如果不存在提示执行初始化操作
+			if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
+				return Constant.failureMessage("采集器开启失败，请先执行初始化操作");
+			}
 			/**
 			 *更新资产、全局配置缓存信息
 			 */
@@ -504,6 +515,54 @@ public class CollectorController {
 	public String getSyslogKafkaListenerState() {
 		Map<String, Object> map = new HashMap<>();
 		boolean result = collectorService.getSyslogKafkaListenerState();
+		map.put("state", result);
+		return JSONArray.fromObject(map).toString();
+	}
+
+	/**
+	 * 开启kafka of filelog
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/startFileLogKafkaListener", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "开启FileLogKafkaListener")
+	public String startFileLogKafkaListener() {
+		System.out.println("-----------------------startFileLogKafkaListener-----------------");
+		try{
+			// 判断index是否存在，如果不存在提示执行初始化操作
+			if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
+				return Constant.failureMessage("采集器开启失败，请先执行初始化操作");
+			}
+			/**
+			 *更新资产、全局配置、文件日志模板缓存信息
+			 */
+			AssetCache.INSTANCE.init(equipmentService,assetService);
+			ConfigurationCache.INSTANCE.init(configurationService);
+			FileLogCache.INSTANCE.init(fileLogService);
+			return collectorService.startFileLogKafkaListener();
+		}catch (Exception e){
+			log.error("FileLog采集器开启失败"+e.getMessage());
+			return Constant.failureMessage("FileLog采集器开启失败！");
+		}
+	}
+
+	/**
+	 * 关闭kafka of syslog
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value = "/stopFileLogKafkaListener", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "关闭FileLogKafkaListener")
+	public String stopFileLogKafkaListener() {
+		return collectorService.stopFileLogKafkaListener();
+	}
+	// 监听agent采集器状态
+	@ResponseBody
+	@RequestMapping(value = "/getFileLogKafkaListenerState", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe = "监控FileLogAgent采集器状态")
+	public String getFileLogKafkaListenerState() {
+		Map<String, Object> map = new HashMap<>();
+		boolean result = collectorService.getFileLogKafkaListenerState();
 		map.put("state", result);
 		return JSONArray.fromObject(map).toString();
 	}

@@ -76,6 +76,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	Thread t;
 	private final String topic_beats = "beats";
 	private final String topic_all = "all";
+	private final String topic_filelog = "filelog";
 	private final String topic_file = "filebeat";
 	/**
 	 * *****************************************masscan管理器属性****************************8
@@ -679,6 +680,56 @@ public class CollectorServiceImpl implements ICollectorService{
 			return false;
 		}
 	}
+
+	@Override
+	public String startFileLogKafkaListener() {
+		try{
+			//初始化bulk processor
+			if(bulkProcessorInit()){
+				//判断监听容器是否启动，未启动则将其启动
+				if (registry.getListenerContainer(topic_filelog).isRunning()) {
+					return Constant.failureMessage("FileLog采集已启动，请勿重复开启！");
+				}else{
+					registry.getListenerContainer(topic_filelog).start();
+					return Constant.successMessage("FileLog采集启动成功！");
+				}
+			}else{
+				log.error("ES 批量提交bulk processor初始化失败。");
+				return Constant.failureMessage("FileLog采集启动失败！");
+
+			}
+		}catch(Exception e){
+			log.error("kafka-FileLog启动失败！"+e.getMessage());
+			registry.getListenerContainer(topic_filelog).stop();//启动异常时，需要进行一次关闭
+			return Constant.failureMessage("FileLog采集启动失败！");
+		}
+	}
+
+	@Override
+	public String stopFileLogKafkaListener() {
+		try{
+			//判断监听容器是否启动，未启动则将其启动
+			if (registry.getListenerContainer(topic_filelog).isRunning()) {
+				registry.getListenerContainer(topic_filelog).stop();
+			}else{
+				//无其他操作
+			}
+			return Constant.successMessage("FileLog采集已关闭！");
+		}catch(Exception e){
+			log.error("kafka-FileLog关闭失败！"+e.getMessage());
+			return Constant.failureMessage("FileLog采集关闭失败！");
+		}
+	}
+
+	@Override
+	public boolean getFileLogKafkaListenerState() {
+		if (registry.getListenerContainer(topic_filelog).isRunning()) {
+			return true;
+		}else{
+			return false;
+		}
+	}
+
 	/**
      * 根据IP获取指定网卡设备
 	* @param NameOrIP 网卡IP或者网卡名

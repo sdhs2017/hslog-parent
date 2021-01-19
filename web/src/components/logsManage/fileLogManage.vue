@@ -17,12 +17,19 @@
                     <el-input class="tit-input" size="large" v-model="currentLeftItem.file_log_templateName" @input="changeInput"></el-input>
                     <div class="btn-wapper"> <el-button type="warning" :disabled=" commitState ? false : 'disabled'" @click="saveData()">更新</el-button></div>
                 </div>
-                <el-tabs type="border-card" @tab-click="handleClick">
-                    <el-tab-pane label="配置" >
+                <el-tabs type="border-card" @tab-click="handleClick" v-model="activeName">
+                    <el-tab-pane label="配置" name="0">
                         <vBasetable2 :tableHead="tableHead" :tableData="tableData" :height="tableHeight"></vBasetable2>
                     </el-tab-pane>
-                    <el-tab-pane label="源数据">
-                        <vBasetable2 :tableHead="sourceHead" :tableData="sourceData" :height="tableHeight"></vBasetable2>
+                    <el-tab-pane label="源数据" name="1">
+                        <div class="search-wapper">
+                            <v-search-form style="float: right;" :formItem="formConditionsArr" :busName="busName"></v-search-form>
+                        </div>
+                        <vBasetable2 :tableHead="sourceHead" :tableData="sourceData" :height="sourceTableHeight"></vBasetable2>
+                        <div class="table-page">
+                            <span>数据条数为 <b>{{allCounts}}</b> 条</span>
+                            <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="allCounts"></el-pagination>
+                        </div>
                     </el-tab-pane>
                 </el-tabs>
 
@@ -71,6 +78,9 @@
 
 <script>
     import vBasetable2 from '../common/Basetable2'
+    import vSearchForm from '../common/BaseSearchForm';
+    import {dateFormat} from "../../../static/js/common";
+    import bus from '../common/bus';
     export default {
         name: "fileLogManage",
         data(){
@@ -89,6 +99,8 @@
                 //用于比较改变
                 compareObj:{},
                 tableHeight:0,
+                sourceTableHeight:0,
+                activeName:'0',
                 //表头（配置）
                 tableHead:[
                     {
@@ -146,37 +158,15 @@
                 ],
                 //表格数据（配置）
                 tableData:[],
+                //检索条件
+                searchConditions:{},
+                fromConditionsArr:[],
+                busName:'fileLogManageSearch',
+                size:15,
+                c_page:1,
+                allCounts:0,
                 //表头（源数据）
-                sourceHead:[
-                    {
-                        prop:'file_log_field',
-                        label:'field',
-                        width:''
-                    },{
-                        prop:'file_log_text',
-                        label:'text',
-                        width:''
-                    },{
-                        prop:'file_log_type',
-                        label:'type',
-                        width:''
-                    },{
-                        prop:'file_log_format',
-                        label:'format',
-                        width:''
-                    },{
-                        prop:'file_log_is_timestamp',
-                        label:'is_timestamp',
-                        width:'',
-                        formatData:(val)=>{
-                            if(val == 'true'){
-                                return "是"
-                            }else{
-                                return  "否"
-                            }
-                        }
-                    },
-                ],
+                sourceHead:[],
                 //表格数据（源数据）
                 sourceData:[],
                 //当前编辑行数据
@@ -217,11 +207,40 @@
         },
         created(){
             this.tableHeight = document.body.clientHeight - 375 ;
+            this.sourceTableHeight= document.body.clientHeight - 450 ;
             window.onresize = () => {
                 this.tableHeight = document.body.clientHeight - 375 ;
+                this.sourceTableHeight= document.body.clientHeight - 450 ;
             };
             //获取数据
-            this.getList()
+            this.getList();
+            //定义七天时间范围
+            let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
+            let startTime= new Date();
+            startTime.setTime(startTime.getTime() - 3600 * 1000 * 24 * this.$store.state.beforeDay);
+            startTime = dateFormat('yyyy-mm-dd HH:MM:SS',startTime);
+            this.searchConditions = {
+                endtime: endTime,
+                starttime: startTime
+            }
+            //检索条件
+            this.formConditionsArr = [
+                {
+                    label:'时间范围',
+                    type:'datetimerange',
+                    itemType:'',
+                    paramName:'time',
+                    model:{
+                        model:[startTime,endTime]
+                    },
+                    val:''
+                }]
+            //监听查询条件组件传过来的条件
+            bus.$on(this.busName,(params)=>{
+                this.searchConditions = params;
+                this.getSourceData(1)
+                this.c_page = 1;
+            })
         },
         methods:{
             /*输入框输入时*/
@@ -293,6 +312,7 @@
                     layer.confirm('当前表格未保存，继续，修改的数据将会丢失,确定继续么？', {
                         btn: ['确定','取消'] //按钮
                     }, (index)=>{
+                        this.activeName = '0';
                         this.currentLeftItem = JSON.parse(JSON.stringify(item));
                         this.compareObj = JSON.parse(JSON.stringify(item));
                         this.commitState = false;
@@ -302,12 +322,14 @@
                         //清空源数据
                         this.sourceHead = [];
                         this.sourceData = [];
+
                         //关闭弹窗
                         layer.close(index);
                     }, function(){
                         layer.close();
                     });
                 }else{//否
+                    this.activeName = '0';
                     this.compareObj = JSON.parse(JSON.stringify(item));
                     this.currentLeftItem = JSON.parse(JSON.stringify(item));
                     this.commitState = false;
@@ -317,6 +339,7 @@
                     this.sourceData = [];
                     //获取数据
                     this.getTableData(this.currentLeftItem.file_log_templateKey)
+
                 }
 
             },
@@ -324,23 +347,65 @@
             handleClick(tab, event) {
                if(tab.paneName == 1 && this.sourceHead.length === 0){
                    //获取源数据
-                   this.$nextTick(()=>{
-                       this.sourceloading = true;
-                       this.$axios.post(this.$baseUrl+'/',this.$qs.stringify())
-                           .then(res=>{
-                               this.sourceloading = false;
-                               let obj  = res.data;
-                               if(obj.success == 'true'){
-                                  // this.tableData = obj.data
-                               }else {
-                                   layer.msg(obj.message,{icon:5})
-                               }
-                           })
-                           .catch(err=>{
-                                this.sourceloading = false;
-                           })
-                   })
+                   this. getSourceHead(this.currentLeftItem.file_log_templateKey)
+                   this.getSourceData(1)
                }
+            },
+            /*获取源数据表头*/
+            getSourceHead(key){
+                this.c_page = 1;
+                this.$nextTick(()=>{
+                    this.rightLoading = true;
+                    this.$axios.post(this.$baseUrl+'/fileLog/getTemplateFields.do',this.$qs.stringify({
+                        file_log_templateKey:key
+                    }))
+                        .then(res=>{
+                            this.rightLoading = false;
+                            let obj  = res.data;
+                            if(obj.success == 'true'){
+                                this.sourceHead = obj.data
+                            }else {
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.rightLoading = false;
+                        })
+                })
+            },
+            /*获取源数据表格数据*/
+            getSourceData(page){
+                this.$nextTick(()=>{
+                    this.rightLoading = true;
+                    this.$axios.post(this.$baseUrl+'/fileLog/getTemplateData.do',this.$qs.stringify({
+                        file_log_templateKey:this.currentLeftItem.file_log_templateKey,
+                        starttime:this.searchConditions.starttime,
+                        endtime:this.searchConditions.endtime,
+                        page:page,
+                        size:this.size
+                    }))
+                        .then(res=>{
+                            this.rightLoading = false;
+                            let obj  = res.data;
+                            if(obj.success == 'true'){
+                                this.allCounts = obj.data[0].count
+                                this.sourceData = obj.data[0].list
+                                //console.log(this.sourceData)
+                            }else {
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.rightLoading = false;
+                        })
+                })
+            },
+            /*分页页码改变*/
+            handleCurrentChange(page){
+                //获取数据
+                this.getSourceData(page);
+                //改变标识
+                // this.firstGetData = false;
             },
             /*type改变*/
             typeChange(){
@@ -354,6 +419,8 @@
                 let data = this.currentRightItem.data;
                 if(data.file_log_field === ''){
                     layer.msg('字段代码不能为空',{icon:5})
+                }else if(!(/^[a-zA-Z0-9]+$/.test(data.file_log_field))){
+                    layer.msg('字段代码只允许为数字/英文',{icon:5})
                 }else if(data.file_log_text === ''){
                     layer.msg('字段名称不能为空',{icon:5})
                 }else if(data.file_log_type === 'date' && data.file_log_format === ''){
@@ -421,7 +488,8 @@
             }
         },
         components:{
-            vBasetable2
+            vBasetable2,
+            vSearchForm
         }
     }
 </script>
@@ -504,5 +572,19 @@
     /deep/.el-input.is-disabled .el-input__inner {
         background-color: #303e4e;
         border-color: #909399;
+    }
+    .search-wapper{
+        margin-bottom: 10px;
+        height: 26px;
+    }
+    .table-page{
+        display: -webkit-box;
+        display: -ms-flexbox;
+        display: flex;
+        -webkit-box-pack: end;
+        -ms-flex-pack: end;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 10px;
     }
 </style>

@@ -345,11 +345,14 @@
             },
             /*tab 切换事件*/
             handleClick(tab, event) {
-               if(tab.paneName == 1 && this.sourceHead.length === 0){
+               /*if(tab.paneName == 1 && this.sourceHead.length === 0){
                    //获取源数据
                    this. getSourceHead(this.currentLeftItem.file_log_templateKey)
                    this.getSourceData(1)
-               }
+               }*/
+                //获取源数据
+                this. getSourceHead(this.currentLeftItem.file_log_templateKey)
+                this.getSourceData(1)
             },
             /*获取源数据表头*/
             getSourceHead(key){

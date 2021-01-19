@@ -566,6 +566,18 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 文件日志模块 -->
+	<bean id="FileLogSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/fileLog/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -714,6 +726,11 @@
 		<property name="basePackage" value="com.jz.bigdata.common.eventGroup"/>
 		<property name="sqlSessionFactoryBeanName" value="eventGroupSqlSessionFactory"></property>
 	</bean>
+	<!--文件日志模块 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.fileLog"/>
+		<property name="sqlSessionFactoryBeanName" value="FileLogSqlSessionFactory"></property>
+	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->
 	<!-- 
@@ -787,7 +804,7 @@
 	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
-				<entry key="es_ip" value="xxx.xxx.xxx.xxx"/>
+				<entry key="es_ip" value="192.168.2.181"/>
 				<entry key="es_port" value="9200"/>
 				<entry key="es_user" value="elastic"/>
 				<entry key="es_password" value="hsdata.123"/>
@@ -853,6 +870,7 @@
 	</bean>
 	<bean id="commonDao" class="com.hs.elsearch.dao.common.impl.CommonDaoImpl">
 	</bean>
+
 	<bean id="prop" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 		<property name="locations">
 			<!-- 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组，跟上面一样  -->

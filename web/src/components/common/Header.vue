@@ -41,7 +41,7 @@
                         </ul>
                         <el-button slot="reference" class="bell-wapper">
                             <el-badge :value="bellArr.length + alertCount" :hidden="bellArr.length === 0 && alertCount === 0" :max="99" class="item">
-                                <i class="el-icon-message"></i>
+                                <i class="el-icon-message-solid"></i>
                             </el-badge>
                         </el-button>
                     </el-popover>
@@ -458,6 +458,7 @@
         border: 0;
         padding: 0;
         font-size: 20px;
+        color: #fff;
     }
     .bell-wapper /deep/ .el-badge__content{
         background-color: #F56C6C;

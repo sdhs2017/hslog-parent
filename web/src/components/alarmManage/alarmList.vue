@@ -2,6 +2,7 @@
     <div  class="content-bg" v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title">告警管理
             <div class="btn-wapper">
+                <el-button type="danger" size="mini" plain :disabled="delectAlarmIds.length > 0 ? false : true " @click="deleteAlarm">删除</el-button>
                 <el-button type="primary" size="mini" plain @click="goToAddAlarm">添加</el-button>
                 <el-button type="success" size="mini" plain  @click="refresh">刷新</el-button>
             </div>
@@ -10,7 +11,7 @@
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
         <div class="alarm-list-wapper">
-            <vBasetable :tableHead="tableHead" :tableData="tableData"></vBasetable>
+            <vBasetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="tableBusName"></vBasetable>
         </div>
         <div class="alarm-table-page">
             <span>共检索到告警数量为 <b>{{allCounts}}</b> 个</span>
@@ -33,6 +34,9 @@
                 c_page:1,//当前页码
                 size:15,//每页的数量
                 busName:'searchAlarm',
+                tableBusName:{
+                    selectionName:'alarmDelect'
+                },
                 allCounts:0,
                 tableHead:[],
                 tableData:[],
@@ -49,7 +53,8 @@
                 ],
                 conditionFrom:{
                     alert_name:''
-                }
+                },
+                delectAlarmIds:'',//选中删除的
             }
         },
         created(){
@@ -91,7 +96,7 @@
                 },
                 {
                     prop:'alert_time',
-                    label:'时间周期',
+                    label:'时间范围',
                     width:'',
                     formatData:(val,obj)=>{
                         let time = '';
@@ -176,57 +181,29 @@
                             }
                         },
                         {
-                            icon:'el-icon-close',
-                            text:'删除',
+                            icon:'el-icon-caret-right',
+                            text:'立即执行一次',
                             clickFun:(row,index)=>{
-                                this.deleteAlarm(row.alert_id)
+                                this.startAlarm(row.alert_id)
                             }
                         },
                     ]
                 }
             ]
-           /* this.tableData=[
-                {
-                    alert_id:'12',
-                    alert_name:'告警测试',
-                    template_name:'winlogbeat',
-                    pre_index_name:'winlogbeat-',
-                    suffix_index_name:'*',
-                    alert_state:true,
-                    datefield:'',
-                    alert_search_filters:'',
-                    alert_cron:'0 *!/2 * * * ?',
-                    alert_note:'',
-                    alert_search_metric:[],
-                    alert_search_bucket:[],
-                    alert_conditions:"[{\"field\":\"count\",\"fieldType\":\"string\",\"operator\":\">=\",\"value\":\"1000\",\"start\":\"\",\"end\":\"\",\"values\":[]}]",
-                    alert_structure:'',
-                    alert_time_last:'15-min',
-                    alert_time_start_end:''
-                },{
-                    alert_id:'34',
-                    alert_name:'告警测试2',
-                    template_name:'winlogbeat',
-                    pre_index_name:'winlogbeat-',
-                    suffix_index_name:'*',
-                    alert_state:false,
-                    datefield:'',
-                    alert_search_filters:'',
-                    alert_cron:'0 *!/2 * * * ?',
-                    alert_note:'',
-                    alert_search_metric:[],
-                    alert_search_bucket:[],
-                    alert_conditions:"[{\"field\":\"count\",\"fieldType\":\"string\",\"operator\":\"is one of\",\"value\":\"\",\"start\":\"\",\"end\":\"\",\"values\":[100,200,300]}]",
-                    alert_structure:'',
-                    alert_time_last:'',
-                    alert_time_start_end:'2020-10-01 00:00:00,2020-11-01 00:00:00'
-                }
-            ]*/
+
             this.getAlarmList(this.conditionFrom,1)
             bus.$on(this.busName,(params)=>{
                 this.conditionFrom = params;
                 this.getAlarmList(this.conditionFrom,1)
                 this.c_page = 1;
+            })
+            //监听选中的资产
+            bus.$on(this.tableBusName.selectionName,(params)=>{
+                this.delectAlarmIds = '';
+                for(let i in params){
+                    this.delectAlarmIds += params[i].alert_id +','
+                }
+                //console.log(this.delectAlarmIds)
             })
         },
         beforeDestroy(){
@@ -270,15 +247,44 @@
             goToReviseAlarm(item){
                 jumpHtml('editAlarm'+item.alert_id,'alarmManage/editAlarm.vue',{ name:item.alert_name,id:item.alert_id },'修改')
             },
+            /*立即执行一次*/
+            startAlarm(id){
+                //询问框
+                layer.confirm('您确定立即执行一次么？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    this.loading = true
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/alert/startOnce.do',this.$qs.stringify({alert_id:id}))
+                            .then((res)=>{
+                                this.loading = false
+                                if(res.data.success == "true"){
+                                    layer.msg(res.data.message,{icon:1});
+                                }else{
+                                    layer.msg(res.data.message,{icon:5});
+                                }
+
+                            })
+                            .catch((err)=>{
+                                this.loading = false;
+                                layer.msg("删除失败",{icon:5});
+                            })
+                    })
+                }, function(){
+                    layer.close();
+                })
+            },
             /*删除告警*/
-            deleteAlarm(id){
+            deleteAlarm(){
                 //询问框
                 layer.confirm('您确定删除么？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
                     this.loading = true
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/alert/delete.do',this.$qs.stringify({alert_id:id}))
+                        this.$axios.post(this.$baseUrl+'/alert/deletes.do',this.$qs.stringify({
+                            alert_ids:this.delectAlarmIds
+                        }))
                             .then((res)=>{
                                 this.loading = false
                                 if(res.data.success == "true"){

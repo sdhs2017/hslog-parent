@@ -35,11 +35,12 @@
                             <el-input v-model="form.alert_cron" size="mini" placeholder="请输入cron表达式"></el-input>
                         </div>
                         <p  v-if="form.alert_exec_type === 'simple'" style="color: #e4956d;font-size: 12px;margin:5px 0 0 0;">(普通模式下，秒、分钟小于60，小时小于24，且都为整数。)</p>
+                        <p  v-if="form.alert_exec_type === 'complex'" style="color: #e4956d;font-size: 12px;margin:5px 0 0 0;">例：0 */10 * * * ?    每10分钟的0秒种执行一次</p>
                     </div>
                 </div>
-                <div class="form-item" v-if="form.alert_exec_type === 'complex'">
+                <div class="form-item">
                     <span class="mustWrite" style="left: -8px;">*</span>
-                    <div class="item-label" style="position: absolute;width: 80px;">时间周期：</div>
+                    <div class="item-label" style="position: absolute;width: 80px;">时间范围：</div>
                     <div class="item-con" style="margin-left: 80px;width: 350px;">
                         <date-layout :busName="busNameObj.busDateName" :defaultVal="defaultVal"></date-layout>
                     </div>
@@ -54,7 +55,7 @@
             </div>
             <div class="btn-wapper" style="display: flex;">
 <!--                <el-button @click="active = 1" type="primary">上一步</el-button>-->
-                <el-button type="primary"  @click="active = 1" :disabled="(form.alert_name === '' || (form.alert_exec_type === 'simple' ? (form.alert_time_cycle_num === '' ? true : false) : (form.alert_cron === '' ? true :false))) ? true : false">下一步</el-button>
+                <el-button type="primary"  @click="nextToOne()" :disabled="(form.alert_name === '' || (form.alert_exec_type === 'simple' ? (form.alert_time_cycle_num === '' ? true : false) : (form.alert_cron === '' ? true :false))) ? true : false">下一步</el-button>
             </div>
         </div>
         <div class="con-wapper" v-show="active === 1">
@@ -604,13 +605,13 @@
             //数据源监听
             bus.$on(this.busNameObj.busIndexName,(arr)=>{
                 //还原配置
-                this.alarmList = [];
+                //this.alarmList = [];
                 this.yAxisArr =[];
                 this.xAxisArr=[];
                 this.form.alert_search_filters = '';
                 this.form.alert_search_metric = [];
                 this.form.alert_search_bucket = [];
-                this.form.alert_conditions = [];
+                //this.form.alert_conditions = [];
                 this.form.alert_structure = '';
                 //设置数据源
                 this.form.suffix_index_name = arr[2];
@@ -759,7 +760,7 @@
                 if(this.active === 0){
                     if(this.alarmId === ''){
                         //清除第1步后面的参数
-                        this.alarmList = [];
+                        //this.alarmList = [];
                        /* this.form.alert_name = '';
                         this.form.alert_cron = '';
                         this.form.alert_note = '';
@@ -770,7 +771,7 @@
                 }else if(this.active === 1){
                     if(this.alarmId === ''){
                         //清除第2步后面的参数
-                        this.alarmList = [];
+                       // this.alarmList = [];
                         /*this.form.alert_name = '';
                         this.form.alert_cron = '';
                         this.form.alert_note = '';
@@ -816,18 +817,44 @@
             }
         },
         methods:{
+            /*到第二步*/
+            nextToOne(){
+                if(this.form.alert_exec_type === 'complex'){
+                    this.$nextTick(()=>{
+                        this.loading = true;
+                        this.$axios.post(this.$baseUrl+'/alert/cronValid.do',this.$qs.stringify({
+                            alert_cron:this.form.alert_cron
+                        }))
+                            .then(res=>{
+                                this.loading = false;
+                                let obj = res.data;
+                                if(obj.success === 'true'){
+                                    this.active = 1;
+                                }else{
+                                    layer.msg(obj.message,{icon:5})
+                                }
+
+                            })
+                            .catch(err=>{
+                                 this.loading = false;
+                            })
+                    })
+                }else{
+                    this.active = 1;
+                }
+            },
             /*清空告警条件*/
             clearAlertCondition(){
                 //判断是否是修改 还是 添加 页面
                 if(this.alarmId){//修改
                     //判断是否是第一次填充数据 引起的改变
                     if(this.changeOver){//是
-                        this.alarmList = [];
-                        this.form.alert_conditions = [];
+                        //this.alarmList = [];
+                        //this.form.alert_conditions = [];
                     }
                 }else{
-                    this.alarmList = [];
-                    this.form.alert_conditions = [];
+                    //this.alarmList = [];
+                    //this.form.alert_conditions = [];
                 }
             },
             /*执行时间数据改变*/
@@ -879,7 +906,7 @@
                 this.form.alert_structure = '';
                 this.form.alert_time = '15-min';
                 this.form.alert_time_type = 'last';
-                this.indexVal = [];
+                //this.indexVal = [];
                 this.alarmList = [];
                 this.yAxisArr =[];
                 this.xAxisArr=[];
@@ -1059,8 +1086,8 @@
             /*资产组改变事件*/
             assetGroupChange(val){
                 this.form.alert_asset = [];
-                this.alarmList = [];
-                this.form.alert_conditions = [];
+                //this.alarmList = [];
+                //this.form.alert_conditions = [];
                 this.getAsset(val);
             },
             /*获取资产*/
@@ -1086,8 +1113,8 @@
             },
             /*资产改变事件*/
             assetChange(){
-                this.alarmList = [];
-                this.form.alert_conditions = [];
+               // this.alarmList = [];
+               // this.form.alert_conditions = [];
             },
             /*获取字段*/
             getFields(){

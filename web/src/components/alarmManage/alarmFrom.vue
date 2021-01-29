@@ -678,6 +678,17 @@
                     this.alarmList= JSON.parse(this.form.alert_conditions)
                     this.xAxisArr = strObj.buckets
                     this.yAxisArr = strObj.mertics
+                    if(this.xAxisArr.length !== 0){
+                        for(let i in this.xAxisArr){
+                            this.getXAggregationArr(this.xAxisArr[i].aggregationType,i)
+                        }
+
+                    }
+                    if(this.yAxisArr.length !== 0){
+                        for(let i in this.yAxisArr){
+                            this.getYAggregationArr(this.yAxisArr[i].aggregationType,i)
+                        }
+                    }
                     this.defaultVal = strObj.date
                     setTimeout(()=>{
                         this.changeOver = true;
@@ -947,11 +958,15 @@
                 this.yAxisArr[index].aggregationParam = ''
                 this.yAxisArr[index].aggregationParamArr = [];
                 //获取参数集合
+                this.getYAggregationArr($event,index)
+            },
+            /*获取y参数集合*/
+            getYAggregationArr(type,index){
                 this.$nextTick(()=>{
                     this.leftYLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
-                            agg:$event,
+                            agg:type,
                             pre_index_name:this.form.pre_index_name,
                             suffix_index_name:this.form.suffix_index_name,
                             template_name:this.form.template_name
@@ -987,10 +1002,14 @@
                 this.xAxisArr[index].numberRange=[{start:'',end:''}];
                 this.xAxisArr[index].dateRange=[{start:'',end:''}];
 
+                this.getXAggregationArr($event,index)
+            },
+            /*获取x 参数集合*/
+            getXAggregationArr(type,index){
                 this.$nextTick(()=>{
                     this.leftXLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
-                        agg:$event,
+                        agg:type,
                         pre_index_name:this.form.pre_index_name,
                         suffix_index_name:this.form.suffix_index_name,
                         template_name:this.form.template_name
@@ -1344,6 +1363,13 @@
                 let obj = {};
                 obj.buckets = this.xAxisArr;
                 obj.mertics = this.yAxisArr;
+                //清空聚合
+                if(obj.buckets.length !== 0){
+                    obj.buckets[0].aggregationParamArr = []
+                }
+                if(obj.mertics.length !== 0){
+                    obj.mertics[0].aggregationParamArr = []
+                }
                 obj.date = this.defaultVal;
                 obj.dateField=this.form.datefield
                 paramsObj.alert_structure = JSON.stringify(obj)

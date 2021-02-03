@@ -212,7 +212,7 @@
                                 :value="item.value">
                             </el-option>
                         </el-select>
-                        <span v-if="form.alert_assetGroup_id !== ''" @click="form.alert_assetGroup_id = ''" style="color: #409eff;font-size: 12px;cursor:pointer;">清空</span>
+                        <span v-if="form.alert_assetGroup_id !== ''" @click="assetGroupClear()" style="color: #409eff;font-size: 12px;cursor:pointer;">清空</span>
                     </div>
                 </div>
                 <div class="form-item">
@@ -1134,6 +1134,11 @@
             assetChange(){
                // this.alarmList = [];
                // this.form.alert_conditions = [];
+            },
+            /*清空资产组*/
+            assetGroupClear(){
+                this.form.alert_assetGroup_id = '';
+                this.getAsset('');
             },
             /*获取字段*/
             getFields(){

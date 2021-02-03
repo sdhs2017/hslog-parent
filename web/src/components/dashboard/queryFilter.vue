@@ -41,7 +41,7 @@
                 <span class="addFilter" @click="addFilters()"> <i class="el-icon-plus"></i>添加筛选</span>
             </ul>
         </div>
-        <el-dialog title="编辑筛选" :visible.sync="filterDialog" width="450px">
+        <el-dialog title="编辑筛选" :visible.sync="filterDialog" width="450px" append-to-body>
             <div class="filter-form-wapper" v-loading="loading"  element-loading-background="rgba(26,36,47, 0.2)">
                 <div class="filter-form">
                     <el-form  inline label-width="80px" label-position="top" style="display: flex;" v-if="useObject === 'dashboard'">

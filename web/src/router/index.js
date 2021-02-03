@@ -518,6 +518,12 @@ export default new Router({
                     meta: { title: '告警列表' }
                 },
                 {
+                    path: '/eventAlarmList',
+                    name:'eventAlarmList',
+                    component: resolve => require(['../components/alarmManage/eventAlarmList.vue'], resolve),
+                    meta: { title: '事件告警' }
+                },
+                {
                     path: '/addAlarm',
                     name:'addAlarm',
                     component: resolve => require(['../components/alarmManage/addAlarm.vue'], resolve),
@@ -533,7 +539,7 @@ export default new Router({
                     path: '/alarmExecuteDetail',
                     name:'alarmExecuteDetail',
                     component: resolve => require(['../components/alarmManage/alarmExecuteDetail.vue'], resolve),
-                    meta: { title: '告警' }
+                    meta: { title: '告警执行详情' }
                 },
                 {
                     path: '/fileLogSearch',

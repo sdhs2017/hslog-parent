@@ -30,7 +30,7 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                    <el-select v-model="form.event_name" size="mini" placeholder="请选择" style="width: 50%;">
+                    <el-select v-model="form.event_name" size="mini" filterable placeholder="请选择" style="width: 50%;">
                         <el-option
                             v-for="item in eventArr"
                             :key="item.value"

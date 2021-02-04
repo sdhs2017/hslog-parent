@@ -63,7 +63,7 @@
                     <el-input v-model="form.alert_count" size="mini" style="width: 50%;"  type="number" min="1"  class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="资产组:">
-                    <el-select v-model="form.alert_assetGroup_id" style="width: 74%;"  placeholder="" size="mini" clearable @change="assetGroupChange">
+                    <el-select v-model="form.alert_assetGroup_id" style="width: 74%;" filterable  placeholder="" size="mini" clearable @change="assetGroupChange">
                         <el-option
                             v-for="item in assetGroupOptions"
                             :key="item.value"
@@ -73,7 +73,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item label="资产:">
-                    <el-select v-model="form.alert_equipment_id" style="width: 74%;"  placeholder="" size="mini" clearable >
+                    <el-select v-model="form.alert_equipment_id" style="width: 74%;" filterable  placeholder="" size="mini" clearable >
                         <el-option
                             v-for="item in assetOptions"
                             :key="item.value"

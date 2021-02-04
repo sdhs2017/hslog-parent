@@ -62,7 +62,7 @@
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     事件数>=
                     <el-input v-model="form.alert_count" size="mini" style="width: 50%;"  type="number" min="1"  class="item"></el-input>
-                    <p style="font-size: 10px;color: #e4956d;">两个事件的时间间隔小于该数值时，会合并为一个时间区间。</p>
+                    <p style="font-size: 10px;color: #e4956d;">合并后的时间区间内事件发生次数的阈值。</p>
                 </el-form-item>
                 <el-form-item label="资产组:">
                     <el-select v-model="form.alert_assetGroup_id" style="width: 74%;" filterable  placeholder="" size="mini" clearable @change="assetGroupChange">
@@ -164,10 +164,6 @@
                         return '事件数>= ' + val
                     }
                 },{
-                    prop:'event_type',
-                    label:'事件类型',
-                    width:''
-                },{
                     prop:'alert_assetGroup_name',
                     label:'资产组',
                     width:''
@@ -187,7 +183,8 @@
                                 this.formState = true;
                                 this.editId = row.event_alert_id
                                 this.getEventInfo();
-                                this.getEvent(row.event_type);
+
+
                             }
                         },
                     ]}
@@ -241,7 +238,7 @@
                     this.getAssetGroup();
                     this.getAsset('')
                 }else{
-
+                    this.initialize()
                 }
             }
         },
@@ -369,6 +366,7 @@
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 this.form = obj.data
+                                this.getEvent(obj.data.event_type);
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }

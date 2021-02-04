@@ -34,12 +34,12 @@
                         <!--<i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
                         <i class="el-icon-data-line"  v-else></i>-->
                         <el-popover
-                            v-if="i.logType === 'metric' || i.logType === 'packet'"
+                            v-if="i.logType === 'metric' || i.logType === 'packet' || i.logType === 'syslog' || i.logType === 'winlog' || i.logType ==='winlogbeat'"
                             placement="right"
                             width="150"
                             trigger="click">
                             <div style="min-height: 65px;" v-loading="chartsloading"  element-loading-background="rgba(48, 62, 78, 0.5)"  element-loading-spinner="el-icon-loading">
-                               <div v-for="(ec,ei) in eqChartList"class="eq-chart-item" @click="goToDashboard(i,ec.id)" >
+                               <div v-for="(ec,ei) in eqChartList"class="eq-chart-item" @click="goToDashboard(i,ec.id,ec.name)" >
                                    {{ec.name}}
                                </div>
                             </div>
@@ -438,38 +438,58 @@
             },
             /*获取资产图表*/
             getEquipmentCharts(i){
-                this.$nextTick(()=>{
-                    this.eqChartList = []
-                    this.chartsloading = true;
-                    this.$axios.post(this.$baseUrl+'/equipment/getDashboardsInfo.do ',this.$qs.stringify({
-                        logType:i.logType
-                    }))
-                        .then(res=>{
-                            this.chartsloading = false;
-                            let obj = res.data;
-                            if(obj.success === 'true'){
-                                this.eqChartList = obj.data;
-                            }else{
-                                layer.msg(obj.message,{icon:5})
-                            }
-                        })
-                        .catch(err=>{
-                             this.chartsloading = false;
-                        })
-                })
+                if(i.logType === 'metric' || i.logType === 'packet' || i.logType === 'syslog' || i.logType === 'winlog' || i.logType ==='winlogbeat'){
+                    this.$nextTick(()=>{
+                        this.eqChartList = []
+                        this.chartsloading = true;
+                        this.$axios.post(this.$baseUrl+'/equipment/getDashboardsInfo.do ',this.$qs.stringify({
+                            logType:i.logType
+                        }))
+                            .then(res=>{
+                                this.chartsloading = false;
+                                let obj = res.data;
+                                if(obj.success === 'true'){
+                                    this.eqChartList = obj.data;
+                                }else{
+                                    layer.msg(obj.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                this.chartsloading = false;
+                            })
+                    })
+                }else{
+                    layer.msg(`${i.logType} 类型资产暂无报表`,{icon:5})
+                }
+
             },
             /*查看资产dashboard*/ //rowData:资产数据 dID：dashboard ID
-            goToDashboard(rowData,dId){
-                if(dId === ''){
-                    this.$router.push('/customChart')
-                }else{
+            goToDashboard(rowData,dId,type){
+                //判断资产日志类型
+               // let logType = rowData.logType;
+                if(type === 'SIEM'){
+                    jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id },'查看')
+                }else if(type === 'SYSLOG'){
+                    jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }else if(type === 'WINLOG'){
+                    jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }else if(type === 'dashboard'){
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
                 }
+
+                // if(dId === ''){//SEIM
+                //     //this.$router.push('/customChart')
+                //     jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name+'统计',id: rowData.id },'查看')
+                // }else{
+                //     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
+                // }
                 //dId = 'CMCPunUBEtm5D8ifHXoY'
             },
             /*查看资产图表*/
             equipmentEcharts(rowData,index){
-                //判断资产日志类型
+                let logType = rowData.logType;
+                layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
+               /* //判断资产日志类型
                 let logType = rowData.logType;
                 if(logType === 'syslog'){
                     //跳转页面
@@ -481,7 +501,7 @@
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
                 }else{
                     layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
-                }
+                }*/
             },
             /*资产仪表盘*/
             equipmentDashboard(rowData,index){

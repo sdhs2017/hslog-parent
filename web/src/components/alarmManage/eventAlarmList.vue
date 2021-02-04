@@ -118,7 +118,7 @@
                     event_name:'',
                     event_area:'',
                     event_filters:'',
-                    alert_count:'',
+                    alert_count:1,
                     alert_equipment_id:'',
                     alert_assetGroup_id:''
                 },
@@ -242,7 +242,7 @@
                     event_name:'',
                     event_area:'',
                     event_filters:'',
-                    alert_count:'',
+                    alert_count:1,
                     alert_equipment_id:'',
                     alert_assetGroup_id:''
                 }

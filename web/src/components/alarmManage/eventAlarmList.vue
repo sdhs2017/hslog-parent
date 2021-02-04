@@ -8,7 +8,7 @@
             </div>
         </div>
         <div class="search-wapper">
-            <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
+<!--            <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>-->
         </div>
         <div class="alarm-list-wapper">
             <vBasetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="tableBusName"></vBasetable>
@@ -43,6 +43,7 @@
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input v-model="form.event_area" style="width: 80%;" size="mini"  type="number" min="1"  class="item"></el-input>
                     （秒）
+                    <p style="font-size: 10px;color: #e4956d;">两个事件的时间间隔小于该数值时，会合并为一个时间区间。</p>
                 </el-form-item>
                 <el-form-item label="筛选条件:">
                     <queryFilter
@@ -61,6 +62,7 @@
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     事件数>=
                     <el-input v-model="form.alert_count" size="mini" style="width: 50%;"  type="number" min="1"  class="item"></el-input>
+                    <p style="font-size: 10px;color: #e4956d;">两个事件的时间间隔小于该数值时，会合并为一个时间区间。</p>
                 </el-form-item>
                 <el-form-item label="资产组:">
                     <el-select v-model="form.alert_assetGroup_id" style="width: 74%;" filterable  placeholder="" size="mini" clearable @change="assetGroupChange">
@@ -140,7 +142,7 @@
                 },
                 allCounts:0,
                 tableHead:[{
-                    prop:'event_name',
+                    prop:'event_name_en_cn',
                     label:'事件名称',
                     width:''
                 },{
@@ -159,9 +161,21 @@
                     label:'告警条件',
                     width:'',
                     formatData:(val,obj)=>{
-                        return '>= ' + val
+                        return '事件数>= ' + val
                     }
-                }, {
+                },{
+                    prop:'event_type',
+                    label:'事件类型',
+                    width:''
+                },{
+                    prop:'alert_assetGroup_name',
+                    label:'资产组',
+                    width:''
+                },{
+                    prop:'alert_equipment_name',
+                    label:'资产',
+                    width:''
+                },{
                     prop:'tools',
                     label:'操作',
                     width:'',

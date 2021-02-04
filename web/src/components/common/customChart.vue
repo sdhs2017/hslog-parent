@@ -17,6 +17,7 @@
         },
         data() {
             return {
+                colorArr :['#00EABD','#20C1F3','#FC686F','#F9D124','#DE1AFB','#C0D7FC','#A9F4B7','#FF9E96','#75B568','#323A81'],
                 categories:[],
                 data:[],
                 zoomH:0,
@@ -91,10 +92,14 @@
                 })*/
                 let length = 0
                 for(let i in this.chartData){
-                    length ++;
                     let index = this.categories.length;
                     this.categories.push(i)
-                    let color = this.getColorRandom()
+                    let color = ''
+                    if(length < 10){
+                        color = this.colorArr[length]
+                    }else{
+                        color = this.getColorRandom()
+                    }
                     this.chartData[i].forEach( item =>{
                         let arr = [index,item.start,item.end]
                         this.data.push({
@@ -103,6 +108,7 @@
                             value:arr
                         })
                     })
+                    length ++;
                 }
                 this.zoomH = (100 * 35) / length
                 this.setChart();
@@ -127,7 +133,7 @@
                         xAxisIndex: 0,
                         filterMode: 'weakFilter',
                         height: 20,
-                        bottom: 0,
+                        bottom: 10,
                         handleIcon: 'path://M10.7,11.9H9.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4h1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
                         handleSize: '80%',
                         showDetail: false
@@ -161,7 +167,7 @@
                         moveOnMouseWheel: true
                     }],
                     grid: {
-                       bottom:'10%'
+                       bottom:'80px'
                     },
                     xAxis: {
                         type: "time",

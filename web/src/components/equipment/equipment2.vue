@@ -39,7 +39,7 @@
                             width="150"
                             trigger="click">
                             <div style="min-height: 65px;" v-loading="chartsloading"  element-loading-background="rgba(48, 62, 78, 0.5)"  element-loading-spinner="el-icon-loading">
-                               <div v-for="(ec,ei) in eqChartList"class="eq-chart-item" @click="goToDashboard(i,ec.id,ec.name)" >
+                               <div v-for="(ec,ei) in eqChartList"class="eq-chart-item" @click="goToDashboard(i,ec.id,ec.type)" >
                                    {{ec.name}}
                                </div>
                             </div>
@@ -467,11 +467,11 @@
             goToDashboard(rowData,dId,type){
                 //判断资产日志类型
                // let logType = rowData.logType;
-                if(type === 'SIEM'){
+                if(type === 'siem'){
                     jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id },'查看')
-                }else if(type === 'SYSLOG'){
+                }else if(type === 'syslog'){
                     jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
-                }else if(type === 'WINLOG'){
+                }else if(type === 'winlog'){
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }else if(type === 'dashboard'){
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')

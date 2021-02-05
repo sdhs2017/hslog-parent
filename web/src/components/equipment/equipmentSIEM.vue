@@ -8,7 +8,7 @@
             </div>
         </div>
         <div class="chart-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-            <customChart :chartData="chartData"></customChart>
+            <customChart :chartData="chartData" :duration="duration"></customChart>
         </div>
     </div>
 </template>
@@ -26,6 +26,7 @@
                 equipmentId:'',
                 equipmentname:'',
                 logType:'',
+                duration:[],
                 defaultDate:{
                     //具体时间参数
                     lastVal:'1-day',
@@ -98,7 +99,8 @@
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
-                                this.chartData = obj.data
+                                this.duration = [obj.data.start_time,obj.data.end_time]
+                                this.chartData = obj.data.data
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }

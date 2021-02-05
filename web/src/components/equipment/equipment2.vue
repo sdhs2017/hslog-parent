@@ -269,6 +269,7 @@
                             this.typeArr = res.data
                             this.formConditionsArr[this.formConditionsArr.length - 1].options = this.typeArr;
                             for (let i in data){
+                                data[i].oldType = data[i].type;
                                 let type = '';
                                 const str = data[i].type.substring(0,2);
                                 for (let n in this.typeArr){
@@ -468,7 +469,7 @@
                 //判断资产日志类型
                // let logType = rowData.logType;
                 if(type === 'siem'){
-                    jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id,type:rowData.logType},'（SIEM）')
+                    jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id,type:rowData.oldType},'（SIEM）')
                 }else if(type === 'syslog'){
                     jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }else if(type === 'winlog'){

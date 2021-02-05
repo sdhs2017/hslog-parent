@@ -9,8 +9,23 @@
         </div>
         <div class="search-wapper">
             <div>
-                <span class="input-lable" >事件类型</span>
-                <el-select size="mini" v-model="conditionFrom.event_type" clearable filterable  @change="eventTypeChangeSearch">
+                <span class="input-lable" >告警名称</span>
+                <el-input size="mini" v-model="conditionFrom.event_alert_name"  placeholder=""></el-input>
+            </div>
+            <div>
+                <span class="input-lable" >告警范围</span>
+                <el-select size="mini" v-model="conditionFrom.event_action_range" style="width: 150px;" clearable filterable  @change="eventTypeChangeSearch">
+                    <el-option
+                        v-for="item in actionRange"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable" >资产类型</span>
+                <el-select size="mini" v-model="conditionFrom.event_type" style="width: 150px;" clearable filterable  @change="eventTypeChangeSearch">
                     <el-option
                         v-for="item in eventType"
                         :key="item.value"
@@ -64,9 +79,9 @@
         <!--添加与修改弹窗-->
         <el-dialog :title="editId === '' ? '添加':'修改'" :visible.sync="formState" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <el-form label-width="100px">
-                <el-form-item label="事件:">
+                <el-form-item label="资产类型:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-select v-model="form.event_type" @change="eventTypeChange" size="mini"  placeholder="请选择" style="width: 40%;">
+                    <el-select v-model="form.event_type" @change="eventTypeChange" size="mini"  placeholder="请选择" style="width: 90%;">
                         <el-option
                             v-for="item in eventType"
                             :key="item.value"
@@ -74,7 +89,10 @@
                             :value="item.value">
                         </el-option>
                     </el-select>
-                    <el-select v-model="form.event_name" size="mini" filterable placeholder="请选择" style="width: 50%;">
+                </el-form-item>
+                <el-form-item label="事件名称:">
+                    <span style="color:red;position: absolute;left: -10px;">*</span>
+                    <el-select v-model="form.event_name" size="mini" filterable placeholder="请选择" style="width: 90%;">
                         <el-option
                             v-for="item in eventArr"
                             :key="item.value"
@@ -83,9 +101,41 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
+                <el-form-item label="告警范围:">
+                    <span style="color:red;position: absolute;left: -10px;">*</span>
+                    <el-select v-model="form.event_action_range" size="mini"  placeholder="请选择" style="width: 28%;">
+                        <el-option
+                            v-for="item in actionRange"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                    <el-select v-if="form.event_action_range === 'asset_group'" filterable v-model="form.alert_assetGroup_id" style="width: 61%;" placeholder="" size="mini" >
+                        <el-option
+                            v-for="item in assetGroupOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                    <el-select v-if="form.event_action_range === 'equipment'" filterable v-model="form.alert_equipment_id" style="width: 61%;"  placeholder="" size="mini" >
+                        <el-option
+                            v-for="item in assetOptions"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                    <p style="height: 10px;"></p>
+                </el-form-item>
+                <el-form-item label="告警名称:">
+                    <span style="color:red;position: absolute;left: -10px;">*</span>
+                    <el-input v-model="form.event_alert_name" style="width: 90%;" size="mini" class="item"></el-input>
+                </el-form-item>
                 <el-form-item label="事件时间间隔:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input v-model="form.event_area_num" style="width: 60%;" size="mini"  type="number" min="1"  class="item"></el-input>
+                    <el-input v-model="form.event_area_num" style="width: 59%;" size="mini"  type="number" min="1"  class="item"></el-input>
                     <el-select v-model="form.event_area_unit" placeholder="请选择" style="width: 30%;" size="mini">
                         <el-option
                             v-for="item in timeIntervalArr"
@@ -114,26 +164,6 @@
                     事件数>=
                     <el-input v-model="form.alert_count" size="mini" style="width: 50%;"  type="number" min="1"  class="item"></el-input>
                     <p style="font-size: 10px;color: #e4956d;">合并后的时间区间内事件发生次数的阈值。</p>
-                </el-form-item>
-                <el-form-item label="资产组:">
-                    <el-select v-model="form.alert_assetGroup_id" style="width: 74%;" filterable  placeholder="" size="mini" clearable @change="assetGroupChange">
-                        <el-option
-                            v-for="item in assetGroupOptions"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value">
-                        </el-option>
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="资产:">
-                    <el-select v-model="form.alert_equipment_id" style="width: 74%;" filterable  placeholder="" size="mini" clearable >
-                        <el-option
-                            v-for="item in assetOptions"
-                            :key="item.value"
-                            :label="item.label"
-                            :value="item.value">
-                        </el-option>
-                    </el-select>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -172,6 +202,8 @@
                     event_area_num:'',
                     event_filters:'',
                     alert_count:1,
+                    event_action_range:'all',
+                    event_alert_name:'',
                     event_area_unit:'second',
                     alert_equipment_id:'',
                     alert_assetGroup_id:''
@@ -189,6 +221,12 @@
                         value: 'hour',
                         label: '小时'
                     }
+                ],
+                //作用范围
+                actionRange:[
+                    {label:'全局',value:'all'},
+                    {label:'资产',value:'equipment'},
+                    {label:'资产组',value:'asset_group'},
                 ],
                 //事件类型
                 eventType:[],
@@ -208,13 +246,35 @@
                 },
                 allCounts:0,
                 tableHead:[{
+                    prop:'event_alert_name',
+                    label:'告警名称',
+                    width:''
+                },{
+                    prop:'event_action_range',
+                    label:'告警范围',
+                    width:'',
+                    formatData:(val,obj)=>{
+                        return val === 'all' ? '全局' : val === 'equipment' ? '资产' : '资产组';
+                    }
+                },{
+                    prop:'event_type',
+                    label:'资产类型',
+                    width:''
+                },{
+                    prop:'event_action_range_name',
+                    label:'资产/资产组',
+                    width:''
+                },{
                     prop:'event_name_en_cn',
                     label:'事件名称',
                     width:''
                 },{
-                    prop:'event_type',
-                    label:'事件类型',
-                    width:''
+                    prop:'alert_count',
+                    label:'告警条件',
+                    width:'',
+                    formatData:(val,obj)=>{
+                        return '事件数>= ' + val
+                    }
                 },{
                     prop:'event_area_num',
                     label:'事件时间间隔',
@@ -231,21 +291,6 @@
                         return  val + unit
                     }
                 },{
-                    prop:'alert_count',
-                    label:'告警条件',
-                    width:'',
-                    formatData:(val,obj)=>{
-                        return '事件数>= ' + val
-                    }
-                },{
-                    prop:'alert_assetGroup_name',
-                    label:'资产组',
-                    width:''
-                },{
-                    prop:'alert_equipment_name',
-                    label:'资产',
-                    width:''
-                },{
                     prop:'tools',
                     label:'操作',
                     width:'',
@@ -257,8 +302,6 @@
                                 this.formState = true;
                                 this.editId = row.event_alert_id
                                 this.getEventInfo();
-
-
                             }
                         },
                     ]}
@@ -266,10 +309,12 @@
                 tableData:[],
                 //查询条件
                 conditionFrom:{
+                    event_alert_name:'',
                     event_type:'',
                     event_name:'',
                     alert_equipment_id:'',
-                    alert_assetGroup_id:''
+                    alert_assetGroup_id:'',
+                    event_action_range:''
                 },
                 delectAlarmIds:'',//选中删除的
             }
@@ -309,10 +354,35 @@
                     this.getAssetGroup();
                     this.getAsset('')
                 }else{
-                    this.initialize()
-                    this.getAsset('')
-                    this.getEvent('')
+                    this.editId = '';
+                    this.initialize();
+                    this.getAsset('');
+                    this.getEvent('');
                 }
+            },
+            'alertName'(ne,ol){
+                console.log('ddd')
+                this.form.event_alert_name = ne
+            }
+        },
+        computed:{
+            'alertName'(){
+                let range = this.form.event_action_range === 'all' ? '全局' : this.form.event_action_range === 'equipment' ? '资产' : '资产组';
+                let eventLabel = '';
+                for(let i in this.eventArr){
+                    if(this.eventArr[i].value === this.form.event_name ){
+                        eventLabel = this.eventArr[i].label
+                    }
+                }
+                let arr = eventLabel.split('（');
+                if(arr.length > 1){
+                    //this.form.event_alert_name = arr[0] +'-'+ range +'（'+arr[1]
+                    return arr[0] +'-'+ range +'（'+arr[1]
+                }else{
+                    //this.form.event_alert_name = arr[0] +'-'+ range
+                   return  arr[0] +'-'+ range
+                }
+
             }
         },
         methods:{
@@ -324,6 +394,8 @@
                     event_area_num:'',
                     event_filters:'',
                     alert_count:1,
+                    event_action_range:'all',
+                    event_alert_name:'',
                     event_area_unit:'second',
                     alert_equipment_id:'',
                     alert_assetGroup_id:''
@@ -429,7 +501,7 @@
                         .catch(err=>{
                              this.formLoading = false;
                         })
-                })
+                    })
                 }
 
             },
@@ -482,8 +554,20 @@
             },
             /*验证from参数合法性*/
             checkParam(){
-                if(this.form.event_name === ''){
+                if(this.form.event_type === ''){
+                    layer.msg("资产类型不能为空",{icon:5});
+                    return false
+                }else if(this.form.event_name === ''){
                     layer.msg("事件名称不能为空",{icon:5});
+                    return false
+                }else if(this.form.event_action_range === 'equipment' && this.form.alert_equipment_id === ''){
+                    layer.msg("资产不能为空",{icon:5});
+                    return false
+                }else if(this.form.event_action_range === 'asset_group' && this.form.alert_assetGroup_id === ''){
+                    layer.msg("资产组不能为空",{icon:5});
+                    return false
+                }else if(this.form.event_alert_name === ''){
+                    layer.msg("告警名称不能为空",{icon:5});
                     return false
                 }else if(this.form.event_area_num <= 0){
                     layer.msg("事件时间间隔不合法",{icon:5});
@@ -525,6 +609,7 @@
                 })
 
             },
+            //分页
             handleCurrentChange(page){
                 this.getList(page, this.conditionFrom)
             },
@@ -532,7 +617,7 @@
             getAssetGroup(){
                 this.$nextTick(()=>{
                     this.formLoading = true;
-                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupList4Combobox.do',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupList4EventAlertCombobox.do',this.$qs.stringify())
                         .then(res=>{
                             this.formLoading = false;
                             let obj = res.data;
@@ -559,7 +644,7 @@
             getAsset(asset_group_id){
                 this.$nextTick(()=>{
                     this.formLoading = true;
-                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetList4Combobox.do',this.$qs.stringify({
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetList4EventAlertCombobox.do',this.$qs.stringify({
                         asset_group_id:asset_group_id
                     }))
                         .then(res=>{
@@ -589,6 +674,7 @@
     .search-wapper{
         display: flex;
         justify-content: center;
+        padding: 0 10px;
     }
     .search-wapper div{
         font-size: 12px;
@@ -638,5 +724,9 @@
     }
     /deep/ .el-form-item__content{
         color: #3f9efe;
+    }
+    /deep/ .el-dialog__body{
+        height: 450px;
+        overflow: auto;
     }
 </style>

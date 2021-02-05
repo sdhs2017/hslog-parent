@@ -485,7 +485,7 @@
                 if(this.form.event_name === ''){
                     layer.msg("事件名称不能为空",{icon:5});
                     return false
-                }else if(this.form.event_area <= 0){
+                }else if(this.form.event_area_num <= 0){
                     layer.msg("事件时间间隔不合法",{icon:5});
                     return false
                 } else if(this.form.alert_count <= 0){

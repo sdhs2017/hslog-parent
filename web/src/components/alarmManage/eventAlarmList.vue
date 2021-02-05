@@ -516,7 +516,8 @@
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
-                                this.form = obj.data
+                                this.form = obj.data;
+                                this.defaultFilter = JSON.parse(obj.data.event_filters);
                                 this.getEvent(obj.data.event_type);
                             }else{
                                 layer.msg(obj.message,{icon:5})

@@ -468,7 +468,7 @@
                 //判断资产日志类型
                // let logType = rowData.logType;
                 if(type === 'siem'){
-                    jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id },'（SIEM）')
+                    jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id,type:rowData.logType},'（SIEM）')
                 }else if(type === 'syslog'){
                     jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }else if(type === 'winlog'){

@@ -25,6 +25,7 @@
                 loading:false,
                 equipmentId:'',
                 equipmentname:'',
+                logType:'',
                 defaultDate:{
                     //具体时间参数
                     lastVal:'1-day',
@@ -63,6 +64,7 @@
             this.busName = 'equipmentSIEMBusName'+ this.$route.query.id;
             this.equipmentname = this.$route.query.name;
             this.equipmentId = this.$route.query.id;
+            this.logType = this.$route.query.type;
            /* const end = new Date();
             const start = new Date();
             start.setTime(start.getTime() - 3600 * 1000 * 24 * 1);
@@ -87,6 +89,7 @@
                     this.loading = true;
                     this.$axios.post(this.$baseUrl+'/siem/getSIEMInfo.do',this.$qs.stringify({
                         equipment_id:this.equipmentId,
+                        equipment_type:this.logType,
                         starttime:this.starttime,
                         endtime:this.endtime,
                         last:this.last

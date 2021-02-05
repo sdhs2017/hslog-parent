@@ -388,6 +388,7 @@
         methods:{
             /*初始化*/
             initialize(){
+                this.defaultFilter = [];
                 this.form={
                     event_type:'',
                     event_name:'',

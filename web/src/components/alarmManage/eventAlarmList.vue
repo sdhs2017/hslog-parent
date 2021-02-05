@@ -8,7 +8,51 @@
             </div>
         </div>
         <div class="search-wapper">
-<!--            <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>-->
+            <div>
+                <span class="input-lable" >事件类型</span>
+                <el-select size="mini" v-model="conditionFrom.event_type" clearable filterable  @change="eventTypeChangeSearch">
+                    <el-option
+                        v-for="item in eventType"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable">事件名称</span>
+                <el-select size="mini" v-model="conditionFrom.event_name"  clearable filterable  @change="">
+                    <el-option
+                        v-for="item in eventArr"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable" >资产组</span>
+                <el-select size="mini" v-model="conditionFrom.alert_assetGroup_id" clearable filterable  @change="assetGroupChangeSearch">
+                    <el-option
+                        v-for="item in assetGroupOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <div>
+                <span class="input-lable" >资产</span>
+                <el-select size="mini" v-model="conditionFrom.alert_equipment_id" clearable filterable>
+                    <el-option
+                        v-for="item in assetOptions"
+                        :key="item.value"
+                        :label="item.label"
+                        :value="item.value">
+                    </el-option>
+                </el-select>
+            </div>
+            <el-button size="mini" type="primary" class="searchBtn" @click="searchFunc">检索</el-button>
         </div>
         <div class="alarm-list-wapper">
             <vBasetable :selection="true" :tableHead="tableHead" :tableData="tableData" :busName="tableBusName"></vBasetable>
@@ -41,8 +85,15 @@
                 </el-form-item>
                 <el-form-item label="事件时间间隔:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input v-model="form.event_area" style="width: 80%;" size="mini"  type="number" min="1"  class="item"></el-input>
-                    （秒）
+                    <el-input v-model="form.event_area_num" style="width: 60%;" size="mini"  type="number" min="1"  class="item"></el-input>
+                    <el-select v-model="form.event_area_unit" placeholder="请选择" style="width: 30%;" size="mini">
+                        <el-option
+                            v-for="item in timeIntervalArr"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
                     <p style="font-size: 10px;color: #e4956d;">两个事件的时间间隔小于该数值时，会合并为一个时间区间。</p>
                 </el-form-item>
                 <el-form-item label="筛选条件:">
@@ -118,12 +169,27 @@
                 form:{
                     event_type:'',
                     event_name:'',
-                    event_area:'',
+                    event_area_num:'',
                     event_filters:'',
                     alert_count:1,
+                    event_area_unit:'second',
                     alert_equipment_id:'',
                     alert_assetGroup_id:''
                 },
+                timeIntervalArr:[
+                    {
+                        value: 'second',
+                        label: '秒'
+                    },
+                    {
+                        value: 'minute',
+                        label: '分钟'
+                    },
+                    {
+                        value: 'hour',
+                        label: '小时'
+                    }
+                ],
                 //事件类型
                 eventType:[],
                 //事件
@@ -150,11 +216,19 @@
                     label:'事件类型',
                     width:''
                 },{
-                    prop:'event_area',
+                    prop:'event_area_num',
                     label:'事件时间间隔',
                     width:'',
                     formatData:(val,obj)=>{
-                        return  val +' 秒'
+                        let unit = ''
+                        if(obj.event_area_unit === 'second'){
+                            unit = '秒'
+                        }else if(obj.event_area_unit === 'minute'){
+                            unit = '分钟'
+                        }else if(obj.event_area_unit === 'hour'){
+                            unit = '小时'
+                        }
+                        return  val + unit
                     }
                 },{
                     prop:'alert_count',
@@ -190,25 +264,22 @@
                     ]}
                 ],
                 tableData:[],
-                formConditionsArr:[
-                    {
-                        label:'名称',
-                        paramName:'alert_name',
-                        model:{
-                            model:''
-                        },
-                        itemType:'',
-                        type:'input'
-                    }
-                ],
+                //查询条件
                 conditionFrom:{
-                    event_name:''
+                    event_type:'',
+                    event_name:'',
+                    alert_equipment_id:'',
+                    alert_assetGroup_id:''
                 },
                 delectAlarmIds:'',//选中删除的
             }
         },
         created() {
-
+            this.getEventType();
+            this.getEvent('');
+            this.getAssetGroup();
+            this.getAsset('');
+            //获取数据
             this.getList(1,this.conditionFrom)
 
             bus.$on(this.busName,(params)=>{
@@ -239,6 +310,8 @@
                     this.getAsset('')
                 }else{
                     this.initialize()
+                    this.getAsset('')
+                    this.getEvent('')
                 }
             }
         },
@@ -246,20 +319,21 @@
             /*初始化*/
             initialize(){
                 this.form={
-                   /* template_name:'winlogbeat-',
-                    pre_index_name:'winlogbeat-',
-                    suffix_index_name:'*',*/
                     event_type:'',
                     event_name:'',
-                    event_area:'',
+                    event_area_num:'',
                     event_filters:'',
                     alert_count:1,
+                    event_area_unit:'second',
                     alert_equipment_id:'',
                     alert_assetGroup_id:''
                 }
             },
             /*刷新*/
             refresh(){
+                this.getList(1,this.conditionFrom)
+            },
+            searchFunc(){
                 this.getList(1,this.conditionFrom)
             },
             /*获取列表*/
@@ -304,7 +378,12 @@
                         })
                 })
             },
-            /*事件类型改变*/
+            /*查询-事件类型改变*/
+            eventTypeChangeSearch(val){
+                this.conditionFrom.event_name = ''
+                this.getEvent(val)
+            },
+            /*form-事件类型改变*/
             eventTypeChange(val){
                 this.form.event_name = ''
                 this.getEvent(val)
@@ -468,7 +547,11 @@
                         })
                 })
             },
-            /*资产组改变事件*/
+            /*search-资产组改变事件*/
+            assetGroupChangeSearch(val){
+                this.getAsset(val);
+            },
+            /*form-资产组改变事件*/
             assetGroupChange(val){
                 this.getAsset(val);
             },
@@ -503,6 +586,39 @@
 </script>
 
 <style scoped>
+    .search-wapper{
+        display: flex;
+        justify-content: center;
+    }
+    .search-wapper div{
+        font-size: 12px;
+        display: flex;
+    }
+    .search-wapper .input-lable{
+        display: inline-block;
+        font-size: 12px;
+        height: 28px;
+        background: #409eff;
+        line-height: 28px;
+        padding: 0 10px;
+        color: #fff;
+        word-break: keep-all;
+        text-align: center;
+    }
+    .search-wapper /deep/ .el-input--mini .el-input__inner{
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+    }
+    .search-wapper .el-range-editor--mini.el-input__inner{
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+    }
+    .searchBtn{
+        border-radius: 0;
+    }
+
     .btn-wapper{
         float: right;
         margin-right: 10px;

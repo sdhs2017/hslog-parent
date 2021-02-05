@@ -14,7 +14,7 @@
             </div>
             <div>
                 <span class="input-lable" >告警范围</span>
-                <el-select size="mini" v-model="conditionFrom.event_action_range" style="width: 150px;" clearable filterable  @change="eventTypeChangeSearch">
+                <el-select size="mini" v-model="conditionFrom.event_action_range" style="width: 150px;" clearable filterable  >
                     <el-option
                         v-for="item in actionRange"
                         :key="item.value"
@@ -55,7 +55,7 @@
             </div>
             <div>
                 <span class="input-lable" >资产组</span>
-                <el-select size="mini" v-model="conditionFrom.alert_assetGroup_id" clearable filterable  @change="assetGroupChangeSearch">
+                <el-select size="mini" v-model="conditionFrom.alert_assetGroup_id" clearable filterable >
                     <el-option
                         v-for="item in assetGroupOptions"
                         :key="item.value"

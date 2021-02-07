@@ -201,6 +201,20 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 	}
 
 	@Override
+	public List<Map<String, String>> getAssetList4EventAlertCombobox(String equipment_type) {
+		List<Map<String, String>> result = new ArrayList<>();
+		//获取所有资产信息
+		List<Equipment> equipmentList = equipmentDao.selectAllHostNameByEquipmentType(equipment_type);
+		for(Equipment equipment:equipmentList){
+			Map<String,String> map = new HashMap<>();
+			map.put(Constant.COMBOBOX_VALUE,equipment.getId());
+			map.put(Constant.COMBOBOX_LABEL,equipment.getName());
+			result.add(map);
+		}
+		return result;
+	}
+
+	@Override
 	public List<Map<String, String>> getAssetGroupList() {
 		List<Map<String, String>> result = new ArrayList<>();
 		//下拉框，全部
@@ -220,6 +234,13 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 		map_all.put(Constant.COMBOBOX_VALUE,"");
 		map_all.put(Constant.COMBOBOX_LABEL,"不指定资产组");
 		result.add(map_all);
+		result.addAll(getAssetGroupListCombobox());
+		return result;
+	}
+
+	@Override
+	public List<Map<String, String>> getAssetGroupList4EventAlertCombobox() {
+		List<Map<String, String>> result = new ArrayList<>();
 		result.addAll(getAssetGroupListCombobox());
 		return result;
 	}

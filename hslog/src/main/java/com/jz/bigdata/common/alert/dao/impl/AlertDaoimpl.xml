@@ -271,4 +271,13 @@
 		select * from alert
 		where alert_id = #{alert_id}
 	</select>
+	<!-- 删除数据 批量删-->
+	<update id="deleteAlerts" parameterType="java.lang.String">
+		<!-- delete from equipment where id in -->
+		DELETE FROM alert  where alert_id in
+		<foreach item="ids" index="index" collection="array" open="("
+				 separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
 </mapper>

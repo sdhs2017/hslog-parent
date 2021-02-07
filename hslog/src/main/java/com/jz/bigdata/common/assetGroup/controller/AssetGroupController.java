@@ -179,6 +179,23 @@ public class AssetGroupController {
 		}
 	}
 	/**
+	 * 服务于事件告警
+	 * @param request
+	 * @return 获取资产列表,combobox
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getAssetList4EventAlertCombobox.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产列表")
+	public String getAssetList4EventAlertCombobox(HttpServletRequest request) {
+		try{
+			String equipment_type = request.getParameter("equipment_type");
+			List<Map<String,String>> result = this.assetGroupService.getAssetList4EventAlertCombobox(equipment_type);
+			return Constant.successData(JSONArray.toJSONString(result));
+		}catch(Exception e){
+			return Constant.failureMessage("资产组添加失败！");
+		}
+	}
+	/**
 	 * @param request
 	 * @return 获取资产列表，服务于alert的combobox，不添加空选项，用于dashboard设置资产/资产组
 	 */
@@ -198,11 +215,11 @@ public class AssetGroupController {
 	 * @return 获取资产列表，服务于alert的combobox，添加空选项
 	 */
 	@ResponseBody
-	@RequestMapping(value="/getAssetGroupList4Combobox.do", produces = "application/json; charset=utf-8")
+	@RequestMapping(value="/getAssetGroupList4EventAlertCombobox.do", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="获取资产组列表")
-	public String getAssetGroupList4Combobox(HttpServletRequest request) {
+	public String getAssetGroupList4EventAlertCombobox(HttpServletRequest request) {
 		try{
-			List<Map<String,String>> result = this.assetGroupService.getAssetGroupList4Combobox();
+			List<Map<String,String>> result = this.assetGroupService.getAssetGroupList4EventAlertCombobox();
 			return Constant.successData(JSONArray.toJSONString(result));
 		}catch(Exception e){
 			return Constant.failureMessage("资产组添加失败！");

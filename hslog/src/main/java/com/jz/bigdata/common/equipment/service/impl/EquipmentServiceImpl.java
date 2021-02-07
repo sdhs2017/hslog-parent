@@ -565,9 +565,13 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			result.addAll(DashboardConfig.METRIC_DASHBOARDS_ASSET);
 		}else if("packet".equals(logType)){
 			result.addAll(DashboardConfig.PACKET_DASHBOARDS_ASSET);
+		}else if("syslog".equals(logType)){
+			result.addAll(DashboardConfig.SYSLOG);
+		}else if("winlog".equals(logType)){
+			result.addAll(DashboardConfig.WINLOG);
 		}else{
-			//TODO
-			//winlog syslog待完成
+			//其他类型无报表
+			result.clear();
 		}
 		return result;
 	}

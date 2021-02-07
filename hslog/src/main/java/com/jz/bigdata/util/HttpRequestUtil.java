@@ -182,7 +182,7 @@ public class HttpRequestUtil {
             searchConditions.mapToBean(params);
             //时间范围
             //Map<String,String> map = getStartEndTimeByLast(configProperty.getAlert_default_area());
-            Map<String,String> map = getTimeAreaByAlertParam(request.getParameter("alert_exec_type"),request.getParameter("alert_time_cycle_num"),request.getParameter("alert_time_cycle_type"),request.getParameter("alert_time_type"),request.getParameter("alert_time"));
+            Map<String,String> map = getTimeAreaByAlertParam(request.getParameter("alert_time_type"),request.getParameter("alert_time"));
             //赋值，如果起始和截止时间能正常获取
             if(map.size()==2){
                 searchConditions.setStartTime(map.get("starttime"));
@@ -274,6 +274,33 @@ public class HttpRequestUtil {
     }
 
     /**
+     * 告警模块获取时间范围
+     * @param alert_time_type
+     * @param alert_time
+     * @return
+     */
+    public static Map<String,String> getTimeAreaByAlertParam(String alert_time_type,String alert_time){
+        Map<String,String> timeArea = new HashMap<>();
+        if(alert_time_type!=null){
+            if("last".equals(alert_time_type)){
+                //工具类获取时间范围
+                Map<String,String> timeMap = HttpRequestUtil.getStartEndTimeByLast(alert_time);
+                timeArea.putAll(timeMap);
+            }else if("range".equals(alert_time_type)){
+                //精确时间的起始和截止时间以逗号隔开
+                String[] timeArray = alert_time.split(",");
+                if(timeArray.length==2){
+                    timeArea.put("starttime",timeArray[0]);
+                    timeArea.put("endtime",timeArray[1]);
+                }
+            }else{
+                log.error("时间参数异常，alert_time_type："+alert_time_type);
+            }
+        }
+        return timeArea;
+    }
+    /**
+     * 已弃用
      * 根据alert的时间参数获取起始和截止时间
      * @param alert_exec_type 时间类型 simple/complex
      * @param alert_time_cycle_num simple：执行周期数值
@@ -457,6 +484,54 @@ public class HttpRequestUtil {
         }
         return sqlSearchConditions;
     }
+
+    /**
+     * 根据参数获取事件范围
+     * @param request
+     * @return
+     */
+    public static SearchConditions getSearchConditionsByRequest_time(HttpServletRequest request){
+        SearchConditions searchConditions = new SearchConditions();
+        try {
+            Map<String, String[]> params = request.getParameterMap();
+            //通过bean对应，直接处理部分参数，包括intervalValue、intervalType等等
+            searchConditions.mapToBean(params);
+            //获取起始和截至时间
+            String starttime = request.getParameter("starttime");
+            String endtime = request.getParameter("endtime");
+            String last = request.getParameter("last");
+            //last值不为空
+            if (!Strings.isNullOrEmpty(last)) {
+                if (Strings.isNullOrEmpty(starttime) && Strings.isNullOrEmpty(endtime)) {
+                    //起始、截止时间为空，last不为空,计算起始和截止时间
+                    Map<String, String> map = getStartEndTimeByLast(last);
+                    //赋值，如果起始和截止时间能正常获取
+                    if (map.size() == 2) {
+                        searchConditions.setStartTime(map.get("starttime"));
+                        searchConditions.setEndTime(map.get("endtime"));
+                    } else {
+                        //其他情况判定为时间范围数据异常，返回前端显示
+                        searchConditions.setErrorInfo("请重新设定时间范围!");
+                    }
+                } else {
+                    //既有起始或截止时间，又有last，参数异常
+                    searchConditions.setErrorInfo("请重新设定时间范围!");
+                }
+            } else {//last值为空
+                //起始和截止时间都不为空,并且格式为yyyy-MM-dd HH:mm:ss
+                if (!Strings.isNullOrEmpty(starttime) && !Strings.isNullOrEmpty(endtime) && starttime.matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}") && endtime.matches("\\d{4}-\\d{2}-\\d{2}\\s{1}\\d{2}:\\d{2}:\\d{2}")) {
+                    searchConditions.setStartTime(starttime);
+                    searchConditions.setEndTime(endtime);
+                } else {
+                    //起始或截止时间存在为空的，也属于参数异常状态
+                    searchConditions.setErrorInfo("请重新设定时间范围!");
+                }
+            }
+        }catch(Exception e){
+            searchConditions.setErrorInfo("查询参数异常，请重新设置！");
+        }
+        return searchConditions;
+    }
     /**
      * 处理参数 用于对报表的参数处理
      * 基础参数处理，包括  index  query filter  时间范围
@@ -519,7 +594,7 @@ public class HttpRequestUtil {
             //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
             if(searchConditions.getIndex_name().indexOf("packet-")>=0){
                 searchConditions.setDateField(Constant.PACKET_DATE_FIELD);
-            }else if(searchConditions.getIndex_name().indexOf("beat")>=0){
+            }else if(searchConditions.getIndex_name().indexOf("beat")>=0||searchConditions.getIndex_name().indexOf("hsfile")>=0){
                 searchConditions.setDateField(Constant.BEAT_DATE_FIELD);
             }else{
                 searchConditions.setErrorInfo("数据源异常，请重新选择数据源!");

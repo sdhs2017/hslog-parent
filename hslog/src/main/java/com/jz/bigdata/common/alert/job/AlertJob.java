@@ -87,7 +87,7 @@ public class AlertJob implements Job {
             log.error("定时任务index异常，index名称中不包含packet和beat");
         }
         //处理时间范围，所有参数都有值，至少是空字符串，因此toString不会报错
-        Map<String,String> timeArea = HttpRequestUtil.getTimeAreaByAlertParam(map.get("alert_exec_type").toString(),map.get("alert_time_cycle_num").toString(),map.get("alert_time_cycle_type").toString(),map.get("alert_time_type").toString(),map.get("alert_time").toString());
+        Map<String,String> timeArea = HttpRequestUtil.getTimeAreaByAlertParam(map.get("alert_time_type").toString(),map.get("alert_time").toString());
         //赋值，如果起始和截止时间能正常获取
         if(timeArea.size()==2){
             searchConditions.setStartTime(timeArea.get("starttime"));

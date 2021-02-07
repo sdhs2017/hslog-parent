@@ -128,7 +128,46 @@ public class AlertController {
         }
     }
     /**
-     * 创建告警任务
+     * 执行一次告警任务
+     */
+    @ResponseBody
+    @RequestMapping(value="/startOnce.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="执行一次告警任务")
+    public String startOnce(HttpServletRequest request) {
+        String alert_id = request.getParameter("alert_id");
+        try{
+            boolean result = iAlertService.createQuartzAndStartOnce(alert_id);
+            if(result){
+                return Constant.successMessage("告警执行成功");
+            }else{
+                return Constant.failureMessage("告警执行失败!");
+            }
+        }catch (Exception e){
+            log.error("告警执行失败"+e.getMessage());
+            return Constant.failureMessage("告警执行失败!");
+        }
+
+    }
+
+    /**
+     * 验证cron表达式的正确性
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/cronValid.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="cron表达式验证")
+    public String cronValid(HttpServletRequest request){
+        String alert_cron = request.getParameter("alert_cron");
+        boolean cronExpressionFlag = CronExpression.isValidExpression(alert_cron);
+        if(!cronExpressionFlag){
+            return Constant.failureMessage("执行周期：cron表达式格式错误！");
+        }else{
+            return Constant.successMessage();
+        }
+    }
+    /**
+     * 删除告警任务
      */
     @ResponseBody
     @RequestMapping(value="/delete.do", produces = "application/json; charset=utf-8")
@@ -138,6 +177,30 @@ public class AlertController {
             String alert_id = request.getParameter("alert_id");
             if(alert_id!=null){
                 boolean result = iAlertService.delete(alert_id);
+                if(result){
+                    return Constant.successMessage("删除成功！");
+                }else{
+                    return Constant.failureMessage("删除失败！该告警信息不存在！");
+                }
+            }else{
+                return Constant.failureMessage("参数异常！");
+            }
+        }catch(Exception e){
+            log.error("删除告警信息异常"+e.getMessage());
+            return Constant.failureMessage("删除告警信息失败！");
+        }
+    }
+    /**
+     * 删除告警任务，多选删除
+     */
+    @ResponseBody
+    @RequestMapping(value="/deletes.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="删除告警任务")
+    public String deletes(HttpServletRequest request){
+        try{
+            String alert_ids = request.getParameter("alert_ids");
+            if(alert_ids!=null){
+                boolean result = iAlertService.deletes(alert_ids);
                 if(result){
                     return Constant.successMessage("删除成功！");
                 }else{

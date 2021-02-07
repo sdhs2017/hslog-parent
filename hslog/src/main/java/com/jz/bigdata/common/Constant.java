@@ -1,7 +1,9 @@
 package com.jz.bigdata.common;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author yiyang
@@ -9,6 +11,20 @@ import java.util.List;
  * @description 系统常量
  */
 public class Constant {
+	/**
+	 * siem界面对应选择事件下拉框，第一个下拉框，选择事件类型：linux/windows
+	 */
+	public static List<Map<String,String>> EVENT_TYPE = new ArrayList<>();
+	static{
+		Map<String,String> linux = new HashMap<>();
+		linux.put("label","Linux");
+		linux.put("value","0302");
+		EVENT_TYPE.add(linux);
+		Map<String,String> windows = new HashMap<>();
+		windows.put("label","Windows");
+		windows.put("value","0301");
+		EVENT_TYPE.add(windows);
+	}
 	//批量提交数
 	public static String ES_BULK_NAME = "es_bulk";
 	//ES bulk提交 线程数

@@ -62,6 +62,12 @@ public interface IAssetGroupService {
 	 */
 	List<Map<String,String>> getAssetList4Combobox(String asset_group_id);
 	/**
+	 * 资产列表,数据返回格式：combobox,
+	 * 参数：资产组id
+	 * @return
+	 */
+	List<Map<String,String>> getAssetList4EventAlertCombobox(String equipment_type);
+	/**
 	 * 资产组列表
 	 * @return
 	 */
@@ -71,6 +77,11 @@ public interface IAssetGroupService {
 	 * @return
 	 */
 	List<Map<String,String>> getAssetGroupList4Combobox();
+	/**
+	 * 资产组列表，下拉框添加空选项
+	 * @return
+	 */
+	List<Map<String,String>> getAssetGroupList4EventAlertCombobox();
 	/**
 	 * 通过资产组id获取对应的dashboard信息
 	 * @param asset_group_id

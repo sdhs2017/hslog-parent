@@ -64,6 +64,11 @@ public interface IEventGroupService {
 	 */
 	List<Map<String,Object>> getEventList4Combobox(String event_type);
 	/**
+	 * 服务于事件告警设置功能，key value相同
+	 * @return
+	 */
+	List<Map<String,Object>> getEventList4Combobox_eventAlert(String event_type);
+	/**
 	 * 事件列表,通过日志类型
 	 * @return
 	 */

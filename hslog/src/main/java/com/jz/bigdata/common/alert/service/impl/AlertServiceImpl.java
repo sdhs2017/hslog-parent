@@ -144,6 +144,16 @@ public class AlertServiceImpl implements IAlertService {
     }
 
     @Override
+    public boolean deletes(String alert_ids) throws Exception {
+        String[] ids = alert_ids.split(",");
+        alertDao.deleteAlerts(ids);
+        for(String id:ids){
+            deleteQuartz(id);
+        }
+        return true;
+    }
+
+    @Override
     public String updateById(Alert alert, HttpSession session) {
         //当前用户信息
         alert.setAlert_update_user(session.getAttribute(Constant.SESSION_USERID).toString());
@@ -216,6 +226,50 @@ public class AlertServiceImpl implements IAlertService {
         }
     }
 
+    /**
+     * 仅执行一次的计划任务
+     * @param alert_id
+     * @return
+     */
+    public boolean createQuartzAndStartOnce(String alert_id){
+        Alert alert = alertDao.getAlertInfoById(alert_id);
+        if(alert!=null){
+            //创建定时任务
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+            JobDataMap map = null;
+            try {
+                //处理参数
+                map = alert2JobDataMap(alert);
+            } catch (Exception e) {
+                log.error("计划任务参数处理异常："+e.getMessage());
+                return false;
+            }
+            JobDetail jobDetail = JobBuilder.newJob(AlertJob.class)
+                    .withDescription("告警任务-仅执行一次")
+                    .withIdentity(alert.getAlert_id()+"-onlyOnce", Constant.QUARTZ_JOB_GROUP)
+                    .usingJobData(map)
+                    .build();
+            SimpleTrigger simpleTrigger = TriggerBuilder.newTrigger().withIdentity(alert.getAlert_id()+"-onlyOnce", Constant.QUARTZ_JOB_GROUP)
+                    .startAt(new Date())
+                    //重复执行的次数，因为加入任务的时候马上执行了，所以不需要重复，否则会多一次。
+                    .withSchedule(SimpleScheduleBuilder.simpleSchedule().withIntervalInSeconds(3).withRepeatCount(0))
+                    .build();
+            try {
+                if(!scheduler.checkExists(JobKey.jobKey(alert.getAlert_id()+"-onlyOnce",Constant.QUARTZ_JOB_GROUP))){
+                    scheduler.scheduleJob(jobDetail,simpleTrigger);
+                }
+                scheduler.start();
+                return true;
+            } catch (SchedulerException e) {
+                log.error("任务启动失败："+e.getMessage());
+                return false;
+            }
+        }else{
+            log.error("未找到alert_id:"+alert_id+"  对应的告警信息！");
+            return false;
+        }
+
+    }
     /**
      * 创建一个quartz任务
      * @param alert

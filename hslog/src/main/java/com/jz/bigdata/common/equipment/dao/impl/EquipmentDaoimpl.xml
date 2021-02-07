@@ -137,6 +137,16 @@
 		</choose>
 
 	</select>
+	<select id="selectAllHostNameByEquipmentType" resultMap="BaseResultMapUserName">
+				select
+				<include refid="Base_Column_List" />
+				from equipment
+				where startUp =1
+				<if test="equipment_type != null and equipment_type !=''" >
+					and equipment.type = #{equipment_type,jdbcType=VARCHAR}
+				</if>
+
+	</select>
 	<select id="getEquipmentListByAssetGroupIds" parameterType="java.lang.String" resultMap="BaseResultMapUserName">
 		select equipment.* from equipment where 1=1
 

@@ -24,6 +24,14 @@ public interface IAlertService {
      * @throws Exception
      */
     public boolean insert(Alert alert) throws Exception;
+
+    /**
+     * 仅执行一次计划任务
+     * @param alert_id
+     * @return
+     * @throws Exception
+     */
+    public boolean createQuartzAndStartOnce(String alert_id)throws Exception;
     /**
      * 告警信息查询
      * @param alert
@@ -31,11 +39,18 @@ public interface IAlertService {
      */
     Map<String, Object> getAlertInfoByCondition(Alert alert);
     /**
-     * 删除资产组
+     * 删除告警
      * @param alert_id
      * @return
      */
     boolean delete(String alert_id) throws Exception;
+
+    /**
+     * 删除告警，多选删除
+     * @param alert_ids
+     * @return
+     */
+    boolean deletes(String alert_ids) throws Exception;
     /**
      * 告警信息更新
      * @param assetGroup

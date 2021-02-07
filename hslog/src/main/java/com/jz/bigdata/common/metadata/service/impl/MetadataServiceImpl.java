@@ -168,7 +168,7 @@ public class MetadataServiceImpl implements IMetadataService {
         for(IndexTemplateMetaData template:list){
             //将所有的template进行筛选，只选择
             //TODO 加上beat的筛选，后期需要进行
-            if(template.name().indexOf(es_tempalatePattern.replace("*",""))>=0||template.name().indexOf("beat-")>=0||template.name().indexOf("hsfile-")>=0){
+            if(template.name().indexOf(es_tempalatePattern.replace("*",""))>=0||template.name().indexOf("beat-")>=0||template.name().indexOf("hsfile")>=0){
                 ComboxEntity ce = new ComboxEntity();
                 ce.setLabel(template.name());
                 ce.setValue(template.name());
@@ -185,12 +185,22 @@ public class MetadataServiceImpl implements IMetadataService {
         Set<String> preIndexName = new HashSet<>();
         //匹配日期的正则
         //String regex = "((19|20)[0-9]{2}).(0[1-9]|1[012]).(0[1-9]|[12][0-9]|3[01])";
-        String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";
+        String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";//yyyy.mm.dd
+        String year_month_regex = "([0-9]{4}).([0-9]{2})";//yyyy.mm 适用于按月存储的index
         for(String index:indices){
+
             Matcher m =Pattern.compile(regex).matcher(index);
+            //按天分的index
             if(m.find()){
                 //获取日期之前的数据
                 preIndexName.add(index.substring(0,m.start()));
+            }else{
+                //判断是否是按月分的index
+                Matcher _m =Pattern.compile(year_month_regex).matcher(index);
+                if(_m.find()){
+                    //获取日期之前的数据
+                    preIndexName.add(index.substring(0,_m.start()));
+                }
             }
 
         }
@@ -213,11 +223,19 @@ public class MetadataServiceImpl implements IMetadataService {
         //匹配日期的正则
         //String regex = "((19|20)[0-9]{2}).(0[1-9]|1[012]).(0[1-9]|[12][0-9]|3[01])";
         String regex = "([0-9]{4}).([0-9]{2}).([0-9]{2})";
+        String year_month_regex = "([0-9]{4}).([0-9]{2})";//yyyy.mm 适用于按月存储的index
         for(String index:indices){
             Matcher m =Pattern.compile(regex).matcher(index);
             if(m.find()){
                 //将匹配到日期及之后的数据放入下拉菜单
                 suffixIndexName.add(index.substring(m.start()));
+            }else{
+                //判断是否是按月分的index
+                Matcher _m =Pattern.compile(year_month_regex).matcher(index);
+                if(_m.find()){
+                    //获取日期之前的数据
+                    suffixIndexName.add(index.substring(_m.start()));
+                }
             }
         }
         List<ComboxEntity> comboxEntityList = new ArrayList<>();

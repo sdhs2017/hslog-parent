@@ -40,6 +40,12 @@ public interface IAlertDao {
 	 */
 	int deleteAlert(@Param("alert_id")String alert_id);
 	/**
+	 * 删除告警信息，批量删除
+	 * @param ids
+	 * @return
+	 */
+	int deleteAlerts(String[] ids);
+	/**
 	 * 更新资产组信息
 	 * @param alert
 	 * @return

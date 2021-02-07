@@ -12,6 +12,8 @@ import java.util.Map;
  * @Description: dashboard的配置信息，主要描述不同日志类型对应的dashboard——id
  */
 public class DashboardConfig {
+    //-----------日志类型 syslog
+
     //------------日志类型 metric
     //单个资产
     public static final List<Map<String,String>> METRIC_DASHBOARDS_ASSET = new ArrayList<>();
@@ -19,6 +21,7 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","log");
         map.put("id","CMCPunUBEtm5D8ifHXoY");
+        map.put("type","dashboard");
         METRIC_DASHBOARDS_ASSET.add(map);
     }
     //资产组
@@ -27,6 +30,7 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","资产指标");
         map.put("id","_qxeunUBEtm5D8if4qKB");
+        map.put("type","dashboard");
         METRIC_DASHBOARDS_ASSET_GROUP.add(map);
     }
     //-------------日志类型 packet
@@ -39,6 +43,7 @@ public class DashboardConfig {
             Map<String,String> map = new HashMap<>();
             map.put("name",names[i]);
             map.put("id",ids[i]);
+            map.put("type","dashboard");
             PACKET_DASHBOARDS_ASSET.add(map);
         }
     }
@@ -48,6 +53,7 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","流量数据概览");
         map.put("id","deQT83UBnnDgfQAG5zvt");
+        map.put("type","dashboard");
         PACKET_DASHBOARDS_ASSET_GROUP.add(map);
         //PACKET_DASHBOARDS_ASSET_GROUP.put("流量数据概览","deQT83UBnnDgfQAG5zvt");
     }
@@ -57,6 +63,7 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","linux");
         map.put("id","QvCh2HQBnnP6Ef6k2Tz8");
+        map.put("type","dashboard");
         SYSLOG_DASHBOARDS_ASSET_GROUP.add(map);
 //        SYSLOG_DASHBOARDS_ASSET_GROUP.put("SYSLOG","QvCh2HQBnnP6Ef6k2Tz8");
     }
@@ -66,6 +73,7 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","windows");
         map.put("id","uvWs2HQBnnP6Ef6klX9M");
+        map.put("type","dashboard");
         WINLOG_DASHBOARDS_ASSET_GROUP.add(map);
 //        WINLOG_DASHBOARDS_ASSET_GROUP.put("WINLOG","uvWs2HQBnnP6Ef6klX9M");
     }
@@ -75,6 +83,7 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","linux&windows");
         map.put("id","4EUtznQBqKrf67HaI3pC");
+        map.put("type","dashboard");
         SYSLOG_WINLOG_DASHBOARDS_ASSET_GROUP.add(map);
 //        SYSLOG_WINLOG_DASHBOARDS_ASSET_GROUP.put("SYSLOG&WINLOG","4EUtznQBqKrf67HaI3pC");
     }
@@ -84,7 +93,28 @@ public class DashboardConfig {
         Map<String,String> map = new HashMap<>();
         map.put("name","SIEM");
         map.put("id","");
+        map.put("type","siem");
         SIEM.add(map);
+//        PACKET_DASHBOARDS_ASSET.put("SIEM","");
+    }
+    //日志类型为syslog的资产，点击报表时的syslog项为写死页面
+    public static final List<Map<String,String>> SYSLOG = new ArrayList<>();
+    static{
+        Map<String,String> map = new HashMap<>();
+        map.put("name","SYSLOG");
+        map.put("id","syslogEquipmentEcharts");
+        map.put("type","syslog");
+        SYSLOG.add(map);
+//        PACKET_DASHBOARDS_ASSET.put("SIEM","");
+    }
+    //日志类型为winlog的资产，点击报表时的winlog项为写死页面
+    public static final List<Map<String,String>> WINLOG = new ArrayList<>();
+    static{
+        Map<String,String> map = new HashMap<>();
+        map.put("name","WINLOG");
+        map.put("id","winEquipmentEcharts");
+        map.put("type","winlog");
+        WINLOG.add(map);
 //        PACKET_DASHBOARDS_ASSET.put("SIEM","");
     }
 

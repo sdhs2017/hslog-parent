@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.event_alert.dao.IEventAlertDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+			   type="com.jz.bigdata.common.event_alert.entity.EventAlert">
+		<id column="event_alert_id" jdbcType="VARCHAR" property="event_alert_id" />
+		<result column="event_alert_name" jdbcType="VARCHAR" property="event_alert_name" />
+		<result column="event_type" jdbcType="VARCHAR" property="event_type" />
+		<result column="event_name" jdbcType="VARCHAR" property="event_name" />
+		<result column="event_filters" jdbcType="VARCHAR" property="event_filters" />
+		<result column="alert_count" jdbcType="INTEGER" property="alert_count" />
+		<result column="event_name_cn" jdbcType="VARCHAR" property="event_name_cn" />
+		<result column="event_name_en_cn" jdbcType="VARCHAR" property="event_name_en_cn" />
+		<result column="alert_equipment_id" jdbcType="VARCHAR" property="alert_equipment_id" />
+		<result column="alert_assetGroup_id" jdbcType="VARCHAR" property="alert_assetGroup_id" />
+		<result column="alert_equipment_name" jdbcType="VARCHAR" property="alert_equipment_name" />
+		<result column="alert_assetGroup_name" jdbcType="VARCHAR" property="alert_assetGroup_name" />
+		<result column="event_action_range" jdbcType="VARCHAR" property="event_action_range" />
+		<result column="event_area_num" jdbcType="INTEGER" property="event_area_num" />
+		<result column="event_area_unit" jdbcType="VARCHAR" property="event_area_unit" />
+		<result column="event_action_range_name" jdbcType="VARCHAR" property="event_action_range_name" />
+	</resultMap>
+	<!--   添加资产组基本信息 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.event_alert.entity.EventAlert">
+		insert into event_alert
+		<!--     格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!--     判断参数是否为空 -->
+			<if test="event_alert_id != null">
+				event_alert_id,
+			</if>
+			<if test="event_type != null">
+				event_type,
+			</if>
+			<if test="event_name != null">
+				event_name,
+			</if>
+			<if test="event_area_num != null">
+				event_area_num,
+			</if>
+			<if test="event_area_unit != null">
+				event_area_unit,
+			</if>
+			<if test="event_filters != null">
+				event_filters,
+			</if>
+			<if test="alert_count != null">
+				alert_count,
+			</if>
+			<if test="alert_equipment_id != null">
+				alert_equipment_id,
+			</if>
+			<if test="alert_assetGroup_id != null">
+				alert_assetGroup_id,
+			</if>
+			<if test="event_action_range != null">
+				event_action_range,
+			</if>
+			<if test="event_alert_name != null">
+				event_alert_name,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="event_alert_id != null">
+				#{event_alert_id,jdbcType=VARCHAR},
+			</if>
+			<if test="event_type != null">
+				#{event_type,jdbcType=VARCHAR},
+			</if>
+			<if test="event_name != null">
+				#{event_name,jdbcType=VARCHAR},
+			</if>
+			<if test="event_area_num != null">
+				#{event_area_num,jdbcType=INTEGER},
+			</if>
+			<if test="event_area_unit != null">
+				#{event_area_unit,jdbcType=VARCHAR},
+			</if>
+			<if test="event_filters != null">
+				#{event_filters,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_count != null">
+				#{alert_count,jdbcType=INTEGER},
+			</if>
+			<if test="alert_equipment_id != null">
+				#{alert_equipment_id,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_assetGroup_id != null">
+				#{alert_assetGroup_id,jdbcType=VARCHAR},
+			</if>
+			<if test="event_action_range != null">
+				#{event_action_range,jdbcType=VARCHAR},
+			</if>
+			<if test="event_alert_name != null">
+				#{event_alert_name,jdbcType=VARCHAR},
+			</if>
+		</trim>
+	</insert>
+	<select  id="selectEventAlertInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select *
+		from event_alert
+		where event_alert_id = #{event_alert_id}
+	</select>
+	<select id="getListByCondition" parameterType="com.jz.bigdata.common.event_alert.entity.EventAlert" resultMap="BaseResultMap">
+		select event_alert.*,
+		CASE WHEN event_dic.event_name_cn is NULL THEN event_name_en ELSE CONCAT(event_name_cn,'（',event_name_en,'）') END  as event_name_en_cn,
+		CASE event_alert.event_action_range WHEN 'asset_group' THEN asset_group.asset_group_name WHEN 'equipment' THEN equipment.name ELSE '' END AS event_action_range_name,
+		event_dic.event_name_cn,
+		equipment.name as alert_equipment_name,
+		asset_group.asset_group_name as alert_assetGroup_name
+		from event_alert
+		LEFT JOIN event_dic ON event_dic.event_type=event_alert.event_type and event_dic.event_name_en=event_alert.event_name
+		LEFT JOIN equipment ON equipment.id = event_alert.alert_equipment_id
+		LEFT JOIN asset_group ON asset_group.asset_group_id = event_alert.alert_assetGroup_id
+		where 1=1
+		<if test="alert_equipment_id != null and alert_equipment_id !=''" >
+			and event_alert.alert_equipment_id = #{alert_equipment_id}
+		</if>
+		<if test="alert_assetGroup_id != null and alert_assetGroup_id !=''" >
+			and event_alert.alert_assetGroup_id = #{alert_assetGroup_id}
+		</if>
+		<if test="event_type != null and event_type !=''" >
+			and event_alert.event_type = #{event_type}
+		</if>
+		<if test="event_name != null and event_name !=''" >
+			and event_alert.event_name = #{event_name}
+		</if>
+	</select>
+	<select id="getListByEquipment" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select event_alert.*
+		from event_alert
+		where (event_alert.event_action_range = 'all' and event_alert.event_type = #{equipment_type} )
+		or (event_alert.event_action_range='equipment' and event_alert.alert_equipment_id=#{equipment_id})
+		order by event_action_range,event_alert.alert_assetGroup_id,event_alert.alert_equipment_id,event_alert.event_alert_name
+	</select>
+
+	<select id="getListByConditionWithPage" parameterType="com.jz.bigdata.common.event_alert.entity.EventAlert" resultMap="BaseResultMap">
+		select event_alert.*,
+		CASE WHEN (event_dic.event_name_cn is NULL ) THEN event_name_en ELSE CONCAT(event_name_cn,'（',event_name_en,'）') END  as event_name_en_cn,
+		CASE event_alert.event_action_range WHEN 'asset_group' THEN asset_group.asset_group_name WHEN 'equipment' THEN equipment.name ELSE '' END AS event_action_range_name,
+		event_dic.event_name_cn,
+		equipment.name as alert_equipment_name,
+		asset_group.asset_group_name as alert_assetGroup_name
+		from event_alert
+		LEFT JOIN event_dic ON event_dic.event_type = CASE event_alert.event_type WHEN '0302' THEN 'syslog' WHEN '0301' THEN 'winlogbeat' ELSE '' END  and event_dic.event_name_en=event_alert.event_name
+		LEFT JOIN equipment ON equipment.id = event_alert.alert_equipment_id
+		LEFT JOIN asset_group ON asset_group.asset_group_id = event_alert.alert_assetGroup_id
+		where 1=1
+		<if test="event_alert_name != null and event_alert_name !=''" >
+			and event_alert.event_alert_name LIKE CONCAT('%', #{event_alert_name}, '%')
+		</if>
+		<if test="alert_equipment_id != null and alert_equipment_id !=''" >
+			and event_alert.alert_equipment_id = #{alert_equipment_id}
+		</if>
+		<if test="alert_assetGroup_id != null and alert_assetGroup_id !=''" >
+			and event_alert.alert_assetGroup_id = #{alert_assetGroup_id}
+		</if>
+		<if test="event_type != null and event_type !=''" >
+			and event_alert.event_type = #{event_type}
+		</if>
+		<if test="event_name != null and event_name !=''" >
+			and event_alert.event_name = #{event_name}
+		</if>
+		<if test="event_action_range != null and event_action_range !=''" >
+			and event_alert.event_action_range = #{event_action_range}
+		</if>
+		order by event_action_range,event_alert.alert_assetGroup_id,event_alert.alert_equipment_id,event_alert.event_alert_name
+		<if test="startRecord != null and pageSize !=null" >
+			limit #{startRecord},#{pageSize}
+		</if>
+
+	</select>
+	<select id="getCountByCondition" parameterType="com.jz.bigdata.common.event_alert.entity.EventAlert" resultMap="BaseResultMap">
+		select count(1) as count from event_alert
+		where 1=1
+		<if test="alert_equipment_id != null and alert_equipment_id !=''" >
+			and event_alert.alert_equipment_id = #{alert_equipment_id}
+		</if>
+		<if test="alert_assetGroup_id != null and alert_assetGroup_id !=''" >
+			and event_alert.alert_assetGroup_id = #{alert_assetGroup_id}
+		</if>
+		<if test="event_type != null and event_type !=''" >
+			and event_alert.event_type = #{event_type}
+		</if>
+		<if test="event_name != null and event_name !=''" >
+			and event_alert.event_name = #{event_name}
+		</if>
+	</select>
+	<!-- 删除数据 批量删-->
+	<update id="deletes" parameterType="java.lang.String">
+		<!-- delete from equipment where id in -->
+		DELETE FROM event_alert  where event_alert_id in
+		<foreach item="ids" index="index" collection="array" open="("
+				 separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+
+	<update id="update" parameterType="com.jz.bigdata.common.event_alert.entity.EventAlert">
+		update event_alert
+		<set>
+			<if test="event_type != null">
+				event_type = #{event_type,jdbcType=VARCHAR},
+			</if>
+			<if test="event_name != null">
+				event_name = #{event_name,jdbcType=VARCHAR},
+			</if>
+			<if test="event_area_num != null">
+				event_area_num = #{event_area_num,jdbcType=INTEGER},
+			</if>
+			<if test="event_area_unit != null">
+				event_area_unit = #{event_area_unit,jdbcType=VARCHAR},
+			</if>
+			<if test="event_filters != null">
+				event_filters = #{event_filters,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_count != null">
+				alert_count = #{alert_count,jdbcType=INTEGER},
+			</if>
+			<if test="alert_equipment_id != null">
+				alert_equipment_id = #{alert_equipment_id,jdbcType=VARCHAR},
+			</if>
+			<if test="alert_assetGroup_id != null">
+				alert_assetGroup_id = #{alert_assetGroup_id,jdbcType=VARCHAR},
+			</if>
+			<if test="event_alert_name != null">
+				event_alert_name = #{event_alert_name,jdbcType=VARCHAR},
+			</if>
+			<if test="event_action_range != null">
+				event_action_range = #{event_action_range,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where event_alert_id = #{event_alert_id,jdbcType=VARCHAR}
+	</update>
+</mapper>

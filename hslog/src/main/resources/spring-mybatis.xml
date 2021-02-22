@@ -578,6 +578,18 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 事件告警 -->
+	<bean id="EventAlertSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/event_alert/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -730,6 +742,11 @@
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.jz.bigdata.common.fileLog"/>
 		<property name="sqlSessionFactoryBeanName" value="FileLogSqlSessionFactory"></property>
+	</bean>
+	<!--事件告警 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.event_alert"/>
+		<property name="sqlSessionFactoryBeanName" value="EventAlertSqlSessionFactory"></property>
 	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->

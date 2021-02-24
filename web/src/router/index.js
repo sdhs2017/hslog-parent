@@ -553,6 +553,8 @@ export default new Router({
                     component: resolve => require(['../components/logsManage/fileLogManage.vue'], resolve),
                     meta: { title: '文件类日志' }
                 },
+
+
                 /*{
                     path: '/panel',
                     name:'panel',
@@ -684,6 +686,17 @@ export default new Router({
                     meta: { title: '403' }
                 }
             ]
+        },
+        /*datasource*/
+        {
+            path:'/dataSource',
+            component: resolve => require(['../components/dataSource/home'], resolve),
+            children:[
+                {
+                    path: '/dataSource/index',
+                    name:'dataSource',
+                    component: resolve => require(['../components/dataSource/index.vue'], resolve)
+                }]
         },
         {
             path:'/mobile',

@@ -15,7 +15,7 @@
         </ul>
         <div class="header-right">
             <div class="header-user-con">
-                <router-link style="color: #fff" title="数据源管理" target="_blank" :to="{path:'/dataSource/index'}"><i class="el-icon-coin"></i></router-link>
+                <router-link style="color: #fff;position: relative;z-index: 2;" title="数据源管理" target="_blank" :to="{path:'/dataSource/index'}"><i class="el-icon-coin"></i></router-link>
                 <!-- 消息中心 -->
                 <div class="btn-bell">
                     <el-popover

@@ -482,10 +482,10 @@ export default new Router({
                     meta: { title: '添加逻辑资产' }
                 },
                 {
-                    path: '/customChart',
-                    name:'customChart',
-                    component: resolve => require(['../components/common/customChart.vue'], resolve),
-                    meta: { title: 'SIEM(测试)' }
+                    path: '/customChart2',
+                    name:'customChart2',
+                    component: resolve => require(['../components/common/customChart2.vue'], resolve),
+                    meta: { title: 'SIEM(演示)' }
                 },
                 {
                     path: '/assetGroup',

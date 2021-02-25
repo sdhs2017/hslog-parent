@@ -4,7 +4,7 @@
             <div class="btn-wapper">
                 <el-button type="primary" size="mini" plain @click="formState = true">添加</el-button>
                 <el-button type="danger" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">删除</el-button>
-                <el-button type="success" size="mini" plain  @click="">刷新</el-button>
+                <el-button type="success" size="mini" plain  @click="refresh">刷新</el-button>
             </div>
         </div>
         <div class="table-wapper">
@@ -72,27 +72,32 @@
             </div>
         </el-dialog>
 
-        <el-dialog title="信息" :visible.sync="detailState" width="800px" v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
+        <el-dialog title="元数据详情" :visible.sync="detailState" width="80vw" height="80vh" v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <div class="detail-wapper">
                 <div class="left-wapper">
                     <el-menu class="sidebar-el-menu" default-active="1" background-color="#405267" @open="titleClick"
                              text-color="#bfcbd9" active-text-color="#20a0ff">
                         <template v-for="(item,i) in leftList">
-                            <el-submenu :index="item.id" :key="i">
+                            <el-submenu :index="item.id" :key="i" v-if="item.isExpand === 'true'">
                                 <template slot="title" >
-                                   <span slot="title">{{ item.name }}</span>
+                                   <span slot="title">{{ item.label }}</span>
                                 </template>
-                                <template v-for="subItem in item.children">
-                                    <el-menu-item :index="subItem.id" :key="subItem.id" @click="childClick(subItem)">
-                                        {{ subItem.name }}
+                                <template v-for="subItem in item.child">
+                                    <el-menu-item :index="subItem.id" :key="subItem.id" @click="childClick(subItem)" :title="subItem.label" style="font-size: 10px;">
+                                        {{ subItem.label }}
                                     </el-menu-item>
                                 </template>
                             </el-submenu>
+                            <el-menu-item :index="item.id" :key="item.id"  v-else @click="childClick(item)" :title="item.label">
+                                <span slot="title">{{ item.label }}</span>
+                            </el-menu-item>
                         </template>
                     </el-menu>
 
                 </div>
-                <div class="right-wapper"></div>
+                <div class="right-wapper">
+                    <basetable :table-head="fieldTableHead" :table-data="fieldTableData"></basetable>
+                </div>
             </div>
         </el-dialog>
     </div>
@@ -143,6 +148,7 @@
                                 clickFun:(row,index)=>{
                                     this.detailState = true
                                     this.editId = row.data_source_id
+                                    this.getLeftList()
                                 }
                             },
                         ]}
@@ -184,13 +190,24 @@
                 //详情 弹窗状态
                 detailState:false,
                 detailLoading:false,
-                leftList:[
-                    {name:'index1',id:'1',children:[]
+                leftList:[],
+                fieldTableHead:[
+                    {prop:'COLUMN_NAME',label:'字段名称'},
+                    {prop:'COLUMN_TYPE',label:'数据类型'},
+                    {
+                        prop:'IS_NULLABLE',
+                        label:'是否为空',
+                        formatData:(val,obj)=>{
+                            if(val === 'YES'){
+                                return "是"
+                            }else{
+                                return '否'
+                            }
+                        }
                     },
-                    {name:'index2',id:'2',children:[]}
+                    {prop:'COLUMN_COMMENT',label:'注释'},
                 ],
-                rightTableHead:[],
-                rightTableData:[]
+                fieldTableData:[]
             }
         },
         created(){
@@ -208,13 +225,12 @@
             'formState'(){
                 if(this.formState){
                    this.getDBType()
-
-                }else{
-                    this.editId = '';
                     this.linkObj={
                         state:true,
                         text:''
                     }
+                }else{
+                    this.editId = '';
                     this.initialize();
                     /* this.getAsset('');
                     this.getEvent('');
@@ -224,6 +240,8 @@
             'detailState'(){
                 if(!this.detailState){
                     this.editId = '';
+                    this.leftList = []
+                    this.fieldTableData = []
                 }
             }
         },
@@ -240,6 +258,10 @@
                     data_source_password:'',//密码
                     data_source_dbname:'',//数据库/实例
                 }
+            },
+            /*刷新*/
+            refresh(){
+                this.getDataList(1,this.conditionFrom)
             },
             /*获取列表*/
             getDataList(page,param){
@@ -416,17 +438,82 @@
             },
             /*获取弹窗左侧列表*/
             getLeftList(){
-
+                this.$nextTick(()=>{
+                    this.detailLoading = true;
+                    this.$axios.post(this.$baseUrl+'/dataSource/getDataBaseOrTable.do',this.$qs.stringify({
+                        data_source_id:this.editId
+                    }))
+                        .then(res=>{
+                            this.detailLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.leftList = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.detailLoading = false;
+                        })
+                })
             },
             /*详情左侧标题点击*/
             titleClick(key, path){
                 console.log(key)
-                for(let i in this.leftList){
-
+                let index = ''
+                for(let i=0;i< this.leftList.length;i++){
+                    if(key === this.leftList[i].id){
+                        index = i;
+                        break;
+                    }
                 }
+                //获取子列表
+                this.getChildren(index);
             },
+            /*获取子菜单*/
+            getChildren(index){
+                this.$nextTick(()=>{
+                    this.detailLoading = true;
+                    this.$axios.post(this.$baseUrl+'/dataSource/getTablesByDatabase.do',this.$qs.stringify({
+                        data_source_id:this.editId,
+                        database:this.leftList[index].id
+                    }))
+                        .then(res=>{
+                            this.detailLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.leftList[index].child = obj.data
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.detailLoading = false;
+                        })
+                })
+            },
+            /*获取字段数据*/
             childClick(item){
-                console.log(item)
+               this.$nextTick(()=>{
+                   this.detailLoading = true;
+                   this.$axios.post(this.$baseUrl+'/dataSource/getTableFields.do',this.$qs.stringify({
+                       data_source_id:this.editId,
+                       database:item.database,
+                       table:item.id
+                   }))
+                       .then(res=>{
+                           this.detailLoading = false;
+                           let obj = res.data;
+                           if(obj.success == 'true'){
+                               this.fieldTableData = obj.data;
+                           }else{
+                               layer.msg(obj.message,{icon:5})
+                           }
+                       })
+                       .catch(err=>{
+                            this.detailLoading = false;
+                       })
+               })
             },
             /*验证from参数合法性*/
             checkParam(){
@@ -473,16 +560,27 @@
     }
     .detail-wapper{
         display: flex;
+        width: 100%;
+        height: 64vh;
     }
     .left-wapper{
-        width: 170px;
+        width: 210px;
         overflow-x: hidden;
+    }
+    .left-wapper /deep/ .el-submenu{
+        border-bottom: 1px solid #4d6077;
     }
     .left-wapper /deep/ .el-submenu__title{
         height: 34px;
         line-height: 34px;
     }
     .left-wapper /deep/ .el-submenu .el-menu-item{
+        height: 34px;
+        line-height: 34px;
+        overflow: hidden;
+        min-width: 100px;
+    }
+    .left-wapper /deep/ .el-menu-item{
         height: 34px;
         line-height: 34px;
     }

@@ -41,7 +41,7 @@
             return {
                 menusArr: [{
                     "childId": 3,
-                    "icon": "fa fa-laptop",
+                    "icon": "fa fa-database",
                     "id": "10300",
                     "menuName": "数据源管理",
                     "menus": [{
@@ -100,5 +100,11 @@
         height: 100%;
         overflow-y: auto;
         background: rgb(26,36,47);
+    }
+    .el-submenu__title i.fa{
+        display: inline-block;
+        color: rgb(191, 203, 217);
+        margin-right: 6px;
+        width: 20px;
     }
 </style>

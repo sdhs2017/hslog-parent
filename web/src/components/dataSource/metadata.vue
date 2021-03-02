@@ -3,7 +3,7 @@
         <div class="top-title">元数据管理</div>
         <div class="prop-wapper">
             <div class="left-wapper">
-                <div class="left-tit">数据库</div>
+                <div class="left-tit"></div>
                 <div class="left-list" v-loading="leftLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                     <el-tree
                         :props="propTree"
@@ -18,7 +18,7 @@
                 <h3 class="table-tit">{{currentName}} </h3>
                 <vBasetable :tableHead="tableHead" :height="this.tableHeight" :tableData="tableDataArr"></vBasetable>
                 <div class="table-page" style="display: flex;justify-content: flex-end;align-items: center;height: 40px">
-                    <span>共检索到告警数量为 <b>{{allCounts}}</b> 个</span>
+                    <span>总数为 <b>{{allCounts}} 条 </b></span>
                     <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="allCounts"></el-pagination>
                 </div>
             </div>
@@ -476,7 +476,7 @@
         /*height: calc(100vh - 250px);*/
     }
     .left-tit{
-        height: 40px;
+        height: 2px;
         line-height: 40px;
         padding-left: 20px;
         /* background: #5a7494; */
@@ -485,7 +485,7 @@
         font-weight: 600;
     }
     .left-list{
-        height: calc(100% - 55px);
+        height: calc(100% - 15px);
         overflow-y: auto;
         padding: 5px;
     }

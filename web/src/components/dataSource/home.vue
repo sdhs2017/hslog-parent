@@ -43,7 +43,7 @@
                     "childId": 3,
                     "icon": "fa fa-database",
                     "id": "10300",
-                    "menuName": "数据源管理",
+                    "menuName": "数据管理",
                     "menus": [{
                         "childId": 0,
                         "icon": "",

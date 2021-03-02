@@ -66,14 +66,17 @@
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <span v-if="linkObj.state" style="font-size: 14px;color: #1ab394;">{{linkObj.text}}</span>
-                <span v-else style="font-size: 14px;color: #e4956d;">{{linkObj.text}}</span>
-                <el-button @click="testLink">测试连接</el-button>
+                <div style="float: left;">
+                    <el-button type="primary" plain  @click="testLink">测试连接</el-button>
+                    <span v-if="linkObj.state" style="font-size: 14px;color: #1ab394;">{{linkObj.text}}</span>
+                    <span v-else style="font-size: 14px;color: #e4956d;">{{linkObj.text}}</span>
+                </div>
+                <el-button @click="formState = false">取消</el-button>
                 <el-button type="primary" @click="editId === '' ? addDataSource() : reviseDataSource()">确 定</el-button>
             </div>
         </el-dialog>
 
-        <el-dialog title="元数据详情" :visible.sync="detailState" width="80vw" height="80vh" v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
+        <el-dialog title="元数据详情" :visible.sync="detailState" width="80vw" height="80vh" destroy-on-close v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <div class="detail-wapper">
                 <div class="left-wapper">
                     <el-menu class="sidebar-el-menu" default-active="1" background-color="#405267" @open="titleClick"
@@ -487,6 +490,7 @@
             },
             /*获取弹窗左侧列表*/
             getLeftList(){
+                this.leftList = []
                 this.$nextTick(()=>{
                     this.detailLoading = true;
                     this.$axios.post(this.$baseUrl+'/dataSource/getDataBaseOrTable.do',this.$qs.stringify({

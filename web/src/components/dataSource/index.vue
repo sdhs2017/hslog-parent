@@ -3,7 +3,7 @@
         <div class="top-title">数据源管理
             <div class="btn-wapper">
                 <el-button type="primary" size="mini" plain @click="formState = true">添加</el-button>
-                <el-button title="初始化选中项" type="warning" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">初始化</el-button>
+                <el-button title="初始化选中项" type="warning" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="initialize">初始化</el-button>
                 <el-button title="删除选中项" type="danger" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">删除</el-button>
                 <el-button type="success" size="mini" plain  @click="refresh">刷新</el-button>
             </div>
@@ -127,13 +127,14 @@
                 delectIds:'',
                 tableHead:[
                     {prop:'data_source_name',label:'数据源名称'},
-                    {prop:'data_source_item_type',label:'数据库类型'},
+                    {prop:'data_source_item_type',label:'数据库类型', width:'100',},
                     {prop:'description',label:'说明'},
                     {
                         prop:'data_source_is_initialized',
                         label:'是否初始化',
+                        width:'100',
                         formatData:(val,obj)=>{
-                            if(val === 1){
+                            if(val == '1'){
                                 return '是'
                             }else{
                                 return '否'
@@ -145,7 +146,7 @@
                     {
                         prop:'tools',
                         label:'操作',
-                        width:'',
+                        width:'60',
                         btns:[
                             {
                                 icon:'el-icon-edit',
@@ -275,6 +276,34 @@
             },
             /*初始化*/
             initialize(){
+                //询问框
+                layer.confirm('您确定初始化么？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    layer.close(index);
+                    this.$nextTick(()=>{
+                        this.loading = true;
+                        this.$axios.post(this.$baseUrl+'/dataSource/dataSourceInit.do',this.$qs.stringify({
+                            data_source_ids:this.delectIds
+                        }))
+                            .then(res=>{
+                                this.loading = false;
+                                let obj = res.data;
+                                if(obj.success == 'true'){
+                                    layer.msg(obj.message,{icon:1})
+                                    this.getDataList(1,this.conditionFrom)
+                                    this.delectIds = '';
+                                }else{
+                                    layer.msg(obj.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                this.loading = false;
+                            })
+                    })
+                }, function(){
+                    layer.close();
+                })
 
             },
             /*刷新*/
@@ -402,6 +431,7 @@
                 layer.confirm('您确定删除么？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
+                    layer.close(index);
                     this.$nextTick(()=>{
                         this.loading = true;
                         this.$axios.post(this.$baseUrl+'/dataSource/delete.do',this.$qs.stringify({

@@ -356,7 +356,6 @@
             },
             //分页
             handleCurrentChange(page){
-                console.log(page)
                 this.getProps(page,this.conditionFrom)
             },
             /*修改提交数据*/

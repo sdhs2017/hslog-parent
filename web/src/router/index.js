@@ -696,7 +696,11 @@ export default new Router({
                     path: '/dataSource/index',
                     name:'dataSource',
                     component: resolve => require(['../components/dataSource/index.vue'], resolve)
-                }]
+                },{
+                    path: '/dataSource/metadata',
+                    name:'metadata',
+                    component: resolve => require(['../components/dataSource/metadata.vue'], resolve)
+                },]
         },
         {
             path:'/mobile',

@@ -3,7 +3,8 @@
         <div class="top-title">数据源管理
             <div class="btn-wapper">
                 <el-button type="primary" size="mini" plain @click="formState = true">添加</el-button>
-                <el-button type="danger" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">删除</el-button>
+                <el-button title="初始化选中项" type="warning" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">初始化</el-button>
+                <el-button title="删除选中项" type="danger" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">删除</el-button>
                 <el-button type="success" size="mini" plain  @click="refresh">刷新</el-button>
             </div>
         </div>
@@ -129,6 +130,19 @@
                     {prop:'data_source_item_type',label:'数据库类型'},
                     {prop:'description',label:'说明'},
                     {
+                        prop:'data_source_is_initialized',
+                        label:'是否初始化',
+                        formatData:(val,obj)=>{
+                            if(val === 1){
+                                return '是'
+                            }else{
+                                return '否'
+                            }
+
+                        }
+                    },
+                    {prop:'data_source_init_time',label:'初始化时间'},
+                    {
                         prop:'tools',
                         label:'操作',
                         width:'',
@@ -231,7 +245,7 @@
                     }
                 }else{
                     this.editId = '';
-                    this.initialize();
+                    this.clearForm();
                     /* this.getAsset('');
                     this.getEvent('');
                     this.form.event_alert_name = '';*/
@@ -246,8 +260,8 @@
             }
         },
         methods:{
-            /*初始化*/
-            initialize(){
+            /*清空表单*/
+            clearForm(){
                 this.form={
                     data_source_name:'',//数据源名称
                     // type:'',//数据源分类
@@ -258,6 +272,10 @@
                     data_source_password:'',//密码
                     data_source_dbname:'',//数据库/实例
                 }
+            },
+            /*初始化*/
+            initialize(){
+
             },
             /*刷新*/
             refresh(){
@@ -395,6 +413,7 @@
                                 if(obj.success == 'true'){
                                     layer.msg(obj.message,{icon:1})
                                     this.getDataList(1,this.conditionFrom)
+                                    this.delectIds = '';
                                 }else{
                                     layer.msg(obj.message,{icon:5})
                                 }

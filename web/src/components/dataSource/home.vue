@@ -53,6 +53,15 @@
                         "superiorId": "10300",
                         "systemName": "数据源管理",
                         "url": "dataSource/index.vue"
+                    },{
+                        "childId": 1,
+                        "icon": "",
+                        "id": "103061",
+                        "menuName": "元数据管理",
+                        "state": "1",
+                        "superiorId": "10300",
+                        "systemName": "数据源管理",
+                        "url": "dataSource/metadata.vue"
                     }]
                 }]
             }
@@ -93,7 +102,8 @@
     }
     .view-wapper{
         padding: 8px;
-        flex: 1;
+        /*flex: 1;*/
+        width: calc(100% - 170px);
         height: 100%;
     }
     .view-wapper div{

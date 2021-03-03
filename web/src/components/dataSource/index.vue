@@ -100,7 +100,7 @@
 
                 </div>
                 <div class="right-wapper">
-                    <basetable :table-head="fieldTableHead" :table-data="fieldTableData"></basetable>
+                    <basetable :height="this.tableHeight" :table-head="fieldTableHead" :table-data="fieldTableData"></basetable>
                 </div>
             </div>
         </el-dialog>
@@ -225,7 +225,8 @@
                     },
                     {prop:'COLUMN_COMMENT',label:'注释'},
                 ],
-                fieldTableData:[]
+                fieldTableData:[],
+                tableHeight:0
             }
         },
         created(){
@@ -238,6 +239,10 @@
                 }
                 //console.log(this.delectAlarmIds)
             })
+            this.tableHeight = document.body.clientHeight - 370 ;
+            window.onresize = () => {
+                this.tableHeight = document.body.clientHeight - 370 ;
+            };
         },
         watch:{
             'formState'(){
@@ -639,6 +644,8 @@
     }
     .right-wapper{
         flex:1;
+        height: 100%;
+        overflow: auto;
     }
     .table-page{
         border-top: 1px solid #303e4e;

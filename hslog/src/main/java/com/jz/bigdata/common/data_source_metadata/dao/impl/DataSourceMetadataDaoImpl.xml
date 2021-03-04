@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.data_source_metadata.dao.IDataSourceMetadataDao">
+    <!-- 返回结果设置 -->
+    <resultMap id="BaseResultMap"
+               type="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata">
+        <id column="metadata_id" jdbcType="VARCHAR" property="metadata_id" />
+        <result column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
+        <result column="metadata_type" jdbcType="VARCHAR" property="metadata_type" />
+        <result column="metadata_database" jdbcType="VARCHAR" property="metadata_database" />
+        <result column="metadata_table" jdbcType="VARCHAR" property="metadata_table" />
+        <result column="metadata_field" jdbcType="VARCHAR" property="metadata_field" />
+        <result column="metadata_field_type" jdbcType="VARCHAR" property="metadata_field_type" />
+        <result column="metadata_sensitiveLevel" jdbcType="VARCHAR" property="metadata_sensitiveLevel" />
+        <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+        <result column="metadata_table_type" jdbcType="VARCHAR" property="metadata_table_type" />
+    </resultMap>
+    <!--   添加资产组基本信息 -->
+    <insert id="insert" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata">
+        insert into data_source_metadata
+        <!--     格式化 -->
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--     判断参数是否为空 -->
+            <if test="metadata_id != null">
+                metadata_id,
+            </if>
+            <if test="data_source_id != null">
+                data_source_id,
+            </if>
+            <if test="metadata_type != null">
+                metadata_type,
+            </if>
+            <if test="metadata_database != null">
+                metadata_database,
+            </if>
+            <if test="metadata_table != null">
+                metadata_table,
+            </if>
+            <if test="metadata_field != null">
+                metadata_field,
+            </if>
+            <if test="metadata_field_type != null">
+                metadata_field_type,
+            </if>
+            <if test="metadata_sensitiveLevel != null">
+                metadata_sensitiveLevel,
+            </if>
+            <if test="metadata_remark != null">
+                metadata_remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="metadata_id != null">
+                #{metadata_id,jdbcType=VARCHAR},
+            </if>
+            <if test="data_source_id != null">
+                #{data_source_id,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_type != null">
+                #{metadata_type,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_database != null">
+                #{metadata_database,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_table != null">
+                #{metadata_table,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_field != null">
+                #{metadata_field,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_field_type != null">
+                #{metadata_field_type,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_sensitiveLevel != null">
+                #{metadata_sensitiveLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_remark != null">
+                #{metadata_remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="update" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata">
+        update data_source_metadata
+        <set>
+            <if test="metadata_table_type != null">
+                metadata_table_type = #{metadata_table_type,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_sensitiveLevel != null">
+                metadata_sensitiveLevel = #{metadata_sensitiveLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_remark != null">
+                metadata_remark = #{metadata_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where metadata_id = #{metadata_id,jdbcType=VARCHAR}
+    </update>
+
+    <delete id="deleteByDataSourceId">
+        delete from data_source_metadata where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+    </delete>
+    <insert id ="batchInsert" parameterType="java.util.List" >
+        insert into data_source_metadata
+        (metadata_id, data_source_id, metadata_type, metadata_database,metadata_table,metadata_field,metadata_field_type,metadata_sensitiveLevel,metadata_remark)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.metadata_id}, #{item.data_source_id}, #{item.metadata_type}, #{item.metadata_database},#{item.metadata_table},
+             #{item.metadata_field},#{item.metadata_field_type}, #{item.metadata_sensitiveLevel}, #{item.metadata_remark})
+        </foreach>
+    </insert>
+    <select id="getDatabaseList" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from data_source_metadata where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_type='database'
+        order by metadata_database
+    </select>
+    <select id="getTableList" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from data_source_metadata
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database=#{database,jdbcType=VARCHAR} and metadata_type='table'
+        order by metadata_table
+    </select>
+    <select id="getTableListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap">
+        select * from data_source_metadata
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database=#{metadata_database,jdbcType=VARCHAR} and metadata_type='table'
+        order by metadata_table
+        <if test="startRecord != null and pageSize !=null" >
+            limit #{startRecord},#{pageSize}
+        </if>
+    </select>
+    <select id="getTableListCount" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap">
+        select count(1) as count from data_source_metadata
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database=#{metadata_database,jdbcType=VARCHAR} and metadata_type='table'
+    </select>
+    <select id="getFieldList" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from data_source_metadata
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database=#{database,jdbcType=VARCHAR}
+        and metadata_table = #{table,jdbcType=VARCHAR}
+        and metadata_type='field'
+        order by metadata_field
+    </select>
+    <select id="getFieldListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap">
+        select * from data_source_metadata
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database=#{metadata_database,jdbcType=VARCHAR}
+        and metadata_table = #{metadata_table,jdbcType=VARCHAR}
+        and metadata_type='field'
+        order by metadata_field
+        <if test="startRecord != null and pageSize !=null" >
+            limit #{startRecord},#{pageSize}
+        </if>
+    </select>
+    <select id="getFieldListCount" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap">
+        select count(1) as count from data_source_metadata
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database=#{metadata_database,jdbcType=VARCHAR}
+        and metadata_table = #{metadata_table,jdbcType=VARCHAR}
+        and metadata_type='field'
+    </select>
+</mapper>

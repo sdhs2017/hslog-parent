@@ -489,9 +489,9 @@
         $('.threshold_setting').attr('disabled',"true");
         //参数
         var obj = {};
-        obj.user = "root";
-        obj.passwd = "hs.1234";
-        obj.host = "192.168.100.101";
+        //obj.user = "root";
+        //obj.passwd = "hs.1234";
+        //obj.host = "192.168.100.101";
         $.ajax({
             url:'../manage/getDiskUsage.do',
             data:obj,

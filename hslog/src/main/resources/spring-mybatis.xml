@@ -590,6 +590,30 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 数据源管理 -->
+	<bean id="DataSourceSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/data_source/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
+	<!-- 数据源-元数据管理 -->
+	<bean id="DataSourceMetadataSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/data_source_metadata/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -748,6 +772,16 @@
 		<property name="basePackage" value="com.jz.bigdata.common.event_alert"/>
 		<property name="sqlSessionFactoryBeanName" value="EventAlertSqlSessionFactory"></property>
 	</bean>
+	<!--数据源管理 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.data_source"/>
+		<property name="sqlSessionFactoryBeanName" value="DataSourceSqlSessionFactory"></property>
+	</bean>
+	<!--数据源-元数据管理 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.data_source_metadata"/>
+		<property name="sqlSessionFactoryBeanName" value="DataSourceMetadataSqlSessionFactory"></property>
+	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->
 	<!-- 
@@ -899,179 +933,6 @@
 		<property name="fileEncoding" value="UTF-8"></property>
 	</bean>
 
-	<!-- 自动备份定时任务 -->
-<!--	<bean id="createSnapshotByIndicesJob"-->
-<!--		  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="manageService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>createSnapshotByIndices</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="createSnapshotJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="createSnapshotByIndicesJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 0 */1 * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 自动更新资产威胁定时任务 &ndash;&gt;-->
-<!--	<bean id="updateRiskJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="manageService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>updateRisk</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="updateRiskJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="updateRiskJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 */5 * * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 资产心跳机制定时任务 &ndash;&gt;-->
-<!--	<bean id="assetsHeartBeatJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="CollectorService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>assetsHeartBeat</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="assetsHeartBeatJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="assetsHeartBeatJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 */2 * * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 资产缓存定时刷新任务 &ndash;&gt;-->
-<!--	<bean id="cacheJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="CollectorService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>cacheInit</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="cacheJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="cacheJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 */2 * * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; url定时入库任务 &ndash;&gt;-->
-<!--	<bean id="urlJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="CollectorService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>insertUrl</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="urlJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="urlJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 */6 * * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; domain定时入库任务 &ndash;&gt;-->
-<!--	<bean id="domainJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="CollectorService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>insertDomain</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="domainJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="domainJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 */2 * * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-
-<!--	&lt;!&ndash; CreateIndexJob定时创建index任务 &ndash;&gt;-->
-<!--	<bean id="CreateIndexJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="logService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>createIndexRegularly</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="CreateIndexJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="CreateIndexJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间 &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 0 23 */1 * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-
-<!--	&lt;!&ndash; 自动合并index的segments任务 &ndash;&gt;-->
-<!--	<bean id="forcemergeIndexSegmentsJob"-->
-<!--		  class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
-<!--		&lt;!&ndash; 调用类 &ndash;&gt;-->
-<!--		<property name="targetObject">-->
-<!--			<ref bean="manageService"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash;  调用类方法 &ndash;&gt;-->
-<!--		<property name="targetMethod">-->
-<!--			<value>indexForceMerge</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-<!--	&lt;!&ndash; 调度任务时间配置 &ndash;&gt;-->
-<!--	<bean id="forcemergeIndexSegmentsJobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
-<!--		<property name="jobDetail">-->
-<!--			<ref bean="forcemergeIndexSegmentsJob"/>-->
-<!--		</property>-->
-<!--		&lt;!&ndash; 设置触发时间，每天晚上1点开始合并昨天生成的index segments &ndash;&gt;-->
-<!--		<property name="cronExpression">-->
-<!--			<value>0 0 1 * * ?</value>-->
-<!--		</property>-->
-<!--	</bean>-->
-
 
 	<!--  计划任务 及cache初始化    -->
 	<bean id="start_execution" class="com.jz.bigdata.common.start_execution.start" scope="singleton" init-method="init"></bean>
@@ -1081,29 +942,5 @@
 <!--	<bean id="start_execution_syslog" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startSyslogKafkaListener"></bean>-->
 <!--	<bean id="start_execution_agent" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startAgentKafkaListener"></bean>-->
 <!--	<bean id="start_execution_pcap4j" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startPcap4jCollector"></bean>-->
-
-	<!--	 触发器启动-->
-<!--	<bean name="startQuertz" lazy-init="false" autowire="no"-->
-<!--		  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">-->
-<!--		<property name="triggers">-->
-<!--			<list>-->
-<!--				&lt;!&ndash;<ref bean="createSnapshotJobTrigger"/>&ndash;&gt;-->
-<!--				&lt;!&ndash;资产预警：根据当前资产配置的预警信息，计算预警阈值（高危/中危/低危）并更新到资产库  0 */5 * * * ?  5分钟执行一次&ndash;&gt;-->
-<!--				<ref bean="updateRiskJobTrigger"/>-->
-<!--				&lt;!&ndash;<ref bean="CreateIndexJobTrigger"/>&ndash;&gt;-->
-<!--				&lt;!&ndash; url定时入库任务：打开流量后，根据获取的流量包的url信息更新到数据库 服务表（serviceInfo）  0 */6 * * * ?  6分钟执行一次&ndash;&gt;-->
-<!--				<ref bean="urlJobTrigger" />-->
-<!--				&lt;!&ndash; domain定时入库任务：打开流量后，根据获取的流量包的domain url信息，与资产IP port对应，匹配成功更新资产表的domain字段  0 */2 * * * ?  2分钟执行一次&ndash;&gt;-->
-<!--				<ref bean="domainJobTrigger" />-->
-<!--				&lt;!&ndash; 资产信息定时任务：定时查询资产表的相关信息，更新到AssetCache中 0 */2 * * * ? 2分钟执行一次&ndash;&gt;-->
-<!--				<ref bean="cacheJobTrigger" />-->
-<!--				&lt;!&ndash; <ref bean="assetsHeartBeatJobTrigger" /> &ndash;&gt;-->
-<!--				&lt;!&ndash; 自动合并index的segments任务  0 0 1 * * ? 每天1点钟执行一次&ndash;&gt;-->
-<!--				<ref bean="forcemergeIndexSegmentsJobTrigger" />-->
-<!--			</list>-->
-<!--		</property>-->
-<!--		<property name="autoStartup" value="true"/>-->
-<!--	</bean>-->
-
 
 </beans>

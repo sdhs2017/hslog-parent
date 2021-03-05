@@ -877,6 +877,12 @@
             <artifactId>spring-kafka</artifactId>
             <version>1.1.0.RELEASE</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.alibaba/druid -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.2.4</version>
+        </dependency>
 
     </dependencies>
 

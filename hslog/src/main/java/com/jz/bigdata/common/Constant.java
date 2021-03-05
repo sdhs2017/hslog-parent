@@ -12,6 +12,73 @@ import java.util.Map;
  */
 public class Constant {
 	/**
+	 * 数据源-元数据-字段敏感等级
+	 */
+	public static List<Map<String,String>> DATA_SOURCE_METADATA_FIELD_SensitiveLevel = new ArrayList<>();
+	//TODO k/V生成map方法
+	static{
+		Map<String,String> level1 = new HashMap<>();
+		level1.put("label","1级（低敏感级）");
+		level1.put("value","1");
+		DATA_SOURCE_METADATA_FIELD_SensitiveLevel.add(level1);
+		Map<String,String> level2 = new HashMap<>();
+		level2.put("label","2级（较高敏感级）");
+		level2.put("value","2");
+		DATA_SOURCE_METADATA_FIELD_SensitiveLevel.add(level2);
+		Map<String,String> level3 = new HashMap<>();
+		level3.put("label","3级（高敏感级）");
+		level3.put("value","3");
+		DATA_SOURCE_METADATA_FIELD_SensitiveLevel.add(level3);
+		Map<String,String> level4 = new HashMap<>();
+		level4.put("label","4级（极高敏感级）");
+		level4.put("value","4");
+		DATA_SOURCE_METADATA_FIELD_SensitiveLevel.add(level4);
+	}
+	/**
+	 * 数据源-元数据-表格分类
+	 */
+	public static List<Map<String,String>> DATA_SOURCE_METADATA_TABLE_TYPE = new ArrayList<>();
+	//TODO k/V生成map方法
+	static{
+		Map<String,String> main_table = new HashMap<>();
+		main_table.put("label","主体表");
+		main_table.put("value","main");
+		DATA_SOURCE_METADATA_TABLE_TYPE.add(main_table);
+		Map<String,String> refer_table = new HashMap<>();
+		refer_table.put("label","参考表");
+		refer_table.put("value","refer");
+		DATA_SOURCE_METADATA_TABLE_TYPE.add(refer_table);
+		Map<String,String> statistic_table = new HashMap<>();
+		statistic_table.put("label","统计表");
+		statistic_table.put("value","statistic");
+		DATA_SOURCE_METADATA_TABLE_TYPE.add(statistic_table);
+		Map<String,String> other_table = new HashMap<>();
+		other_table.put("label","其他表");
+		other_table.put("value","other");
+		DATA_SOURCE_METADATA_TABLE_TYPE.add(other_table);
+	}
+	public static final String DATA_SOURCE_ITEM_TYPE_MYSQL = "MySQL";
+	public static final String DATA_SOURCE_ITEM_TYPE_SQLSERVER = "SQL Server";
+	public static final String DATA_SOURCE_ITEM_TYPE_ORACLE = "Oracle";
+	/**
+	 * 数据源管理中，数据源类型，目前仅适配 mysql oracle sqlserver
+	 */
+	public static List<Map<String,String>> DATA_SOURCE_ITEM_TYPE = new ArrayList<>();
+	static{
+		Map<String,String> mysql = new HashMap<>();
+		mysql.put("label",DATA_SOURCE_ITEM_TYPE_MYSQL);
+		mysql.put("value",DATA_SOURCE_ITEM_TYPE_MYSQL);
+		DATA_SOURCE_ITEM_TYPE.add(mysql);
+		Map<String,String> sqlserver = new HashMap<>();
+		sqlserver.put("label",DATA_SOURCE_ITEM_TYPE_SQLSERVER);
+		sqlserver.put("value",DATA_SOURCE_ITEM_TYPE_SQLSERVER);
+		DATA_SOURCE_ITEM_TYPE.add(sqlserver);
+		Map<String,String> oracle = new HashMap<>();
+		oracle.put("label",DATA_SOURCE_ITEM_TYPE_ORACLE);
+		oracle.put("value",DATA_SOURCE_ITEM_TYPE_ORACLE);
+		DATA_SOURCE_ITEM_TYPE.add(oracle);
+	}
+	/**
 	 * siem界面对应选择事件下拉框，第一个下拉框，选择事件类型：linux/windows
 	 */
 	public static List<Map<String,String>> EVENT_TYPE = new ArrayList<>();

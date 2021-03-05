@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.data_source.dao.IDataSourceDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="BaseResultMap"
+			   type="com.jz.bigdata.common.data_source.entity.DataSource">
+		<id column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
+		<result column="data_source_name" jdbcType="VARCHAR" property="data_source_name" />
+		<result column="data_source_item" jdbcType="VARCHAR" property="data_source_item" />
+		<result column="data_source_item_type" jdbcType="VARCHAR" property="data_source_item_type" />
+		<result column="data_source_ip" jdbcType="VARCHAR" property="data_source_ip" />
+		<result column="data_source_port" jdbcType="INTEGER" property="data_source_port" />
+		<result column="data_source_username" jdbcType="VARCHAR" property="data_source_username" />
+		<result column="data_source_password" jdbcType="VARCHAR" property="data_source_password" />
+		<result column="data_source_dbname" jdbcType="VARCHAR" property="data_source_dbname" />
+		<result column="data_source_create_time" jdbcType="VARCHAR" property="data_source_create_time" />
+		<result column="data_source_update_time" jdbcType="VARCHAR" property="data_source_update_time" />
+		<result column="description" jdbcType="VARCHAR" property="description" />
+		<result column="data_source_is_initialized" jdbcType="INTEGER" property="data_source_is_initialized" />
+		<result column="data_source_init_time" jdbcType="VARCHAR" property="data_source_init_time" />
+	</resultMap>
+	<!--   添加资产组基本信息 -->
+	<insert id="insert" parameterType="com.jz.bigdata.common.data_source.entity.DataSource">
+		insert into data_source
+		<!--     格式化 -->
+		<trim prefix="(" suffix=")" suffixOverrides=",">
+			<!--     判断参数是否为空 -->
+			<if test="data_source_id != null">
+				data_source_id,
+			</if>
+			<if test="data_source_name != null">
+				data_source_name,
+			</if>
+			<if test="data_source_item != null">
+				data_source_item,
+			</if>
+			<if test="data_source_item_type != null">
+				data_source_item_type,
+			</if>
+			<if test="data_source_ip != null">
+				data_source_ip,
+			</if>
+			<if test="data_source_port != null">
+				data_source_port,
+			</if>
+			<if test="data_source_username != null">
+				data_source_username,
+			</if>
+			<if test="data_source_password != null">
+				data_source_password,
+			</if>
+			<if test="data_source_dbname != null">
+				data_source_dbname,
+			</if>
+			<if test="data_source_create_time != null">
+				data_source_create_time,
+			</if>
+			<if test="data_source_is_initialized != null">
+				data_source_is_initialized,
+			</if>
+		</trim>
+		<trim prefix="values (" suffix=")" suffixOverrides=",">
+			<if test="data_source_id != null">
+				#{data_source_id,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_name != null">
+				#{data_source_name,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_item != null">
+				#{data_source_item,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_item_type != null">
+				#{data_source_item_type,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_ip != null">
+				#{data_source_ip,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_port != null">
+				#{data_source_port,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_username != null">
+				#{data_source_username,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_password != null">
+				#{data_source_password,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_dbname != null">
+				#{data_source_dbname,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_create_time != null">
+				#{data_source_create_time,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_is_initialized != null">
+				#{data_source_is_initialized,jdbcType=INTEGER},
+			</if>
+		</trim>
+	</insert>
+
+	<select id="getListByConditionWithPage" parameterType="com.jz.bigdata.common.data_source.entity.DataSource" resultMap="BaseResultMap">
+		select *,CONCAT("IP:【",data_source_ip,"】； 端口:【",data_source_port,"】；用户:【",data_source_username,"】") as description
+		from data_source
+		where 1=1
+		<if test="data_source_ip != null and data_source_ip !=''" >
+			and data_source_ip LIKE CONCAT('%', #{data_source_ip}, '%')
+		</if>
+		order by data_source_create_time desc
+		<if test="startRecord != null and pageSize !=null" >
+			limit #{startRecord},#{pageSize}
+		</if>
+
+	</select>
+	<select id="getListByCondition" parameterType="com.jz.bigdata.common.data_source.entity.DataSource" resultMap="BaseResultMap">
+		select *
+		from data_source
+		where 1=1
+		<if test="data_source_ip != null and data_source_ip !=''" >
+			and data_source_ip LIKE CONCAT('%', #{data_source_ip}, '%')
+		</if>
+		order by data_source_create_time desc
+		<if test="startRecord != null and pageSize !=null" >
+			limit #{startRecord},#{pageSize}
+		</if>
+
+	</select>
+	<select id="getCountByCondition" parameterType="com.jz.bigdata.common.data_source.entity.DataSource" resultMap="BaseResultMap">
+		select count(1) as count from data_source
+		where 1=1
+		<if test="data_source_ip != null and data_source_ip !=''" >
+			and data_source_ip LIKE CONCAT('%', #{data_source_ip}, '%')
+		</if>
+	</select>
+	<!-- 删除数据 批量删-->
+	<update id="deletes" parameterType="java.lang.String">
+		<!-- delete from equipment where id in -->
+		DELETE FROM data_source  where data_source_id in
+		<foreach item="ids" index="index" collection="array" open="("
+				 separator="," close=")">
+			#{ids}
+		</foreach>
+	</update>
+
+	<update id="update" parameterType="com.jz.bigdata.common.data_source.entity.DataSource">
+		update data_source
+		<set>
+			<if test="data_source_name != null">
+				data_source_name = #{data_source_name,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_item != null">
+				data_source_item = #{data_source_item,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_item_type != null">
+				data_source_item_type = #{data_source_item_type,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_ip != null">
+				data_source_ip = #{data_source_ip,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_port != null">
+				data_source_port = #{data_source_port,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_username != null">
+				data_source_username = #{data_source_username,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_password != null">
+				data_source_password = #{data_source_password,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_dbname != null">
+				data_source_dbname = #{data_source_dbname,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_update_time != null">
+				data_source_update_time = #{data_source_update_time,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_is_initialized != null">
+				data_source_is_initialized = #{data_source_is_initialized,jdbcType=INTEGER},
+			</if>
+			<if test="data_source_init_time != null">
+				data_source_init_time = #{data_source_init_time,jdbcType=VARCHAR},
+			</if>
+			<if test="data_source_is_initialized != null">
+				data_source_is_initialized = #{data_source_is_initialized,jdbcType=INTEGER},
+			</if>
+			<if test="data_source_init_time != null and data_source_init_time !=''">
+				data_source_init_time = #{data_source_init_time,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where data_source_id = #{data_source_id,jdbcType=VARCHAR}
+	</update>
+	<select id="selectDataSourceInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select * from data_source
+		where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+	</select>
+</mapper>

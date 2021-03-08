@@ -211,7 +211,8 @@
                 leftList:[],
                 fieldTableHead:[
                     {prop:'COLUMN_NAME',label:'字段名称'},
-                    {prop:'COLUMN_TYPE',label:'数据类型'},
+                    {prop:'DATA_TYPE',label:'数据类型'},
+                    {prop:'LENGTH',label:'数据类型长度'},
                     {
                         prop:'IS_NULLABLE',
                         label:'是否为空',

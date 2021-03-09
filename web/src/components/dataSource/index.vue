@@ -499,7 +499,7 @@
                 this.leftList = []
                 this.$nextTick(()=>{
                     this.detailLoading = true;
-                    this.$axios.post(this.$baseUrl+'/dataSource/getDataBaseOrTable.do',this.$qs.stringify({
+                    this.$axios.post(this.$baseUrl+'/dataSource/getDataBase.do',this.$qs.stringify({
                         data_source_id:this.editId
                     }))
                         .then(res=>{

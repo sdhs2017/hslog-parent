@@ -8,6 +8,7 @@ import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source.entity.DataSource;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONArray;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -57,13 +58,30 @@ public class DruidUtil {
              druidDataSource.setDriverClassName(driver_mysql);
             druidPool = druidDataSource;
 
+
+
+
             Connection connection = DruidUtil.getConnection();
+
+
+//            JSONArray.fromObject(result)
+
+
+
+
+
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            log.error(e.getMessage());
+
+        }finally {
+//            close
         }
 
     }
+
+
     /**
      * 获取链接
      * @return
@@ -234,17 +252,20 @@ public class DruidUtil {
      */
     public static List<Map<String, Object>> executeQuery(Connection connection,String sql, Object[] params) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
-        ResultSet resultSet = null;
         PreparedStatement statement= null;
+        ResultSet resultSet = null;
+
         try{
+            //组装sql+参数，获取statement
+            statement = getPreparedStatement(sql,params,connection);
             //sql+参数
-            statement = connection.prepareStatement(sql);
-            // 参数赋值
-            if (params != null) {
-                for (int i = 0; i < params.length; i++) {
-                    statement.setObject(i + 1, params[i]);
-                }
-            }
+//            statement = connection.prepareStatement(sql);
+//            // 参数赋值
+//            if (params != null) {
+//                for (int i = 0; i < params.length; i++) {
+//                    statement.setObject(i + 1, params[i]);
+//                }
+//            }
             // 执行
             resultSet =  statement.executeQuery();
             //处理resultset数据，处理后才能关闭statment和resultset
@@ -255,6 +276,26 @@ public class DruidUtil {
             close(null,resultSet,statement);
         }
         return result;
+    }
+
+    /**
+     * 组装sql和参数，生成statment
+     * @param sql 语句
+     * @param params 参数
+     * @param connection 链接
+     * @return
+     * @throws SQLException
+     */
+    private static PreparedStatement getPreparedStatement(String sql,Object[] params,Connection connection) throws SQLException {
+        //sql+参数
+        PreparedStatement statement = connection.prepareStatement(sql);
+        // 参数赋值
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                statement.setObject(i + 1, params[i]);
+            }
+        }
+        return statement;
     }
     /**用于一个connection需要执行多个sql后,connection需要在执行完多个sql后再关闭
      * SQL 查询将查询结果直接放入ResultSet中
@@ -293,18 +334,18 @@ public class DruidUtil {
      */
     private static void close(Connection connection,ResultSet resultSet,PreparedStatement statement){
         try{
-            if(statement!=null){
-                statement.close();
-            }
-        } catch (SQLException e) {
-            log.error("statement关闭失败"+e.getMessage());
-        }
-        try{
             if (resultSet!=null){
                 resultSet.close();
             }
         } catch (SQLException e) {
             log.error("resultSet关闭失败"+e.getMessage());
+        }
+        try{
+            if(statement!=null){
+                statement.close();
+            }
+        } catch (SQLException e) {
+            log.error("statement关闭失败"+e.getMessage());
         }
         try{
             if(connection!=null){
@@ -333,5 +374,21 @@ public class DruidUtil {
         }
         return list;
     }
+
+    private static  List<Map<String, String>> resultSetToList2String(ResultSet rst) throws SQLException {
+        ResultSetMetaData md = rst.getMetaData(); //获得结果集结构信息,元数据
+        int columnCount = md.getColumnCount();   //获得列数
+        List<Map<String, String>> list = new ArrayList<>();
+        while (rst.next()) {
+            Map<String, String> rowData = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                rowData.put(md.getColumnLabel(i), rst.getObject(i).toString());
+            }
+            list.add(rowData);
+        }
+        return list;
+    }
+
+
 
 }

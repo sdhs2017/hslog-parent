@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Author: yiyang
@@ -131,6 +133,47 @@ public class DataSourceMetadataController {
         }catch (Exception e){
             log.error("更新失败："+e.getMessage());
             return Constant.failureMessage("更新失败");
+        }
+    }
+    /**
+     * 数据预览，元数据管理，数据源已初始化
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDataPreview",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "数据预览")
+    public String getDataPreview(HttpServletRequest request){
+        String databaseName = request.getParameter("database");
+        String tableName = request.getParameter("table");
+        String data_source_id = request.getParameter("data_source_id");
+        try{
+            Map<String,Object> result = dataSourceMetadataService.getDataPreview(databaseName,tableName,data_source_id);
+            return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch (Exception e){
+//            e.printStackTrace();
+            log.error("数据预览失败："+e.getMessage());
+            return Constant.failureMessage("数据获取失败！");
+        }
+    }
+    /**
+     * 数据语言，数据源管理，数据源未初始化
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDataPreviewNotInited",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "数据预览")
+    public String getDataPreviewNotInited(HttpServletRequest request){
+        String databaseName = request.getParameter("database");
+        String tableName = request.getParameter("table");
+        String data_source_id = request.getParameter("data_source_id");
+        try{
+            Map<String,Object> result = dataSourceMetadataService.getDataPreviewNotInited(databaseName,tableName,data_source_id);
+            return Constant.successData(JSONArray.fromObject(result).toString());
+        }catch (Exception e){
+            log.error("数据预览失败："+e.getMessage());
+            return Constant.failureMessage("数据获取失败！");
         }
     }
 }

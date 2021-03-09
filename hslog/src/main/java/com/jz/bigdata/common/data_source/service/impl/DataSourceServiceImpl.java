@@ -211,7 +211,8 @@ public class DataSourceServiceImpl implements IDataSourceService {
      * @return
      * @throws Exception
      */
-    private List<Map<String, Object>> getTableFields(String database, String table,String data_source_item_type, Connection connection) throws Exception {
+    @Override
+    public List<Map<String, Object>> getTableFields(String database, String table,String data_source_item_type, Connection connection) throws Exception {
         List<Map<String, Object>> result;
         String sql_fields;
         Object[] param;
@@ -241,9 +242,9 @@ public class DataSourceServiceImpl implements IDataSourceService {
                             " from all_tab_columns t, all_col_comments c " +
                             " where t.TABLE_NAME = c.TABLE_NAME " +
                             " and t.COLUMN_NAME = c.COLUMN_NAME " +
-                            " and t.TABLE_NAME = ? "  +
+                            " and t.owner = ? and t.TABLE_NAME = ? "  +
                             " order by t.COLUMN_NAME";
-                    param = new Object[]{table};
+                    param = new Object[]{database,table};
                     result = DruidUtil.executeQuery(connection,sql_fields,param);
                     break;
                 default:
@@ -263,7 +264,6 @@ public class DataSourceServiceImpl implements IDataSourceService {
         String[] ids = data_source_ids.split(",");
         String sql;//sql语句
         List<Map<String, Object>> databaseList;//数据库列表
-        String databaseName ;//数据库名称
         for(String data_source_id : ids){
             List<DataSourceMetadata> batchList = new ArrayList<>();
             //获取链接信息
@@ -307,7 +307,8 @@ public class DataSourceServiceImpl implements IDataSourceService {
                                 databaseList = DruidUtil.executeQuery(connection,sql,null);
                                 break;
                             case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
-                                sql = "select USERNAME as Database from dba_users order by USERNAME";//数据库别名与mysql对齐
+                                //数据库别名与mysql对齐 oracle 别名会默认改为大写，需要通过双引号包括
+                                sql = "select USERNAME as \"Database\" from dba_users order by USERNAME";
                                 databaseList = DruidUtil.executeQuery(connection,sql,null);
                                 break;
                             default:
@@ -321,12 +322,10 @@ public class DataSourceServiceImpl implements IDataSourceService {
                             metadata.setMetadata_id(UUID.randomUUID().toString());
                             metadata.setData_source_id(dataSource.getData_source_id());
                             metadata.setMetadata_type("database");//元数据类型-数据库
-                            //TODO oracle 返回的字段别名为大写，mysql为有大小写
-                            databaseName = Constant.DATA_SOURCE_ITEM_TYPE_MYSQL.equals(dataSource.getData_source_item_type())?database_map.get("Database").toString():database_map.get("DATABASE").toString();
-                            metadata.setMetadata_database(databaseName);
+                            metadata.setMetadata_database(database_map.get("Database").toString());
                             batchList.add(metadata);
                             //表和字段信息
-                            batchList.addAll(getTableAndFieldsMetadata(connection,databaseName,dataSource.getData_source_item_type(),dataSource.getData_source_id()));
+                            batchList.addAll(getTableAndFieldsMetadata(connection,database_map.get("Database").toString(),dataSource.getData_source_item_type(),dataSource.getData_source_id()));
                         }
                     }else{
                         //其他情况数据库为填写的信息（sqlserver和mysql且数据库/实例字段不为空）,直接获取表和字段信息
@@ -371,7 +370,7 @@ public class DataSourceServiceImpl implements IDataSourceService {
                 //抛出异常，实现回滚
                 throw e;
             }finally {
-                //关闭连接
+                //一个数据源的初始化完毕后，关闭链接
                 if(connection!=null){
                     connection.close();
                 }

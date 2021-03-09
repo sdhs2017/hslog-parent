@@ -171,6 +171,17 @@ public class ConfigProperty {
 	//filebeat收取cvs/json日志对应前缀
 	@Value("#{prop.es_filelog_pre}")
 	private String es_filelog_pre;
+	//#数据源管理-数据预览条数
+	@Value("#{prop.data_source_preview_num}")
+	private Integer data_source_preview_num;
+
+	public Integer getData_source_preview_num() {
+		return data_source_preview_num;
+	}
+
+	public void setData_source_preview_num(Integer data_source_preview_num) {
+		this.data_source_preview_num = data_source_preview_num;
+	}
 
 	public String getEs_filelog_pre() {
 		return es_filelog_pre;

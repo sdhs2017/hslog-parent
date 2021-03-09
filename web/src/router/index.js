@@ -29,6 +29,8 @@ function lazyLoadView (AsyncView) {
 }
 
 Vue.use(Router);
+/*let indexCompoents  = () =>  import('../components/index/index_n.vue');
+console.log(indexCompoents)*/
 
 export default new Router({
     routes: [
@@ -44,8 +46,9 @@ export default new Router({
                 {
                     path: '/index_n',
                     name:'index_n',
-                    /* component: resolve => require(['../components/index/index.vue'], resolve),*/
-                    component: () => lazyLoadView(import('../components/index/index_n.vue')),
+                    component: resolve => require(['../components/index/index_n.vue'], resolve),
+                    // component: () => lazyLoadView(import('../components/index/index_n.vue')),
+                    //component:indexCompoents,
                     meta: { title: '日志系统首页' }
                 },
                 {
@@ -553,7 +556,12 @@ export default new Router({
                     component: resolve => require(['../components/logsManage/fileLogManage.vue'], resolve),
                     meta: { title: '文件类日志' }
                 },
-
+                /*{
+                    path: '/study',
+                    name:'study',
+                    component: resolve => require(['../components/test/study.vue'], resolve),
+                    meta: { title: 'study' }
+                },*/
 
                 /*{
                     path: '/panel',

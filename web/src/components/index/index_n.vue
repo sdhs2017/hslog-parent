@@ -53,8 +53,9 @@
                     <p class="content-title">
                         <dateLayout class="date-wapper" busName="changeDateBar" :defaultVal="defaultValBar" ></dateLayout>
                     </p>
-                    <div class="content-infom">
-                        <logLevel_bar  class="date-wapper"  :params="barParam" :busName1="barBusName" :setIntervalObj="intervalObjBar"></logLevel_bar>
+                    <div class="content-infom" v-loading="barloading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+                        <!-- <logLevel_bar  class="date-wapper"  :params="barParam" :busName1="barBusName" :setIntervalObj="intervalObjBar"></logLevel_bar> -->
+                        <v-echarts echartType="bar" :echartData = "echartData.barData" :busName="barBusName" ></v-echarts>
                     </div>
                 </div>
             </el-col>
@@ -63,8 +64,9 @@
                     <p class="content-title" style="display: flex;justify-content: flex-end;">
                         <dateLayout  class="date-wapper"  busName="changeDatePie" :defaultVal="defaultValPie" ></dateLayout>
                     </p>
-                    <div class="content-infom">
-                        <logLevel_pie :params="pieParam" :setIntervalObj="intervalObjPie"></logLevel_pie>
+                    <div class="content-infom" v-loading="pieloading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+<!--                        <logLevel_pie :params="pieParam" :setIntervalObj="intervalObjPie"></logLevel_pie>-->
+                        <v-echarts echartType="pie" :echartData = "this.echartData.pieData" ></v-echarts>
                     </div>
                 </div>
             </el-col>
@@ -115,7 +117,7 @@
 </template>
 
 <script>
-    import vEcharts from '../common/echarts'
+    import vEcharts from '../common/echarts_n'
     import dateLayout from '../common/dateLayout'
     import vListdetails2 from '../common/Listdetails2'
     import logLevel_bar from '../charts/log/index/logLevel_bar'
@@ -213,6 +215,8 @@
                     //是否可以切换精确日期
                     changeState:true
                 },
+                barloading:false,
+                pieloading:false,
                 //日志级别柱状图参数
                 barParam:{
                     intervalValue:'',
@@ -249,6 +253,36 @@
                     endtime:'',
                     last:''
                 },
+                //柱状图、饼图 参数
+                echartData:{
+                    barData: {//柱状图数据
+                        baseConfig:{
+                            title:'日志级别数量统计',
+                            xAxisName:'级别',
+                            yAxisName:'数量/条',
+                            hoverText:'数量',
+                            itemColor:[['rgba(68,47,148,0.5)','rgba(15,219,243,1)']]
+                        },
+                        data:{
+                            dimensions:[],
+                            source:[]
+                        }
+                    },
+                    pieData: {//饼状图数据
+                        baseConfig:{
+                            title:'日志级别数量统计',
+                            xAxisName:'级别',
+                            yAxisName:'数量/条',
+                            hoverText:'数量',
+                            itemColor:[['rgba(68,47,148,0.5)','rgba(15,219,243,1)']]
+                        },
+                        data:{
+                            dimensions:[],
+                            source:[]
+                        }
+                    },
+                },
+
                 //今日每小时日志数
                 lineParam:{
                     intervalValue:'',
@@ -297,7 +331,7 @@
             //填充时间
             const end = new Date();
             const start = new Date();
-            start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+            start.setTime(start.getTime() - 3600 * 1000 * 24 * 3);
             this.dateVal1=[start,end];
             this.dateVal2=[start,end];
 
@@ -320,10 +354,10 @@
             this.lineParam.endtime = dateFormat('yyyy-mm-dd HH:MM:SS',end);
             /*监听日期改变*/
             bus.$on('changeDateBar',(obj)=>{
-                //设置参数对应
                 let arr = setChartParam(obj);
                 this.barParam = arr[0];
                 this.intervalObjBar = arr[1];
+                this.getBarPieEchartData(this.barParam,true,false,'manual');
             })
             /*监听日期改变*/
             bus.$on('changeDatePie',(obj)=>{
@@ -331,6 +365,7 @@
                 let arr = setChartParam(obj);
                 this.pieParam = arr[0];
                 this.intervalObjPie = arr[1];
+                this.getBarPieEchartData(this.barParam,false,true,'manual');
             })
             /*监听日期改变*/
             bus.$on('changeDateLine',(obj)=>{
@@ -343,7 +378,8 @@
             setInterval(this.setDate,1000);
             // //获取日志条数方法
              this.getLogsTotle();
-            // //获取柱状图
+            // //获取柱状图、饼图
+            this.getBarPieEchartData(this.barParam,true,true,'auto');
             //this.getBarPieEchartData(this.starttime,this.todayDate,true,true);
             // //获取折线图数据  轮训 1min
             //this.getLineEchartData();
@@ -448,6 +484,47 @@
                         })
                         .catch((err)=>{
                             this.loading = false
+                            console.log(err)
+                        })
+                })
+            },
+            //获取柱状图 饼图 数据
+            getBarPieEchartData(params,bar,pie,refreshVal){
+                if(bar){
+                    this.barloading = true
+                }
+                if(pie){
+                    this.pieloading = true
+                }
+                params.refresh = refreshVal
+                this.$nextTick( ()=> {
+                    this.$axios.post(this.$baseUrl+'/log/getCountGroupByLogLevel_barAndPie.do',this.$qs.stringify(params))
+                        .then((res) => {
+                            let obj = res.data;
+                            if(obj.success === 'true'){
+                                //赋值
+                                if (bar){
+                                    this.barloading = false
+                                    this.echartData.barData.data = obj.data[0]
+                                    console.log(this.echartData)
+                                }
+                                if(pie){
+                                    this.pieloading = false
+                                    this.echartData.pieData.data = obj.data[0];
+                                }
+                            }else{
+                                //赋值
+                                if (bar){
+                                    this.barloading = false
+                                }
+                                if(pie){
+                                    this.pieloading = false
+                                }
+                            }
+
+
+                        })
+                        .catch((err) => {
                             console.log(err)
                         })
                 })

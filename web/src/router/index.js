@@ -44,8 +44,8 @@ export default new Router({
                 {
                     path: '/index_n',
                     name:'index_n',
-                    /* component: resolve => require(['../components/index/index.vue'], resolve),*/
-                    component: () => lazyLoadView(import('../components/index/index_n.vue')),
+                    component: resolve => require(['../components/index/index_n.vue'], resolve),
+                    // component: () => lazyLoadView(import('../components/index/index_n.vue')),
                     meta: { title: '日志系统首页' }
                 },
                 {

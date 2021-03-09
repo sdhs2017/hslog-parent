@@ -15,7 +15,9 @@
 
             </div>
             <div class="right-wapper" v-loading="rightLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-                <h3 class="table-tit">{{currentName}} </h3>
+                <h3 class="table-tit">{{currentName}}
+                    <el-button style="float: right;margin: 10px" v-if="this.currentType === 'field'" type="primary" size="mini" plain @click="dataBtn()">数据预览</el-button>
+                </h3>
                 <vBasetable :tableHead="tableHead" :height="this.tableHeight" :tableData="tableDataArr"></vBasetable>
                 <div class="table-page" style="display: flex;justify-content: flex-end;align-items: center;height: 40px">
                     <span>总数为 <b>{{allCounts}} 条 </b></span>
@@ -85,6 +87,13 @@
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="submitData">确 定</el-button>
                 <el-button @click="formStateField = false">取 消</el-button>
+            </div>
+        </el-dialog>
+
+        <!--数据预览-->
+        <el-dialog title="数据预览" :visible.sync="tableDialogState" width="80vw" height="80vh" destroy-on-close v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
+            <div class="detail-wapper">
+                <vBasetable :tableHead="tableDialogHead" :tableData="tableDialogData" :height="tableDialogHeight"></vBasetable>
             </div>
         </el-dialog>
     </div>
@@ -212,7 +221,14 @@
                 //表格高度
                 tableHeight:'',
                 //当前类型
-                currentType:''
+                currentType:'',
+                //数据预览表格弹窗状态
+                tableDialogState:false,
+                detailLoading:false,
+                tableDialogHeight:0,
+                tableDialogHead:[],
+                tableDialogData:[],
+
             }
         },
         created(){
@@ -224,7 +240,19 @@
             this.tableHeight = document.body.clientHeight - 260 ;
             window.onresize = () => {
                 this.tableHeight = document.body.clientHeight - 260 ;
+                this.tableDialogHeight = document.body.clientHeight - 370 ;
             };
+        },
+        watch:{
+            'tableDialogState'(nv,ov){
+                /*if(nv){
+                    this.tableDialogHead=[]
+                    this.tableDialogData=[]
+                    this.getFieldData()
+                }else{
+
+                }*/
+            }
         },
         methods:{
             /*索引列表点击*/
@@ -294,8 +322,9 @@
             },
             /*节点点击*/
             nodeClick(node){
-                this.currentName = node.menuName;
+
                 if (node.state  == 2){
+                    this.currentName = node.menuName;
                     this.currentType = 'table'
                     this.conditionFrom = {
                         metadata_database:node.database,
@@ -304,7 +333,8 @@
                     this.tableHead=this.secondHead
                     this.getProps(1,this.conditionFrom)
                 } else if (node.state == 3) {
-                    console.log(node)
+                    this.currentName = node.menuName;
+                    // console.log(node)
                      this.currentType = 'field'
                     // let url = '/metadata/getMedataByIndexDynamically.do';
                      this.conditionFrom = {
@@ -314,6 +344,8 @@
                      }
                     this.tableHead=this.thirdHead
                     this.getProps(1,this.conditionFrom)
+                }else{
+                   // this.currentType = ''
                 }
 
             },
@@ -387,63 +419,39 @@
                 })
             },
 
-
-            /*转小写*/
-            toLowcase(row, column, cellValue, index){
-                if(cellValue){
-                    let val = cellValue.toLowerCase();
-                    return val
-                }else {
-                    return cellValue
-                }
+            /*预览按钮*/
+            dataBtn(){
+                this.tableDialogState = true;
+                this.getFieldData()
             },
-            toEmpty(row, column, cellValue, index){
-                if (cellValue == '0'){
-                    return ''
-                }
-            },
-            //转换布尔值
-            changeVal(row, column, cellValue, index){
-                if (cellValue == true){
-                    return '是'
-                } else if(cellValue == false){
-                    return '否'
-                }else{
-                    return cellValue;
-                }
-            },
-
-
-            /*表格懒加载*/
-            load(tree, treeNode, resolve){
-                let url = '';
-                let param = {};
-                if (this.currentType === 'template') {
-                    url = '/metadata/getMedataByTemplateDynamically.do';
-                    param = {
-                        id:tree.id,
-                        template:this.currentName
-                    }
-                }else{
-                    url = '/metadata/getMedataByIndexDynamically.do';
-                    param = {
-                        id:tree.id,
-                        index:this.currentName
-                    }
-                }
+            /*数据预览*/
+            getFieldData(){
+                this.tableDialogHead=[]
+                this.tableDialogData=[]
                 this.$nextTick(()=>{
-                    this.rightLoading = true;
-                    this.$axios.post(this.$baseUrl+url,this.$qs.stringify(param))
+                    this.tableDialogHeight = document.body.clientHeight - 370 ;
+                    this.detailLoading = true;
+                    this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getDataPreview.do',this.$qs.stringify({
+                        database:this.conditionFrom.metadata_database,
+                        table:this.conditionFrom.metadata_table,
+                        data_source_id:this.conditionFrom.data_source_id
+                    }))
                         .then(res=>{
-                            this.rightLoading = false;
-                            resolve(res.data)
+                            this.detailLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.tableDialogHead = obj.data[0].fields
+                                this.tableDialogData = obj.data[0].data
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
                         })
                         .catch(err=>{
-                            this.rightLoading = false;
-                            console.log('获取失败')
+                             this.detailLoading = false;
                         })
                 })
             }
+
         },
         components:{
             vBasetable
@@ -547,5 +555,10 @@
     .left-list /deep/ .el-tree>.el-tree-node {
         display: inline-block;
         min-width: 100%;
+    }
+    .detail-wapper{
+        width: 100%;
+        height: 64vh;
+        overflow: auto;
     }
 </style>

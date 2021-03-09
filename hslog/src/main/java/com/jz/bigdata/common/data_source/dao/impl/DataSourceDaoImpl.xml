@@ -172,12 +172,6 @@
 			<if test="data_source_is_initialized != null">
 				data_source_is_initialized = #{data_source_is_initialized,jdbcType=INTEGER},
 			</if>
-			<if test="data_source_init_time != null">
-				data_source_init_time = #{data_source_init_time,jdbcType=VARCHAR},
-			</if>
-			<if test="data_source_is_initialized != null">
-				data_source_is_initialized = #{data_source_is_initialized,jdbcType=INTEGER},
-			</if>
 			<if test="data_source_init_time != null and data_source_init_time !=''">
 				data_source_init_time = #{data_source_init_time,jdbcType=VARCHAR},
 			</if>

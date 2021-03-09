@@ -97,7 +97,7 @@ public class DataSourceController {
     public String getDataBaseOrTable(HttpServletRequest request){
         String data_source_id = request.getParameter("data_source_id");
         try{
-            List<Map<String,String>> list = dataSourceService.getDataBaseOrTable(data_source_id);
+            List<Map<String,String>> list = dataSourceService.getDataBase(data_source_id);
             return Constant.successData(JSONArray.fromObject(list).toString());
         }catch (Exception e) {
             log.error("数据源库或表信息获取失败："+e.getMessage());
@@ -112,12 +112,12 @@ public class DataSourceController {
      */
     @ResponseBody
     @RequestMapping(value="/getTablesByDatabase",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe = "获取数据源下的库或表")
+    @DescribeLog(describe = "获取库下的表")
     public String getTablesByDatabase(HttpServletRequest request){
         String data_source_id = request.getParameter("data_source_id");
         String database = request.getParameter("database");
         try{
-            List<Map<String,String>> list = dataSourceService.getTablesByDatabase(database,data_source_id);
+            List<Map<String,String>> list = dataSourceService.getTablesByDatabase_tree(database,data_source_id);
             return Constant.successData(JSONArray.fromObject(list).toString());
         }catch (Exception e) {
             log.error("数据源库或表信息获取失败："+e.getMessage());
@@ -138,7 +138,7 @@ public class DataSourceController {
         String database = request.getParameter("database");
         String table = request.getParameter("table");
         try{
-            List<Map<String,Object>> list = dataSourceService.getTableFields(database,table,data_source_id);
+            List<Map<String,Object>> list = dataSourceService.getTableFieldsInfo(database,table,data_source_id);
             return Constant.successData(JSONArray.fromObject(list).toString());
         }catch (Exception e) {
             log.error("表信息获取失败："+e.getMessage());

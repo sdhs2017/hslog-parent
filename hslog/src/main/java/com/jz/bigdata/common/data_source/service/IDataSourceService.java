@@ -32,12 +32,12 @@ public interface IDataSourceService {
     boolean checkConnection(DataSource dataSource);
 
     /**
-     * 获取数据库或表信息
+     * 获取数据库信息
      * @param data_source_id
      * @return
      * @throws Exception
      */
-    public List<Map<String,String>> getDataBaseOrTable(String data_source_id) throws Exception;
+    public List<Map<String,String>> getDataBase(String data_source_id) throws Exception;
 
     /**
      * 通过数据库获取表信息
@@ -45,7 +45,7 @@ public interface IDataSourceService {
      * @return
      * @throws Exception
      */
-    public List<Map<String,String>> getTablesByDatabase(String database,String data_source_id) throws Exception;
+    public List<Map<String,String>> getTablesByDatabase_tree(String database,String data_source_id) throws Exception;
 
     /**
      * 获取表的字段信息
@@ -55,7 +55,7 @@ public interface IDataSourceService {
      * @return
      * @throws Exception
      */
-    public List<Map<String,Object>> getTableFields(String database,String table,String data_source_id) throws Exception;
+    public List<Map<String,Object>> getTableFieldsInfo(String database,String table,String data_source_id) throws Exception;
 
     /**
      * 根据data source id 进行数据初始化，将数据库、表、字段信息保存

@@ -1,5 +1,7 @@
 package com.jz.bigdata.common.data_source.service.impl;
 
+import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.stat.DruidStatManagerFacade;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source.dao.IDataSourceDao;
 import com.jz.bigdata.common.data_source.entity.DataSource;
@@ -33,6 +35,8 @@ import java.util.*;
 @Slf4j
 @Service(value = "DataSourceService")
 public class DataSourceServiceImpl implements IDataSourceService {
+    //批量insert数据条数大小
+    private final int batch_size=1000;
     private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     @Autowired
     protected IDataSourceDao dataSourceDao;
@@ -69,6 +73,15 @@ public class DataSourceServiceImpl implements IDataSourceService {
     public boolean update(DataSource dataSource) {
         dataSource.setData_source_update_time(LocalDateTime.now().format(dtf_time));
         int result = dataSourceDao.update(dataSource);
+        //更新后需要关闭连接源
+        //生成druid datasource名称
+        String druid_data_source_name = DruidUtil.DRUID_DATA_SOURCE_ID+dataSource.getData_source_id();
+        //查看该datasource是否已存在
+        DruidDataSource druidDataSource = (DruidDataSource) DruidStatManagerFacade.getInstance().getDruidDataSourceByName(druid_data_source_name);
+        //如果存在，则关闭链接
+        if(druidDataSource!=null){
+            druidDataSource.close();
+        }
         if(result>0){
             return true;
         }else{
@@ -106,114 +119,263 @@ public class DataSourceServiceImpl implements IDataSourceService {
     }
 
     @Override
-    public List<Map<String, String>> getDataBaseOrTable(String data_source_id) throws Exception {
-        List<Map<String, String>> result = new ArrayList<>();
+    public List<Map<String, String>> getDataBase(String data_source_id) throws Exception {
+        List<Map<String, String>> result = new ArrayList<>();//执行结果再处理后的结果，用户返回
+        String sql;//sql语句
+        List<Map<String, Object>> sql_result;//sql初始执行结果
         //获取链接信息
         DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
         if(dataSource!=null){
-            //1.创建链接
-            Connection connection = DruidUtil.getConnection(dataSource);
-            //2.判断要执行的sql语句
-            //TODO 数据库类型判定
-            if(Strings.isNullOrEmpty(dataSource.getData_source_dbname())){
-                String sql_database = "show databases";
-                List<Map<String, Object>> result_table = DruidUtil.executeQuery(connection,sql_database,null);
-                result = data2treeNode(result_table,"SCHEMA_NAME","","true");
-            }else{
-                //数据库或实例不为空,直接获取表信息
-                String sql_table = "select TABLE_NAME from information_schema.`TABLES` where TABLE_SCHEMA = ? order by TABLE_NAME";
-                Object[] param = {dataSource.getData_source_dbname()};
-                List<Map<String, Object>> result_table = DruidUtil.executeQuery(connection,sql_table,param);
-                result = data2treeNode(result_table,"TABLE_NAME",dataSource.getData_source_dbname(),"false");
+            //根据不同类型获取数据库/实例
+            switch(dataSource.getData_source_item_type()){
+                case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                    if(Strings.isNullOrEmpty(dataSource.getData_source_dbname())){
+                        //数据库为空，查询所有数据库
+                        sql = "show databases";
+                        sql_result = DruidUtil.executeQuery(dataSource,sql,null);
+                        result = data2treeNode(sql_result,"Database","","true");
+                    }else{
+                        //通过填写的数据库的信息生成节点
+                        result = createDatabaseNode(dataSource.getData_source_dbname());
+                    }
+                    break;
+                case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+                    //sqlserver链接要求必须输入数据库，因此直接返回一级菜单
+                    result = createDatabaseNode(dataSource.getData_source_dbname());
+                    break;
+                case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                    //显示所有用户，oracle 一个用户相当于一个数据库
+                    sql = "select USERNAME from dba_users order by USERNAME";
+                    sql_result = DruidUtil.executeQuery(dataSource,sql,null);
+                    result = data2treeNode(sql_result,"USERNAME","","true");
+                    break;
+                default:
+                    //nothing
+                    break;
             }
-            connection.close();
         }
         return result;
     }
 
     @Override
-    public List<Map<String, String>> getTablesByDatabase(String database,String data_source_id) throws Exception {
-        List<Map<String, String>> result = new ArrayList<>();
+    public List<Map<String, String>> getTablesByDatabase_tree(String database,String data_source_id) throws Exception {
+        List<Map<String, String>> result = null;
         //获取链接信息
         DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
+        Connection connection = null;
         if(dataSource!=null){
-            //1.创建链接
-            Connection connection = DruidUtil.getConnection(dataSource);
-            //2.判断要执行的sql语句
-            //数据库或实例不为空,直接获取表信息
-            String sql_table = "select TABLE_NAME from information_schema.`TABLES` where TABLE_SCHEMA = ?";
-            Object[] param = {database};
-            List<Map<String, Object>> result_table = DruidUtil.executeQuery(connection,sql_table,param);
-            result = data2treeNode(result_table,"TABLE_NAME",database,"false");
-            connection.close();
+            try{
+                connection = DruidUtil.getConnection(dataSource);
+                List<Map<String, Object>> tableList = getTablesByDatabase(database,connection,dataSource.getData_source_item_type());
+                result = data2treeNode(tableList,"TABLE_NAME",database,"false");
+            }catch (Exception e){
+                log.error("根据database："+database+"，获取表失败："+e.getMessage());
+                result = new ArrayList<>();
+            }finally {
+                if(connection!=null){
+                    connection.close();
+                }
+            }
         }
         return result;
     }
 
     @Override
-    public List<Map<String, Object>> getTableFields(String database, String table, String data_source_id) throws Exception {
-        List<Map<String, Object>> result = new ArrayList<>();
+    public List<Map<String, Object>> getTableFieldsInfo(String database, String table, String data_source_id) throws Exception {
+        List<Map<String, Object>> result = null;
         //获取链接信息
         DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
         if(dataSource!=null){
-            //1.创建链接
+            //获取连接
             Connection connection = DruidUtil.getConnection(dataSource);
-            String sql_fields = "select * from INFORMATION_SCHEMA.COLUMNS where table_schema = ? and table_name = ?";
-            Object[] param = {database,table};
-            result = DruidUtil.executeQuery(connection,sql_fields,param);
-            connection.close();
+            try{
+                result = getTableFields(database,table,dataSource.getData_source_item_type(),connection);
+            } catch (Exception e) {
+                log.error("获取字段信息失败："+e.getMessage());
+                result = new ArrayList<>();
+            }finally {
+                if(connection!=null){
+                    connection.close();
+                }
+            }
         }
         return result;
     }
 
+    /**
+     * 获取表的字段信息
+     * @param database 数据库名
+     * @param table 表名
+     * @param data_source_item_type 数据库类型
+     * @param connection 连接池,需要在外面对connection关闭
+     * @return
+     * @throws Exception
+     */
+    private List<Map<String, Object>> getTableFields(String database, String table,String data_source_item_type, Connection connection) throws Exception {
+        List<Map<String, Object>> result;
+        String sql_fields;
+        Object[] param;
+        try{
+            //判断数据库类型
+            switch(data_source_item_type){
+                case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                    sql_fields = "select COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH AS LENGTH,IS_NULLABLE,COLUMN_COMMENT " +
+                            "from INFORMATION_SCHEMA.COLUMNS where table_schema = ? and table_name = ? ORDER BY COLUMN_NAME";
+                    param = new Object[]{database, table};
+                    result = DruidUtil.executeQuery(connection,sql_fields,param);
+                    break;
+                case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+                    sql_fields = "SELECT A.name as COLUMN_NAME,B.name as DATA_TYPE,A.length as LENGTH," +
+                            "CASE WHEN A.isnullable='0' THEN 'NO' ELSE 'YES' END as IS_NULLABLE," +
+                            "CAST(D.[value] AS VARCHAR) as COLUMN_COMMENT " +
+                            "FROM SYSCOLUMNS A " +
+                            "LEFT JOIN SYSTYPES B ON A.xtype = B.xusertype " +
+                            "LEFT JOIN sys.extended_properties D ON A.id = D.major_id AND A.colid = D.minor_id AND D.name = 'MS_DESCRIPTION' " +
+                            "WHERE A.id = OBJECT_ID(?) " +
+                            "ORDER BY A.name";
+                    param = new Object[]{table};
+                    result = DruidUtil.executeQuery(connection,sql_fields,param);
+                    break;
+                case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                    sql_fields = "select t.COLUMN_NAME,c.COMMENTS AS COLUMN_COMMENT,t.NULLABLE AS IS_NULLABLE,t.DATA_TYPE AS DATA_TYPE,t.CHAR_LENGTH AS LENGTH" +
+                            " from all_tab_columns t, all_col_comments c " +
+                            " where t.TABLE_NAME = c.TABLE_NAME " +
+                            " and t.COLUMN_NAME = c.COLUMN_NAME " +
+                            " and t.TABLE_NAME = ? "  +
+                            " order by t.COLUMN_NAME";
+                    param = new Object[]{table};
+                    result = DruidUtil.executeQuery(connection,sql_fields,param);
+                    break;
+                default:
+                    result = new ArrayList<>();
+                    break;
+            }
+        }catch (Exception e){
+            log.error("获取字段信息失败："+database+"-"+table+e.getMessage());
+            throw e;//抛出异常，保证回滚
+        }
+        return result;
+    }
     @Override
     @Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
     public boolean initByDataSourceIds(String data_source_ids) throws Exception {
-
+        //批量处理，参数以逗号隔开
         String[] ids = data_source_ids.split(",");
+        String sql;//sql语句
+        List<Map<String, Object>> databaseList;//数据库列表
+        String databaseName ;//数据库名称
         for(String data_source_id : ids){
             List<DataSourceMetadata> batchList = new ArrayList<>();
             //获取链接信息
             DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
             //获取链接信息
-            Connection connection = DruidUtil.getConnection(dataSource);
-            if(dataSource!=null){
-                //开始初始化
-                //0.删除原初始化数据
-                dataSourceMetadataDao.deleteByDataSourceId(data_source_id);
-                //1.数据库
-                if(Strings.isNullOrEmpty(dataSource.getData_source_dbname())){
-                    List<Map<String, Object>> list = getDatabases(connection,dataSource.getData_source_item_type());
-                    //遍历库信息，并写入数据库
-                    for(Map<String,Object> database_map:list){
+            Connection connection = null;
+            try{
+                connection = DruidUtil.getConnection(dataSource);
+                if(connection!=null){
+                    //开始初始化
+                    //1.删除原初始化数据
+                    dataSourceMetadataDao.deleteByDataSourceId(data_source_id);
+                    //判断数据库类型
+//                    switch (dataSource.getData_source_item_type()){
+//                        case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+//                            sql = "show databases";
+//                            databaseList = DruidUtil.executeQuery(connection,sql,null);
+//                            break;
+//                        case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+//                            databaseList = new ArrayList<>();
+//                            Map<String, Object> db = new HashMap<>();
+//                            db.put("Database",dataSource.getData_source_dbname());//数据库别名与mysql对齐
+//                            databaseList.add(db);
+//                            break;
+//                        case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+//                            sql = "select USERNAME as Database from dba_users order by USERNAME";//数据库别名与mysql对齐
+//                            databaseList = DruidUtil.executeQuery(connection,sql,null);
+//                            break;
+//                        default:
+//                            databaseList = new ArrayList<>();
+//                            break;
+//                    }
+                    //2.有数据库一级的情况判定
+                    //mysql数据库且数据库/实例字段不为空，以及数据库类型为oracle
+                    if((Strings.isNullOrEmpty(dataSource.getData_source_dbname())&&Constant.DATA_SOURCE_ITEM_TYPE_MYSQL.equals(dataSource.getData_source_item_type()))
+                        ||Constant.DATA_SOURCE_ITEM_TYPE_ORACLE.equals(dataSource.getData_source_item_type())){
+                        //获取数据库列表
+                        switch (dataSource.getData_source_item_type()){
+                            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                                sql = "show databases";
+                                databaseList = DruidUtil.executeQuery(connection,sql,null);
+                                break;
+                            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                                sql = "select USERNAME as Database from dba_users order by USERNAME";//数据库别名与mysql对齐
+                                databaseList = DruidUtil.executeQuery(connection,sql,null);
+                                break;
+                            default:
+                                databaseList = new ArrayList<>();
+                                break;
+                        }
+                        //遍历数据库库列表
+                        for(Map<String,Object> database_map:databaseList){
+                            //数据库节点信息
+                            DataSourceMetadata metadata = new DataSourceMetadata();
+                            metadata.setMetadata_id(UUID.randomUUID().toString());
+                            metadata.setData_source_id(dataSource.getData_source_id());
+                            metadata.setMetadata_type("database");//元数据类型-数据库
+                            //TODO oracle 返回的字段别名为大写，mysql为有大小写
+                            databaseName = Constant.DATA_SOURCE_ITEM_TYPE_MYSQL.equals(dataSource.getData_source_item_type())?database_map.get("Database").toString():database_map.get("DATABASE").toString();
+                            metadata.setMetadata_database(databaseName);
+                            batchList.add(metadata);
+                            //表和字段信息
+                            batchList.addAll(getTableAndFieldsMetadata(connection,databaseName,dataSource.getData_source_item_type(),dataSource.getData_source_id()));
+                        }
+                    }else{
+                        //其他情况数据库为填写的信息（sqlserver和mysql且数据库/实例字段不为空）,直接获取表和字段信息
+                        batchList = getTableAndFieldsMetadata(connection,dataSource.getData_source_dbname(),dataSource.getData_source_item_type(),dataSource.getData_source_id());
+                        //数据源信息中有数据库，需要将数据库也写入
                         DataSourceMetadata metadata = new DataSourceMetadata();
                         metadata.setMetadata_id(UUID.randomUUID().toString());
                         metadata.setData_source_id(dataSource.getData_source_id());
                         metadata.setMetadata_type("database");//元数据类型-数据库
-                        metadata.setMetadata_database(database_map.get("SCHEMA_NAME").toString());
+                        metadata.setMetadata_database(dataSource.getData_source_dbname());
                         batchList.add(metadata);
-                        batchList.addAll(getTableAndFieldsMetadata(connection,database_map.get("SCHEMA_NAME").toString(),dataSource.getData_source_item_type(),dataSource.getData_source_id()));
                     }
+
+                    //3.数据过大会无法正常批量insert，改为每1000条insert一次
+                    //TODO 具体插入多少条效率最高还需进行调研
+                    if(batchList.size()>batch_size){
+                        int part = batchList.size()/batch_size;
+                        List<DataSourceMetadata> listPage;//分页list
+                        for (int i = 0; i < part; i++) {
+                            //取前1000条
+                            listPage = batchList.subList(0, batch_size);
+                            //批量插入
+                            dataSourceMetadataDao.batchInsert(listPage);
+                            //剔除
+                            batchList.subList(0, batch_size).clear();
+                        }
+                    }else{
+                        dataSourceMetadataDao.batchInsert(batchList);
+                    }
+
+                    //4.更新初始化信息到数据源中
+                    dataSource.setData_source_is_initialized(1);//已经初始化
+                    dataSource.setData_source_init_time(LocalDateTime.now().format(dtf_time));
+                    dataSourceDao.update(dataSource);
                 }else{
-                    batchList = getTableAndFieldsMetadata(connection,dataSource.getData_source_dbname(),dataSource.getData_source_item_type(),dataSource.getData_source_id());
-                    //数据源信息中有数据库，需要将数据库也写入
-                    DataSourceMetadata metadata = new DataSourceMetadata();
-                    metadata.setMetadata_id(UUID.randomUUID().toString());
-                    metadata.setData_source_id(dataSource.getData_source_id());
-                    metadata.setMetadata_type("database");//元数据类型-数据库
-                    metadata.setMetadata_database(dataSource.getData_source_dbname());
-                    batchList.add(metadata);
+                    //获取不到连接池信息
+                    log.info("无法获取connection信息 ，data_source_id="+data_source_id);
+                    return false;
                 }
-                dataSourceMetadataDao.batchInsert(batchList);
-                //更新初始化信息到数据源中
-                dataSource.setData_source_is_initialized(1);//已经初始化
-                dataSource.setData_source_init_time(LocalDateTime.now().format(dtf_time));
-                dataSourceDao.update(dataSource);
-            }else{
-                //获取不到连接池信息
-                return false;
+            }catch (Exception e){
+                log.error("数据源初始化异常："+e.getMessage());
+                //抛出异常，实现回滚
+                throw e;
+            }finally {
+                //关闭连接
+                if(connection!=null){
+                    connection.close();
+                }
             }
-            connection.close();
         }
         return true;
     }
@@ -225,32 +387,35 @@ public class DataSourceServiceImpl implements IDataSourceService {
      * @param data_source_item_type 数据库类型
      * @param data_source_id 数据源id
      * @return
-     * @throws SQLException
+     * @throws Exception
      */
-    private List<DataSourceMetadata> getTableAndFieldsMetadata(Connection connection,String database,String data_source_item_type,String data_source_id) throws SQLException {
+    private List<DataSourceMetadata> getTableAndFieldsMetadata(Connection connection,String database,String data_source_item_type,String data_source_id) throws Exception {
         List<DataSourceMetadata> result = new ArrayList<>();
-        //表
-        List<Map<String, Object>> table_list = getTables(connection,data_source_item_type,database);
+        String tableName ;
+        //获取所有表
+        List<Map<String, Object>> table_list = getTablesByDatabase(database,connection,data_source_item_type);
         for(Map<String,Object> table_map:table_list){
+            tableName = table_map.get("TABLE_NAME")!=null?table_map.get("TABLE_NAME").toString():"";
+            //表信息
             DataSourceMetadata metadata_table = new DataSourceMetadata();
             metadata_table.setMetadata_id(UUID.randomUUID().toString());
             metadata_table.setData_source_id(data_source_id);
             metadata_table.setMetadata_type("table");//元数据类型-表
             metadata_table.setMetadata_database(database);
-            metadata_table.setMetadata_table(table_map.get("TABLE_NAME").toString());
+            metadata_table.setMetadata_table(tableName);//表名
             result.add(metadata_table);
-            //字段
-            List<Map<String, Object>> fields_list = getFields(connection,data_source_item_type,database,table_map.get("TABLE_NAME").toString());
+            //字段信息
+            List<Map<String, Object>> fields_list = getTableFields(database,tableName,data_source_item_type,connection);
             for(Map<String,Object> field_map:fields_list){
                 DataSourceMetadata metadata_field = new DataSourceMetadata();
                 metadata_field.setMetadata_id(UUID.randomUUID().toString());
                 metadata_field.setData_source_id(data_source_id);
-                metadata_field.setMetadata_type("field");//元数据类型-表
-                metadata_field.setMetadata_database(database);
-                metadata_field.setMetadata_table(table_map.get("TABLE_NAME").toString());
-                metadata_field.setMetadata_field(field_map.get("COLUMN_NAME").toString());
-                metadata_field.setMetadata_field_type(field_map.get("COLUMN_TYPE").toString());
-                metadata_field.setMetadata_remark(field_map.get("COLUMN_COMMENT").toString());
+                metadata_field.setMetadata_type("field");//元数据类型-字段
+                metadata_field.setMetadata_database(database);//数据库
+                metadata_field.setMetadata_table(tableName);//表名
+                metadata_field.setMetadata_field(field_map.get("COLUMN_NAME")!=null?field_map.get("COLUMN_NAME").toString():"");//字段名
+                metadata_field.setMetadata_field_type(field_map.get("DATA_TYPE")!=null?field_map.get("DATA_TYPE").toString():"");//类型
+                metadata_field.setMetadata_remark(field_map.get("COLUMN_COMMENT")!=null?field_map.get("COLUMN_COMMENT").toString():"");//注释
                 result.add(metadata_field);
             }
 
@@ -281,70 +446,62 @@ public class DataSourceServiceImpl implements IDataSourceService {
     }
 
     /**
-     * 根据数据库类型获取数据库信息
-     * @param connection
-     * @param data_source_item_type
+     * 创建数据库tree节点
+     * @param dbname
      * @return
-     * @throws SQLException
      */
-    private List<Map<String, Object>> getDatabases(Connection connection,String data_source_item_type) throws SQLException {
-        switch (data_source_item_type){
-            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
-                String sql_mysql = "show databases";
-                return DruidUtil.executeQuery(connection,sql_mysql,null);
-            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
-                //TODO
-            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
-                //TODO
-            default:
-                return new ArrayList<>();
-        }
+    private List<Map<String, String>> createDatabaseNode(String dbname){
+        List<Map<String, String>> result = new ArrayList<>();
+            Map<String,String> node = new HashMap<>();
+            node.put("label",dbname);
+            node.put("id",dbname);
+            node.put("child","[]");
+            node.put("isExpand","true");
+            node.put("database",dbname);
+            result.add(node);
+        return result;
     }
 
-    /**
-     * 获取数据库下的表信息
-     * @param connection
-     * @param data_source_item_type
-     * @param database
-     * @return
-     * @throws SQLException
-     */
-    private List<Map<String, Object>> getTables(Connection connection,String data_source_item_type,String database) throws SQLException {
-        switch (data_source_item_type){
-            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
-                String sql_mysql = "select * from information_schema.`TABLES` where TABLE_SCHEMA = ?";
-                Object[] param = {database};
-                return DruidUtil.executeQuery(connection,sql_mysql,param);
-            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
-                //TODO
-            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
-                //TODO
-            default:
-                return new ArrayList<>();
-        }
-    }
 
     /**
-     * 获取表下的字段信息
-     * @param connection
-     * @param data_source_item_type
-     * @param database
-     * @param table
+     * 根据数据库获取下面的表信息
+     * TABLE_NAME 表名
+     * @param database 数据库
+     * @param connection 连接
+     * @param data_source_item_type 数据库类型
      * @return
-     * @throws SQLException
+     * @throws Exception
      */
-    private List<Map<String, Object>> getFields(Connection connection,String data_source_item_type,String database,String table) throws SQLException {
-        switch (data_source_item_type){
-            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
-                String sql_fields = "select * from INFORMATION_SCHEMA.COLUMNS where table_schema = ? and table_name = ? order by COLUMN_NAME";
-                Object[] param = {database,table};
-                return DruidUtil.executeQuery(connection,sql_fields,param);
-            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
-                //TODO
-            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
-                //TODO
-            default:
-                return new ArrayList<>();
+    private List<Map<String, Object>> getTablesByDatabase(String database,Connection connection,String data_source_item_type) throws SQLException {
+        String sql; //要执行的sql语句
+        List<Map<String, Object>> result_table;
+        Object[] param; //参数
+        try{
+            //判断数据库类型
+            switch(data_source_item_type){
+                case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                    sql = "select TABLE_NAME from information_schema.`TABLES` where TABLE_SCHEMA = ? order by TABLE_NAME";
+                    param = new Object[]{database};
+                    result_table = DruidUtil.executeQuery(connection,sql,param);
+                    break;
+                case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+                    //数据库或实例不为空,直接获取表信息
+                    sql = "SELECT NAME as TABLE_NAME FROM SYSOBJECTS WHERE XTYPE='U' ORDER BY NAME";
+                    result_table = DruidUtil.executeQuery(connection,sql,null);
+                    break;
+                case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                    String sql_table = "select TABLE_NAME from ALL_TABLES where owner=?";
+                    param = new Object[]{database};
+                    result_table = DruidUtil.executeQuery(connection,sql_table,param);
+                    break;
+                default:
+                    result_table = new ArrayList<>();
+                    break;
+            }
+        }catch (Exception e){
+            log.error("获取表信息失败："+e.getMessage());
+            throw e;
         }
+        return result_table;
     }
 }

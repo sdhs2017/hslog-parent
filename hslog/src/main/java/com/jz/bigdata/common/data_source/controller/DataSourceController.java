@@ -92,9 +92,9 @@ public class DataSourceController {
      * @return
      */
     @ResponseBody
-    @RequestMapping(value="/getDataBaseOrTable",produces = "application/json; charset=utf-8")
-    @DescribeLog(describe = "获取数据源下的库或表")
-    public String getDataBaseOrTable(HttpServletRequest request){
+    @RequestMapping(value="/getDataBase",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取数据源下的库")
+    public String getDataBase(HttpServletRequest request){
         String data_source_id = request.getParameter("data_source_id");
         try{
             List<Map<String,String>> list = dataSourceService.getDataBase(data_source_id);

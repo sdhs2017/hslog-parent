@@ -38,4 +38,21 @@ public interface IDataSourceMetadataService {
      */
     public int update(DataSourceMetadata dataSourceMetadata);
 
+    /**
+     * 数据预览功能
+     * @param databaseName
+     * @param tableName
+     * @param data_source_id
+     * @return
+     */
+    public Map<String,Object> getDataPreview(String databaseName,String tableName,String data_source_id);
+    /**
+     * 数据预览功能，数据未初始化，在数据源管理模块
+     * @param databaseName
+     * @param tableName
+     * @param data_source_id
+     * @return
+     */
+    public Map<String,Object> getDataPreviewNotInited(String databaseName,String tableName,String data_source_id);
+
 }

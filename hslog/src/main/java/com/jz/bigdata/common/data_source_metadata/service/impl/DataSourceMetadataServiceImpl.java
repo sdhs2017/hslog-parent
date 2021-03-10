@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.data_source_metadata.service.impl;
 
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source.dao.IDataSourceDao;
 import com.jz.bigdata.common.data_source.entity.DataSource;
 import com.jz.bigdata.common.data_source.service.IDataSourceService;
@@ -8,6 +9,8 @@ import com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata;
 import com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadataMenu;
 import com.jz.bigdata.common.data_source_metadata.service.IDataSourceMetadataService;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
+import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.DruidUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,6 +33,8 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
     protected IDataSourceDao dataSourceDao;
     @Autowired
     protected IDataSourceMetadataDao dataSourceMetadataDao;
+    @Resource(name ="configProperty")
+    private ConfigProperty configProperty;
     @Override
     public List<DataSourceMetadataMenu> getMetadataTree() {
         List<DataSourceMetadataMenu> listMenu = new ArrayList<>();
@@ -105,5 +110,92 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
         return dataSourceMetadataDao.update(dataSourceMetadata);
     }
 
+    @Override
+    public Map<String,Object> getDataPreview(String databaseName, String tableName, String data_source_id) {
+        //获取数据源信息
+        DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
+
+        //获取字段信息
+        List<DataSourceMetadata> metadataList = dataSourceMetadataDao.getFieldList(data_source_id,databaseName,tableName);
+        List<Map<String,String>> fieldList = new ArrayList<>();//表头信息
+        //组装表头信息
+        for(DataSourceMetadata metadata:metadataList){
+            Map<String,String> column = new HashMap<>();
+            column.put("prop",metadata.getMetadata_field());
+            column.put("label",metadata.getMetadata_field());
+            column.put("width","");
+            fieldList.add(column);
+        }
+        //表内的数据，取前N条，条数根据配置信息
+        List<Map<String, Object>> table_data;
+        //要执行的查询sql
+        String sql;
+        //判断数据源类型
+        switch (dataSource.getData_source_item_type()){
+            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                sql = "select * from "+databaseName+"."+tableName+" limit 0,"+configProperty.getData_source_preview_num();
+                table_data = DruidUtil.executeQuery(dataSource,sql,null);
+                break;
+            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+                //sqlserver 必须设置数据库/实例，所以只需要表名
+                sql = "select top "+configProperty.getData_source_preview_num()+" * from "+tableName;
+                table_data = DruidUtil.executeQuery(dataSource,sql,null);
+                break;
+            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                sql = "select * from \""+databaseName+"\".\""+tableName+"\" where rownum<="+configProperty.getData_source_preview_num();
+                table_data = DruidUtil.executeQuery(dataSource,sql,null);
+                break;
+            default:
+                table_data = new ArrayList<>();
+                break;
+        }
+        //组装前端所需数据
+        Map<String,Object> result = new HashMap<>();
+        result.put("fields",fieldList);
+        result.put("data",table_data);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getDataPreviewNotInited(String databaseName, String tableName, String data_source_id) {
+        //获取数据源信息
+        DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
+
+        return null;
+    }
+
+    /**
+     * 获取表中的数据
+     * @param dataSource
+     * @param databaseName
+     * @param tableName
+     * @return
+     */
+    private List<Map<String, Object>> getTableData(DataSource dataSource,String databaseName, String tableName){
+        //表内的数据，取前N条，条数根据配置信息
+        List<Map<String, Object>> table_data;
+        //要执行的查询sql
+        String sql;
+        //判断数据源类型
+        switch (dataSource.getData_source_item_type()){
+            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                sql = "select * from "+databaseName+"."+tableName+" limit 0,"+configProperty.getData_source_preview_num();
+                table_data = DruidUtil.executeQuery(dataSource,sql,null);
+                break;
+            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+                //sqlserver 必须设置数据库/实例，所以只需要表名
+                sql = "select top "+configProperty.getData_source_preview_num()+" * from "+tableName;
+                table_data = DruidUtil.executeQuery(dataSource,sql,null);
+                break;
+            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                sql = "select * from \""+databaseName+"\".\""+tableName+"\" where rownum<="+configProperty.getData_source_preview_num();
+                table_data = DruidUtil.executeQuery(dataSource,sql,null);
+                break;
+            default:
+                table_data = new ArrayList<>();
+                break;
+        }
+        return table_data;
+    }
 
 }

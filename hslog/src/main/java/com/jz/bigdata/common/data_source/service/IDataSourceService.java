@@ -4,6 +4,7 @@ package com.jz.bigdata.common.data_source.service;
 import com.jz.bigdata.common.data_source.entity.DataSource;
 import com.jz.bigdata.common.event_alert.entity.EventAlert;
 
+import java.sql.Connection;
 import java.util.List;
 import java.util.Map;
 
@@ -64,4 +65,14 @@ public interface IDataSourceService {
      * @throws Exception
      */
     public boolean initByDataSourceIds(String data_source_ids) throws Exception;
+    /**
+     * 获取表的字段信息
+     * @param database 数据库名
+     * @param table 表名
+     * @param data_source_item_type 数据库类型
+     * @param connection 连接池,需要在外面对connection关闭
+     * @return
+     * @throws Exception
+     */
+    public List<Map<String, Object>> getTableFields(String database, String table,String data_source_item_type, Connection connection) throws Exception;
 }

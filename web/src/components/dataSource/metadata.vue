@@ -239,8 +239,12 @@
             this.getSensitiveLevel();
             this.tableHeight = document.body.clientHeight - 260 ;
             window.onresize = () => {
-                this.tableHeight = document.body.clientHeight - 260 ;
-                this.tableDialogHeight = document.body.clientHeight - 370 ;
+                /*this.tableHeight = document.body.clientHeight - 260 ;
+                this.tableDialogHeight = document.body.clientHeight - 370 ;*/
+                let h1 = document.body.clientHeight - 260 ;
+                this.tableHeight =  h1 < 320 ? 320 : h1;
+                let h2 = document.body.clientHeight - 370 ;
+                this.tableDialogHeight =  h2 < 320 ? 320 : h2;
             };
         },
         watch:{

@@ -16,7 +16,7 @@
             <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="allCounts"></el-pagination>
         </div>
         <!--添加与修改弹窗-->
-        <el-dialog :title="editId === '' ? '添加':'修改'" :visible.sync="formState" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
+        <el-dialog :title="editId === '' ? '添加':'修改'" :visible.sync="formState"  destroy-on-close width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <el-form label-width="100px">
                 <el-form-item label="数据源名称:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
@@ -55,14 +55,16 @@
                 <el-form-item label="用户名:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input v-model="form.data_source_username" style="width: 90%;" size="mini" placeholder="" class="item"></el-input>
+                    <el-input style="width: 0;height: 0;overflow: hidden;"  size="mini" class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="密码:" v-if="!passwordState || form.data_source_password == ''">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input type="password" auto-complete="new-password" @blur="passwordBlur" v-model="form.data_source_password" style="width: 90%;" size="mini" class="item"></el-input>
+                    <el-input type="password" auto-complete="new-password" style="width: 0;height: 0;overflow: hidden" size="mini" class="item"></el-input>
+                    <el-input type="password" auto-complete="new-password" @blur="passwordBlur" v-model="form.data_source_password" style="width: 90%;position: relative;left: -3px;" size="mini" class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="密码:" v-if="form.data_source_password !== '' && passwordState">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input type="password" auto-complete="new-password" value="111111" @focus="passwordFocus" style="width: 90%;" size="mini" placeholder="" class="item"></el-input>
+                    <el-input type="password" auto-complete="new-password" value="111111" @focus="passwordFocus" style="width: 90%;position: relative;left: -3px;" size="mini" placeholder="" class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="数据库/实例:">
                     <span style="color:red;position: absolute;left: -10px;" v-if="form.data_source_item_type !== 'MySQL'">*</span>
@@ -271,6 +273,7 @@
         },
         created(){
             this.getDataList(1,{})
+            this.clearForm()
             //监听选中的资产
             bus.$on(this.tableBusName.selectionName,(params)=>{
                 this.delectIds = '';
@@ -599,7 +602,8 @@
                                 if(obj.data.length == 0){
                                     this.currentNode = {};
                                     this.fieldTableData = []
-                                    console.log('sss')
+                                    console.log($(".left-wapper li.el-menu-item.is-active"))
+                                    $(".left-wapper li.el-menu-item.is-active").css({color:"#bfcbd9"})
                                 }
                             }else{
                                 layer.msg(obj.message,{icon:5})

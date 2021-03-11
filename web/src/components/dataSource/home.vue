@@ -68,7 +68,7 @@
         },
         computed:{
             onRoutes(){
-                console.log(this.$route.path.split('/'))
+                // console.log(this.$route.path.split('/'))
                 return this.$route.path.split('/')[2]
             }
         },

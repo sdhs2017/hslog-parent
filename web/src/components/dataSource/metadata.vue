@@ -29,7 +29,7 @@
         <el-dialog title="修改" :visible.sync="formState" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <el-form label-width="100px">
                 <el-form-item label="表名:">
-                    <el-input v-model="form.metadata_table" style="width: 90%;" size="mini" disabled class="item"></el-input>
+                    <el-input v-model="form.metadata_table_name" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
             </el-form>
             <el-form label-width="100px">
@@ -59,7 +59,7 @@
         <el-dialog title="修改" :visible.sync="formStateField" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <el-form label-width="100px">
                 <el-form-item label="字段名:">
-                    <el-input v-model="form.metadata_field" style="width: 90%;" size="mini" disabled class="item"></el-input>
+                    <el-input v-model="form.metadata_field_name" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
             </el-form>
             <el-form label-width="100px">
@@ -68,8 +68,23 @@
                 </el-form-item>
             </el-form>
             <el-form label-width="100px">
+                <el-form-item label="字段长度:">
+                    <el-input v-model="form.metadata_field_length" style="width: 90%;" size="mini" disabled class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <el-form label-width="100px">
+                <el-form-item label="是否为空:">
+                    <el-input v-model="form.metadata_field_isnull" style="width: 90%;" size="mini" disabled class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <el-form label-width="100px">
+                <el-form-item label="字段注释:">
+                    <el-input v-model="form.metadata_field_comment" style="width: 90%;" size="mini" disabled class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <el-form label-width="100px">
                 <el-form-item label="敏感级别:">
-                    <el-select v-model="form.metadata_sensitiveLevel" size="mini" clearable placeholder="请选择" style="width: 90%;">
+                    <el-select v-model="form.metadata_field_sensitiveLevel" size="mini" clearable placeholder="请选择" style="width: 90%;">
                         <el-option
                             v-for="item in sensitiveLevel"
                             :key="item.value"
@@ -135,7 +150,7 @@
                 currentName:'',
                 tableHead:[],
                 secondHead:[{
-                    prop:'metadata_table',
+                    prop:'metadata_table_name',
                     label:'表名',
                     width:''
                 },{
@@ -165,7 +180,7 @@
                             icon:'el-icon-edit',
                             text:'修改',
                             clickFun:(row,index)=>{
-                                this.form = row;
+                                this.form = JSON.parse(JSON.stringify(row));
                                 this.formState = true;
                                 this.editIndex = index;
                             }
@@ -173,7 +188,7 @@
                     ]}
                 ],
                 thirdHead:[{
-                    prop:'metadata_field',
+                    prop:'metadata_field_name',
                     label:'字段名',
                     width:''
                 },{
@@ -181,7 +196,19 @@
                     label:'字段类型',
                     width:'',
                 },{
-                    prop:'metadata_sensitiveLevel',
+                    prop:'metadata_field_length',
+                    label:'字段长度',
+                    width:'',
+                },{
+                    prop:'metadata_field_isnull',
+                    label:'是否为空',
+                    width:'',
+                },{
+                    prop:'metadata_field_comment',
+                    label:'字段注释',
+                    width:'',
+                },{
+                    prop:'metadata_field_sensitiveLevel',
                     label:'敏感级别',
                     width:'',
                     formatData:(val,obj)=>{
@@ -206,7 +233,7 @@
                             icon:'el-icon-edit',
                             text:'修改',
                             clickFun:(row,index)=>{
-                                this.form = row;
+                                this.form = JSON.parse(JSON.stringify(row));
                                 this.formStateField = true;
                                 this.editIndex = index;
                             }
@@ -355,6 +382,7 @@
             },
             /*获取propsData*/
             getProps(page,params){
+                this.c_page = page;
                 let url = '';
                 if(this.currentType === 'table'){
                     url = '/dataSourceMetadata/getTableInfo.do';
@@ -396,22 +424,23 @@
             },
             /*修改提交数据*/
             submitData(){
-              /*  let url = '';
+                let url = '';
                 if(this.currentType === 'table'){
-                    url = '/dataSourceMetadata/update.do';
+                    url = '/dataSourceMetadata/updateMetadataTableInfo.do';
                 }else{
-                    url = '/dataSourceMetadata/update.do';
-                }*/
+                    url = '/dataSourceMetadata/updateMetadataFieldInfo.do';
+                }
                 this.$nextTick(()=>{
                     this.formLoading = true;
-                    this.$axios.post(this.$baseUrl+'/dataSourceMetadata/update.do',this.$qs.stringify(this.form))
+                    this.$axios.post(this.$baseUrl+url,this.$qs.stringify(this.form))
                         .then(res=>{
                             this.formLoading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 this.formState = false;
                                 this.formStateField = false;
-                                this.tableDataArr[this.editIndex] = JSON.parse(JSON.stringify(this.form))
+                                //this.tableDataArr[this.editIndex] = JSON.parse(JSON.stringify(this.form))
+                                this.getProps(this.c_page,this.conditionFrom)
                                 layer.msg(obj.message,{icon:1});
                             }else{
                                 layer.msg(obj.message,{icon:5})
@@ -564,5 +593,9 @@
         width: 100%;
         height: 64vh;
         overflow: auto;
+    }
+    /deep/ .el-input.is-disabled .el-input__inner {
+        background-color: #303e4e;
+        border-color: #5a7494;
     }
 </style>

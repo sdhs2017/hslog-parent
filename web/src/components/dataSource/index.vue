@@ -227,13 +227,13 @@
                     {
                         prop:'IS_NULLABLE',
                         label:'是否为空',
-                        formatData:(val,obj)=>{
+                       /* formatData:(val,obj)=>{
                             if(val === 'YES'){
                                 return "是"
                             }else{
                                 return '否'
                             }
-                        }
+                        }*/
                     },
                     {prop:'COLUMN_COMMENT',label:'注释'},
                 ],

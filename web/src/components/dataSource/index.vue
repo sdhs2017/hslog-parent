@@ -56,9 +56,13 @@
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input v-model="form.data_source_username" style="width: 90%;" size="mini" placeholder="" class="item"></el-input>
                 </el-form-item>
-                <el-form-item label="密码:">
+                <el-form-item label="密码:" v-if="!passwordState || form.data_source_password == ''">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input type="password" show-password v-model="form.data_source_password" style="width: 90%;" size="mini" placeholder="" class="item"></el-input>
+                    <el-input type="password" auto-complete="new-password" @blur="passwordBlur" v-model="form.data_source_password" style="width: 90%;" size="mini" class="item"></el-input>
+                </el-form-item>
+                <el-form-item label="密码:" v-if="form.data_source_password !== '' && passwordState">
+                    <span style="color:red;position: absolute;left: -10px;">*</span>
+                    <el-input type="password" auto-complete="new-password" value="111111" @focus="passwordFocus" style="width: 90%;" size="mini" placeholder="" class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="数据库/实例:">
                     <span style="color:red;position: absolute;left: -10px;" v-if="form.data_source_item_type !== 'MySQL'">*</span>
@@ -69,16 +73,21 @@
                 <div style="float: left;">
                     <el-button type="primary" plain  @click="testLink">测试连接</el-button>
                     <span v-if="linkObj.state" style="font-size: 14px;color: #1ab394;">{{linkObj.text}}</span>
-                    <span v-else style="font-size: 14px;color: #e4956d;">{{linkObj.text}}</span>
+                    <span v-else style="font-size: 14px;color: #e4956d;">{{linkObj.text}}
+                        <span @click="errorLinkState = true" style="cursor: pointer;">(详情)</span>
+                       <!-- <el-tooltip class="item" effect="dark" :content="linkObj.alertInfo">
+                          <el-button style="padding: 0;background: 0;border: 0;color: #e4956d;">(详情)</el-button>
+                        </el-tooltip>-->
+                    </span>
                 </div>
                 <el-button @click="formState = false">取消</el-button>
                 <el-button type="primary" @click="editId === '' ? addDataSource() : reviseDataSource()">确 定</el-button>
             </div>
         </el-dialog>
 
-        <el-dialog title="元数据详情" :visible.sync="detailState" width="80vw" height="80vh" destroy-on-close v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
+        <el-dialog title="数据库详情" :visible.sync="detailState" width="80vw" height="80vh" destroy-on-close v-loading="detailLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <div class="detail-wapper">
-                <div class="left-wapper">
+                <div class="left-wapper" v-loading="detailLeftLoading" element-loading-background="rgba(48, 62, 78, 0.5)">
                     <el-menu class="sidebar-el-menu" default-active="1" background-color="#405267" @open="titleClick"
                              text-color="#bfcbd9" active-text-color="#20a0ff">
                         <template v-for="(item,i) in leftList">
@@ -99,7 +108,8 @@
                     </el-menu>
 
                 </div>
-                <div class="right-wapper">
+                <div class="right-wapper" v-loading="detailRightLoading" element-loading-background="rgba(48, 62, 78, 0.5)">
+<!--                    <div style="width: 100%;height: 100%;display: flex;justify-content: center;align-items: center" v-if="emptyState">暂无数据</div>-->
                     <div class="table-tit-wapper">
                         <h3>{{currentNode.label}}</h3>
                         <el-button style="float: right;margin: 10px" v-if="JSON.stringify(this.currentNode )!== '{}'" type="primary" size="mini" plain @click="dataBtn()">数据预览</el-button>
@@ -114,6 +124,10 @@
             <div class="detail-wapper2">
                 <basetable :tableHead="tableDialogHead" style="width: 100%;" :tableData="tableDialogData" :height="tableDialogHeight"></basetable>
             </div>
+        </el-dialog>
+        <!--链接失败-->
+        <el-dialog title="失败信息" class="error-wapper" :visible.sync="errorLinkState" width="350px" top="40vh" destroy-on-close :close-on-click-modal="falseB">
+            <div style="color:#f56c6c;">{{linkObj.alertInfo}}</div>
         </el-dialog>
     </div>
 </template>
@@ -167,13 +181,14 @@
                                 text:'修改',
                                 clickFun:(row,index)=>{
                                     this.formState = true;
+                                    this.passwordState = true;
                                     this.editId = row.data_source_id
                                     this.getDataSourceInfo();
                                 }
                             },
                             {
-                                icon:'el-icon-tickets',
-                                text:'查看',
+                                icon:'el-icon-coin',
+                                text:'数据库详情',
                                 clickFun:(row,index)=>{
                                     this.detailState = true
                                     this.editId = row.data_source_id
@@ -200,6 +215,7 @@
                     data_source_password:'',//密码
                     data_source_dbname:'',//数据库/实例
                 },
+                passwordState:false,
                 //数据源分类集合
                 dataSourceType:[
                     {label:'关系型数据库',value:'1'},
@@ -219,6 +235,8 @@
                 //详情 弹窗状态
                 detailState:false,
                 detailLoading:false,
+                detailLeftLoading:false,
+                detailRightLoading:false,
                 leftList:[],
                 fieldTableHead:[
                     {prop:'COLUMN_NAME',label:'字段名称'},
@@ -247,6 +265,8 @@
                 tableDialogHeight:0,
                 tableDialogHead:[],
                 tableDialogData:[],
+                //错误提示
+                errorLinkState:false,
             }
         },
         created(){
@@ -295,6 +315,7 @@
         methods:{
             /*清空表单*/
             clearForm(){
+                this.passwordState = false;
                 this.form={
                     data_source_name:'',//数据源名称
                     // type:'',//数据源分类
@@ -305,6 +326,14 @@
                     data_source_password:'',//密码
                     data_source_dbname:'',//数据库/实例
                 }
+            },
+            passwordBlur(){
+                if(this.form.data_source_password !== ''){
+                    this.passwordState = true;
+                }
+            },
+            passwordFocus(){
+                this.passwordState = false;
             },
             /*初始化*/
             initialize(){
@@ -399,7 +428,6 @@
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
-                                console.log(obj)
                                 this.childrenType = obj.data;
                             }else{
                                 layer.msg(obj.message,{icon:5})
@@ -504,10 +532,13 @@
                                     }
                                     //layer.msg(obj.message,{icon:1})
                                 }else{
+                 //                   console.log(typeof obj)
                                     this.linkObj = {
                                         state:false,
-                                        text:obj.message
+                                        text:obj.message,
+                                        alertInfo:obj.alertInfo
                                     }
+                                    this.errorLinkState = true;
                                     //layer.msg(obj.message,{icon:5})
                                 }
                             })
@@ -521,12 +552,12 @@
             getLeftList(){
                 this.leftList = []
                 this.$nextTick(()=>{
-                    this.detailLoading = true;
+                    this.detailLeftLoading = true;
                     this.$axios.post(this.$baseUrl+'/dataSource/getDataBase.do',this.$qs.stringify({
                         data_source_id:this.editId
                     }))
                         .then(res=>{
-                            this.detailLoading = false;
+                            this.detailLeftLoading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 this.leftList = obj.data;
@@ -535,13 +566,13 @@
                             }
                         })
                         .catch(err=>{
-                             this.detailLoading = false;
+                             this.detailLeftLoading = false;
                         })
                 })
             },
             /*详情左侧标题点击*/
             titleClick(key, path){
-                console.log(key)
+                // console.log(key)
                 let index = ''
                 for(let i=0;i< this.leftList.length;i++){
                     if(key === this.leftList[i].id){
@@ -555,22 +586,27 @@
             /*获取子菜单*/
             getChildren(index){
                 this.$nextTick(()=>{
-                    this.detailLoading = true;
+                    this.detailLeftLoading = true;
                     this.$axios.post(this.$baseUrl+'/dataSource/getTablesByDatabase.do',this.$qs.stringify({
                         data_source_id:this.editId,
                         database:this.leftList[index].id
                     }))
                         .then(res=>{
-                            this.detailLoading = false;
+                            this.detailLeftLoading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
-                                this.leftList[index].child = obj.data
+                                this.leftList[index].child = obj.data;
+                                if(obj.data.length == 0){
+                                    this.currentNode = {};
+                                    this.fieldTableData = []
+                                    console.log('sss')
+                                }
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }
                         })
                         .catch(err=>{
-                             this.detailLoading = false;
+                             this.detailLeftLoading = false;
                         })
                 })
             },
@@ -578,14 +614,14 @@
             childClick(item){
                 this.currentNode = item;
                 this.$nextTick(()=>{
-                    this.detailLoading = true;
+                    this.detailRightLoading = true;
                     this.$axios.post(this.$baseUrl+'/dataSource/getTableFields.do',this.$qs.stringify({
                         data_source_id:this.editId,
                         database:item.database,
                         table:item.id
                     }))
                         .then(res=>{
-                            this.detailLoading = false;
+                            this.detailRightLoading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 this.fieldTableData = obj.data;
@@ -594,7 +630,7 @@
                             }
                         })
                        .catch(err=>{
-                            this.detailLoading = false;
+                            this.detailRightLoading = false;
                        })
                })
             },
@@ -735,5 +771,19 @@
         text-overflow: ellipsis;
         overflow: hidden;
         word-break: break-all;
+    }
+    .error-wapper /deep/ .el-dialog__header{
+        background: #fef0f0;
+        border-bottom: 1px solid #feceb8;
+    }
+    .error-wapper /deep/ .el-dialog__title{
+        color: #f56c6c;
+    }
+    .error-wapper /deep/ .el-dialog__headerbtn .el-dialog__close{
+        color: #f56c6c;
+    }
+    .error-wapper /deep/ .el-dialog__body{
+        background: #fef0f0;
+        color: #f56c6c;
     }
 </style>

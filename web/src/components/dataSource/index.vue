@@ -64,7 +64,8 @@
                 </el-form-item>
                 <el-form-item label="密码:" v-if="form.data_source_password !== '' && passwordState">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input type="password" auto-complete="new-password" value="111111" @focus="passwordFocus" style="width: 90%;position: relative;left: -3px;" size="mini" placeholder="" class="item"></el-input>
+                    <el-input type="password" auto-complete="new-password" style="width: 0;height: 0;overflow: hidden" size="mini" class="item"></el-input>
+                    <el-input type="password" auto-complete="new-password" value="11111111111111111" @focus="passwordFocus" style="width: 90%;position: relative;left: -3px;" size="mini" placeholder="" class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="数据库/实例:">
                     <span style="color:red;position: absolute;left: -10px;" v-if="form.data_source_item_type !== 'MySQL'">*</span>
@@ -602,8 +603,11 @@
                                 if(obj.data.length == 0){
                                     this.currentNode = {};
                                     this.fieldTableData = []
-                                    console.log($(".left-wapper li.el-menu-item.is-active"))
-                                    $(".left-wapper li.el-menu-item.is-active").css({color:"#bfcbd9"})
+                                    console.log($(".left-wapper li.el-menu-item.is-active").css("color"))
+                                    this.$nextTick(()=>{
+                                        $(".left-wapper li.el-menu-item.is-active").css("color","rgb(192,203,217)")
+                                    })
+
                                 }
                             }else{
                                 layer.msg(obj.message,{icon:5})

@@ -8,6 +8,7 @@
 	   xmlns:jpa="http://www.springframework.org/schema/data/jpa"
 	   xmlns:elasticsearch="http://www.springframework.org/schema/data/elasticsearch"
 	   xmlns:cache="http://www.springframework.org/schema/cache"
+	   xmlns:websocket="http://www.springframework.org/schema/websocket"
 	   xsi:schemaLocation="http://www.springframework.org/schema/beans
                         http://www.springframework.org/schema/beans/spring-beans-3.1.xsd  
                         http://www.springframework.org/schema/context  
@@ -24,6 +25,7 @@
 						http://www.springframework.org/schema/data/elasticsearch/spring-elasticsearch-1.0.xsd
 						http://www.springframework.org/schema/cache
 						http://www.springframework.org/schema/cache/spring-cache-3.1.xsd
+						http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket.xsd
 						">
 
 
@@ -943,4 +945,12 @@
 <!--	<bean id="start_execution_agent" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startAgentKafkaListener"></bean>-->
 <!--	<bean id="start_execution_pcap4j" class="com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController" scope="singleton" init-method="startPcap4jCollector"></bean>-->
 
+	<bean id="websocket" class="com.jz.bigdata.common.machineLearning.config.WebsocketEndPoint"/>
+
+	<websocket:handlers>
+		<websocket:mapping path="/websocket" handler="websocket"/>
+		<websocket:handshake-interceptors>
+			<bean class="com.jz.bigdata.common.machineLearning.config.HandshakeInterceptor"/>
+		</websocket:handshake-interceptors>
+	</websocket:handlers>
 </beans>

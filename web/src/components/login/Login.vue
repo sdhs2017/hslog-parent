@@ -16,7 +16,7 @@
                     </el-input>
                 </el-form-item>
                 <div class="login-btn">
-                    <el-button type="primary" native-type="submit" @click="login">登录</el-button>
+                    <el-button type="primary" native-type="submit" @click="getKey">登录</el-button>
                 </div>
                 <p style="height: 30px"><!--<router-link class="go-register" to="/resigter">没有账号？点击注册</router-link>--></p>
                 <p class="gengxin" @click="uploadCertificate">证书更新</p>
@@ -42,9 +42,9 @@
 </template>
 
 <script>
-    import crypto from 'crypto'
+    //import crypto from 'crypto'
     import vueCanvasNest from 'vue-canvas-nest'
-    let Base64 = require('js-base64').Base64;
+    // let Base64 = require('js-base64').Base64;
 
     export default {
         data(){
@@ -166,28 +166,44 @@
                 }
                 return utf8;
             },
-            login() {
-                //用户名 密码 加密
-                let phone = crypto.createHash("md5").update(this.ruleForm.phone).digest('hex')
-                let arr = crypto.createHash("md5").update(this.ruleForm.password, "ascii").digest();
-                let aa = []
-                arr.map(function(e) {
-                    let num =  e >= 128 ? e - 256 : e;
-                    aa.push(num)
-                })
-                let basepassword = Base64.encode(aa);
-
-
-               var index1 = layer.msg('登陆中,请稍等', {
+            /*获取秘钥*/
+            getKey(){
+                var index1 = layer.msg('登陆中,请稍等', {
                     icon: 16,
                     shade: 0.1,
                     time:0,
                     offset: '50px'
                 });
                 this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/rsa/getRSAPublicKey.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                let PUBLIC_KEY = obj.message
+                                //使用公钥加密
+                                var encrypt = new JSEncrypt();
+                                encrypt.setPublicKey('-----BEGIN PUBLIC KEY-----' + PUBLIC_KEY + '-----END PUBLIC KEY-----');
+                               // console.log(JSON.stringify(this.ruleForm.phone))
+                                let phone = encrypt.encrypt(this.ruleForm.phone)
+                                let password = encrypt.encrypt(this.ruleForm.password)
+                                this.login(phone,password,index1)
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+
+            login(phone,password,index1) {
+                this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/user/login.do',this.$qs.stringify({
                         phone: phone,
-                        password:  basepassword
+                        password:  password
                     }))
                         .then((res) => {
                             //关闭进度条

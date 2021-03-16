@@ -15,6 +15,38 @@
         <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
         <result column="metadata_table_type" jdbcType="VARCHAR" property="metadata_table_type" />
     </resultMap>
+    <!--元数据，数据库基本信息 -->
+    <resultMap id="BaseResultMap_Database"
+               type="com.jz.bigdata.common.data_source_metadata.entity.MetadataDatabase">
+        <id column="metadata_database_id" jdbcType="VARCHAR" property="metadata_database_id" />
+        <result column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
+        <result column="metadata_database_name" jdbcType="VARCHAR" property="metadata_database_name" />
+        <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+    </resultMap>
+    <!--元数据，表基本信息 -->
+    <resultMap id="BaseResultMap_Table"
+               type="com.jz.bigdata.common.data_source_metadata.entity.MetadataTable">
+        <id column="metadata_table_id" jdbcType="VARCHAR" property="metadata_table_id" />
+        <result column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
+        <result column="metadata_database_name" jdbcType="VARCHAR" property="metadata_database_name" />
+        <result column="metadata_table_name" jdbcType="VARCHAR" property="metadata_table_name" />
+        <result column="metadata_table_type" jdbcType="VARCHAR" property="metadata_table_type" />
+        <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+    </resultMap>
+    <!--元数据，字段基本信息 -->
+    <resultMap id="BaseResultMap_Field"
+               type="com.jz.bigdata.common.data_source_metadata.entity.MetadataField">
+        <id column="metadata_field_id" jdbcType="VARCHAR" property="metadata_field_id" />
+        <result column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
+        <result column="metadata_database_name" jdbcType="VARCHAR" property="metadata_database_name" />
+        <result column="metadata_table_name" jdbcType="VARCHAR" property="metadata_table_name" />
+        <result column="metadata_field_name" jdbcType="VARCHAR" property="metadata_field_name" />
+        <result column="metadata_field_type" jdbcType="VARCHAR" property="metadata_field_type" />
+        <result column="metadata_field_length" jdbcType="VARCHAR" property="metadata_field_length" />
+        <result column="metadata_field_isnull" jdbcType="VARCHAR" property="metadata_field_isnull" />
+        <result column="metadata_field_comment" jdbcType="VARCHAR" property="metadata_field_comment" />
+        <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+    </resultMap>
     <!--   添加资产组基本信息 -->
     <insert id="insert" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata">
         insert into data_source_metadata
@@ -95,9 +127,107 @@
         where metadata_id = #{metadata_id,jdbcType=VARCHAR}
     </update>
 
+    <update id="updateMetadataTableInfo" parameterType="com.jz.bigdata.common.data_source_metadata.entity.MetadataTable">
+        update data_source_metadata_table
+        <set>
+            <if test="metadata_table_type != null">
+                metadata_table_type = #{metadata_table_type,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_remark != null">
+                metadata_remark = #{metadata_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where metadata_table_id = #{metadata_table_id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateMetadataFieldInfo" parameterType="com.jz.bigdata.common.data_source_metadata.entity.MetadataField">
+        update data_source_metadata_field
+        <set>
+            <if test="metadata_field_sensitiveLevel != null">
+                metadata_field_sensitiveLevel = #{metadata_field_sensitiveLevel,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_remark != null">
+                metadata_remark = #{metadata_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where metadata_field_id = #{metadata_field_id,jdbcType=VARCHAR}
+    </update>
     <delete id="deleteByDataSourceId">
         delete from data_source_metadata where data_source_id=#{data_source_id,jdbcType=VARCHAR}
     </delete>
+    <delete id="deleteMetadataByDataSourceId">
+        delete from data_source_metadata_database where data_source_id=#{data_source_id,jdbcType=VARCHAR};
+        delete from data_source_metadata_table where data_source_id=#{data_source_id,jdbcType=VARCHAR};
+        delete from data_source_metadata_field where data_source_id=#{data_source_id,jdbcType=VARCHAR};
+    </delete>
+    <insert id ="batchInsertDatabase" parameterType="java.util.List" >
+        insert into data_source_metadata_database
+        (metadata_database_id, data_source_id, metadata_database_name, metadata_remark)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.metadata_database_id}, #{item.data_source_id}, #{item.metadata_database_name}, #{item.metadata_remark})
+        </foreach>
+    </insert>
+    <insert id ="batchInsertTable" parameterType="java.util.List" >
+        insert into data_source_metadata_table
+        (metadata_table_id, data_source_id, metadata_database_name, metadata_table_name,metadata_table_type,metadata_remark)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.metadata_table_id}, #{item.data_source_id}, #{item.metadata_database_name},#{item.metadata_table_name},#{item.metadata_table_type} ,#{item.metadata_remark})
+        </foreach>
+    </insert>
+    <insert id ="batchInsertField" parameterType="java.util.List" >
+        insert into data_source_metadata_field
+        (metadata_field_id, data_source_id, metadata_database_name, metadata_table_name,metadata_field_name,metadata_field_type,
+        metadata_field_length,metadata_field_isnull,metadata_field_comment,metadata_remark)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.metadata_field_id}, #{item.data_source_id}, #{item.metadata_database_name},#{item.metadata_table_name},#{item.metadata_field_name},
+            #{item.metadata_field_type},#{item.metadata_field_length},#{item.metadata_field_isnull},#{item.metadata_field_comment},#{item.metadata_remark})
+        </foreach>
+    </insert>
+    <select id="getMetadataDatabaseList" parameterType="java.lang.String" resultMap="BaseResultMap_Database">
+        select * from data_source_metadata_database where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        order by metadata_database_name
+    </select>
+    <select id="getMetadataTableList" parameterType="java.lang.String" resultMap="BaseResultMap_Table">
+        select * from data_source_metadata_table where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        and metadata_database_name=#{metadata_database_name,jdbcType=VARCHAR}
+        order by metadata_table_name
+    </select>
+    <select id="getMetadataFieldList" parameterType="java.lang.String" resultMap="BaseResultMap_Field">
+        select * from data_source_metadata_field where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        and metadata_database_name=#{metadata_database_name,jdbcType=VARCHAR}
+        and metadata_table_name=#{metadata_table_name,jdbcType=VARCHAR}
+        order by metadata_field_name
+    </select>
+
+
+    <select id="getMetadataFieldListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Field">
+        select * from data_source_metadata_field
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
+        and metadata_table_name = #{metadata_table,jdbcType=VARCHAR}
+        order by metadata_field_name
+        <if test="startRecord != null and pageSize !=null" >
+            limit #{startRecord},#{pageSize}
+        </if>
+    </select>
+    <select id="getMetadataFieldCount" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Field">
+        select count(1) as count from data_source_metadata_field
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
+        and metadata_table_name = #{metadata_table,jdbcType=VARCHAR}
+    </select>
+    <select id="getMetadataTableListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Table">
+        select * from data_source_metadata_table
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
+        order by metadata_table_name
+        <if test="startRecord != null and pageSize !=null" >
+            limit #{startRecord},#{pageSize}
+        </if>
+    </select>
+    <select id="getMetadataTableCount" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Table">
+        select count(1) as count from data_source_metadata_table
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
+    </select>
     <insert id ="batchInsert" parameterType="java.util.List" >
         insert into data_source_metadata
         (metadata_id, data_source_id, metadata_type, metadata_database,metadata_table,metadata_field,metadata_field_type,metadata_sensitiveLevel,metadata_remark)

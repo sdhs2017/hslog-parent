@@ -224,6 +224,18 @@ public class Constant {
 	public static String failureMessage(String message){
 		return message(false,2,message);
 	}
+
+	/**
+	 * 带有弹窗的失败信息
+	 * @param message 失败信息
+	 * @param alertInfo 弹窗信息
+	 * @return
+	 */
+	public static String failureMessage(String message,String alertInfo){
+		//弹窗信息中存在换行符会导致json对象无法识别。
+		alertInfo = alertInfo.replaceAll("\\n","");
+		return "{\"success\":\"false\",\"message\":\""+message+"\",\"state\":\"2\",\"alertInfo\":\""+alertInfo+"\"}";
+	}
 	
 	/**
 	 * @return {success:false,message:请求出错，请重试！,state:2}
@@ -232,7 +244,7 @@ public class Constant {
 	public static String failureMessage(){
 		return message(false,2,"请求出错，请重试！");
 	}
-	
+
 	/**
 	 * @param icon 图标样式 0：叹号  ；1：对号；2：叉号；3：问号；4：锁 
 	 * @param message 成功信息
@@ -266,6 +278,7 @@ public class Constant {
 	public static String successData(String data){
 		return "{\"success\":\"true\",\"data\":"+data+"}";
 	}
+
 	/**
 	 * @return {success:true,message:操作成功！,state:1}
 	 * @description 默认成功返回json信息
@@ -274,7 +287,6 @@ public class Constant {
 		return message(true,1,"操作成功！");
 	}
 	/**
-	 * @param message 返回信息
 	 * @return {success:true,message:...,state:1}
 	 * @description 默认图标为1号
 	 */
@@ -283,7 +295,6 @@ public class Constant {
 	}
 	
 	/**
-	 * @param message 返回信息
 	 * @return {success:true,message:...,state:1}
 	 * @description 默认图标为1号
 	 */
@@ -292,7 +303,6 @@ public class Constant {
 	}
 	
 	/**
-	 * @param message 返回信息
 	 * @return {success:true,message:...,state:1}
 	 * @description 默认图标为1号
 	 */
@@ -301,7 +311,6 @@ public class Constant {
 	}
 	
 	/**
-	 * @param message 返回信息
 	 * @return {success:true,message:...,state:1}
 	 * @description 默认图标为1号
 	 */

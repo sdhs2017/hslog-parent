@@ -56,10 +56,10 @@ public class DataSourceController {
     @RequestMapping(value="/testConnection",produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "数据源连接测试")
     public String testConnection(HttpServletRequest request,DataSource dataSource){
-        boolean result = dataSourceService.checkConnection(dataSource);
-        if(result){
-            return Constant.successMessage("连接成功！");
-        }else{
+        try{
+            return dataSourceService.checkConnection(dataSource);
+        }catch (Exception e){
+            log.error("数据源连接测试失败："+e.getMessage());
             return Constant.failureMessage("连接失败！");
         }
     }
@@ -72,7 +72,7 @@ public class DataSourceController {
     @RequestMapping(value="/dataSourceInit",produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "数据源初始化")
     public String dataSourceInit(HttpServletRequest request){
-        String ids = request.getParameter("data_source_ids");
+        String ids = request.getParameter("data_source_ids");//数据源id
         try{
             boolean result = dataSourceService.initByDataSourceIds(ids);
             if(result){
@@ -80,8 +80,8 @@ public class DataSourceController {
             }else{
                 return Constant.failureMessage("初始化失败！");
             }
-            //TODO 链接失败处理逻辑
         }catch (Exception e){
+            //e.printStackTrace();
             log.error("数据源初始化失败："+e.getMessage());
             return Constant.failureMessage("数据源初始化失败！");
         }
@@ -162,7 +162,7 @@ public class DataSourceController {
             }else{
                 return Constant.failureMessage("保存失败！");
             }
-        }catch(DataAccessException e){//spring
+        }catch(DataAccessException e){
             return Unique_Exception(e);
         }catch (Exception e){
             log.error("数据源保存失败："+e.getMessage());

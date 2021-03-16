@@ -1,20 +1,26 @@
 package com.jz.bigdata.util;
 
+import com.alibaba.druid.DbType;
+import com.alibaba.druid.pool.DruidAbstractDataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.proxy.DruidDriver;
 import com.alibaba.druid.stat.DruidDataSourceStatManager;
 import com.alibaba.druid.stat.DruidStatManagerFacade;
+import com.alibaba.druid.util.HexBin;
+import com.alibaba.druid.util.JdbcUtils;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source.entity.DataSource;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
+import org.apache.ibatis.mapping.ResultSetType;
 
+import java.io.Closeable;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.sql.Date;
+import java.util.*;
 
 /**
  * @Author: yiyang
@@ -33,100 +39,129 @@ import java.util.Map;
 @Slf4j
 public class DruidUtil {
 
-    /**
-     * 数据库连接池（druid连接池）对象引用
-     */
-    private static DruidDataSource druidPool;
-
+//    public static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS").create();
     public static void main(String[] args) {
         String driver_mysql = "com.mysql.jdbc.Driver";
-        String driver_sqlserver = "com.microsoft.jdbc.sqlserver.SQLServerDriver";
+        String driver_sqlserver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
         String driver_oracle = "oracle.jdbc.driver.OracleDriver";
         String driver_db2 = "com.ibm.db2.jdbc.app.DB2Driver";
-        String url_mysql = "jdbc:mysql://192.168.2.181:3306/jzLogAnalysis?useUnicode=yes&characterEncoding=UTF8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true";
-        String url_sqlserver = "jdbc:sqlserver://localhost:1433;DatabaseName=user";
-        String url_oracle = "jdbc:oracle:thin:@//localhost:1521:DataBaseName";
+        String url_mysql = "jdbc:mysql://192.168.2.181:3306/jzLogAnalysis";
+        String url_sqlserver = "jdbc:sqlserver://192.168.2.211:1433;DatabaseName=jzmssql";
+        String url_oracle = "jdbc:oracle:thin:@//192.168.2.133:1521/ORCL";
         String url_db2 = "jdbc:db2://<:port>/dbname";
-        String userName = "root";
-        String password = "JZdata.123";
+        String userName = "system";
+        String password = "jzxt@2021";
+
+
+        DruidDataSource druidDataSource = new DruidDataSource();
+        druidDataSource.setUsername(userName);
+        druidDataSource.setPassword(password);
+        druidDataSource.setUrl(url_sqlserver);
+        druidDataSource.setDriverClassName(driver_sqlserver);
+        druidDataSource.setBreakAfterAcquireFailure(true);//失败后不继续重连
+        druidDataSource.setFailFast(true);//异常可捕获
+        druidDataSource.setConnectionErrorRetryAttempts(0);
+        //druidDataSource.setMaxWait(2000);
+        Connection connection = null;
         try {
             // 通过直接创建连接池对象的方式创建连接池对象
-             DruidDataSource druidDataSource = new DruidDataSource();
-             druidDataSource.setUsername(userName);
-             druidDataSource.setPassword(password);
-             druidDataSource.setUrl(url_mysql);
-             druidDataSource.setDriverClassName(driver_mysql);
-            druidPool = druidDataSource;
+            connection =  druidDataSource.getConnection();
 
+            //DruidAbstractDataSource.PhysicalConnectionInfo physicalConnectionInfo = druidDataSource.createPhysicalConnection();
 
+//            String sql = "select * from \"AUDSYS\".\"AUD$UNIFIED\" where rownum<=100";
+//            PreparedStatement statement= null;
+//            ResultSet resultSet = null;
+//            try{
+//                //sql+参数
+//                statement = connection.prepareStatement(sql);
+//                // 执行
+//                resultSet =  statement.executeQuery();
+//                //处理resultset数据，处理后才能关闭statment和resultset
+//                List<Map<String, String>> list = resultSetToListString(resultSet);
+//                System.out.println(JSONArray.fromObject(list).toString());
+////                System.out.println(gson.toJson(list));
+//            }catch (Exception e){
+//                e.printStackTrace();
+//            }finally {
+//                close(null,resultSet,statement);
+//            }
 
-
-            Connection connection = DruidUtil.getConnection();
-
-
-//            JSONArray.fromObject(result)
-
-
-
-
-
-        } catch (Exception e) {
+        } catch (SQLException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-            log.error(e.getMessage());
-
+            //log.error(e.getMessage());
+            System.out.println("----------------"+e.getCause().getMessage());
         }finally {
 //            close
+            JdbcUtils.close( connection);
+            //druidDataSource.close();
         }
 
     }
+    private static  List<Map<String, Object>> resultSetToList2Test(ResultSet rst) throws SQLException {
+        ResultSetMetaData md = rst.getMetaData(); //获得结果集结构信息,元数据
+        int columnCount = md.getColumnCount();   //获得列数
+        List<Map<String, Object>> list = new ArrayList<>();
+        while (rst.next()) {
+            Map<String, Object> rowData = new HashMap<>();
+            for (int i = 1; i <= columnCount; i++) {
+                if(md.getColumnLabel(i).equals("SQL_TEXT")){
 
+                }else{
+                    //rowData.put(md.getColumnLabel(i), rst.getObject(i));
+                    //System.out.println(md.getColumnLabel(i)+"--------"+rst.getObject(i));
+                }
 
-    /**
-     * 获取链接
-     * @return
-     * @throws SQLException
-     */
-    public static Connection getConnection() throws SQLException {
-        Connection connection = druidPool.getConnection();
-        return connection;
+                //rowData.put(md.getColumnLabel(i), rst.getObject(i)!=null?rst.getObject(i).toString():"");
+                System.out.println(md.getColumnLabel(i)+"--------"+String.valueOf(rst.getString(i)));
+
+            }
+            list.add(rowData);
+        }
+        return list;
     }
 
-    public static DruidDataSource getDruidPool() {
-        return druidPool;
-    }
+
 
     /*********************************************以上为测试代码**************************************************************************/
+
+
+
     //数据源链接对象id前缀
     public final static String DRUID_DATA_SOURCE_ID = "hs-datasource-";
     /**
      * 测试连接功能，测试连接完成后需将datasource及connection进行关闭
      * @param dataSource
-     * @return
-     * @throws Exception
+     * @return 布尔，true/false  成功/失败
+     * @throws SQLException service层捕获，进行更详细的处理
      */
-
     public static boolean checkConnection(DataSource dataSource) throws SQLException {
         boolean result = false;
         //连接信息
         DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setUsername(dataSource.getData_source_username());
-        druidDataSource.setPassword(dataSource.getData_source_password());
-        druidDataSource.setUrl(getUrl(dataSource));
-        druidDataSource.setDriverClassName(getDriver(dataSource.getData_source_item_type()));
+        druidDataSource.setUsername(dataSource.getData_source_username());//用户名
+        druidDataSource.setPassword(dataSource.getData_source_password());//密码
+        druidDataSource.setUrl(getUrl(dataSource));//生成连接url
+        druidDataSource.setDriverClassName(getDriver(dataSource.getData_source_item_type()));//设置driver
         druidDataSource.setBreakAfterAcquireFailure(true);//失败后不继续重连
         druidDataSource.setFailFast(true);//异常可捕获
+        druidDataSource.setConnectionErrorRetryAttempts(0);//系统默认为1，即进行一次尝试
         Connection connection = null;
         try {
             connection = druidDataSource.getConnection();
+            //获取的connection不为空判定为连接成功
             if(connection!=null){
                 result = true;
             }
-        } catch (Exception e) {
-            log.error("数据源链接失败："+e.getMessage());
         }finally {
-            if(connection!=null){
-                connection.close();
+            //连接成功后，关闭connection
+            try{
+                if(connection!=null){
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                log.error("connection关闭失败"+e.getMessage());
             }
             //关闭datasource
             druidDataSource.close();
@@ -135,11 +170,11 @@ public class DruidUtil {
     }
     /**
      * 正常查询时需要获取connection，
-     * @param dataSource
+     * 由于对于一个数据源，查询会比较频繁，因此不再重复生成druid data source 再关闭
+     * 通过唯一的名称标记，使用时直接获取
+     * @param dataSource 数据源信息
      * @return
-     * @throws Exception
      */
-
     public static Connection getConnection(DataSource dataSource) {
         Connection connection = null;
         try{
@@ -171,7 +206,7 @@ public class DruidUtil {
     }
     /**
      * 根据填写的链接信息生成url
-     * @param dataSource
+     * @param dataSource 数据源基本信息
      * @return
      */
     public static String getUrl(DataSource dataSource){
@@ -188,7 +223,7 @@ public class DruidUtil {
     }
     /**
      * 根据数据源类别返回对应的Driver
-     * @param data_source_item_type
+     * @param data_source_item_type 数据源类型
      * @return
      */
     public static String getDriver(String data_source_item_type){
@@ -204,38 +239,78 @@ public class DruidUtil {
         }
     }
 
-    /**用于一个connection执行一次sql后关闭所有连接
-     * 当一个方法传递的参数为null时，是值传递，其他都是引用传递，因此resultSet不需要作为参数传递到执行的方法中
-     * 执行sql语句并将结果进行处理，返回list
-     * @param dataSource
-     * @param sql
-     * @param params
+    /**
+     * 执行数据查询，返回数据将value转化为string，方便前端显示
+     * @param dataSource 数据源信息
+     * @param sql 要执行的sql
+     * @param params 参数
      * @return
+     * @throws SQLException 将异常抛出，保证执行异常时能数据回滚
+     */
+    public static List<Map<String,String>> executeQuery_stringValue(DataSource dataSource,String sql, Object[] params) throws SQLException {
+        List<Map<String, String>> rows ;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        try {
+            //获取连接
+            conn = getConnection(dataSource);
+            //预创建sql
+            stmt = conn.prepareStatement(sql);
+            //组装参数
+            setParameters(stmt, params);
+            //获取结果集
+            rs = stmt.executeQuery();
+            //将结果集转化成list，值为string类型
+            rows = resultSetToListString(rs);
+
+        }finally {
+            close(conn,rs,stmt);
+//            JdbcUtils.close(rs);
+//            JdbcUtils.close(stmt);
+//            JdbcUtils.close(conn);
+        }
+
+        return rows;
+    }
+
+    /**
+     * 组装sql中的参数
+     * @param stmt
+     * @param params
      * @throws SQLException
      */
-    public static List<Map<String, Object>> executeQuery(DataSource dataSource,String sql, Object[] params)  {
+    private static void setParameters(PreparedStatement stmt, Object[] params) throws SQLException {
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                stmt.setObject(i + 1, params[i]);
+            }
+        }
+    }
+    /**用于一个connection执行一次sql后关闭所有连接
+     * 执行sql语句并将结果进行处理，返回list
+     * @param dataSource 数据源信息
+     * @param sql 要执行的sql
+     * @param params 参数
+     * @return
+     * @throws SQLException 将异常抛出，保证执行异常时能数据回滚
+     */
+    public static List<Map<String, Object>> executeQuery(DataSource dataSource,String sql, Object[] params) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
         Connection connection = null;
-        ResultSet resultSet = null;
         PreparedStatement statement= null;
+        ResultSet resultSet = null;
         try{
             connection = getConnection(dataSource);
-            //TODO 如何把statement 提出来
             //sql+参数
             statement = connection.prepareStatement(sql);
             // 参数赋值
-            if (params != null) {
-                for (int i = 0; i < params.length; i++) {
-                    statement.setObject(i + 1, params[i]);
-                }
-            }
+            setParameters(statement, params);
             // 执行
             resultSet =  statement.executeQuery();
             //处理resultset数据，处理后才能关闭statment和resultset
-            result = resultSetToList(resultSet,result);
-        }catch (Exception e){
-            log.error("查询数据异常："+e.getMessage());
-        }finally {
+            result = resultSetToList(resultSet);
+        } finally {
             close(connection,resultSet,statement);
         }
         return result;
@@ -244,59 +319,31 @@ public class DruidUtil {
 
     /**用于一个connection需要执行多个sql后,connection需要在执行完多个sql后再关闭
      * 执行sql语句并将结果进行处理，返回list
-     * @param connection
-     * @param sql
-     * @param params
+     * @param connection 数据库连接
+     * @param sql 待执行sql语句
+     * @param params 参数，数组类型，用来与sql组装statement
      * @return
-     * @throws SQLException
+     * @throws SQLException 将异常抛出，保证执行异常时能数据回滚
      */
     public static List<Map<String, Object>> executeQuery(Connection connection,String sql, Object[] params) throws SQLException {
         List<Map<String, Object>> result = new ArrayList<>();
         PreparedStatement statement= null;
         ResultSet resultSet = null;
-
         try{
-            //组装sql+参数，获取statement
-            statement = getPreparedStatement(sql,params,connection);
             //sql+参数
-//            statement = connection.prepareStatement(sql);
-//            // 参数赋值
-//            if (params != null) {
-//                for (int i = 0; i < params.length; i++) {
-//                    statement.setObject(i + 1, params[i]);
-//                }
-//            }
+            statement = connection.prepareStatement(sql);
+            // 参数赋值
+            setParameters(statement, params);
             // 执行
             resultSet =  statement.executeQuery();
             //处理resultset数据，处理后才能关闭statment和resultset
-            result = resultSetToList(resultSet,result);
-        }catch (Exception e){
-            log.error("查询数据异常："+e.getMessage());
+            result = resultSetToList(resultSet);
         }finally {
             close(null,resultSet,statement);
         }
         return result;
     }
 
-    /**
-     * 组装sql和参数，生成statment
-     * @param sql 语句
-     * @param params 参数
-     * @param connection 链接
-     * @return
-     * @throws SQLException
-     */
-    private static PreparedStatement getPreparedStatement(String sql,Object[] params,Connection connection) throws SQLException {
-        //sql+参数
-        PreparedStatement statement = connection.prepareStatement(sql);
-        // 参数赋值
-        if (params != null) {
-            for (int i = 0; i < params.length; i++) {
-                statement.setObject(i + 1, params[i]);
-            }
-        }
-        return statement;
-    }
     /**用于一个connection需要执行多个sql后,connection需要在执行完多个sql后再关闭
      * SQL 查询将查询结果直接放入ResultSet中
      * @param connection
@@ -357,12 +404,13 @@ public class DruidUtil {
 
     }
     /**
-     * ResultSet转化成list
+     * ResultSet转化成list，保留value的类型 ，使用Object
      * @param rst
      * @return
      * @throws SQLException
      */
-    private static List<Map<String, Object>> resultSetToList(ResultSet rst,List<Map<String, Object>> list) throws SQLException {
+    private static List<Map<String, Object>> resultSetToList(ResultSet rst) throws SQLException {
+        List<Map<String, Object>> list = new ArrayList<>();
         ResultSetMetaData md = rst.getMetaData(); //获得结果集结构信息,元数据
         int columnCount = md.getColumnCount();   //获得列数
         while (rst.next()) {
@@ -374,21 +422,143 @@ public class DruidUtil {
         }
         return list;
     }
+    /**
+     * ResultSet转化成list，将value值转化成string，方便前端显示
+     * @param rs
+     * @return
+     * @throws SQLException
+     */
+    private static List<Map<String, String>> resultSetToListString(ResultSet rs) throws SQLException {
 
-    private static  List<Map<String, String>> resultSetToList2String(ResultSet rst) throws SQLException {
-        ResultSetMetaData md = rst.getMetaData(); //获得结果集结构信息,元数据
-        int columnCount = md.getColumnCount();   //获得列数
         List<Map<String, String>> list = new ArrayList<>();
-        while (rst.next()) {
-            Map<String, String> rowData = new HashMap<>();
-            for (int i = 1; i <= columnCount; i++) {
-                rowData.put(md.getColumnLabel(i), rst.getObject(i).toString());
+        ResultSetMetaData metadata = rs.getMetaData(); //获得结果集结构信息,元数据
+        int columnCount = metadata.getColumnCount();   //获得列数
+        while (rs.next()) {
+            Map<String,String> rowData = new HashMap<>();
+            for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
+                int type = metadata.getColumnType(columnIndex);
+
+                if (type == Types.VARCHAR || type == Types.CHAR || type == Types.NVARCHAR || type == Types.NCHAR) {
+                    rowData.put(metadata.getColumnLabel(columnIndex), rs.getString(columnIndex));
+                    //out.print(rs.getString(columnIndex));
+                } else if (type == Types.DATE) {
+                    Date date = rs.getDate(columnIndex);
+                    if (rs.wasNull()) {
+                        //out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+                        //out.print(date.toString());
+                        rowData.put(metadata.getColumnLabel(columnIndex), date.toString());
+                    }
+                } else if (type == Types.BIT) {
+                    boolean value = rs.getBoolean(columnIndex);
+                    if (rs.wasNull()) {
+                        //out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+                        //out.print(Boolean.toString(value));
+                        rowData.put(metadata.getColumnLabel(columnIndex), Boolean.toString(value));
+                    }
+                } else if (type == Types.BOOLEAN) {
+                    boolean value = rs.getBoolean(columnIndex);
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(Boolean.toString(value));
+                        rowData.put(metadata.getColumnLabel(columnIndex), Boolean.toString(value));
+                    }
+                } else if (type == Types.TINYINT) {
+                    byte value = rs.getByte(columnIndex);
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(Byte.toString(value));
+                        rowData.put(metadata.getColumnLabel(columnIndex), Byte.toString(value));
+                    }
+                } else if (type == Types.SMALLINT) {
+                    short value = rs.getShort(columnIndex);
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(Short.toString(value));
+                        rowData.put(metadata.getColumnLabel(columnIndex), Short.toString(value));
+                    }
+                } else if (type == Types.INTEGER) {
+                    int value = rs.getInt(columnIndex);
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(Integer.toString(value));
+                        rowData.put(metadata.getColumnLabel(columnIndex), Integer.toString(value));
+                    }
+                } else if (type == Types.BIGINT) {
+                    long value = rs.getLong(columnIndex);
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(Long.toString(value));
+                        rowData.put(metadata.getColumnLabel(columnIndex), Long.toString(value));
+                    }
+                } else if (type == Types.TIMESTAMP || type == Types.TIMESTAMP_WITH_TIMEZONE) {
+//                    out.print(String.valueOf(rs.getTimestamp(columnIndex)));
+                    rowData.put(metadata.getColumnLabel(columnIndex), String.valueOf(rs.getTimestamp(columnIndex)));
+                } else if (type == Types.DECIMAL) {
+//                    out.print(String.valueOf(rs.getBigDecimal(columnIndex)));
+                    rowData.put(metadata.getColumnLabel(columnIndex), String.valueOf(rs.getBigDecimal(columnIndex)));
+                } else if (type == Types.CLOB) {
+                    //oracle字段类型，用来存储大数据，最大可存储4GB
+//                    out.print(String.valueOf(rs.getString(columnIndex)));
+                    rowData.put(metadata.getColumnLabel(columnIndex), String.valueOf(rs.getString(columnIndex)));
+                } else if (type == Types.JAVA_OBJECT) {
+                    Object object = rs.getObject(columnIndex);
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(String.valueOf(object));
+                        rowData.put(metadata.getColumnLabel(columnIndex), String.valueOf(object));
+                    }
+                } else if (type == Types.LONGVARCHAR) {
+                    Object object = rs.getString(columnIndex);
+
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+//                        out.print(String.valueOf(object));
+                        rowData.put(metadata.getColumnLabel(columnIndex), String.valueOf(object));
+                    }
+                } else if (type == Types.NULL) {
+//                    out.print("null");
+                    rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                } else {
+                    Object object = rs.getObject(columnIndex);
+
+                    if (rs.wasNull()) {
+//                        out.print("null");
+                        rowData.put(metadata.getColumnLabel(columnIndex), "null");
+                    } else {
+                        if (object instanceof byte[]) {
+                            byte[] bytes = (byte[]) object;
+                            String text = HexBin.encode(bytes);
+//                            out.print(text);
+                            rowData.put(metadata.getColumnLabel(columnIndex), text);
+                        } else {
+//                            out.print(String.valueOf(object));
+                            rowData.put(metadata.getColumnLabel(columnIndex), String.valueOf(object));
+                        }
+                    }
+                }
             }
             list.add(rowData);
         }
         return list;
     }
-
 
 
 }

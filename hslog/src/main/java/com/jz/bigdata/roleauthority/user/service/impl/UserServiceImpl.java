@@ -175,7 +175,8 @@ public class UserServiceImpl implements IUserService {
 	 */
 	public String login(User user,HttpSession session){
 		//查询账号密码对应的用户信息
-		user.setPassword(MD5.EncoderByMd5(user.getPassword()));
+		// 2021-3-16 需求：前端传的账号密码要加密,密码信息前端已加密，只需要查询即可
+		//user.setPassword(MD5.EncoderByMd5(user.getPassword()));
 		//通过账号和密码查询用户信息
 		User _user = userDao.selectByPhonePwd(user);
 		Map<String,Object> map =new HashMap<String,Object>();

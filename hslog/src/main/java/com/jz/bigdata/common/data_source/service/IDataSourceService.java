@@ -14,27 +14,51 @@ import java.util.Map;
  * @Description:
  */
 public interface IDataSourceService {
-
+    /**
+     * 数据源信息保存
+     * @param dataSource 基本信息bean
+     * @return
+     */
     public boolean save(DataSource dataSource);
 
+    /**
+     * 数据源删除，支持批量删除
+     * @param ids 数据源id，以逗号隔开
+     * @return
+     */
     public boolean delete(String[] ids);
 
+    /**
+     * 数据源更新，更新时需要将已存在的druid datasource对象关闭
+     * @param dataSource 数据源信息
+     * @return
+     */
     public boolean update(DataSource dataSource);
 
+    /**
+     *  获取数据源列表详情
+     * @param dataSource 查询条件
+     * @return
+     */
     public Map<String,Object> getListByCondition(DataSource dataSource);
 
+    /**
+     * 通过数据源唯一ID获取数据源详情
+     * @param data_source_id
+     * @return
+     */
     DataSource selectDataSourceInfoById(String data_source_id);
 
     /**
      * 测试连接池连接
-     * @param dataSource
+     * @param dataSource 数据源基本信息
      * @return
      */
-    boolean checkConnection(DataSource dataSource);
+    public String checkConnection(DataSource dataSource);
 
     /**
-     * 获取数据库信息
-     * @param data_source_id
+     * 获取数据源下的数据库信息
+     * @param data_source_id 数据源id
      * @return
      * @throws Exception
      */
@@ -50,9 +74,9 @@ public interface IDataSourceService {
 
     /**
      * 获取表的字段信息
-     * @param database
-     * @param table
-     * @param data_source_id
+     * @param database 数据库
+     * @param table 表
+     * @param data_source_id 数据源id
      * @return
      * @throws Exception
      */
@@ -60,7 +84,7 @@ public interface IDataSourceService {
 
     /**
      * 根据data source id 进行数据初始化，将数据库、表、字段信息保存
-     * @param data_source_ids
+     * @param data_source_ids 数据源id
      * @return
      * @throws Exception
      */

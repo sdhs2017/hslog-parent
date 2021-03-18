@@ -110,7 +110,7 @@
                 if(url === 'train'){
                     this.appendP('训练开始');
                 }else{
-                    this.appendP('监测开始');
+                    this.appendP('检测开始');
                 }
                 //接收到消息的回调方法
                 this.websocket .onmessage = (event)=> {

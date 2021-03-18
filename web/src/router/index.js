@@ -556,12 +556,12 @@ export default new Router({
                     component: resolve => require(['../components/logsManage/fileLogManage.vue'], resolve),
                     meta: { title: '文件类日志' }
                 },
-                /*{
-                    path: '/study',
+                {
+                    path: '/detectionAnomalies',
                     name:'study',
-                    component: resolve => require(['../components/test/study.vue'], resolve),
-                    meta: { title: 'study' }
-                },*/
+                    component: resolve => require(['../components/test/detectionAnomalies.vue'], resolve),
+                    meta: { title: '异常检测' }
+                },
 
                 /*{
                     path: '/panel',

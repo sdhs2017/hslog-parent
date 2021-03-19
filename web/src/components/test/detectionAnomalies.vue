@@ -95,7 +95,7 @@
                 //判断当前浏览器是否支持WebSocket
                 if ('WebSocket' in window) {
                     //websocket = new WebSocket("ws://172.16.0.252:8080/hslog/websocket?run_mode=train");
-                    this.websocket = new WebSocket("ws://172.16.0.252:8080/hslog/websocket/"+url);
+                    this.websocket = new WebSocket("ws://172.0.0.1:8080/hslog/websocket/"+url);
                 } else {
                     alert('当前浏览器 Not support websocket')
                 }
@@ -230,6 +230,7 @@
                                     series: [{
                                         type: 'line',
                                         smooth: true,
+                                        symbol:'none',
                                         lineStyle:{
                                             color:'#5bc0de'
                                         },
@@ -367,7 +368,7 @@
             getChartData(){
                 this.$nextTick(()=>{
                     this.dataDetailLoading = true;
-                    this.$axios.post('http://localhost:8081/jz/ml/getDetectResult.do',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/ml/getDetectResult.do',this.$qs.stringify())
                         .then(res=>{
 
                             let obj = res.data;

@@ -272,7 +272,7 @@
     }
 </script>
 
-<style>
+<style scoped>
     .content-bg , #chart{
         width: 100%;
         height:100%;

@@ -100,7 +100,7 @@
                     width:'',
                     formatData:(val,obj)=>{
                         let time = '';
-                        //判断时间类型
+                        /*//判断时间类型
                         if(obj.alert_exec_type === 'complex'){
                             if(obj.alert_time_type === 'range'){//时间范围
                                 let arr = val.split(',');
@@ -134,6 +134,36 @@
                             }
                         }else{
                             time = obj.alert_time_range;
+                        }*/
+                        if(obj.alert_time_type === 'range'){//时间范围
+                            let arr = val.split(',');
+                            if(arr[0] === ''){
+                                arr[0] = '*'
+                            }
+                            if(arr[1] === ''){
+                                arr[1] = '*'
+                            }
+                            time = arr[0]+'至'+ arr[1]
+                        }else{ //最近....
+                            //time = val
+                            if(val === '1-daying'){
+                                time = '今天'
+                            }else if(val === '1-weeking'){
+                                time = '这周'
+                            }else if(val === '1-monthing'){
+                                time = '本月'
+                            }else{
+                                let arr = val.split('-');
+                                if(arr[1] === 'min'){
+                                    time ='最近'+arr[0]+'分钟'
+                                }else if(arr[1] === 'hour'){
+                                    time ='最近'+arr[0]+'小时'
+                                }else if(arr[1] === 'day'){
+                                    time ='最近'+arr[0]+'天'
+                                }else{
+                                    time = '时间格式未知'
+                                }
+                            }
                         }
                         return time
                     }

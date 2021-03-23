@@ -146,6 +146,10 @@ public class Constant {
 	 */
 	public static String UPLOADPATH="com.jz.bigdata.roleauthority.user.controller.FileUploadController.licenseUpload";
 	/**
+	 * 获取RSA公钥
+	 */
+	public static String RSAKEYPATH="java.lang.String com.jz.bigdata.common.rsa.controller.RSAController.getRSAPublicKey";
+	/**
 	 * api数据接口
 	 */
 	public static String APIPATH="apiLog";

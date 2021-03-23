@@ -254,7 +254,7 @@
       select 
       <include refid="Base_Column_List" />
       from HS_User
-      where MD5(phone)=#{phone,jdbcType=VARCHAR} and password=#{password,jdbcType=VARCHAR}
+      where phone=#{phone,jdbcType=VARCHAR} and password=#{password,jdbcType=VARCHAR}
    </select>
 	<!-- 登录查询是否有用户  -->
 	<select id="selectByPhone" resultMap="BaseResultMap" parameterType="com.jz.bigdata.roleauthority.user.entity.User">

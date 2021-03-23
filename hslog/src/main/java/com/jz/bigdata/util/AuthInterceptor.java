@@ -52,8 +52,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-		//如果是登陆、注册、上传激活请求，放行
- 		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0){
+		//如果是登陆、注册、上传激活请求，获取公钥，放行
+ 		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0||handler.toString().indexOf(Constant.RSAKEYPATH)>=0){
 //		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.uploadPATH)>=0||handler.toString().indexOf(Constant.APIPATH)>=0){
 			//退出登录，注册，上传不拦截
 			/**

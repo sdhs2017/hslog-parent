@@ -222,7 +222,7 @@ public class AssetGroupController {
 			List<Map<String,String>> result = this.assetGroupService.getAssetGroupList4EventAlertCombobox();
 			return Constant.successData(JSONArray.toJSONString(result));
 		}catch(Exception e){
-			return Constant.failureMessage("资产组添加失败！");
+			return Constant.failureMessage("获取资产组列表失败！");
 		}
 	}
 	/**

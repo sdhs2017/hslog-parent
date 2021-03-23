@@ -36,12 +36,12 @@ public class MachineLearningWebSocket {
                 //训练数据-linux
                 commond = "sh /opt/ml/train.sh";
                 //windows
-                commond = "D:\\Anaconda3\\Scripts\\activate.bat && conda activate detection_anomalies_env && python -u E:\\work\\hs\\MachineLearning\\ADLTI_py\\detectAnomalies.py E:/work/hs/MachineLearning/files/review.yaml train";
+                //commond = "D:\\Anaconda3\\Scripts\\activate.bat && conda activate detection_anomalies_env && python -u E:\\work\\hs\\MachineLearning\\ADLTI_py\\detectAnomalies.py E:/work/hs/MachineLearning/files/review.yaml train";
             }else{
                 //检测数据-linux
                 commond = "sh /opt/ml/detect.sh";
                 //windows
-                commond = "D:\\Anaconda3\\Scripts\\activate.bat && conda activate detection_anomalies_env && python -u E:\\work\\hs\\MachineLearning\\ADLTI_py\\detectAnomalies.py E:/work/hs/MachineLearning/files/review.yaml detect";
+                //commond = "D:\\Anaconda3\\Scripts\\activate.bat && conda activate detection_anomalies_env && python -u E:\\work\\hs\\MachineLearning\\ADLTI_py\\detectAnomalies.py E:/work/hs/MachineLearning/files/review.yaml detect";
             }
             System.out.println("-------Shell ："+commond);
 

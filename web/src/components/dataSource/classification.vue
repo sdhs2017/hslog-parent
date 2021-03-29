@@ -4,7 +4,7 @@
         <div class="con-wapper">
             <div class="left-wapper">
                 <div class="left-tit">
-                    <span>左侧</span>
+                    <span>基础分类</span>
                     <el-button type="success" size="mini" plain circle @click="leftDialogState = true"><i class="el-icon-plus"></i></el-button>
                 </div>
                 <div class="left-list" v-loading="leftLoading" element-loading-background="rgba(48, 62, 78, 0.5)">

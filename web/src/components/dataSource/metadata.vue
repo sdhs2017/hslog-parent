@@ -249,8 +249,8 @@
                             icon:'el-icon-edit',
                             text:'修改',
                             clickFun:(row,index)=>{
-                                console.log(row)
                                 //this.form = JSON.parse(JSON.stringify(row));
+                                let nameArr = row.metadata_identify_names.split(';')
                                 this.$nextTick(()=>{
                                     this.rightLoading = true;
                                     this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getMetadataFieldInfo.do',this.$qs.stringify({
@@ -263,11 +263,12 @@
                                             if(obj.success == 'true'){
                                                 this.form = obj.data;
                                                 if(obj.data.metadata_identify_ids){
-                                                    let idArr = obj.data.metadata_identify_ids.split(',')
+                                                    let idArr = obj.data.metadata_identify_ids.split(',');
                                                     for (let i in idArr){
                                                         if(idArr[i] !== ''){
                                                             this.selectTreeValArr.push({
-                                                                value:idArr[i]
+                                                                value:idArr[i],
+                                                                label:nameArr[i]
                                                             })
                                                         }
                                                     }
@@ -329,6 +330,7 @@
                 let k = Object.keys(obj)[0];
                 let index = k.split('-')[1];
                 this.selectTreeValArr[index] = obj[k]
+                //console.log(this.selectTreeValArr)
             })
         },
         watch:{
@@ -513,26 +515,17 @@
                     url = '/dataSourceMetadata/updateMetadataFieldInfo.do';
                     for(let i=0;i<this.selectTreeValArr.length;i++){
                         if(this.selectTreeValArr[i].value !== ''){
-                           /* if(i === 0){
-                                ids = this.selectTreeValArr[i].value;
-                                names = this.selectTreeValArr[i].label;
-                            }else{
-                                ids += ',' + this.selectTreeValArr[i].value;
-                                names += ',' + this.selectTreeValArr[i].label;
-                            }*/
                             ids += this.selectTreeValArr[i].value + ',';
                             names += this.selectTreeValArr[i].label + ',';
                         }else{
                             layer.msg('分类标识有为选择项',{icon:5});
                             return false
                         }
-
-
                     }
                     this.form.metadata_identify_ids = ids;
                     this.form.metadata_identify_names = names;
-                    console.log(ids)
-                    console.log(names)
+                    /*console.log(ids)
+                    console.log(names)*/
                    // return false
                 }
                 this.$nextTick(()=>{

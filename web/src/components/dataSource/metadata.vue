@@ -250,7 +250,11 @@
                             text:'修改',
                             clickFun:(row,index)=>{
                                 //this.form = JSON.parse(JSON.stringify(row));
-                                let nameArr = row.metadata_identify_names.split(';')
+                                console.log(row.metadata_identify_names)
+                                let nameArr = []
+                                if(row.metadata_identify_names){
+                                    nameArr = row.metadata_identify_names.split(';')
+                                }
                                 this.$nextTick(()=>{
                                     this.rightLoading = true;
                                     this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getMetadataFieldInfo.do',this.$qs.stringify({

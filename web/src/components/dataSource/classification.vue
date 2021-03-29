@@ -350,7 +350,12 @@
                                 let obj = res.data;
                                 if(obj.success == 'true'){
                                     layer.msg(obj.message,{icon:1})
-                                    this.getLeftlist()
+                                    this.getLeftlist();
+                                    //清空右侧数据
+                                    if(item.identify_basic_name === this.currentLeftItem.identify_basic_name){
+                                        this.tableData = [];
+                                        this.currentLeftItem = {}
+                                    }
                                 }else{
                                     layer.msg(obj.message,{icon:5})
                                 }

@@ -12,6 +12,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
 import com.jz.bigdata.util.RSAUtil;
+import com.jz.bigdata.util.RandomPwd;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.common.Constant;
@@ -371,4 +372,19 @@ public class UserServiceImpl implements IUserService {
 		return result >= 1 ? Constant.successMessage() : Constant.updateUserPasswordMessage();
 	}
 
+	@Override
+	public String resetPasswordById(String id) {
+		//生成8位随密码
+		String pwd = RandomPwd.getRandomPwd(8);
+		//加密
+		String en_pwd = MD5.EncoderByMd5(pwd);
+
+		int result = userDao.updatePasswordById(id,en_pwd);
+		if(result>0){
+			//更新成功
+			return Constant.successMessage(pwd);
+		}else{
+			return Constant.failureMessage("重置失败！");
+		}
+	}
 }

@@ -46,6 +46,8 @@
         <result column="metadata_field_isnull" jdbcType="VARCHAR" property="metadata_field_isnull" />
         <result column="metadata_field_comment" jdbcType="VARCHAR" property="metadata_field_comment" />
         <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+        <result column="metadata_identify_ids" jdbcType="VARCHAR" property="metadata_identify_ids" />
+        <result column="metadata_identify_names" jdbcType="VARCHAR" property="metadata_identify_names" />
     </resultMap>
     <!--   添加资产组基本信息 -->
     <insert id="insert" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata">
@@ -203,7 +205,9 @@
 
 
     <select id="getMetadataFieldListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Field">
-        select * from data_source_metadata_field
+        select *,(select group_concat(metadata_identify_name separator ';') from metadata_identify_relation
+        where metadata_identify_relation.metadata_field_id=data_source_metadata_field.metadata_field_id) as metadata_identify_names
+         from data_source_metadata_field
         where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
         and metadata_table_name = #{metadata_table,jdbcType=VARCHAR}
         order by metadata_field_name
@@ -281,4 +285,20 @@
         and metadata_table = #{metadata_table,jdbcType=VARCHAR}
         and metadata_type='field'
     </select>
+
+    <insert id="insertMetadataFieldIdentifyRelation" parameterType="java.lang.String">
+        insert into metadata_identify_relation (metadata_field_id,metadata_identify_id,metadata_identify_name)
+        values
+        (#{metadata_field_id,jdbcType=VARCHAR},#{metadata_identify_id,jdbcType=VARCHAR},#{metadata_identify_name,jdbcType=VARCHAR})
+    </insert>
+    <select id="getMetadataFieldInfo" parameterType="java.lang.String">
+    select *,(select group_concat(metadata_identify_id separator ',') from metadata_identify_relation
+    where metadata_field_id=#{metadata_field_id,jdbcType=VARCHAR}) as metadata_identify_ids
+    from data_source_metadata_field
+    where metadata_field_id = #{metadata_field_id,jdbcType=VARCHAR}
+
+    </select>
+    <delete id="deleteRelationByFieldId">
+        delete from metadata_identify_relation where metadata_field_id=#{metadata_field_id,jdbcType=VARCHAR}
+    </delete>
 </mapper>

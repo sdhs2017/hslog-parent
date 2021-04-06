@@ -63,4 +63,10 @@ public interface IDataSourceMetadataService {
      */
     public Map<String,Object> getDataPreview(String databaseName,String tableName,String data_source_id) throws SQLException;
 
+    /**
+     * 通过元数据字段id获取详细信息
+     * @param metadata_field_id 字段id
+     * @return
+     */
+    public Map<String,String> getMetadataFieldInfo(String metadata_field_id);
 }

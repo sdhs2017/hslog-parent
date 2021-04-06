@@ -45,4 +45,11 @@ public interface IUserService {
 	 List<User> selectByName(User user);
 	 
 	 String updatePasswordById(String id, String password, String oldPassword);
+
+	/**
+	 * 通过用户id重置密码
+	 * @param id
+	 * @return 影响条数
+	 */
+	 public String resetPasswordById(String id);
 }

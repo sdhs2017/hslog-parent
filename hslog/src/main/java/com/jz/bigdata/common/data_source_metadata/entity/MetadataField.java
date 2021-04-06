@@ -17,6 +17,24 @@ public class MetadataField {
     private String metadata_field_comment;//字段注释
     private String metadata_field_sensitiveLevel;//字段敏感级别
     private String metadata_remark;//描述信息
+    private String metadata_identify_ids;//元数据标识id，多个标识
+    private String metadata_identify_names;//元数据标识名称，多个标识
+
+    public String getMetadata_identify_names() {
+        return metadata_identify_names;
+    }
+
+    public void setMetadata_identify_names(String metadata_identify_names) {
+        this.metadata_identify_names = metadata_identify_names;
+    }
+
+    public String getMetadata_identify_ids() {
+        return metadata_identify_ids;
+    }
+
+    public void setMetadata_identify_ids(String metadata_identify_ids) {
+        this.metadata_identify_ids = metadata_identify_ids;
+    }
 
     public String getMetadata_field_sensitiveLevel() {
         return metadata_field_sensitiveLevel;

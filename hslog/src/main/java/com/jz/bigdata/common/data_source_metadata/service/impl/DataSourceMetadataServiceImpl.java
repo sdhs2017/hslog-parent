@@ -10,11 +10,14 @@ import com.jz.bigdata.common.data_source_metadata.service.IDataSourceMetadataSer
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DruidUtil;
+import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.sql.SQLException;
@@ -96,11 +99,11 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
         //获取count
         List<List<Map<String, String>>> count = dataSourceMetadataDao.getMetadataFieldCount(dataSourceMetadata);
         //分页后的结果列表
-        List<MetadataField> result = dataSourceMetadataDao.getMetadataFieldListWithPage(dataSourceMetadata);
+        List<List<Map<String,String>>> result = dataSourceMetadataDao.getMetadataFieldListWithPage(dataSourceMetadata);
         //组装前端需要的数据格式
         Map<String, Object> allMap = new HashMap<>();
         allMap.put("count",count.get(0).get(0).get("count"));
-        allMap.put("list",result);
+        allMap.put("list",result.size()>0?result.get(0):null);
         return allMap;
     }
 
@@ -115,7 +118,28 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
     }
 
     @Override
+    @Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
     public int updateMetadataFieldInfo(MetadataField metadataField) {
+        //获取标识id
+        String identify_ids = metadataField.getMetadata_identify_ids();
+        //获取标识名称
+        String identify_names = metadataField.getMetadata_identify_names();
+        //标识id不为空
+        if(null!=identify_ids&&null!=identify_names){
+            String[] ids = identify_ids.split(",");
+            String[] names = identify_names.split(",");
+            if(ids.length==names.length){
+                //先删除，再更新
+                dataSourceMetadataDao.deleteRelationByFieldId(metadataField.getMetadata_field_id());
+                for(int i=0;i<ids.length;i++){
+                    //将标识信息插入中间表
+                    dataSourceMetadataDao.insertMetadataFieldIdentifyRelation(metadataField.getMetadata_field_id(),ids[i],names[i]);
+                }
+            }else{
+                return 0;
+            }
+
+        }
         return dataSourceMetadataDao.updateMetadataFieldInfo(metadataField);
     }
 
@@ -180,6 +204,17 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
         result.put("fields",fieldList);
         result.put("data",table_data);
         return result;
+    }
+
+    @Override
+    public Map<String,String> getMetadataFieldInfo(String metadata_field_id) {
+        List<List<Map<String,String>>> result = dataSourceMetadataDao.getMetadataFieldInfo(metadata_field_id);
+        //多表联合查询，结果无法用bean处理，result：list1 不同结果集 list2 多行   map为一行的数据
+        if(result.size()>0&&result.get(0).size()>0){
+            return result.get(0).get(0);
+        }else{
+            return new HashMap<>();
+        }
     }
 
 

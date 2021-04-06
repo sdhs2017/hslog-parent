@@ -110,7 +110,7 @@ public interface IDataSourceMetadataDao {
      * @param pageSize 条数
      * @return
      */
-    public List<MetadataField> getMetadataFieldListWithPage(DataSourceMetadata dataSourceMetadata);
+    public List<List<Map<String,String>>> getMetadataFieldListWithPage(DataSourceMetadata dataSourceMetadata);
 
     /**
      * 获取数据库下的表 count
@@ -122,10 +122,7 @@ public interface IDataSourceMetadataDao {
 
     /**
      * 获取分页的表详情
-     * @param data_source_id 数据源id
-     * @param database 数据库
-     * @param startRecord 起始行
-     * @param pageSize 条数
+     * @param dataSourceMetadata 数据源基本信息
      * @return
      */
     public List<MetadataTable> getMetadataTableListWithPage(DataSourceMetadata dataSourceMetadata);
@@ -187,4 +184,25 @@ public interface IDataSourceMetadataDao {
      */
     public List<List<Map<String,String>>> getFieldListCount(DataSourceMetadata dataSourceMetadata);
 
+    /**
+     * 插入字段与元数据标识中间表
+     * @param metadata_field_id 字段id
+     * @param identify_details_id 标识id
+     * @return
+     */
+    public int insertMetadataFieldIdentifyRelation(@Param("metadata_field_id")String metadata_field_id,@Param("metadata_identify_id")String metadata_identify_id,@Param("metadata_identify_name")String metadata_identify_name);
+
+    /**
+     * 通过元数据字段id获取字段详情
+     * @param metadata_field_id
+     * @return
+     */
+    public List<List<Map<String,String>>> getMetadataFieldInfo(@Param("metadata_field_id")String metadata_field_id);
+
+    /**
+     * 根据字段id删除与其相关的标识
+     * @param metadata_field_id
+     * @return
+     */
+    public int deleteRelationByFieldId(@Param("metadata_field_id")String metadata_field_id);
 }

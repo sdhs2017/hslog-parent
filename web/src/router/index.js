@@ -562,7 +562,12 @@ export default new Router({
                     component: resolve => require(['../components/test/detectionAnomalies.vue'], resolve),
                     meta: { title: '异常检测' }
                 },
-
+                /*{
+                    path: '/test',
+                    name:'test',
+                    component: resolve => require(['../components/test/test.vue'], resolve),
+                    meta: { title: 'test' }
+                },*/
                 /*{
                     path: '/panel',
                     name:'panel',
@@ -708,6 +713,10 @@ export default new Router({
                     path: '/dataSource/metadata',
                     name:'metadata',
                     component: resolve => require(['../components/dataSource/metadata.vue'], resolve)
+                },{
+                    path: '/dataSource/classification',
+                    name:'classification',
+                    component: resolve => require(['../components/dataSource/classification.vue'], resolve)
                 },]
         },
         {

@@ -328,6 +328,20 @@ function changeEchartsTooltip(params) {
 
 
 }
+/*
+*
+* 检验IP合法性
+*
+* */
+function checkIP(ip){
+    let reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+    if(reg.test(ip)){
+       return true
+    }else {
+        return false
+    }
+}
+
 
 export {
     downloadToPDF,
@@ -340,6 +354,7 @@ export {
     dateFormat,
     baseUrl,
     getBtn,
+    checkIP,
     setChartParam,
     changeEchartsTooltip
 }

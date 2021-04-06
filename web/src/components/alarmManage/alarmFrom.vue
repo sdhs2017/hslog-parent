@@ -1087,7 +1087,7 @@
             getAssetGroup(){
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupList4Combobox.do',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/assetGroup/getAssetGroupList4EventAlertCombobox.do',this.$qs.stringify())
                         .then(res=>{
                             this.loading = false;
                             let obj = res.data;

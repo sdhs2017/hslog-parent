@@ -57,32 +57,22 @@
 
         <!--配置弹窗 字段-->
         <el-dialog title="修改" :visible.sync="formStateField" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
-            <el-form label-width="100px">
+            <el-form label-width="100px" style="height: 450px;overflow: auto">
                 <el-form-item label="字段名:">
                     <el-input v-model="form.metadata_field_name" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
-            </el-form>
-            <el-form label-width="100px">
                 <el-form-item label="字段类型:">
                     <el-input v-model="form.metadata_field_type" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
-            </el-form>
-            <el-form label-width="100px">
                 <el-form-item label="字段长度:">
                     <el-input v-model="form.metadata_field_length" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
-            </el-form>
-            <el-form label-width="100px">
                 <el-form-item label="是否为空:">
                     <el-input v-model="form.metadata_field_isnull" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
-            </el-form>
-            <el-form label-width="100px">
                 <el-form-item label="字段注释:">
                     <el-input v-model="form.metadata_field_comment" style="width: 90%;" size="mini" disabled class="item"></el-input>
                 </el-form-item>
-            </el-form>
-            <el-form label-width="100px">
                 <el-form-item label="敏感级别:">
                     <el-select v-model="form.metadata_field_sensitiveLevel" size="mini" clearable placeholder="请选择" style="width: 90%;">
                         <el-option
@@ -93,8 +83,16 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-            </el-form>
-            <el-form label-width="100px">
+                <el-form-item label="分类标记:">
+                    <div class="" style="width: 95%;">
+                        <div class="selectTreeItem" v-for="(selectItem,i) in selectTreeValArr">
+                            <v-select-tree :options="selectTreeOptions" :value="selectItem.value" :idName="'id-'+i"></v-select-tree>
+                            <!--                            {{selectItem.label}}-->
+                            <i class="el-icon-close" @click="selectTreeValArr.splice(i,1)" style="cursor: pointer;color: #A84250;margin-left: 5px;"></i>
+                        </div>
+                        <el-button type="primary" @click="addIdentifys()" style="width: 95%;" size="mini">添加分类标记</el-button>
+                    </div>
+                </el-form-item>
                 <el-form-item label="标注:">
                     <el-input v-model="form.metadata_remark" style="width: 90%;" size="mini" class="item"></el-input>
                 </el-form-item>
@@ -111,12 +109,19 @@
                 <vBasetable :tableHead="tableDialogHead" :tableData="tableDialogData" :height="tableDialogHeight"></vBasetable>
             </div>
         </el-dialog>
+
+        <!--分类标识-->
+        <el-dialog title="分类标识" :visible.sync="identifysDialogState" width="200" destroy-on-close :close-on-click-modal="falseB">
+            <v-select-tree :options="selectTreeOptions" :value="selectIdentifys.value"></v-select-tree>
+        </el-dialog>
     </div>
 
 </template>
 
 <script>
     import vBasetable from '../common/Basetable2';
+    import vSelectTree from '../common/selectTree_n';
+    import bus from '../common/bus';
     export default {
         name: "metadata",
         data() {
@@ -127,6 +132,7 @@
                 formLoading:false,
                 formState:false,
                 formStateField:false,
+                identifysDialogState:false,
                 allCounts:0,
                 page:1,//页码
                 c_page:1,//当前页码
@@ -135,6 +141,12 @@
                 editIndex:'',
                 //修改  表单
                 form:{},
+                //用于存放下拉树 选中的值 c72d8368-f723-4555-a051-8c31662c338f,ccfe3107-7a04-4cee-9121-6049b1dc7b1a,a3de7ece-c4db-4a88-ac10-f66836ef47e7,
+                selectTreeValArr:[],
+                //分类标记树  数据
+                selectTreeOptions:[],
+                //修改选中的分类标识
+                selectIdentifys:{value:'',label:''},
                 //属性树
                 propTree:{
                     children: 'menus',
@@ -221,6 +233,10 @@
                         return label
                     }
                 },{
+                    prop:'metadata_identify_names',
+                    label:'分类标识',
+                    width:'',
+                },{
                     prop:'metadata_remark',
                     label:'标注',
                     width:''
@@ -233,9 +249,48 @@
                             icon:'el-icon-edit',
                             text:'修改',
                             clickFun:(row,index)=>{
-                                this.form = JSON.parse(JSON.stringify(row));
-                                this.formStateField = true;
-                                this.editIndex = index;
+                                //this.form = JSON.parse(JSON.stringify(row));
+                                console.log(row.metadata_identify_names)
+                                let nameArr = []
+                                if(row.metadata_identify_names){
+                                    nameArr = row.metadata_identify_names.split(';')
+                                }
+                                this.$nextTick(()=>{
+                                    this.rightLoading = true;
+                                    this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getMetadataFieldInfo.do',this.$qs.stringify({
+                                        metadata_field_id : row.metadata_field_id
+                                    }))
+                                        .then(res=>{
+                                            this.rightLoading = false;
+                                            this.selectTreeValArr=[];
+                                            let obj = res.data;
+                                            if(obj.success == 'true'){
+                                                this.form = obj.data;
+                                                if(obj.data.metadata_identify_ids){
+                                                    let idArr = obj.data.metadata_identify_ids.split(',');
+                                                    for (let i in idArr){
+                                                        if(idArr[i] !== ''){
+                                                            this.selectTreeValArr.push({
+                                                                value:idArr[i],
+                                                                label:nameArr[i]
+                                                            })
+                                                        }
+                                                    }
+                                                }
+                                                this.formStateField = true;
+                                                this.editIndex = index;
+                                                //let nameArr = obj.data.metadata_identify_names.split(',')
+
+                                            }else{
+                                                layer.msg(obj.message,{icon:5})
+                                            }
+                                        })
+                                        .catch(err=>{
+                                             this.rightLoading = false;
+                                        })
+                                })
+
+
                             }
                         },
                     ]}
@@ -261,6 +316,7 @@
         created(){
             //获取数据
             // this.getProps('hslog_packet');
+            this.getSelectTree()
             this.getTreeData();
             this.getTableType();
             this.getSensitiveLevel();
@@ -273,6 +329,13 @@
                 let h2 = document.body.clientHeight - 370 ;
                 this.tableDialogHeight =  h2 < 320 ? 320 : h2;
             };
+            bus.$on('getValue',obj=>{
+                //console.log(obj)
+                let k = Object.keys(obj)[0];
+                let index = k.split('-')[1];
+                this.selectTreeValArr[index] = obj[k]
+                //console.log(this.selectTreeValArr)
+            })
         },
         watch:{
             'tableDialogState'(nv,ov){
@@ -292,6 +355,30 @@
                 this.currentName = item;
                 this.getProps(this.currentName)
             },*/
+            //添加分类标识
+            addIdentifys(){
+               // this.identifysDialogState = true;
+                this.selectTreeValArr.push({value:'',label:''})
+            },
+            /*获取分类标记下来树数据*/
+            getSelectTree(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/metadataIdentify/getMetadataIdentifyTree.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.selectTreeOptions = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
             //获取树节点数据
             getTreeData(){
                 this.$nextTick(()=>{
@@ -353,7 +440,6 @@
             },
             /*节点点击*/
             nodeClick(node){
-
                 if (node.state  == 2){
                     this.currentName = node.menuName;
                     this.currentType = 'table'
@@ -428,7 +514,23 @@
                 if(this.currentType === 'table'){
                     url = '/dataSourceMetadata/updateMetadataTableInfo.do';
                 }else{
+                    let ids = '';
+                    let names = '';
                     url = '/dataSourceMetadata/updateMetadataFieldInfo.do';
+                    for(let i=0;i<this.selectTreeValArr.length;i++){
+                        if(this.selectTreeValArr[i].value !== ''){
+                            ids += this.selectTreeValArr[i].value + ',';
+                            names += this.selectTreeValArr[i].label + ',';
+                        }else{
+                            layer.msg('分类标识有为选择项',{icon:5});
+                            return false
+                        }
+                    }
+                    this.form.metadata_identify_ids = ids;
+                    this.form.metadata_identify_names = names;
+                    /*console.log(ids)
+                    console.log(names)*/
+                   // return false
                 }
                 this.$nextTick(()=>{
                     this.formLoading = true;
@@ -487,7 +589,8 @@
 
         },
         components:{
-            vBasetable
+            vBasetable,
+            vSelectTree
         }
     }
 </script>
@@ -597,5 +700,16 @@
     /deep/ .el-input.is-disabled .el-input__inner {
         background-color: #303e4e;
         border-color: #5a7494;
+    }
+    .selectTreeItem{
+       /* height: 30px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        display:flex;
+        align-items: center;
+        margin-bottom: 5px;*/
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
     }
 </style>

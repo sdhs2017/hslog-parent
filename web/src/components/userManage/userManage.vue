@@ -1,10 +1,10 @@
 <template>
-    <div class="content-bg">
+    <div class="content-bg" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title">用户管理</div>
         <div class="user-manage-content">
             <el-row :gutter="10">
                 <el-col :span="6">
-                    <div class="department-wapper" @click="removeClass">
+                    <div class="department-wapper" @click="removeClass" v-loading="leftLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <div class="department-top">
                             <h5>机构列表</h5>
                             <div class="department-btns">
@@ -34,7 +34,7 @@
                     </div>
                 </el-col>
                 <el-col :span="18">
-                    <div class="user-wapper">
+                    <div class="user-wapper" v-loading="rightLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <div class="user-department-name">{{fatherName.split('/')[1]}}</div>
                         <div class="user-tools-wapper">
                             <div class="user-btn">
@@ -149,6 +149,9 @@
         name: "userManage",
         data() {
             return {
+                loading:false,
+                rightLoading:false,
+                leftLoading:false,
                 busName:{ //监听名称
                     selectionName:'userSelect',
                     reviseUserName:'reviseUserName'
@@ -253,7 +256,7 @@
                     {
                         prop:'tools',
                         label:'操作',
-                        width:'50px',
+                        width:'60px',
                         btns:[
                             {
                                 icon:'el-icon-edit',
@@ -261,6 +264,14 @@
                                 btnType: 'reviseUser',
                                 clickFun :(rowData)=>{
                                     this.reviseUserBtn(rowData)
+                                }
+                            },
+                            {
+                                icon:'el-icon-key',
+                                text:'重置密码',
+                                btnType: 'reviseUser',
+                                clickFun :(rowData)=>{
+                                    this.resetPassword(rowData)
                                 }
                             }
                         ]
@@ -406,13 +417,15 @@
             },
             /*获取部门列表*/
             getDepartmentData(){
+                this.leftLoading = true;
                 this.$nextTick(()=>{
                     this.$axios.get(this.$baseUrl+'/department/selectAllDepartment.do',{})
                         .then(res =>{
+                            this.leftLoading = false;
                             this.options = res.data;
                         })
                         .catch(err =>{
-
+                            this.leftLoading = false;
                         })
 
                 })
@@ -606,7 +619,7 @@
             },
             /*机构树查询用户*/
             selectTreeUser(id){
-                layer.load(1)
+                this.rightLoading = true;
                 this.$nextTick(()=>{
                     this.$axios.get(this.$baseUrl+'/user/selectUser.do',{
                         params:{
@@ -614,11 +627,11 @@
                         }
                     })
                         .then(res =>{
-                            layer.closeAll('loading')
+                            this.rightLoading = false;
                             this.changeUserShowData(res.data[0]);
                         })
                         .catch(err =>{
-                            layer.closeAll('loading')
+                            this.rightLoading = false;
                         })
 
                 })
@@ -628,17 +641,17 @@
                 this.fatherName = '';
                 obj.pageIndex = page;
                 obj.pageSize = this.pageSize;
-                layer.load(1)
+                this.rightLoading = true;
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/user/selectAlls.do',this.$qs.stringify(obj))
                         .then(res =>{
-                            layer.closeAll('loading')
+                            this.rightLoading = false;
                             //this.userTableData = res.data[0];
                             this.allUserCounts = Number(res.data.count[0].count);
                             this.changeUserShowData(res.data.user[0])
                         })
                         .catch(err =>{
-                            layer.closeAll('loading')
+                            this.rightLoading = false;
                         })
 
                 })
@@ -748,12 +761,12 @@
             reviseUserBtn(rowData){
                 this.userForm = true;
                 this.userBtnType = 'revise';
-                layer.load(1)
+                this.rightLoading = true;
                 //获取用户数据
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/user/selectById.do',this.$qs.stringify({id:rowData.id}))
                         .then(res =>{
-                            layer.closeAll('loading')
+                            this.rightLoading = false;
                             this.userParams = {
                                 name:res.data.name,
                                 sex:res.data.sex,
@@ -775,7 +788,7 @@
                         })
                         .catch(err =>{
                             layer.msg('获取用户信息失败',{icon:5})
-                            layer.closeAll('loading')
+                            this.rightLoading = false;
                         })
 
                 })
@@ -837,6 +850,36 @@
             /*页码改变*/
             handleCurrentChange(page){
                 this.selectUser(page,this.userSearchCondition)
+            },
+            /*重置密码*/
+            resetPassword(rowData){
+                layer.confirm('您确定重置此用户密码么？', {
+                    btn: ['确定','取消'] //按钮
+                }, (index)=>{
+                    layer.close(index)
+                    this.$nextTick(()=>{
+                        this.loading = true;
+                        this.$axios.post(this.$baseUrl+'/user/resetPasswordById.do',this.$qs.stringify({
+                            id:rowData.id
+                        }))
+                            .then(res=>{
+                                this.loading = false;
+                                let obj = res.data;
+                                if(obj.success == 'true'){
+                                    let password = obj.message;
+                                    this.$alert(password, '密码重置为', {
+                                        confirmButtonText: '确定',
+                                    });
+                                }else{
+                                    layer.msg(obj.message,{icon:5})
+                                }
+                            })
+                            .catch(err=>{
+                                 this.loading = false;
+                            })
+                    })
+
+                })
             },
             /*检测用户参数合法性*/
             checkUserParams(params){

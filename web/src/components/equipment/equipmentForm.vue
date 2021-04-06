@@ -202,6 +202,7 @@
 
 <script>
     import bus from '../common/bus';
+    import {checkIP} from '../../../static/js/common'
     export default {
         name: "equipmentForm",
         props:{
@@ -385,6 +386,8 @@
                     layer.msg("主机名称不能为空",{icon:5});
                 }else if(this.form.ip === ''){
                     layer.msg("IP地址不能为空",{icon:5});
+                }else if(!checkIP(this.form.ip)){
+                    layer.msg("IP不合法",{icon:5});
                 }else if(this.form.log_level.length == 0){
                     layer.msg("日志级别不能为空",{icon:5});
                 }else if(this.form.logType.length == 0){

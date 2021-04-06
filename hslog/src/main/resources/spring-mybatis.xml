@@ -616,6 +616,18 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 数据源-元数据标识分类管理 -->
+	<bean id="MetadataIdentifySqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/data_source_metadata_identify/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -783,6 +795,11 @@
 	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
 		<property name="basePackage" value="com.jz.bigdata.common.data_source_metadata"/>
 		<property name="sqlSessionFactoryBeanName" value="DataSourceMetadataSqlSessionFactory"></property>
+	</bean>
+	<!--数据源-元数据标识分类管理 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.data_source_metadata_identify"/>
+		<property name="sqlSessionFactoryBeanName" value="MetadataIdentifySqlSessionFactory"></property>
 	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->

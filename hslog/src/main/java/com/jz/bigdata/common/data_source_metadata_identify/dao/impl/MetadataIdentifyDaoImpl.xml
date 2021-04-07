@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.data_source_metadata_identify.dao.IMetadataIdentifyDao">
+    <!-- 返回结果设置 -->
+    <resultMap id="BaseResultMap_Basic"
+               type="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyBasic">
+        <id column="identify_basic_id" jdbcType="VARCHAR" property="identify_basic_id" />
+        <result column="identify_basic_name" jdbcType="VARCHAR" property="identify_basic_name" />
+        <result column="identify_basic_custom" jdbcType="VARCHAR" property="identify_basic_custom" />
+        <result column="identify_basic_remark" jdbcType="VARCHAR" property="identify_basic_remark" />
+    </resultMap>
+    <resultMap id="BaseResultMap_tempTable"
+               type="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyTempTable">
+        <id column="ids" jdbcType="VARCHAR" property="ids" />
+    </resultMap>
+
+    <!--元数据，数据库基本信息 -->
+    <resultMap id="BaseResultMap_Details"
+               type="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyDetails">
+        <id column="identify_details_id" jdbcType="VARCHAR" property="identify_details_id" />
+        <result column="identify_basic_id" jdbcType="VARCHAR" property="identify_basic_id" />
+        <result column="identify_details_name" jdbcType="VARCHAR" property="identify_details_name" />
+        <result column="identify_details_superior" jdbcType="VARCHAR" property="identify_details_superior" />
+        <result column="identify_details_custom" jdbcType="VARCHAR" property="identify_details_custom" />
+        <result column="identify_details_sensitive" jdbcType="VARCHAR" property="identify_details_sensitive" />
+        <result column="identify_details_regex" jdbcType="VARCHAR" property="identify_details_regex" />
+        <result column="identify_details_remark" jdbcType="VARCHAR" property="identify_details_remark" />
+    </resultMap>
+    <update id="updateRelations" parameterType="java.lang.String">
+        update metadata_identify_relation
+        set metadata_identify_name = #{metadata_identify_name,jdbcType=VARCHAR}
+        where metadata_identify_id = #{metadata_identify_id,jdbcType=VARCHAR}
+    </update>
+    <delete id="deleteRelations" parameterType="java.lang.String">
+        delete from metadata_identify_relation
+        where metadata_identify_id = #{metadata_identify_id,jdbcType=VARCHAR}
+    </delete>
+    <!--  元数据标识基本分类  增删改 -->
+    <insert id="insertMetadataIdentify_Basic" parameterType="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyBasic">
+        insert into metadata_identify_basic
+        <!--     格式化 -->
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--     判断参数是否为空 -->
+            <if test="identify_basic_id != null">
+                identify_basic_id,
+            </if>
+            <if test="identify_basic_name != null">
+                identify_basic_name,
+            </if>
+            <if test="identify_basic_custom != null">
+                identify_basic_custom,
+            </if>
+            <if test="identify_basic_remark != null">
+                identify_basic_remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="identify_basic_id != null">
+                #{identify_basic_id,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_basic_name != null">
+                #{identify_basic_name,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_basic_custom != null">
+                #{identify_basic_custom,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_basic_remark != null">
+                #{identify_basic_remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateMetadataIdentify_Basic" parameterType="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyBasic">
+        update metadata_identify_basic
+        <set>
+            <if test="identify_basic_name != null">
+                identify_basic_name = #{identify_basic_name,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_basic_remark != null">
+                identify_basic_remark = #{identify_basic_remark,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_basic_custom != null">
+                identify_basic_custom = #{identify_basic_custom,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where identify_basic_id = #{identify_basic_id,jdbcType=VARCHAR}
+    </update>
+    <update id="deleteMetadataIdentify_Basic" parameterType="java.lang.String">
+        DELETE FROM metadata_identify_basic  where identify_basic_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+    <select id="getBasicList" resultMap="BaseResultMap_Basic">
+		select * from metadata_identify_basic
+		order by identify_basic_name
+	</select>
+    <select id="selectBasicInfoById" parameterType="java.lang.String" resultMap="BaseResultMap_Basic">
+		select * from metadata_identify_basic
+		where identify_basic_id=#{identify_basic_id,jdbcType=VARCHAR}
+	</select>
+    <!--  元数据标识详细分类  增删改 -->
+    <insert id="insertMetadataIdentify_Details" parameterType="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyDetails">
+        insert into metadata_identify_details
+        <!--     格式化 -->
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--     判断参数是否为空 -->
+            <if test="identify_details_id != null">
+                identify_details_id,
+            </if>
+            <if test="identify_basic_id != null">
+                identify_basic_id,
+            </if>
+            <if test="identify_details_name != null">
+                identify_details_name,
+            </if>
+            <if test="identify_details_superior != null">
+                identify_details_superior,
+            </if>
+            <if test="identify_details_custom != null">
+                identify_details_custom,
+            </if>
+            <if test="identify_details_sensitive != null">
+                identify_details_sensitive,
+            </if>
+            <if test="identify_details_regex != null">
+                identify_details_regex,
+            </if>
+            <if test="identify_details_remark != null">
+                identify_details_remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="identify_details_id != null">
+                #{identify_details_id,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_basic_id != null">
+                #{identify_basic_id,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_name != null">
+                #{identify_details_name,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_superior != null">
+                #{identify_details_superior,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_custom != null">
+                #{identify_details_custom,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_sensitive != null">
+                #{identify_details_sensitive,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_regex != null">
+                #{identify_details_regex,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_remark != null">
+                #{identify_details_remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateMetadataIdentify_Details" parameterType="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyDetails">
+        update metadata_identify_details
+        <set>
+            <if test="identify_basic_id != null">
+                identify_basic_id = #{identify_basic_id,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_name != null">
+                identify_details_name = #{identify_details_name,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_superior != null">
+                identify_details_superior = #{identify_details_superior,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_custom != null">
+                identify_details_custom = #{identify_details_custom,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_sensitive != null">
+                identify_details_sensitive = #{identify_details_sensitive,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_regex != null">
+                identify_details_regex = #{identify_details_regex,jdbcType=VARCHAR},
+            </if>
+            <if test="identify_details_remark != null">
+                identify_details_remark = #{identify_details_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where identify_details_id = #{identify_details_id,jdbcType=VARCHAR}
+    </update>
+    <select id="selectMetadataIdentify_Details_ids" parameterType="java.lang.String" resultMap="BaseResultMap_tempTable">
+        {call proc_del_metadata_identify_details_exec(#{identify_details_id,mode=IN})}
+<!--        DELETE FROM metadata_identify_details  where identify_details_id in-->
+<!--        <foreach item="ids" index="index" collection="array" open="("-->
+<!--                 separator="," close=")">-->
+<!--            #{ids}-->
+<!--        </foreach>-->
+    </select>
+    <delete id="deleteMetadataIdentify_Details_batch" parameterType="java.lang.String">
+        delete from metadata_identify_details where identify_details_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <delete id="deleteMetadataIdentify_relation_batch" parameterType="java.lang.String">
+        delete from metadata_identify_relation where metadata_identify_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <delete id="deleteRelationByBasicIdentify" parameterType="java.lang.String">
+        delete from metadata_identify_relation where metadata_identify_id
+        in (select identify_details_id from metadata_identify_details where identify_basic_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>)
+        or metadata_identify_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <update id="deleteDetailsByBasicId" parameterType="java.lang.String">
+        DELETE FROM metadata_identify_details  where identify_basic_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+    <select id="selectDetailsInfoById" parameterType="java.lang.String" resultMap="BaseResultMap_Details">
+		select * from metadata_identify_details
+		where identify_details_id=#{identify_details_id,jdbcType=VARCHAR}
+	</select>
+
+    <select id="getDetailsListBySuperiorId" parameterType="java.lang.String" resultMap="BaseResultMap_Details">
+		select * from metadata_identify_details
+		where identify_details_superior=#{identify_details_superior,jdbcType=VARCHAR}
+		order by identify_details_name
+	</select>
+</mapper>

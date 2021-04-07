@@ -11,6 +11,8 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.util.RSAUtil;
+import com.jz.bigdata.util.RandomPwd;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.common.Constant;
@@ -173,9 +175,11 @@ public class UserServiceImpl implements IUserService {
 	 * @return 是否登陆成功 true/false
 	 * @description 登陆操作
 	 */
-	public String login(User user,HttpSession session){
+	public String login(User user,HttpSession session) throws Exception {
 		//查询账号密码对应的用户信息
-		// 2021-3-16 需求：前端传的账号密码要加密,密码信息前端已加密，只需要查询即可
+		// 2021-3-16 需求：前端传的账号密码要加密，目前通过RSA加密解密，因此需要先解密
+		user.setPhone(RSAUtil.decrypt(user.getPhone(),RSAUtil.getPrivateKey()));
+		user.setPassword(MD5.EncoderByMd5(RSAUtil.decrypt(user.getPassword(),RSAUtil.getPrivateKey())));
 		//user.setPassword(MD5.EncoderByMd5(user.getPassword()));
 		//通过账号和密码查询用户信息
 		User _user = userDao.selectByPhonePwd(user);
@@ -366,5 +370,21 @@ public class UserServiceImpl implements IUserService {
 		}
 		
 		return result >= 1 ? Constant.successMessage() : Constant.updateUserPasswordMessage();
+	}
+
+	@Override
+	public String resetPasswordById(String id) {
+		//生成8位随密码
+		String pwd = RandomPwd.getRandomPwd(8);
+		//加密
+		String en_pwd = MD5.EncoderByMd5(pwd);
+
+		int result = userDao.updatePasswordById(id,en_pwd);
+		if(result>0){
+			//更新成功
+			return Constant.successMessage(pwd);
+		}else{
+			return Constant.failureMessage("重置失败！");
+		}
 	}
 }

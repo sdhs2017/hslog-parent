@@ -295,5 +295,16 @@ public class UserController {
 		}
 
 	}
-
+	@ResponseBody
+	@RequestMapping(value="/resetPasswordById", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="重置密码")
+	public String resetPasswordById(HttpServletRequest request) {
+		try{
+			String id= request.getParameter("id");
+			return userService.resetPasswordById(id);
+		}catch(Exception e){
+			log.error("密码重置失败："+e.getMessage());
+			return Constant.failureMessage("密码重置失败！");
+		}
+	}
 }

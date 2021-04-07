@@ -8,6 +8,7 @@ import com.jz.bigdata.common.data_source_metadata.service.IDataSourceMetadataSer
 import com.jz.bigdata.util.DescribeLog;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -139,6 +140,25 @@ public class DataSourceMetadataController {
             return Constant.failureMessage("更新失败");
         }
     }
+    /**
+     * 获取元数据字段信息
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getMetadataFieldInfo",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取元数据字段信息")
+    public String getMetadataFieldInfo(HttpServletRequest request){
+        try{
+            String id = request.getParameter("metadata_field_id");
+            Map<String,String> result = dataSourceMetadataService.getMetadataFieldInfo(id);
+            return Constant.successData(JSONObject.fromObject(result).toString());
+        }catch (Exception e){
+            log.error("获取元数据字段信息失败："+e.getMessage());
+            return Constant.failureMessage("获取信息失败失败");
+        }
+    }
+
     /**
      * 更新元数据字段信息
      * @param request

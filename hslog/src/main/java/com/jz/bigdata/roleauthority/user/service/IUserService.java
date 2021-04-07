@@ -32,7 +32,7 @@ public interface IUserService {
 	 
 	 User selectById(String id);
 	 
-	 String login(User user, HttpSession session);
+	 String login(User user, HttpSession session) throws Exception;
 	 
 	 public Boolean checkLogin(HttpSession session);
 	 
@@ -45,5 +45,11 @@ public interface IUserService {
 	 List<User> selectByName(User user);
 	 
 	 String updatePasswordById(String id, String password, String oldPassword);
-	 
+
+	/**
+	 * 通过用户id重置密码
+	 * @param id
+	 * @return 影响条数
+	 */
+	 public String resetPasswordById(String id);
 }

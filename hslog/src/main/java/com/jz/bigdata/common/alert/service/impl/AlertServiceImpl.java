@@ -108,7 +108,7 @@ public class AlertServiceImpl implements IAlertService {
                     //执行周期
                     alertBean.setAlert_exec_cycle(alertBean.getAlert_time_cycle_num()+alertExecCycleType2EN(alertBean.getAlert_time_cycle_type()));
                     //时间范围
-                    alertBean.setAlert_time_range("最近"+alertBean.getAlert_time_cycle_num()+alertExecCycleType2EN(alertBean.getAlert_time_cycle_type()));
+                    //alertBean.setAlert_time_range("最近"+alertBean.getAlert_time()+alertExecCycleType2EN(alertBean.getAlert_time()));
                 }else{
                     alertBean.setAlert_exec_cycle(alertBean.getAlert_cron());
                 }

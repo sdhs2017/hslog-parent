@@ -1,6 +1,11 @@
 <template>
     <div class="content-bg">
-        <div class="top-title">精确查询</div>
+        <div class="top-title">精确查询
+            <div class="equipemnt-tools-btns">
+                <el-button type="primary" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
+                <el-button type="warning" size="mini" plain @click="importState = true">日志导入</el-button>
+            </div>
+        </div>
         <div class="search-wapper">
             <v-search-form :formItem="formConditionsArr" :busName="busName"></v-search-form>
         </div>
@@ -13,6 +18,24 @@
                 <div class="progress-val">{{progressVal}}</div>
             </div>
         </div>
+        <el-dialog title="日志导入" :visible.sync="importState" width="680px" height="550px" class="dialog-wapper">
+            <div class="back-state" v-if="backState">
+                <p class="i-box"><i class="el-icon-success" v-if="this.backStateObj.state == 'true'" style="color:#279e72;"></i><i class="el-icon-error" v-else style="color:#e27145;"></i></p>
+                <h3 class="back-h3" v-if="this.backStateObj.state == 'true'"  style="color:#279e72;">导入成功</h3>
+                <h3 class="back-h3" v-else style="color:#e27145;">导入失败</h3>
+                <p class="back-text">{{this.backStateObj.text}}</p>
+                <p class="back-btn"><el-button type="primary" size="mini" @click="backState = false">返回导入界面</el-button></p>
+            </div>
+            <p>通过浏览本地文件或将文件拖到下面指定区域，上传日志文件。</p>
+            <p>文件支持的类型：<span class="txtColor">.xlsx</span> <span class="txtColor">.xls</span> <span class="txtColor">.xlsm</span></p>
+            <p>文件的名称必须为：<span class="txtColor">日志</span>  (例:日志.xlsx)</p>
+            <div style="padding-right: 30px;">
+                <input type="file" multiple id="ssi-upload"/>
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="importState = false">取 消</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -30,6 +53,12 @@
                     detailData:{},//弹窗数据
                     layerState:false//弹窗状态
                 },
+                backState:false,//导入结果状态框显示与否
+                backStateObj:{
+                    text:'',
+                    state:'false'
+                },//结果状态参数集合
+                importState:false,
                 busName:'accurateSearch2',
                 words:'',//检索条件
                 searchConditions:{},
@@ -296,9 +325,55 @@
                     this.formConditionsArr[1].model.model = ''
                     this.searchConditions['agent.type'] = ''
                 }
+            },
+            /*导入框状态*/
+            'importState'(){
+                if(this.importState === true){
+                    setTimeout(()=>{
+                        let $that = this;
+                        $('#ssi-upload').ssi_uploader({
+                            url:this.$baseUrl+'/log/insertLog.do',//地址
+                            maxNumberOfFiles:1,
+                            allowed:['xlsx','xls','xlsm'],//允许上传文件的类型
+                            ajaxOptions: {
+                                success: function(res) {
+                                    let obj = JSON.parse(res)
+                                    $that.backState = true;
+                                    $that.backStateObj ={
+                                        state:obj.success,
+                                        text:obj.message
+                                    }
+                                },
+                                error:function(data){
+                                    layer.msg("导入失败",{icon: 5});
+                                    $(".ssi-abortUpload").click()
+                                }
+                            }
+                        })
+                    },100)
+
+                }
             }
         },
         methods:{
+            /*下载日志模板*/
+            downLoadEq(){
+                let ahtml = document.getElementById('eqDownload');
+                ahtml.href = this.$baseUrl+'/log/logTemplateFileDownload.do';
+                ahtml.click();
+            },
+            /*日志导入*/
+            importLogs(){
+               /* layer.confirm('此功能适用于实施人员，请谨慎操作。', {
+                    btn: ['确定导入','取消'] //按钮
+                }, (index)=> {
+                    layer.close(index);
+
+                }, function(){
+                    layer.close();
+                })*/
+                this.importState = true
+            },
             //获得日志类型
             getLogType(){
                 this.$nextTick(()=>{
@@ -392,6 +467,10 @@
         text-shadow: 3px 4px 3px #4e7ba9;
         border-bottom: 1px solid #303e4e;
     }
+    .equipemnt-tools-btns{
+        float: right;
+        margin-right: 10px;
+    }
     .search-wapper{
         display: flex;
         justify-content: center;
@@ -447,5 +526,45 @@
         font-size:14px;
         background: #00bcd4;
 
+    }
+    .dialog-wapper p{
+        color: #fff;
+        line-height: 30px;
+    }
+    .dialog-wapper p span{
+        color: #4da5ff;
+    }
+    .back-state{
+        width: 100%;
+        height: 82%;
+        background: #303e4e;
+        position: absolute;
+        left: 0;
+        top: 55px;
+        z-index: 100;
+    }
+    .i-box{
+        text-align: center;
+        font-size: 50px;
+        padding: 35px;
+        padding-bottom: 5px;
+    }
+    .back-h3{
+        text-align: center;
+        font-size: 38px;
+    }
+    .back-text{
+        height: 275px;
+        margin: 0 20px;
+        border: 1px solid #5e738c;
+        margin-top: 10px;
+        padding: 10px;
+    }
+    .back-btn{
+        width: 100%;
+        height: 50px;
+        text-align: center;
+        position: absolute;
+        bottom: 0;
     }
 </style>

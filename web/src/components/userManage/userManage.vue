@@ -474,7 +474,10 @@
                 }
                 this.$nextTick(()=>{
                     layer.load(1)
-                    this.$axios.post(this.$baseUrl+'/',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/user/setUserRole.do',this.$qs.stringify({
+                        user_ids:this.selectedUserIds,
+                        role_ids:role
+                    }))
                         .then(res=>{
                             layer.closeAll('loading')
                             let obj = res.data;

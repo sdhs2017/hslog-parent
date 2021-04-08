@@ -35,11 +35,17 @@
                 </el-col>
                 <el-col :span="18">
                     <div class="user-wapper" v-loading="rightLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-                        <div class="user-department-name">{{fatherName.split('/')[1]}}</div>
+                        <div class="user-department-name">{{fatherName.split('/')[1]}}
+                            <span class="expire-wapper">密码过期时间:<b>{{this.expireDate}}</b>天 <i class="el-icon-edit editExpire" @click="expireDateForm = true"></i></span>
+                        </div>
                         <div class="user-tools-wapper">
                             <div class="user-btn">
-                                <el-button type="primary" size="mini" plain title="添加用户" @click="addUserBtn"><i class="el-icon-plus"></i>添加用户</el-button>
+                                <el-button type="primary" size="mini" plain title="添加用户" @click="addUserBtn" v-if="$is_has('userManage_addUser')"><i class="el-icon-plus"></i>添加用户</el-button>
                                 <el-button type="danger" size="mini" plain title="删除用户" @click="removeUser"><i class="el-icon-close"></i>删除用户</el-button>
+
+                                <el-button type="primary" size="mini" plain title="添加用户" v-if="$is_has('userManage_addUser2')" @click="addUserBtn2"><i class="el-icon-plus"></i>添加用户</el-button>
+                                <el-button type="primary" size="mini" plain title="权限修改" v-if="$is_has('userManage_setRole')" @click="editRoleBtn"><i class="el-icon-edit"></i>修改权限</el-button>
+
                             </div>
                             <div class="user-search">
                                 <v-search-form :formItem="userSearchFormItem" busName="searchUserCon"></v-search-form>
@@ -83,7 +89,7 @@
                 </el-form-item>
                 <el-form-item label="密码:" v-if="userBtnType === 'add'">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
-                    <el-input v-model="userParams.password" type="password" placeholder="6-18位数字、字母、字符"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="userParams.password" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <ul class="pass_set" v-if="userParams.password !== '' && userParams.password !== undefined">
                     <li id="strength_L" style="background-color: rgb(237, 62, 13);">弱</li>
@@ -102,7 +108,7 @@
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <v-select-tree :options="options" :value="userParams.departmentId"></v-select-tree>
                 </el-form-item>
-                <el-form-item label="角色:">
+                <el-form-item label="角色:" v-if="type !== 'test'">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-select v-model="roleVal" multiple placeholder="请选择" style="width: 100%;">
                         <el-option
@@ -135,6 +141,39 @@
                 <el-button @click="userForm = false">取 消</el-button>
             </div>
         </el-dialog>
+        <!--修改密码过期时间-->
+        <el-dialog title="设置" :visible.sync="expireDateForm" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB"   v-loading="expireLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <el-form label-width="100px">
+                <el-form-item label="过期时间:">
+                    <el-input v-model="expireDateVal" type="number" placeholder="1-7 数字"  maxlength="1"  class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <p style="color: #e4956d;padding-left: 30px;font-size: 12px;">提示：过期时间值为 数字 1-7</p>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="setExpireDate" :disabled="expireDateVal > 7 || expireDateVal < 1 ? 'disabled' : false">确 定</el-button>
+                <el-button @click="expireDateForm = false">取 消</el-button>
+            </div>
+        </el-dialog>
+
+        <!--设置用户角色-->
+        <el-dialog title="设置用户角色" :visible.sync="userRoleDialog" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB"   v-loading="expireLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <el-form label-width="50px">
+                <el-form-item label="角色:">
+                    <el-select v-model="testRoleVal" multiple placeholder="请选择" style="width: 100%;">
+                        <el-option
+                            v-for="item in roleArr"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="editRole" :disabled="testRoleVal.length < 1 ? 'disabled' : false">确 定</el-button>
+                <el-button @click="userRoleDialog = false">取 消</el-button>
+            </div>
+        </el-dialog>
     </div>
     
 </template>
@@ -143,19 +182,29 @@
     import vSearchForm from '../common/BaseSearchForm';
     import vBasetable from '../common/Basetable'
     import vSelectTree from '../common/selectTree'
-    import {checkStrong} from  '../../../static/js/common.js'
+    import {checkStrong,getBtn,is_has} from  '../../../static/js/common.js'
     import bus from '../common/bus';
     export default {
         name: "userManage",
         data() {
             return {
+                type:'',
+                userRoleDialog:false,
+                testRoleVal:[],
+                falseB:false,
+                trueB:true,
                 loading:false,
                 rightLoading:false,
                 leftLoading:false,
+                expireDateForm:false,
+                expireLoading:false,
+                expireDateVal:1,
                 busName:{ //监听名称
                     selectionName:'userSelect',
                     reviseUserName:'reviseUserName'
                 },
+                //密码过期时间
+                expireDate:1,
                 mode:0,//密码复杂度验证
                 middleCheck:{
                     background: '#ffaf56'
@@ -340,6 +389,7 @@
             }
         },
         created(){
+            getBtn()
             /*监听搜索用户事件*/
             bus.$on('searchUserCon',params =>{
                 //console.log(params)
@@ -358,6 +408,7 @@
             this.getDepartmentData();
             //
             this.getRoleList();
+            this.getExpireDate();
         },
         mounted(){
         },
@@ -387,6 +438,16 @@
                         label:"master"
                     })
                 }
+            },
+            'expireDateForm'(val){
+                if(val){
+                    this.expireDateVal = this.expireDate
+                }
+            },
+            'userRoleDialog'(val){
+                if(!val){
+                    this.testRoleVal = []
+                }
             }
         },
         beforeDestroy(){
@@ -397,6 +458,105 @@
             bus.$off(this.busName.reviseUserName);
         },
         methods:{
+            editRoleBtn(){
+                if (this.selectedUserIds === ''){
+                    layer.msg('未选中任何用户',{icon: 5});
+                } else{
+                    this.userRoleDialog = true;
+                }
+            },
+            /*设置权限*/
+            editRole(){
+                //拼接角色
+                let role = '';
+                for(let i in this.testRoleVal){
+                    role += this.testRoleVal[i]+',';
+                }
+                this.$nextTick(()=>{
+                    layer.load(1)
+                    this.$axios.post(this.$baseUrl+'/',this.$qs.stringify())
+                        .then(res=>{
+                            layer.closeAll('loading')
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.userRoleDialog = false;
+                                layer.msg(obj.message,{icon:5})
+                                //重新加载机构树
+                                this.treeKey = +new Date();
+                                this.c_page=1;
+                                //加载用户列表
+                                this.selectUser(1,this.userSearchCondition)
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading')
+                        })
+                })
+            },
+            /*添加用户按钮*/
+            addUserBtn2(){
+                this.roleVal = [];
+                this.userBtnType = 'add'
+                this.type = 'test';
+                //清空参数
+                this.userParams={
+                    name:'',
+                    sex:1,
+                    phone:'',
+                    age:'',
+                    password:'',
+                    Email:'',
+                    departmentId:0,
+                    role:''
+                }
+                this.password2 = '';
+                this.userForm=true;
+            },
+
+
+
+            /*获取密码过期日期*/
+            getExpireDate(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/configuration/selectPwdExpireDay.do',this.$qs.stringify(''))
+                        .then(res=>{
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.expireDate = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+
+                        })
+                })
+            },
+            /*设置密码过期日期*/
+            setExpireDate(){
+                this.$nextTick(()=>{
+                    this.expireLoading = true;
+                    this.$axios.post(this.$baseUrl+'/configuration/update.do',this.$qs.stringify({
+                        pwd_expire_day:this.expireDateVal
+                    }))
+                        .then(res=>{
+                            this.expireLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                layer.msg(obj.message,{icon:1})
+                                this.expireDate = this.expireDateVal;
+                                this.expireDateForm = false
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.expireLoading = false;
+                        })
+                })
+            },
             /*获取角色列表*/
             getRoleList(){
                 this.$nextTick(()=>{
@@ -884,8 +1044,11 @@
             /*检测用户参数合法性*/
             checkUserParams(params){
                 if(this.userBtnType === 'add'){
-                    if(params.password.length < 6 || params.password.length >18){
-                        layer.msg('密码长度不正确（6-18）',{icon: 5});
+                    if(params.password.length < 8 || params.password.length >18){
+                        layer.msg('密码长度不正确（8-18）',{icon: 5});
+                        return false;
+                    }else if(this.mode < 2){
+                        layer.msg('密码格式不正确（8-18位数字、字母、字符至少两者组合）',{icon: 5});
                         return false;
                     }else if(params.password !== this.password2){
                         layer.msg('两次密码不正确',{icon: 5});
@@ -906,7 +1069,7 @@
                 }else if(!reg.test(params.Email)){
                     layer.msg('邮箱格式不正确',{icon: 5});
                     return false;
-                }else if(params.role === ''){
+                }else if(params.role === '' && this.type !== 'test'){
                     layer.msg('未选中角色',{icon: 5});
                     return false;
                 }else{
@@ -1061,5 +1224,22 @@
         background: #667e9a;
         color: #fff;
         list-style-type: none;
+    }
+    .expire-wapper{
+        display: inline-block;
+        float: right;
+        margin-right: 10px;
+        font-size: 16px;
+    }
+    .expire-wapper b{
+        color: #409EFF;
+        font-size: 18px;
+    }
+    .editExpire{
+        font-size: 14px;
+    }
+    .editExpire:hover{
+        cursor: pointer;
+        color: #409EFF;
     }
 </style>

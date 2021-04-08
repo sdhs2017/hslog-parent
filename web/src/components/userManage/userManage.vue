@@ -41,9 +41,8 @@
                         <div class="user-tools-wapper">
                             <div class="user-btn">
                                 <el-button type="primary" size="mini" plain title="添加用户" @click="addUserBtn" v-if="$is_has('userManage_addUser')"><i class="el-icon-plus"></i>添加用户</el-button>
-                                <el-button type="danger" size="mini" plain title="删除用户" @click="removeUser"><i class="el-icon-close"></i>删除用户</el-button>
-
                                 <el-button type="primary" size="mini" plain title="添加用户" v-if="$is_has('userManage_addUser2')" @click="addUserBtn2"><i class="el-icon-plus"></i>添加用户</el-button>
+                                <el-button type="danger" size="mini" plain title="删除用户" @click="removeUser"><i class="el-icon-close"></i>删除用户</el-button>
                                 <el-button type="primary" size="mini" plain title="权限修改" v-if="$is_has('userManage_setRole')" @click="editRoleBtn"><i class="el-icon-edit"></i>修改权限</el-button>
 
                             </div>

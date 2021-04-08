@@ -483,7 +483,7 @@
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 this.userRoleDialog = false;
-                                layer.msg(obj.message,{icon:5})
+                                layer.msg(obj.message,{icon:1})
                                 //重新加载机构树
                                 this.treeKey = +new Date();
                                 this.c_page=1;

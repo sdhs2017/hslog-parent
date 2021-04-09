@@ -38,6 +38,31 @@
         <div class="warning-wapper" v-if="warningState">
             <p>系统检测到您的浏览器版本过低，无法完美使用本系统，建议您安装最新的谷歌浏览器进行使用。</p>
         </div>
+        <el-dialog title="提示" :visible.sync="passWordForm" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB" >
+            <p class="tipP"><i class="el-icon-warning" style="margin-right: 7px;font-size: 30px;"></i>
+                用户 '<span>{{userValue}}</span>' 密码已过期，请重新设置密码后，才能正常使用系统!
+            </p>
+            <el-form label-width="100px">
+                <el-form-item label="旧的密码:">
+                    <el-input v-model="passwordObj.oldPassword" type="password" placeholder="旧的密码"  maxlength="18"  class="item"></el-input>
+                </el-form-item>
+                <el-form-item label="新的密码:">
+                    <el-input v-model="passwordObj.password" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
+                </el-form-item>
+                <ul class="pass_set" v-if="passwordObj.password.length > 0">
+                    <li id="strength_L" style="background-color: rgb(237, 62, 13);">弱</li>
+                    <li id="strength_M" :style="mode >=2 ? {background:'#ffaf56'}:{}">中</li>
+                    <li id="strength_H" :style="mode > 2 ? {background:'#6ba001'}:{}">强</li>
+                </ul>
+                <el-form-item label="确认密码:">
+                    <el-input v-model="password2" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="changePassWord" >确 定</el-button>
+                <el-button @click="passWordForm = false">取 消</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -45,12 +70,14 @@
     //import crypto from 'crypto'
     import vueCanvasNest from 'vue-canvas-nest'
     // let Base64 = require('js-base64').Base64;
-
+    import {checkStrong} from  '../../../static/js/common.js'
     export default {
         data(){
             return {
                 warningState:false,
                 certificate:false,
+                falseB:false,
+                trueB:true,
                 config : {
                     color: '255,255,255',
                     opacity: 0.7,
@@ -68,7 +95,15 @@
                     password: [
                         { required: true, message: '请输入密码', trigger: 'blur' }
                     ]
-                }
+                },
+                passWordForm:false,
+                userValue:'',
+                passwordObj:{
+                    oldPassword:'',
+                    password:''
+                },
+                password2:'',
+                mode:0,
             }
         },
         watch:{
@@ -92,6 +127,9 @@
                     },100)
 
                 }
+            },
+            'passwordObj.password'(val){
+                this.mode =  checkStrong(val);
             }
         },
         mounted(){
@@ -121,19 +159,6 @@
 
         },
         methods: {
-           /* submitForm(formName) {
-                localStorage.setItem('ms_username',this.ruleForm.username);
-                this.$router.push('/');
-                /!*this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        localStorage.setItem('ms_username',this.ruleForm.username);
-                        this.$router.push('/');
-                    } else {
-                        console.log('error submit!!');
-                        return false;
-                    }
-                });*!/
-            },*/
             strToUtf8Bytes(str) {
                 const utf8 = [];
                 for (let ii = 0; ii < str.length; ii++) {
@@ -198,7 +223,7 @@
                         })
                 })
             },
-
+            /*登录*/
             login(phone,password,index1) {
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/user/login.do',this.$qs.stringify({
@@ -209,10 +234,17 @@
                             //关闭进度条
                             layer.close(index1);
                            if (res.data.success === 'true'){
-                               localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
-                               this.getLogConfig();
+                               if(res.data.state === '1'){//状态正常
+                                   localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
+                                   this.getLogConfig();
+                                   this.$router.push('/index_n');
+                               }else if(res.data.state === '0'){//密码过期
+                                    this.userValue = res.data.user.phone;
+                                    this.passWordForm = true;
+                               }
+
                                // this.$router.push('/flowIndex');
-                               this.$router.push('/index_n');
+
                            }else if(res.data.success==="false"){
                                layer.msg(res.data.message,{
                                    icon: 5,
@@ -227,6 +259,40 @@
                             console.log(err)
                         })
                 })
+            },
+            /*重置密码*/
+            changePassWord(){
+                if(this.passwordObj.oldPassword === ''){
+                    layer.msg('请填写原来密码',{icon: 5});
+                }else if(this.passwordObj.password === ''){
+                    layer.msg('未填写新的密码',{icon: 5});
+                }else if(this.mode < 2){
+                    layer.msg('密码格式不正确（8-18位数字、字母、字符至少两者组合）',{icon: 5});
+                }else if(this.passwordObj.password .length < 8 || this.passwordObj.password .length>18){
+                    layer.msg('密码长度不正确(8-18位)',{icon: 5});
+                }else if(this.passwordObj.password  !== this.password2 ){
+                    layer.msg('两次密码输入不一致',{icon: 5});
+                }else{
+                    layer.load(1)
+                    let userObj = JSON.parse(localStorage.getItem("LoginUser"));
+                    this.passwordObj.id = userObj.id;
+                    this.$nextTick(()=>{
+                        this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(this.passwordObj))
+                            .then(res =>{
+                                layer.closeAll();
+                                if(res.data.success === "true"){
+                                    layer.msg(res.data.message,{icon: 1});
+                                    //关闭弹窗
+                                    this.passWordForm =false;
+                                }else if(res.data.success === "false"){
+                                    layer.msg(res.data.message,{icon: 5});
+                                }
+                            })
+                            .catch(res =>{
+
+                            })
+                    })
+                }
             },
             /*证书更新*/
             uploadCertificate(){
@@ -347,5 +413,26 @@
         -webkit-border-radius: 10px;
         -moz-border-radius: 10px;
         border-radius: 10px;
+    }
+    .tipP{
+        color: #e26262;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        margin-left: 20px;
+    }
+    .pass_set{
+        overflow: hidden;
+        margin-bottom: 15px;
+        margin-left: 100px;
+    }
+    .pass_set li {
+        float: left;
+        text-align: center;
+        width: 50px;
+        border-right: 2px solid #fff;
+        background: #667e9a;
+        color: #fff;
+        list-style-type: none;
     }
 </style>

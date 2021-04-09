@@ -71,10 +71,10 @@
         <el-dialog title="修改密码" :visible.sync="passWordForm" width="400px">
             <el-form label-width="100px">
                 <el-form-item label="旧的密码:">
-                    <el-input v-model="passwordObj.oldPassword" type="password" placeholder="6-18位数字、字母、字符"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="passwordObj.oldPassword" type="password" placeholder="旧的密码"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="新的密码:">
-                    <el-input v-model="passwordObj.password" type="password" placeholder="6-18位数字、字母、字符"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="passwordObj.password" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <ul class="pass_set" v-if="passwordObj.password.length > 0">
                     <li id="strength_L" style="background-color: rgb(237, 62, 13);">弱</li>
@@ -82,7 +82,7 @@
                     <li id="strength_H" :style="mode > 2 ? {background:'#6ba001'}:{}">强</li>
                 </ul>
                 <el-form-item label="确认密码:">
-                    <el-input v-model="password2" type="password" placeholder="6-18位数字、字母、字符"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="password2" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -178,8 +178,10 @@
                     layer.msg('请填写原来密码',{icon: 5});
                 }else if(this.passwordObj.password === ''){
                     layer.msg('未填写新的密码',{icon: 5});
-                }else if(this.passwordObj.password .length < 6 || this.passwordObj.password .length>18){
-                    layer.msg('密码长度不正确(6-18位)',{icon: 5});
+                }else if(this.mode < 2){
+                    layer.msg('密码格式不正确（8-18位数字、字母、字符至少两者组合）',{icon: 5});
+                }else if(this.passwordObj.password .length < 8 || this.passwordObj.password .length>18){
+                    layer.msg('密码长度不正确(8-18位)',{icon: 5});
                 }else if(this.passwordObj.password  !== this.password2 ){
                     layer.msg('两次密码输入不一致',{icon: 5});
                 }else{

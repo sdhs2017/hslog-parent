@@ -291,9 +291,11 @@
                                         icon:'el-icon-tickets',
                                         text:'查看详情',
                                         btnType: 'readDetails',
-                                        clickFun:(row,index)=>{
+                                        clickFun:(row,index)=> {
                                             //console.log(this.layerObj)
-                                            row.agent.type = 'file';
+                                            if(row.agent.type === 'filebeat'){
+                                                row.agent.type = 'file';
+                                            }
                                             this.layerObj.layerState = true;
                                             this.layerObj.detailData = row;
                                         }

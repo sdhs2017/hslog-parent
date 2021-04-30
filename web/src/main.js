@@ -6,7 +6,7 @@ import App from './App';
 import router from './router';
 import store from './store/store.js' //全局中引入vuex
 import axios from 'axios';
-import '@/components/ef/index.css'
+// import '@/components/ef/index.css'
 import {Message} from 'element-ui'
 // import '../static/css/theme-green/index.css';       // 浅绿色主题
 import '../static/css/icon.css';

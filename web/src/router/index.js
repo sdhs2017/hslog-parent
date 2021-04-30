@@ -717,6 +717,10 @@ export default new Router({
                     path: '/dataSource/classification',
                     name:'classification',
                     component: resolve => require(['../components/dataSource/classification.vue'], resolve)
+                },{
+                    path: '/dataSource/tabManage',
+                    name:'标签管理',
+                    component: resolve => require(['../components/dataSource/tabManage.vue'], resolve)
                 },]
         },
         {

@@ -6,7 +6,7 @@ import App from './App';
 import router from './router';
 import store from './store/store.js' //全局中引入vuex
 import axios from 'axios';
-
+import '@/components/ef/index.css'
 import {Message} from 'element-ui'
 // import '../static/css/theme-green/index.css';       // 浅绿色主题
 import '../static/css/icon.css';
@@ -103,7 +103,7 @@ router.beforeEach((to, from, next) => {
         }
     }*/
    //判断是否是登录/注册页面的路由跳转  是-不进行拦截   不是-验证登录是否过期
-   if(to.path !== '/login' && to.path !== '/resigter'  && to.path !== '/flowLogin'&& to.path !== '/login_m'){
+   if(to.path !== '/login' && to.path !== '/resigter'  && to.path !== '/flowLogin'&& to.path !== '/login_m' && to.path !== '/test'){
        // let loading = layer.load(1,{
        //     shade: [0.8,'#000'] //0.1透明度的白色背景
        // })

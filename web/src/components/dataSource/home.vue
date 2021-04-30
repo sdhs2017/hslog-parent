@@ -56,7 +56,7 @@
                     },{
                         "childId": 1,
                         "icon": "",
-                        "id": "103061",
+                        "id": "103062",
                         "menuName": "元数据管理",
                         "state": "1",
                         "superiorId": "10300",
@@ -65,12 +65,21 @@
                     },{
                         "childId": 1,
                         "icon": "",
-                        "id": "103061",
+                        "id": "103063",
                         "menuName": "分类标识管理",
                         "state": "1",
                         "superiorId": "10300",
                         "systemName": "数据源管理",
                         "url": "dataSource/classification.vue"
+                    },{
+                        "childId": 1,
+                        "icon": "",
+                        "id": "103064",
+                        "menuName": "标签管理",
+                        "state": "1",
+                        "superiorId": "10300",
+                        "systemName": "数据源管理",
+                        "url": "dataSource/tabManage.vue"
                     }]
                 }]
             }

@@ -52,4 +52,12 @@ public interface IUserService {
 	 * @return 影响条数
 	 */
 	 public String resetPasswordById(String id);
+
+	/**
+	 * 设置用户角色
+	 * @param user_ids 用户id
+	 * @param role_ids 角色id
+	 * @return 更新角色信息的条数
+	 */
+	 public int setUserRole(String user_ids,String role_ids);
 }

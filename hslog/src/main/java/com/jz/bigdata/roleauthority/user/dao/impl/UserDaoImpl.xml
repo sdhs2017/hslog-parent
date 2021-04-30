@@ -12,7 +12,8 @@
 	    <result column="email" jdbcType="VARCHAR" property="email" />
 	    <result column="departmentId" jdbcType="INTEGER" property="departmentId" />
 		<result column="role" jdbcType="VARCHAR" property="role" />
-	    <result column="state" jdbcType="INTEGER" property="state" />
+		<result column="state" jdbcType="INTEGER" property="state" />
+		<result column="pwd_update_time" jdbcType="VARCHAR" property="pwd_update_time" />
  	</resultMap>
  	<!-- 返回结果带部门名称 -->
  	<resultMap id="BaseResultMapDepartment" type="com.jz.bigdata.roleauthority.user.entity.User">
@@ -35,7 +36,7 @@
   
  <!--  查询字段设置可重复调用 -->
 	<sql id="Base_Column_List">
-	 	id, name, phone, password, sex,age,email,departmentId,state
+	 	id, name, phone, password, sex,age,email,departmentId,state,pwd_update_time
 	</sql>
   
 <!--   查询所有数据 -->
@@ -179,8 +180,11 @@
 	        departmentId,
 	      </if>
 	       <if test="state != null">
-	        state
+	        state,
 	      </if>
+			<if test="pwd_update_time != null">
+				pwd_update_time
+			</if>
 	    </trim>
 	    <trim prefix="values (" suffix=")" suffixOverrides=",">
 	      <if test="id != null">
@@ -208,8 +212,11 @@
 	        #{departmentId,jdbcType=INTEGER},
 	      </if>
 	       <if test="state != null">
-	        #{state,jdbcType=INTEGER}
+	        #{state,jdbcType=INTEGER},
 	      </if>
+			<if test="pwd_update_time != null">
+				#{pwd_update_time,jdbcType=INTEGER}
+			</if>
 	    </trim>
 	</insert>
 
@@ -348,7 +355,7 @@
 		insert into HS_UserRole (FK_UserID,FK_RoleID) values (#{userID},#{roleID})
 	</insert>
 	<update id="updatePasswordById" parameterType="java.lang.String">  
-        update HS_User set password=#{password}
+        update HS_User set password=#{password},pwd_update_time = date_format(now(),'%Y-%m-%d %H:%i:%s')
         <!-- if else判断语句 -->
     	where id=#{id}  
     </update>  

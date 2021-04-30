@@ -11,8 +11,12 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.common.configuration.dao.IConfigurationDao;
+import com.jz.bigdata.common.configuration.entity.Configuration;
 import com.jz.bigdata.util.RSAUtil;
 import com.jz.bigdata.util.RandomPwd;
+import joptsimple.internal.Strings;
+import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
 import com.jz.bigdata.common.Constant;
@@ -55,7 +59,8 @@ public class UserServiceImpl implements IUserService {
 	
 	@Resource(name = "licenseService")
 	private VerifyLicense verifyLicense;
-
+	@Resource
+	private IConfigurationDao configurationDao;
 	/**
 	 * @param user
 	 * @return
@@ -67,6 +72,8 @@ public class UserServiceImpl implements IUserService {
 		//默认添加时用户状态正常
 		user.setState(1);
 		user.setPassword(MD5.EncoderByMd5(user.getPassword()));
+		//新建用户时，添加密码最新的更新时间
+		user.setPwd_update_time(LocalDateTime.now().format(dtf_time));
 		String[] roleIDs = user.getRole().split(",");
 		for(String roleID : roleIDs){//遍历角色id   添加到用户角色中间表中
 			userDao.insertUserRole(user.getId(),roleID);
@@ -216,11 +223,36 @@ public class UserServiceImpl implements IUserService {
 					}
 
 					session.setAttribute(Constant.SESSION_ID, session.getId());
+
+					//账号密码超时判定
+					//获取超时时间，单位：天
+					List<Configuration> result = configurationDao.selectByKey(Constant.PWD_EXPIRE_DAY_NAME);
+					int pwd_expire_day = 0;
+					if(result.size()==1&&result.get(0).getConfiguration_key().equals(Constant.PWD_EXPIRE_DAY_NAME)){
+						pwd_expire_day = Integer.parseInt(result.get(0).getConfiguration_value());
+					}
 					//TODO 角色相关模块的处理
 					//User userInfo = this.selectById(_user.getId());
 					//session.setAttribute(Constant.SESSION_USERROLE, userInfo.getRole());
 					session.setAttribute(Constant.SESSION_USERROLE, "1");
+					//获取密码的更新时间
+					String update_time = _user.getPwd_update_time();
+					//该字段无信息，自动判断为超时，进行密码修改
+					//返回的时间格式不准确，秒数字后带  .0 需要进行截取
+					if(!Strings.isNullOrEmpty(update_time)&&update_time.length()>=19){
+						LocalDateTime update_date_time = LocalDateTime.parse(update_time.substring(0,19), dtf_time);
+						//如果已经超时，提示
+						if(update_date_time.isBefore(LocalDateTime.now().minusDays(pwd_expire_day))){
+							map.put("success", "true");
+							map.put("message", "密码已过期，请修改密码！");
+							map.put("state","0");//需重置密码
+							map.put("user", _user);
+							return JSONObject.fromObject(map).toString();
+						}
+					}
+					//其他情况为正常登陆
 					map.put("success", "true");
+					map.put("state","1");
 					map.put("message", "登录成功");
 					map.put("user", _user);
 					return JSONObject.fromObject(map).toString();
@@ -386,5 +418,21 @@ public class UserServiceImpl implements IUserService {
 		}else{
 			return Constant.failureMessage("重置失败！");
 		}
+	}
+
+	@Override
+	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
+	public int setUserRole(String user_ids, String role_ids) {
+		int result = 0;
+		String[] u_ids = user_ids.split(",");
+		String[] r_ids = role_ids.split(",");
+		for(String u_id:u_ids){
+			//删除原角色信息
+			userDao.deleteUserRole(u_id);
+			for(String r_id : r_ids){//遍历角色id   添加到用户角色中间表中
+				result  = result + userDao.insertUserRole(u_id,r_id);
+			}
+		}
+		return result;
 	}
 }

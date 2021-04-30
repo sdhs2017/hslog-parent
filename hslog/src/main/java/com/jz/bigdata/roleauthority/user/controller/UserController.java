@@ -90,7 +90,25 @@ public class UserController {
 		}
 
 	}
+	/**
+	 * @param request
+	 * @return 设置用户角色
+	 */
+	@ResponseBody
+	@DescribeLog(describe="设置用户角色")
+	@RequestMapping(value="/setUserRole", produces = "application/json; charset=utf-8")
+	public String setUserRole(HttpServletRequest request) {
+		try{
+			String user_ids = request.getParameter("user_ids");
+			String role_ids = request.getParameter("role_ids");
+			int result = userService.setUserRole(user_ids,role_ids);
+			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+		}catch(Exception e){
+			log.error("删除用户"+e.getMessage());
+			return Constant.failureMessage("删除用户失败");
+		}
 
+	}
 	/**
 	 * @param request
 	 * @return 根据id删除数据

@@ -1,5 +1,6 @@
 package com.jz.bigdata.roleauthority.user.entity;
 import com.jz.bigdata.common.department.entity.Department;
+import org.joda.time.DateTime;
 
 /**
  * @author shichengyu
@@ -17,6 +18,15 @@ public class User {
 	private int departmentId;//部门表id
 	private int state;//状态，启用/停用
 	private String role;//用户角色信息
+	private String pwd_update_time;//密码更新时间
+
+	public String getPwd_update_time() {
+		return pwd_update_time;
+	}
+
+	public void setPwd_update_time(String pwd_update_time) {
+		this.pwd_update_time = pwd_update_time;
+	}
 
 	public String getRole() {
 		return role;

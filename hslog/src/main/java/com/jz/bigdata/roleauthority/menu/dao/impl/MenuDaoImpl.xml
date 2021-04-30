@@ -57,6 +57,7 @@
 		left join HS_UserRole ur on ur.FK_RoleID = rm.fk_roleid
 		left join HS_User u on u.id = ur.FK_UserID
 		where  u.id=#{userID}  and sys.id = #{systemID} and rm.fk_menuAndButon_id is not null and menu.state='1'
+		group by menu.id, menu.menuName, menu.superiorId, menu.childId, menu.url,menu.icon,menu.state,sys.sys_name
 	</select>
 	<!-- 查询所有按钮 -->
 	<select id="selectButton" parameterType="java.lang.String" resultMap="BaseResultMap"  >

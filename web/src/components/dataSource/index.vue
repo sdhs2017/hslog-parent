@@ -377,6 +377,7 @@
             },
             /*获取列表*/
             getDataList(page,param){
+                this.c_page = page;
                 let objParam = param;
                 objParam.pageIndex = page;//当前页
                 objParam.pageSize = this.size;//页的条数

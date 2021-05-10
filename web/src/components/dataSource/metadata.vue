@@ -83,14 +83,39 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="分类标记:">
+                <el-form-item label="分类标识:">
                     <div class="" style="width: 95%;">
                         <div class="selectTreeItem" v-for="(selectItem,i) in selectTreeValArr">
                             <v-select-tree :options="selectTreeOptions" :value="selectItem.value" :idName="'id-'+i"></v-select-tree>
                             <!--                            {{selectItem.label}}-->
                             <i class="el-icon-close" @click="selectTreeValArr.splice(i,1)" style="cursor: pointer;color: #A84250;margin-left: 5px;"></i>
                         </div>
-                        <el-button type="primary" @click="addIdentifys()" style="width: 95%;" size="mini">添加分类标记</el-button>
+                        <el-button type="primary" @click="addIdentifys()" style="width: 95%;" size="mini">添加分类标识</el-button>
+                    </div>
+                </el-form-item>
+                <el-form-item label="标签:">
+                    <!--<el-select v-model="form.metadata_field_sensitiveLevel" size="mini" clearable placeholder="请选择" style="width: 90%;">
+                        <el-option
+                            v-for="item in sensitiveLevel"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>-->
+                    <div class="" style="width: 95%;">
+                        <div class="selectTreeItem" v-for="(selectItem,i) in selectedTagArr">
+                            <el-select v-model="selectItem.tagVal" size="mini" placeholder="请选择" style="width: 90%;">
+                                <el-option
+                                    v-for="item in tagArr"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                                </el-option>
+                            </el-select>
+                            <!--                            {{selectItem.label}}-->
+                            <i class="el-icon-close" @click="selectedTagArr.splice(i,1)" style="cursor: pointer;color: #A84250;margin-left: 5px;"></i>
+                        </div>
+                        <el-button type="primary" @click="addTags()" style="width: 95%;" size="mini">添加标签</el-button>
                     </div>
                 </el-form-item>
                 <el-form-item label="标注:">
@@ -143,7 +168,12 @@
                 form:{},
                 //用于存放下拉树 选中的值 c72d8368-f723-4555-a051-8c31662c338f,ccfe3107-7a04-4cee-9121-6049b1dc7b1a,a3de7ece-c4db-4a88-ac10-f66836ef47e7,
                 selectTreeValArr:[],
-                //分类标记树  数据
+                //标签
+                tagArr:[],
+                //选中的标签
+                selectedTagArr:[],
+
+                //分类标识树  数据
                 selectTreeOptions:[],
                 //修改选中的分类标识
                 selectIdentifys:{value:'',label:''},
@@ -237,6 +267,10 @@
                     label:'分类标识',
                     width:'',
                 },{
+                    prop:'metadata_label_names',
+                    label:'标签',
+                    width:'',
+                },{
                     prop:'metadata_remark',
                     label:'标注',
                     width:''
@@ -249,8 +283,8 @@
                             icon:'el-icon-edit',
                             text:'修改',
                             clickFun:(row,index)=>{
-                                //this.form = JSON.parse(JSON.stringify(row));
-                                console.log(row.metadata_identify_names)
+                                this.getTagArr()
+                                this.selectedTagArr = [];
                                 let nameArr = []
                                 if(row.metadata_identify_names){
                                     nameArr = row.metadata_identify_names.split(';')
@@ -273,6 +307,16 @@
                                                             this.selectTreeValArr.push({
                                                                 value:idArr[i],
                                                                 label:nameArr[i]
+                                                            })
+                                                        }
+                                                    }
+                                                }
+                                                if(obj.data.metadata_label_ids){
+                                                    let idArr = obj.data.metadata_label_ids.split(',');
+                                                    for (let i in idArr){
+                                                        if(idArr[i] !== ''){
+                                                            this.selectedTagArr.push({
+                                                               tagVal:idArr[i]
                                                             })
                                                         }
                                                     }
@@ -319,6 +363,7 @@
             this.getSelectTree()
             this.getTreeData();
             this.getTableType();
+            this.getTagArr()
             this.getSensitiveLevel();
             this.tableHeight = document.body.clientHeight - 260 ;
             window.onresize = () => {
@@ -355,12 +400,35 @@
                 this.currentName = item;
                 this.getProps(this.currentName)
             },*/
+            /*获取标签*/
+            getTagArr(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'DSGLabel/getLabelAll4Combobox.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.tagArr = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
             //添加分类标识
             addIdentifys(){
-               // this.identifysDialogState = true;
                 this.selectTreeValArr.push({value:'',label:''})
             },
-            /*获取分类标记下来树数据*/
+            /*添加标签*/
+            addTags(){
+                //let propName = 'tag_' + this.selectedTagArr.length;
+                this.selectedTagArr.push({tagVal:''})
+            },
+            /*获取分类标识下来树数据*/
             getSelectTree(){
                 this.$nextTick(()=>{
                     this.loading = true;
@@ -514,23 +582,42 @@
                 if(this.currentType === 'table'){
                     url = '/dataSourceMetadata/updateMetadataTableInfo.do';
                 }else{
+                    url = '/dataSourceMetadata/updateMetadataFieldInfo.do';
+                    //标识
                     let ids = '';
                     let names = '';
-                    url = '/dataSourceMetadata/updateMetadataFieldInfo.do';
                     for(let i=0;i<this.selectTreeValArr.length;i++){
                         if(this.selectTreeValArr[i].value !== ''){
                             ids += this.selectTreeValArr[i].value + ',';
                             names += this.selectTreeValArr[i].label + ',';
                         }else{
-                            layer.msg('分类标识有为选择项',{icon:5});
+                            layer.msg('分类标识有未选择项',{icon:5});
                             return false
                         }
                     }
                     this.form.metadata_identify_ids = ids;
                     this.form.metadata_identify_names = names;
-                    /*console.log(ids)
-                    console.log(names)*/
-                   // return false
+                    //标签
+                    let tagIds = '';
+                    let tagNames = '';
+                    for(let i=0;i<this.selectedTagArr.length;i++){
+                        let obj = this.selectedTagArr[i];
+                        if(obj.tagVal !== ''){
+                            tagIds += obj.tagVal +','
+                            for(let j in this.tagArr){
+                                if(obj.tagVal === this.tagArr[j].value){
+                                    tagNames += this.tagArr[j].label+','
+                                    break
+                                }
+
+                            }
+                        }else{
+                            layer.msg('标签有未选择项',{icon:5});
+                            return false
+                        }
+                    }
+                    this.form.metadata_label_ids = tagIds;
+                    this.form.metadata_label_names = tagNames;
                 }
                 this.$nextTick(()=>{
                     this.formLoading = true;

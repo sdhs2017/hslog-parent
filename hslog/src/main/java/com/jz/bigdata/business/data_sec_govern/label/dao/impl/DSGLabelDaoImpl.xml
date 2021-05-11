@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.business.data_sec_govern.label.dao.IDSGLabelDao">
+    <!-- 返回结果设置 -->
+    <resultMap id="BaseResultMapLabel"
+               type="com.jz.bigdata.business.data_sec_govern.label.entity.Label">
+        <id column="label_id" jdbcType="VARCHAR" property="label_id" />
+        <result column="label_name" jdbcType="VARCHAR" property="label_name" />
+        <result column="label_is_custom" jdbcType="INTEGER" property="label_is_custom" />
+        <result column="label_discover_way" jdbcType="INTEGER" property="label_discover_way" />
+        <result column="label_discover_percent" jdbcType="INTEGER" property="label_discover_percent" />
+        <result column="label_discover_regex" jdbcType="VARCHAR" property="label_discover_regex" />
+        <result column="label_remark" jdbcType="VARCHAR" property="label_remark" />
+    </resultMap>
+    <insert id="insertLabel" parameterType="com.jz.bigdata.business.data_sec_govern.label.entity.Label">
+        insert into dsg_label
+        <!--     格式化 -->
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--     判断参数是否为空 -->
+            <if test="label_id != null">
+                label_id,
+            </if>
+            <if test="label_name != null">
+                label_name,
+            </if>
+            <if test="label_is_custom != null">
+                label_is_custom,
+            </if>
+            <if test="label_discover_way != null">
+                label_discover_way,
+            </if>
+            <if test="label_discover_percent != null">
+                label_discover_percent,
+            </if>
+            <if test="label_discover_regex != null">
+                label_discover_regex,
+            </if>
+            <if test="label_remark != null">
+                label_remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="label_id != null">
+                #{label_id,jdbcType=VARCHAR},
+            </if>
+            <if test="label_name != null">
+                #{label_name,jdbcType=VARCHAR},
+            </if>
+            <if test="label_is_custom != null">
+                #{label_is_custom,jdbcType=INTEGER},
+            </if>
+            <if test="label_discover_way != null">
+                #{label_discover_way,jdbcType=INTEGER},
+            </if>
+            <if test="label_discover_percent != null">
+                #{label_discover_percent,jdbcType=INTEGER},
+            </if>
+            <if test="label_discover_regex != null">
+                #{label_discover_regex,jdbcType=VARCHAR},
+            </if>
+            <if test="label_remark != null">
+                #{label_remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="getLabelInfoById" parameterType="java.lang.String" resultMap="BaseResultMapLabel">
+        select * from dsg_label where label_id = #{label_id,jdbcType=VARCHAR}
+    </select>
+    <update id="updateLabel" parameterType="com.jz.bigdata.business.data_sec_govern.label.entity.Label">
+        update dsg_label
+        <set>
+            <if test="label_name != null">
+                label_name = #{label_name,jdbcType=VARCHAR},
+            </if>
+            <if test="label_is_custom != null">
+                label_is_custom = #{label_is_custom,jdbcType=INTEGER},
+            </if>
+            <if test="label_discover_way != null">
+                label_discover_way = #{label_discover_way,jdbcType=INTEGER},
+            </if>
+            <choose>
+                <when test="label_discover_percent != null ">
+                    label_discover_percent = #{label_discover_percent,jdbcType=INTEGER},
+                </when>
+                <otherwise>
+                <!-- 百分比默认为0-->
+                    label_discover_percent = 0,
+                </otherwise>
+            </choose>
+            <if test="label_discover_regex != null">
+                label_discover_regex = #{label_discover_regex,jdbcType=VARCHAR},
+            </if>
+            <if test="label_remark != null">
+                label_remark = #{label_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where label_id = #{label_id,jdbcType=VARCHAR}
+    </update>
+    <delete id="deleteLabels" parameterType="java.lang.String">
+        delete from dsg_label where label_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <select id="searchLabel" parameterType="com.jz.bigdata.business.data_sec_govern.label.entity.Label" resultMap="BaseResultMapLabel">
+        select *
+        from dsg_label
+        where 1=1
+        <if test="label_name != null and label_name !=''">
+            and label_name LIKE
+            CONCAT('%',
+            #{label_name}, '%')
+        </if>
+        <if test="label_discover_way != null and label_discover_way !=''">
+            and label_discover_way = #{label_discover_way,jdbcType=VARCHAR}
+        </if>
+        <if test="label_is_custom != null and label_is_custom !=''">
+            and label_is_custom = #{label_is_custom,jdbcType=VARCHAR}
+        </if>
+        order by label_name desc
+        <if test="startRecord != null and pageSize !=null" >
+            limit #{startRecord},#{pageSize}
+        </if>
+    </select>
+    <select id="searchCount" parameterType="com.jz.bigdata.business.data_sec_govern.label.entity.Label" resultMap="BaseResultMapLabel">
+        select count(1) as count
+        from dsg_label
+        where 1=1
+        <if test="label_name != null and label_name !=''">
+            and label_name LIKE
+            CONCAT('%',
+            #{label_name}, '%')
+        </if>
+        <if test="label_discover_way != null and label_discover_way !=''">
+            and label_discover_way = #{label_discover_way,jdbcType=VARCHAR}
+        </if>
+        <if test="label_is_custom != null and label_is_custom !=''">
+            and label_is_custom = #{label_is_custom,jdbcType=VARCHAR}
+        </if>
+    </select>
+    <insert id ="batchInsertRelation" parameterType="java.util.List" >
+        insert into metadata_label_relation
+        (data_source_id,metadata_field_id, dsg_label_id, dsg_label_name)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.data_source_id},#{item.metadata_field_id}, #{item.dsg_label_id}, #{item.dsg_label_name})
+        </foreach>
+    </insert>
+    <delete id="deleteRelationsByDataSourceId">
+        delete from metadata_label_relation
+        where data_source_id = #{data_source_id,jdbcType=VARCHAR}
+    </delete>
+    <delete id="deleteRelationsByFieldId">
+        delete from metadata_label_relation
+        where metadata_field_id = #{metadata_field_id,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insertFieldLabelRelation" parameterType="java.lang.String">
+        insert into metadata_label_relation
+         (data_source_id,metadata_field_id,dsg_label_id,dsg_label_name)
+        values
+        (#{data_source_id,jdbcType=VARCHAR},#{metadata_field_id,jdbcType=VARCHAR},#{dsg_label_id,jdbcType=VARCHAR},#{dsg_label_name,jdbcType=VARCHAR})
+    </insert>
+</mapper>

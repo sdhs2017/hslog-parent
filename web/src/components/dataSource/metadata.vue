@@ -83,17 +83,17 @@
                         </el-option>
                     </el-select>
                 </el-form-item>
-                <el-form-item label="分类标识:">
+                <el-form-item label="分类分级:">
                     <div class="" style="width: 95%;">
                         <div class="selectTreeItem" v-for="(selectItem,i) in selectTreeValArr">
                             <v-select-tree :options="selectTreeOptions" :value="selectItem.value" :idName="'id-'+i"></v-select-tree>
                             <!--                            {{selectItem.label}}-->
                             <i class="el-icon-close" @click="selectTreeValArr.splice(i,1)" style="cursor: pointer;color: #A84250;margin-left: 5px;"></i>
                         </div>
-                        <el-button type="primary" @click="addIdentifys()" style="width: 95%;" size="mini">添加分类标识</el-button>
+                        <el-button type="primary" @click="addIdentifys()" style="width: 95%;" size="mini">添加</el-button>
                     </div>
                 </el-form-item>
-                <el-form-item label="标签:">
+                <el-form-item label="发现规则:">
                     <!--<el-select v-model="form.metadata_field_sensitiveLevel" size="mini" clearable placeholder="请选择" style="width: 90%;">
                         <el-option
                             v-for="item in sensitiveLevel"
@@ -115,7 +115,7 @@
                             <!--                            {{selectItem.label}}-->
                             <i class="el-icon-close" @click="selectedTagArr.splice(i,1)" style="cursor: pointer;color: #A84250;margin-left: 5px;"></i>
                         </div>
-                        <el-button type="primary" @click="addTags()" style="width: 95%;" size="mini">添加标签</el-button>
+                        <el-button type="primary" @click="addTags()" style="width: 95%;" size="mini">添加</el-button>
                     </div>
                 </el-form-item>
                 <el-form-item label="标注:">
@@ -264,11 +264,11 @@
                     }
                 },{
                     prop:'metadata_identify_names',
-                    label:'分类标识',
+                    label:'分类分级',
                     width:'',
                 },{
                     prop:'metadata_label_names',
-                    label:'标签',
+                    label:'发现规则',
                     width:'',
                 },{
                     prop:'metadata_remark',

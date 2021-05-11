@@ -1,6 +1,6 @@
 <template>
     <div  class="content-bg" v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div class="top-title">标签管理
+        <div class="top-title">发现规则列表
             <div class="btn-wapper">
                 <el-button type="primary" size="mini" plain @click="formState = true">添加</el-button>
                 <el-button title="删除选中项" type="danger" size="mini" plain :disabled="delectIds.length > 0 ? false : true "  @click="remove">删除</el-button>
@@ -14,13 +14,13 @@
             <basetable :selection="true" :table-head="tableHead" :table-data="tableData" :busName="tableBusName"></basetable>
         </div>
         <div class="table-page">
-            <span>共检索到标签 <b>{{allCounts}}</b> 个</span>
+            <span>共检索到规则 <b>{{allCounts}}</b> 个</span>
             <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="allCounts"></el-pagination>
         </div>
         <!--添加与修改弹窗-->
         <el-dialog :title="editId === '' ? '添加':'修改'" :visible.sync="formState"  destroy-on-close width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <el-form label-width="100px">
-                <el-form-item label="标签名称:">
+                <el-form-item label="规则名称:">
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input v-model="form.label_name" size="mini" class="item"></el-input>
                 </el-form-item>
@@ -43,7 +43,7 @@
                     <span style="color:red;position: absolute;left: -10px;">*</span>
                     <el-input type="textarea"  :autosize="{ minRows:4, maxRows: 10}" v-model="form.label_discover_regex"></el-input>
                 </el-form-item>
-                <el-form-item label="标签描述:" >
+                <el-form-item label="规则描述:" >
                     <el-input type="textarea"  :autosize="{ minRows:4, maxRows: 10}" v-model="form.label_remark"></el-input>
                 </el-form-item>
             </el-form>
@@ -68,7 +68,7 @@
                 loading:false,
                 conditionsArr:[
                     {
-                        label:'标签名称',
+                        label:'规则名称',
                         paramName:'label_name',
                         model:{
                             model:''
@@ -93,7 +93,7 @@
                 tableHead:[
                     {
                         prop:'label_name',
-                        label:'标签名称',
+                        label:'规则名称',
                         width:''
                     },
                     {
@@ -122,7 +122,7 @@
                     },
                     {
                         prop:'label_remark',
-                        label:'标签描述',
+                        label:'规则描述',
                         width:''
                     },
                     {

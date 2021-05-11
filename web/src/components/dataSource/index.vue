@@ -72,6 +72,10 @@
                     <span style="color:red;position: absolute;left: -10px;" v-if="form.data_source_item_type !== 'MySQL'">*</span>
                     <el-input v-model="form.data_source_dbname" style="width: 90%;" size="mini" placeholder="" class="item"></el-input>
                 </el-form-item>
+                <el-form-item label="样本数:">
+                    <span style="color:red;position: absolute;left: -10px;">*</span>
+                    <el-input v-model="form.data_source_sample_num" style="width: 90%;" min="1" type="number" size="mini" class="item"></el-input>
+                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <div style="float: left;">
@@ -161,6 +165,7 @@
                     {prop:'data_source_name',label:'数据源名称'},
                     {prop:'data_source_item_type',label:'数据库类型', width:'100',},
                     {prop:'description',label:'说明'},
+                    {prop:'data_source_sample_num',label:'样本数',width:'60'},
                     {
                         prop:'data_source_is_initialized_label',
                         label:'是否初始化',
@@ -211,6 +216,7 @@
                     data_source_username:'',//用户名
                     data_source_password:'',//密码
                     data_source_dbname:'',//数据库/实例
+                    data_source_sample_num:1,//样本数
                 },
                 passwordState:false,
                 //数据源分类集合
@@ -323,6 +329,7 @@
                     data_source_username:'',//用户名
                     data_source_password:'',//密码
                     data_source_dbname:'',//数据库/实例
+                    data_source_sample_num:1,//样本数
                 }
             },
             passwordBlur(){
@@ -690,6 +697,9 @@
                     return false
                 } else if(this.form.data_source_item_type  !== 'MySQL' && this.form.data_source_dbname === ''){
                     layer.msg("数据库类型为"+this.form.data_source_item_type+"时，数据库/实例不能为空",{icon:5});
+                    return false
+                }else if(this.form.data_source_sample_num <= 0 ){
+                    layer.msg("样本数需大于0",{icon:5});
                     return false
                 }else{
                     return true

@@ -1,6 +1,6 @@
 <template>
     <div  class="content-bg" v-loading="loading" element-loading-background="rgba(48, 62, 78, 0.5)">
-        <div class="top-title">分类标识管理</div>
+        <div class="top-title">分类分级管理</div>
         <div class="con-wapper">
             <div class="left-wapper">
                 <div class="left-tit">

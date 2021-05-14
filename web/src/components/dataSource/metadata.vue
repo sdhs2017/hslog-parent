@@ -404,7 +404,7 @@
             getTagArr(){
                 this.$nextTick(()=>{
                     this.loading = true;
-                    this.$axios.post(this.$baseUrl+'DSGLabel/getLabelAll4Combobox.do',this.$qs.stringify())
+                    this.$axios.post(this.$baseUrl+'/DSGLabel/getLabelAll4Combobox.do',this.$qs.stringify())
                         .then(res=>{
                             this.loading = false;
                             let obj = res.data;

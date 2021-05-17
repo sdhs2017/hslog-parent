@@ -227,7 +227,8 @@ function is_has(id){
 *
 * */
 function getBtn() {
-    axios.get(baseUrl+'/menu/selectButtonListByUser.do',{})
+    // console.log(Vue.prototype.$baseUrl)
+    axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
         .then((res)=>{
             let arr = [];
             for (let i in res.data){

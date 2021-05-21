@@ -12,7 +12,6 @@
                     >
                     </el-tree>
                 </div>
-
             </div>
             <div class="right-wapper" v-loading="rightLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                 <h3 class="table-tit">{{currentName}}
@@ -25,6 +24,36 @@
                 </div>
             </div>
         </div>
+        <!--配置弹窗 数据库-->
+        <el-dialog title="修改" :visible.sync="databaseFormState" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
+            <el-form label-width="100px">
+                <el-form-item label="表名:">
+                    <el-input v-model="form.metadata_database_name" style="width: 90%;" size="mini" disabled class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <el-form label-width="100px">
+                <el-form-item label="是否自动发现:">
+                    <el-select v-model="form.metadata_is_auto_discovery" size="mini" placeholder="请选择" style="width: 90%;">
+                        <el-option
+                            v-for="item in autoDiscoveryOpt"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <el-form label-width="100px">
+                <el-form-item label="标注:">
+                    <el-input v-model="form.metadata_remark" style="width: 90%;" size="mini" class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="submitData">确 定</el-button>
+                <el-button @click="databaseFormState = false">取 消</el-button>
+            </div>
+        </el-dialog>
+
         <!--配置弹窗 表-->
         <el-dialog title="修改" :visible.sync="formState" width="500px" v-loading="formLoading" element-loading-background="rgba(48, 62, 78, 0.5)" :close-on-click-modal="falseB">
             <el-form label-width="100px">
@@ -37,6 +66,18 @@
                     <el-select v-model="form.metadata_table_type" size="mini" clearable placeholder="请选择" style="width: 90%;">
                         <el-option
                             v-for="item in tableType"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value">
+                        </el-option>
+                    </el-select>
+                </el-form-item>
+            </el-form>
+            <el-form label-width="100px">
+                <el-form-item label="是否自动发现:">
+                    <el-select v-model="form.metadata_is_auto_discovery" size="mini"  placeholder="请选择" style="width: 90%;">
+                        <el-option
+                            v-for="item in autoDiscoveryOpt"
                             :key="item.value"
                             :label="item.label"
                             :value="item.value">
@@ -93,6 +134,18 @@
                         <el-button type="primary" @click="addIdentifys()" style="width: 95%;" size="mini">添加</el-button>
                     </div>
                 </el-form-item>
+                <el-form label-width="100px">
+                    <el-form-item label="是否自动发现:">
+                        <el-select v-model="form.metadata_is_auto_discovery" size="mini"  placeholder="请选择" style="width: 90%;">
+                            <el-option
+                                v-for="item in autoDiscoveryOpt"
+                                :key="item.value"
+                                :label="item.label"
+                                :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-form>
                 <el-form-item label="发现规则:">
                     <!--<el-select v-model="form.metadata_field_sensitiveLevel" size="mini" clearable placeholder="请选择" style="width: 90%;">
                         <el-option
@@ -156,6 +209,7 @@
                 rightLoading:false,
                 formLoading:false,
                 formState:false,
+                databaseFormState:false,
                 formStateField:false,
                 identifysDialogState:false,
                 allCounts:0,
@@ -168,11 +222,12 @@
                 form:{},
                 //用于存放下拉树 选中的值 c72d8368-f723-4555-a051-8c31662c338f,ccfe3107-7a04-4cee-9121-6049b1dc7b1a,a3de7ece-c4db-4a88-ac10-f66836ef47e7,
                 selectTreeValArr:[],
+                //是否自动发现
+                autoDiscoveryOpt:[],
                 //标签
                 tagArr:[],
                 //选中的标签
                 selectedTagArr:[],
-
                 //分类标识树  数据
                 selectTreeOptions:[],
                 //修改选中的分类标识
@@ -191,18 +246,19 @@
                 currentIndex:'0',
                 currentName:'',
                 tableHead:[],
-                secondHead:[{
-                    prop:'metadata_table_name',
-                    label:'表名',
+                //数据库
+                firstHead:[{
+                    prop:'metadata_database_name',
+                    label:'数据库名称',
                     width:''
                 },{
-                    prop:'metadata_table_type',
-                    label:'表格分类',
+                    prop:'metadata_is_auto_discovery',
+                    label:'是否自动发现',
                     width:'',
                     formatData:(val,obj)=>{
                         let label = '';
-                        this.tableType.forEach(item=>{
-                            if(item.value === val){
+                        this.autoDiscoveryOpt.forEach(item=>{
+                            if(item.value == val){
                                 //console.log(item.label)
                                 label= item.label
                             }
@@ -222,13 +278,103 @@
                             icon:'el-icon-edit',
                             text:'修改',
                             clickFun:(row,index)=>{
-                                this.form = JSON.parse(JSON.stringify(row));
-                                this.formState = true;
+                                //this.form = JSON.parse(JSON.stringify(row));
+                                this.databaseFormState = true;
                                 this.editIndex = index;
+                                this.$nextTick(()=>{
+                                    this.loading = true;
+                                    this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getMetadataDatabaseInfo.do',this.$qs.stringify({
+                                        metadata_database_id:row.metadata_database_id
+                                    }))
+                                        .then(res=>{
+                                            this.loading = false;
+                                            let obj = res.data;
+                                            if(obj.success == 'true'){
+                                                this.form = obj.data;
+                                            }else{
+                                                layer.msg(obj.message,{icon:5})
+                                            }
+                                        })
+                                        .catch(err=>{
+                                             this.loading = false;
+                                        })
+                                })
                             }
                         },
                     ]}
                 ],
+                //表
+                secondHead:[{
+                    prop:'metadata_table_name',
+                    label:'表名',
+                    width:''
+                },{
+                    prop:'metadata_table_type',
+                    label:'表格分类',
+                    width:'',
+                    formatData:(val,obj)=>{
+                        let label = '';
+                        this.tableType.forEach(item=>{
+                            if(item.value === val){
+                                //console.log(item.label)
+                                label= item.label
+                            }
+                        })
+                        return label
+                    }
+                },{
+                    prop:'metadata_is_auto_discovery',
+                    label:'是否自动发现',
+                    width:'',
+                    formatData:(val,obj)=>{
+                        let label = '';
+                        this.autoDiscoveryOpt.forEach(item=>{
+                            if(item.value == val){
+                                //console.log(item.label)
+                                label= item.label
+                            }
+                        })
+                        return label
+                    }
+                },{
+                    prop:'metadata_remark',
+                    label:'标注',
+                    width:''
+                },{
+                    prop:'tools',
+                    label:'操作',
+                    width:'',
+                    btns:[
+                        {
+                            icon:'el-icon-edit',
+                            text:'修改',
+                            clickFun:(row,index)=>{
+                               // this.form = JSON.parse(JSON.stringify(row));
+                                this.formState = true;
+                                this.editIndex = index;
+                                this.$nextTick(()=>{
+                                    this.loading = true;
+                                    this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getMetadataTableInfo.do',this.$qs.stringify({
+                                        metadata_table_id:row.metadata_table_id
+                                    }))
+                                        .then(res=>{
+                                            this.loading = false;
+                                            let obj = res.data;
+                                            if(obj.success == 'true'){
+                                                this.form = obj.data;
+                                            }else{
+                                                layer.msg(obj.message,{icon:5})
+                                            }
+                                        })
+                                        .catch(err=>{
+                                            this.loading = false;
+                                        })
+                                })
+                            }
+                        },
+                    ]}
+                ],
+                //字段
                 thirdHead:[{
                     prop:'metadata_field_name',
                     label:'字段名',
@@ -270,6 +416,20 @@
                     prop:'metadata_label_names',
                     label:'发现规则',
                     width:'',
+                },{
+                    prop:'metadata_is_auto_discovery',
+                    label:'是否自动发现',
+                    width:'',
+                    formatData:(val,obj)=>{
+                        let label = '';
+                        this.autoDiscoveryOpt.forEach(item=>{
+                            if(item.value == val){
+                                //console.log(item.label)
+                                label= item.label
+                            }
+                        })
+                        return label
+                    }
                 },{
                     prop:'metadata_remark',
                     label:'标注',
@@ -365,6 +525,7 @@
             this.getTableType();
             this.getTagArr()
             this.getSensitiveLevel();
+            this.getAutoDiscovery();
             this.tableHeight = document.body.clientHeight - 260 ;
             window.onresize = () => {
                 /*this.tableHeight = document.body.clientHeight - 260 ;
@@ -400,6 +561,25 @@
                 this.currentName = item;
                 this.getProps(this.currentName)
             },*/
+            /*获取自动发现 值*/
+            getAutoDiscovery(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/dataSourceMetadata/getIsAutoDiscoveryCombobox.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.autoDiscoveryOpt = obj.data;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
             /*获取标签*/
             getTagArr(){
                 this.$nextTick(()=>{
@@ -508,7 +688,18 @@
             },
             /*节点点击*/
             nodeClick(node){
-                if (node.state  == 2){
+
+                if(node.state  == 1){
+                    this.currentName = node.menuName;
+                    this.currentType = 'database';
+                    this.conditionFrom = {
+                        // metadata_database:node.database,
+                        data_source_id:node.data_source_id
+                    }
+                    this.tableHead=this.firstHead
+                    this.getProps(1,this.conditionFrom)
+
+                }else if (node.state  == 2){
                     this.currentName = node.menuName;
                     this.currentType = 'table'
                     this.conditionFrom = {
@@ -540,8 +731,10 @@
                 let url = '';
                 if(this.currentType === 'table'){
                     url = '/dataSourceMetadata/getTableInfo.do';
-                }else{
+                }else if(this.currentType === 'field'){
                     url = '/dataSourceMetadata/getFieldInfo.do';
+                }else if(this.currentType === 'database'){
+                    url = '/dataSourceMetadata/getDatabaseInfo.do';
                 }
                 let objParam = params;
                 objParam.pageIndex = page;//当前页
@@ -579,9 +772,11 @@
             /*修改提交数据*/
             submitData(){
                 let url = '';
-                if(this.currentType === 'table'){
+                if(this.currentType === 'database'){
+                    url = '/dataSourceMetadata/updateMetadataDatabaseInfo.do';
+                }else if(this.currentType === 'table'){
                     url = '/dataSourceMetadata/updateMetadataTableInfo.do';
-                }else{
+                }else if(this.currentType === 'field'){
                     url = '/dataSourceMetadata/updateMetadataFieldInfo.do';
                     //标识
                     let ids = '';
@@ -628,6 +823,7 @@
                             if(obj.success == 'true'){
                                 this.formState = false;
                                 this.formStateField = false;
+                                this.databaseFormState = false;
                                 //this.tableDataArr[this.editIndex] = JSON.parse(JSON.stringify(this.form))
                                 this.getProps(this.c_page,this.conditionFrom)
                                 layer.msg(obj.message,{icon:1});

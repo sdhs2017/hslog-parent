@@ -366,6 +366,7 @@
                 let obj = searchObj;
                 obj.pageIndex = page;//当前页
                 obj.pageSize = this.size;//页的条数
+                this.c_page = page;
                 //请求
                 this.$nextTick( ()=> {
                     this.$axios.post(this.$baseUrl+'/equipment/selectPage.do',this.$qs.stringify(obj))

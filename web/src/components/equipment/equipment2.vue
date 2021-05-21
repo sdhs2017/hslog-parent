@@ -304,6 +304,7 @@
             },
 		    /*获取数据*/
             getData(searchObj,page){
+                this.c_page = page;
                 this.$nextTick(()=>{
                     this.selectEquipmentId = '';
                     this.loading = true;

@@ -33,7 +33,7 @@
                     detailData:{},//弹窗数据
                     layerState:false//弹窗状态
                 },
-                logType:[{label:'mysql(数据库)',value:'mysql'},{label:'oracle(数据库)',value:'oracle'},{label:'sqlserver(数据库)',value:'sqlserver'}]
+                logType:[{label:'mysql',value:'mysql'},{label:'oracle',value:'oracle'},{label:'sqlserver',value:'sqlserver'}]
             }
         },
         created() {
@@ -85,7 +85,7 @@
                 {
                     prop:'status',
                     label:'执行状态码',
-                    width:'80'
+                    width:'85'
                 },
                 {
                     prop:'query',
@@ -156,7 +156,7 @@
                         label:'日志类型',
                         paramName:'fields.db_type',
                         type:'select',
-                        itemType:'multiple',
+                        itemType:'',
                         model:{
                             model:''
                         },

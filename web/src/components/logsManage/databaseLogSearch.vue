@@ -63,15 +63,16 @@
                     }
                 },
                 {
+                    prop:'fields.ip',
+                    label:'资产IP',
+                    width:'125'
+                },
+                {
                     prop:'user',
                     label:'数据库账号',
                     width:'130'
                 },
-                {
-                    prop:'ip',
-                    label:'数据库IP',
-                    width:'125'
-                },
+
                 {
                     prop:'cmd',
                     label:'操作类型',
@@ -135,7 +136,7 @@
                 endtime: endTime,
                 starttime: startTime,
                 'fields.db_type':'',
-                ip:'',
+                'fields.ip':'',
                 cmd:'',
                 'fields.equipmentname':'',
 
@@ -173,8 +174,8 @@
                         options:[{label:'select',value:'select'},{label:'update',value:'update'},{label:'insert',value:'insert'},{label:'delete',value:'delete'}]
                     },
                     {
-                        label:'数据库IP',
-                        paramName:'ip',
+                        label:'资产IP',
+                        paramName:'fields.ip',
                         itemType:'',
                         model:{
                             model:''

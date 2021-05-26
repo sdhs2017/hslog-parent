@@ -110,6 +110,19 @@
                 {"fields.ip":"IP"},
                 {"message":"日志内容"}
             ]
+        },
+        "mysql":{
+            "detailsListArr":[
+                {"@timestamp":"时间"},
+                {"fields.db_type":"日志类型"},
+                {"fields.equipmentname":"资产名称"},
+                {"ip":"数据库IP"},
+                {"user":"数据库账号"},
+                {"cmd":"操作类型"},
+                {"query":"SQL语句"},
+                {"rows":"影响行数"},
+                {"status":"执行状态码"}
+            ]
         }
     },
     "event": {

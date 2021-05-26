@@ -254,6 +254,10 @@
                                 };
                                 this.logType.push(obj);
                             }
+                            /*临时*/
+                            this.logType.push({value:'mysql',label:'mysql(数据库)'})
+                            this.logType.push({value:'oracle',label:'oracle(数据库)'})
+                            this.logType.push({value:'sqlserver',label:'sqlserver(数据库)'})
                             // console.log(this.logType)
                         })
                         .catch((err)=>{

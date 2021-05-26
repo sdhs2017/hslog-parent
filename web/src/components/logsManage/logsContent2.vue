@@ -437,7 +437,7 @@
             /*批量删除按钮*/
             moreDelete(){
                 if(this.moreDeleteArr.length === 0){
-                    layer.msg('未选中任何资产',{icon: 5});
+                    layer.msg('未选中任何日志',{icon: 5});
                 }else{
                     this.removeLog(this.moreDeleteArr);
                 }

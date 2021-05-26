@@ -562,6 +562,12 @@ export default new Router({
                     component: resolve => require(['../components/test/detectionAnomalies.vue'], resolve),
                     meta: { title: '异常检测' }
                 },
+                {
+                    path: '/databaseLogSearch',
+                    name:'databaseLogSearch',
+                    component: resolve => require(['../components/logsManage/databaseLogSearch.vue'], resolve),
+                    meta: { title: '数据库日志查询' }
+                },
                 /*{
                     path: '/test',
                     name:'test',

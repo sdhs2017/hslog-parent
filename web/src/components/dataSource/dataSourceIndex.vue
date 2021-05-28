@@ -143,6 +143,7 @@
 <script>
     import basetable from '../common/Basetable2'
     import bus from '../common/bus';
+    import {encrypt,decrypt} from  '../../../static/js/common.js'
     export default {
         name: "index",
         data(){
@@ -446,6 +447,9 @@
                             this.loading = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
+                                //解密
+                                obj.data.data_source_username = decrypt(obj.data.data_source_username)
+                                obj.data.data_source_password = decrypt(obj.data.data_source_password)
                                 this.form = obj.data;
                             }else{
                                 layer.msg(obj.message,{icon:5})
@@ -480,7 +484,11 @@
                 if(this.checkParam()){
                     this.$nextTick(()=>{
                         this.formLoading = true;
-                        this.$axios.post(this.$baseUrl+'/dataSource/save.do',this.$qs.stringify(this.form))
+                        let sendObj = JSON.parse(JSON.stringify(this.form));
+                        //加密
+                        sendObj.data_source_username = encrypt(sendObj.data_source_username);
+                        sendObj.data_source_password = encrypt(sendObj.data_source_password);
+                        this.$axios.post(this.$baseUrl+'/dataSource/save.do',this.$qs.stringify(sendObj))
                             .then(res=>{
                                 this.formLoading = false;
                                 let obj = res.data;
@@ -503,7 +511,11 @@
                 if(this.checkParam()){
                     this.$nextTick(()=>{
                         this.formLoading = true;
-                        this.$axios.post(this.$baseUrl+'/dataSource/update.do',this.$qs.stringify(this.form))
+                        let sendObj = JSON.parse(JSON.stringify(this.form));
+                        //加密
+                        sendObj.data_source_username = encrypt(sendObj.data_source_username);
+                        sendObj.data_source_password = encrypt(sendObj.data_source_password);
+                        this.$axios.post(this.$baseUrl+'/dataSource/update.do',this.$qs.stringify(sendObj))
                             .then(res=>{
                                 this.formLoading = false;
                                 let obj = res.data;
@@ -558,7 +570,11 @@
                 if(this.checkParam()){
                     this.$nextTick(()=>{
                         this.formLoading = true;
-                        this.$axios.post(this.$baseUrl+'/dataSource/testConnection.do',this.$qs.stringify(this.form))
+                        let sendObj = JSON.parse(JSON.stringify(this.form));
+                        //加密
+                        sendObj.data_source_username = encrypt(sendObj.data_source_username);
+                        sendObj.data_source_password = encrypt(sendObj.data_source_password);
+                        this.$axios.post(this.$baseUrl+'/dataSource/testConnection.do',this.$qs.stringify(sendObj))
                             .then(res=>{
                                 this.formLoading = false;
                                 let obj = res.data;

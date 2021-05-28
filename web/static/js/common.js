@@ -342,7 +342,29 @@ function checkIP(ip){
         return false
     }
 }
+/*
+* 加密
+*
+* */
+function encrypt (msg){
+    let PUBLIC_KEY = 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDUOnj5lTTVZVK+JG8fbMXEClUUD3CWd/2NX/GqR7QnvtRVo0A6/awSFVv51mxpE6JPHaLRchOk23hbviLvmPPqwCj1PniagPXRa06mXbB1aYg7gl4I9B+cVNYP7nJfUKswEitNhkC+Fj4NSolq1L6RxgQiJD7AWCSEqbdSuIG/3wIDAQAB'
+    let encrypt = new JSEncrypt();
+    encrypt.setPublicKey(PUBLIC_KEY)
+    let encryptMsg = encrypt.encrypt(msg)
+    return encryptMsg
+}
+/*
+*
+* 解密
+* */
 
+function decrypt (msg){
+    let privateKey = 'MIICdgIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBANQ6ePmVNNVlUr4kbx9sxcQKVRQPcJZ3/Y1f8apHtCe+1FWjQDr9rBIVW/nWbGkTok8dotFyE6TbeFu+Iu+Y8+rAKPU+eJqA9dFrTqZdsHVpiDuCXgj0H5xU1g/ucl9QqzASK02GQL4WPg1KiWrUvpHGBCIkPsBYJISpt1K4gb/fAgMBAAECgYEAjHEZZ0h2yxSfGdbwdmI7yUxxGrJQ9jH3Z1vrh5ylunuM9hLvSVpfSSQ7VmywFyT4DtT0zxdnqnvV/Rgo9FdKaYTpuMuOQZ3OLIvICC2Qb6a7KToDt+yP331chYGYoaKO4EhrJmXqdkuotTiOG7ESdhvb9UDW76CQRJizueZS4rkCQQDz6QN6SrfdER/4lQqGMAujJpmtJsSJSoCtMCsZyNwLXzzp7t4hPMFdDQBKGgpG6QI3Mgx+dSjXpnKC1btsZl8tAkEA3r9yhG2nEYWhwLW5lSl1D2aJpFvDzH78QZ4SyhtpmSAuZvUACAXtkHA8RSFbostWA+KfprIE32GSMkKNpVdiuwJAJrte0QGidtlsUUYhmLNydaMAjk10sjSBgH8AqSSLRMcH3kIPRgnmzsbsv9eowB/qOSeack5agPwufPZBv/H1tQJAWQZpLZZprG4dTNkUmBIesA4KOv9WDRg/l7YmylIUbVfYU9vdrFc6MH07CWIgrrrX4OulZUlG+0SS2rWQySFY2wJAfsupW4wFKm3Pjt1sCtmqFBLbpZ6pebbef82uOUoeg9Va4kdL6fTTRhvCtxsFQJHz4YT749OPl+vlVmcianGIWQ=='
+    let decrypt = new JSEncrypt();
+    decrypt.setPrivateKey(privateKey)
+    var decryptMsg = decrypt.decrypt(msg)
+    return decryptMsg
+}
 
 export {
     downloadToPDF,
@@ -357,5 +379,7 @@ export {
     getBtn,
     checkIP,
     setChartParam,
-    changeEchartsTooltip
+    changeEchartsTooltip,
+    encrypt,
+    decrypt
 }

@@ -568,6 +568,27 @@ export default new Router({
                     component: resolve => require(['../components/logsManage/databaseLogSearch.vue'], resolve),
                     meta: { title: '数据库日志查询' }
                 },
+                {
+                    path: 'dataSourceIndex',
+                    name:'dataSourceIndex',
+                    component: resolve => require(['../components/dataSource/dataSourceIndex.vue'], resolve),
+                    meta: { title: '数据源管理' }
+                },{
+                    path: 'metadata',
+                    name:'metadata',
+                    component: resolve => require(['../components/dataSource/metadata.vue'], resolve),
+                    meta: { title: '元数据管理' }
+                },{
+                    path: 'classification',
+                    name:'classification',
+                    component: resolve => require(['../components/dataSource/classification.vue'], resolve),
+                    meta: { title: '分类分级管理' }
+                },{
+                    path: 'tabManage',
+                    name:'tabManage',
+                    component: resolve => require(['../components/dataSource/tabManage.vue'], resolve),
+                    meta: { title: '发现规则配置' }
+                },
                 /*{
                     path: '/test',
                     name:'test',
@@ -707,7 +728,7 @@ export default new Router({
             ]
         },
         /*datasource*/
-        {
+       /* {
             path:'/dataSource',
             component: resolve => require(['../components/dataSource/home'], resolve),
             children:[
@@ -728,7 +749,7 @@ export default new Router({
                     name:'标签管理',
                     component: resolve => require(['../components/dataSource/tabManage.vue'], resolve)
                 },]
-        },
+        },*/
         {
             path:'/mobile',
             component: resolve => require(['../components/mobile/common/home'], resolve),

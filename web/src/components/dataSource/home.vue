@@ -52,7 +52,7 @@
                         "state": "1",
                         "superiorId": "10300",
                         "systemName": "数据源管理",
-                        "url": "dataSource/index.vue"
+                        "url": "dataSource/dataSourceIndex.vue"
                     },{
                         "childId": 1,
                         "icon": "",

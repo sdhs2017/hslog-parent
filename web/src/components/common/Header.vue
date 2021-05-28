@@ -15,7 +15,7 @@
         </ul>
         <div class="header-right">
             <div class="header-user-con">
-                <router-link style="color: #fff;position: relative;z-index: 2;" title="数据源管理" target="_blank" :to="{path:'/dataSource/index'}"><i class="el-icon-coin"></i></router-link>
+<!--                <router-link style="color: #fff;position: relative;z-index: 2;" title="数据源管理" target="_blank" :to="{path:'/dataSource/index'}"><i class="el-icon-coin"></i></router-link>-->
                 <!-- 消息中心 -->
                 <div class="btn-bell">
                     <el-popover
@@ -153,6 +153,11 @@
             },300000)
             let user =  JSON.parse(localStorage.getItem('LoginUser'));
             this.phone = user.phone;
+        },
+        mounted(){
+            window.onresize = () => {
+                console.log(document.body.clientWidth)
+            };
         },
         methods:{
             /*获取登录角色信息*/
@@ -386,6 +391,29 @@
         background: #333a52;
         color: #9ee0ec;
         border-right: 1px solid #191c28;
+    }
+    @media screen and (max-width: 1815px){
+        .header-ul li{
+            padding: 0 16px;
+        }
+    }
+    @media screen and (max-width: 1705px){
+        .header-ul li{
+            font-size: 15px;
+            padding: 0 14px;
+        }
+    }
+    @media screen and (max-width: 1590px){
+        .header-ul li{
+            font-size: 15px;
+            padding: 0 9px;
+        }
+    }
+    @media screen and (max-width: 1450px){
+        .header-ul li{
+            font-size: 15px;
+            padding: 0 6px;
+        }
     }
     .header-ul li i{
         margin-right: 6px;

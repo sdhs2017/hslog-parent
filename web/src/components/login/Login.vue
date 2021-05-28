@@ -237,7 +237,7 @@
                                if(res.data.state === '1'){//状态正常
                                    localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                    this.getLogConfig();
-                                   this.$router.push('/index_n');
+                                   this.$router.push(res.data.homepage);
                                }else if(res.data.state === '0'){//密码过期
                                     this.userValue = res.data.user.phone;
                                     this.passWordForm = true;

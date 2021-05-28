@@ -36,7 +36,8 @@
                 <el-col :span="18">
                     <div class="user-wapper" v-loading="rightLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
                         <div class="user-department-name">{{fatherName.split('/')[1]}}
-                            <span class="expire-wapper">密码过期时间:<b>{{this.expireDate}}</b>天 <i class="el-icon-edit editExpire" @click="expireDateForm = true"></i></span>
+                            <span class="expire-wapper" v-if="$is_has('userManage_expireDate')">密码过期时间:<b>{{this.expireDate}}</b>天 <i class="el-icon-edit editExpire" @click="expireDateForm = true"></i></span>
+                            <span class="expire-wapper" v-if="$is_has('userManage_expireDate_1_7')">密码过期时间:<b>{{this.expireDate}}</b>天 <i class="el-icon-edit editExpire" @click="expireDateForm1_7 = true"></i></span>
                         </div>
                         <div class="user-tools-wapper">
                             <div class="user-btn">
@@ -141,7 +142,7 @@
             </div>
         </el-dialog>
         <!--修改密码过期时间-->
-        <el-dialog title="设置" :visible.sync="expireDateForm" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB"   v-loading="expireLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+        <el-dialog title="设置" :visible.sync="expireDateForm1_7" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB"   v-loading="expireLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-form label-width="100px">
                 <el-form-item label="过期时间:">
                     <el-input v-model="expireDateVal" type="number" placeholder="1-7 数字"  maxlength="1"  class="item"></el-input>
@@ -150,10 +151,21 @@
             <p style="color: #e4956d;padding-left: 30px;font-size: 12px;">提示：过期时间值为 数字 1-7</p>
             <div slot="footer" class="dialog-footer">
                 <el-button type="primary" @click="setExpireDate" :disabled="expireDateVal > 7 || expireDateVal < 1 ? 'disabled' : false">确 定</el-button>
+                <el-button @click="expireDateForm1_7 = false">取 消</el-button>
+            </div>
+        </el-dialog>
+        <!--修改密码过期时间-->
+        <el-dialog title="设置" :visible.sync="expireDateForm" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB"   v-loading="expireLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <el-form label-width="100px">
+                <el-form-item label="过期时间:">
+                    <el-input v-model="expireDateVal" type="number"  class="item"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="setExpireDate" :disabled="expireDateVal < 0 ? 'disabled' : false">确 定</el-button>
                 <el-button @click="expireDateForm = false">取 消</el-button>
             </div>
         </el-dialog>
-
         <!--设置用户角色-->
         <el-dialog title="设置用户角色" :visible.sync="userRoleDialog" width="400px" :close-on-click-modal="falseB" :destroy-on-close="trueB"   v-loading="expireLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-form label-width="50px">
@@ -196,6 +208,7 @@
                 rightLoading:false,
                 leftLoading:false,
                 expireDateForm:false,
+                expireDateForm1_7:false,
                 expireLoading:false,
                 expireDateVal:1,
                 busName:{ //监听名称
@@ -549,7 +562,8 @@
                             if(obj.success == 'true'){
                                 layer.msg(obj.message,{icon:1})
                                 this.expireDate = this.expireDateVal;
-                                this.expireDateForm = false
+                                this.expireDateForm = false;
+                                this.expireDateForm1_7 = false;
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }

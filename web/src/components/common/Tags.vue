@@ -36,7 +36,8 @@
         data() {
             return {
                 tagsList: [],
-                ulLeft:0
+                ulLeft:0,
+                homePage:localStorage.getItem("homePage"),
             }
         },
         methods: {
@@ -56,13 +57,13 @@
                         this.setTags(this.$route);
                     }
                 }else{
-                    this.$router.push('/index_n');
+                    this.$router.push(this.homePage);
                 }
             },
             // 关闭全部标签
             closeAll(){
                 this.tagsList = [];
-                this.$router.push('/index_n');
+                this.$router.push(this.homePage);
             },
             // 关闭其他标签
             closeOther(){

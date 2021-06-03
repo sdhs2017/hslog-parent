@@ -11,7 +11,7 @@
                     <router-link :to="item.path" class="tags-li-title" v-else>
                         {{item.title }}
                     </router-link>
-                    <span class="tags-li-icon" @click="closeTags(index)"><i class="el-icon-close"></i></span>
+                    <span class="tags-li-icon" @click="closeTags(index)" v-if="tagsList.length !== 1"><i class="el-icon-close"></i></span>
                 </li>
             </ul>
         </div>
@@ -23,7 +23,7 @@
                 </el-button>
                 <el-dropdown-menu size="small" slot="dropdown">
                     <el-dropdown-item command="other">关闭其他</el-dropdown-item>
-                    <el-dropdown-item command="all">关闭所有</el-dropdown-item>
+<!--                    <el-dropdown-item command="all">关闭所有</el-dropdown-item>-->
                 </el-dropdown-menu>
             </el-dropdown>
         </div>

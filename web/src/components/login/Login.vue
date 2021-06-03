@@ -1,9 +1,9 @@
 <template>
-    <div class="login-wrap">
+    <div class="login-wrap" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+<!--        <el-button type="primary" @click="changeSystem">切换系统</el-button>-->
         <div class="ms-login">
-            <div class="ms-title"><img src="../../../static/img/login_cx.png" alt=""></div>
-<!--            <div class="ms-title"><img src="../../../static/img/qywjcpt.png" alt=""></div>-->
-<!--            <div class="ms-title"><img src="../../../static/img/logo_ay.png" alt=""></div>-->
+            <div class="ms-title"><img :src="systemObj.logo" alt=""></div>
+<!--            <div class="ms-title"><img src="../../../static/img/logo_qwd.png" alt=""></div>-->
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
                     <el-input v-model="ruleForm.phone" placeholder="账号">
@@ -74,6 +74,12 @@
     export default {
         data(){
             return {
+                loading:false,
+                systemObj:{
+                   /* logo:'../../../static/img/qywjcpt.png',
+                    version:'V3.0',
+                    index:'',*/
+                },
                 warningState:false,
                 certificate:false,
                 falseB:false,
@@ -132,6 +138,9 @@
                 this.mode =  checkStrong(val);
             }
         },
+        created(){
+            this.getSystemObj();
+        },
         mounted(){
             //判断是否为手机端
             var ua = navigator.userAgent;
@@ -159,6 +168,45 @@
 
         },
         methods: {
+            //获取系统信息
+            getSystemObj(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/product/getProductInfo.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.systemObj = obj.message;
+                                sessionStorage.setItem('systemObj', JSON.stringify(this.systemObj))
+                                this.$store.commit('updateSystemObj',this.systemObj)
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+
+            changeSystem(){
+                if(this.systemObj.logo === '../../../static/img/qywjcpt.png'){
+                    this.systemObj = {
+                        logo:'../../../static/img/login_cx.png',
+                        version:'V 3.0',
+                        index:'/index',
+                    }
+                }else{
+                    this.systemObj = {
+                        logo:'../../../static/img/qywjcpt.png',
+                        version:'V 1.0',
+                        index:'/dataSourceIndex',
+                    }
+                }
+                sessionStorage.setItem('systemObj', JSON.stringify(this.systemObj ))
+                this.$store.commit('updateSystemObj',this.systemObj)
+            },
             strToUtf8Bytes(str) {
                 const utf8 = [];
                 for (let ii = 0; ii < str.length; ii++) {
@@ -238,7 +286,7 @@
                                    localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                    localStorage.setItem("homePage", res.data.homepage);
                                    this.getLogConfig();
-                                   this.$router.push(res.data.homepage);
+                                   this.$router.push(this.systemObj.index);
                                }else if(res.data.state === '0'){//密码过期
                                     this.userValue = res.data.user.phone;
                                     this.passWordForm = true;

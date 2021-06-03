@@ -9,7 +9,12 @@ const state = { //一般通过外部文件引入的，东西很多的。
     logshowcolumn:{},
     closeState:false,
     beforeDay:7,
-    tagRouteList:[]
+    tagRouteList:[],
+    systemObj:{
+       /* logo:'../../../static/img/login_cx.png',
+        version:'V 3.0',
+        index:'/index',*/
+    }
 }
 const mutations = {
     /*//定义方法 --- 类似methods
@@ -30,6 +35,9 @@ const mutations = {
     },
     deleteRoute(state,index){
         state.tagRouteList.splice(index,1)
+    },
+    updateSystemObj(state,data){
+        state.systemObj = data;
     }
 }
 export default new Vuex.Store({

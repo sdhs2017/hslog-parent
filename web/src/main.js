@@ -120,6 +120,22 @@ router.beforeEach((to, from, next) => {
                        }
                    })
                }else{ //登录不过期
+                  // console.log(sessionStorage.getItem('systemObj'))
+                   //判断 存储在本地系统信息是否存在
+                   let systemObj = sessionStorage.getItem('systemObj')
+                   if(systemObj){//存在
+                       //存在本地store中
+                       store.commit('updateSystemObj',JSON.parse(systemObj))
+                   }else{//不存在 返回登录页面
+                       layer.open({
+                           content: '您的登陆信息已经超时，请重新登陆！',
+                           closeBtn: 0, //取消关闭按钮
+                           yes: (index, layero)=>{
+                               layer.close(index);
+                               next('/login');
+                           }
+                       })
+                   }
                    //判断是否为手机端
                    var ua = navigator.userAgent;
                    var ipad = ua.match(/(iPad).*OS\s([\d_]+)/),

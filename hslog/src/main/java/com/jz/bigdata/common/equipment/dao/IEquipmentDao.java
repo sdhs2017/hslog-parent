@@ -25,7 +25,7 @@ public interface IEquipmentDao {
 	List<Equipment> selectEquipment(Equipment equipment);
 	
 	List<Equipment> selectAllByPage(@Param("hostName") String hostName, @Param("name") String name, @Param("ip") String ip, @Param("logType") String logType, @Param("type") String type, @Param("role") String role, @Param("userId") String userId, @Param("startRecord") int startRecord, @Param("pageSize") int pageSize);
-	List<Equipment> searchAllByPage(@Param("hostName") String hostName, @Param("name") String name, @Param("ip") String ip, @Param("logType") String logType, @Param("type") String type, @Param("role") String role, @Param("userId") String userId, @Param("startRecord") int startRecord, @Param("pageSize") int pageSize,@Param("asset_group_id") String asset_group_id);
+	List<Equipment> searchAllByPage(@Param("id") String id,@Param("hostName") String hostName, @Param("name") String name, @Param("ip") String ip, @Param("logType") String logType, @Param("type") String type, @Param("role") String role, @Param("userId") String userId, @Param("startRecord") int startRecord, @Param("pageSize") int pageSize,@Param("asset_group_id") String asset_group_id);
 
 	List<String> count(@Param("hostName") String hostName, @Param("name") String name, @Param("ip") String ip, @Param("logType") String logType, @Param("type") String type, @Param("role") String role, @Param("userId") String userId,@Param("asset_group_id") String asset_group_id);
 	

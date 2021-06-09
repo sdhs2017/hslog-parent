@@ -80,7 +80,7 @@
 	<sql id="Base_Column_List">
 		equipment.id, equipment.name, hostName, type,
 		ip,createTime,equipment.upDateTime,endTime,
-		startUp,userId,equipment.departmentId,logType,macAdress,system,systemVersion,assetNum,
+		startUp,userId,equipment.departmentId,logType,macAdress,`system`,systemVersion,assetNum,
 		serialNum,equipment.describe,valuation,log_level,high_risk,moderate_risk,low_risk,equipment.departmentNodeId,
 		domain,equipment.port
 	</sql>
@@ -232,8 +232,8 @@
 			<if test="macAdress !=null and  macAdress !=''">
 				macAdress,
 			</if>
-			<if test="system !=null and  system !=''">
-				system,
+			<if test="`system` !=null and  `system` !=''">
+				`system`,
 			</if>
 			<if test="systemVersion !=null and  systemVersion !=''">
 				systemVersion,
@@ -303,7 +303,7 @@
 			<if test="macAdress != null and  macAdress !=''">
 				#{macAdress,jdbcType=VARCHAR},
 			</if>
-			<if test="system != null and  system !=''">
+			<if test="`system` != null and  `system` !=''">
 				#{system,jdbcType=VARCHAR},
 			</if>
 			<if test="systemVersion != null and  systemVersion !=''">
@@ -349,7 +349,7 @@
 	<update id="updateById" parameterType="com.jz.bigdata.common.equipment.entity.Equipment">
 		update equipment set
 		name=#{name},hostName=#{hostName},type=#{type},ip=#{ip},startUp=#{startUp},logType=#{logType},
-		macAdress=#{macAdress},system=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
+		macAdress=#{macAdress},`system`=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
 		equipment.describe=#{describe},valuation=#{valuation},log_level=#{log_level},domain=#{domain},equipment.port=#{port},
 		equipment.departmentNodeId=#{departmentNodeId},
 		<!-- if判断语句 -->
@@ -457,6 +457,9 @@
 				<if test="type != null and type !='' ">
 					and `type` LIKE CONCAT(#{type}, '%')
 				</if>
+				<if test="id != null and id !='' ">
+					and equipment.id = #{id,jdbcType=VARCHAR}
+				</if>
 				<if test='role=="2"'>
 					and equipment.userId=#{userId,jdbcType=VARCHAR}
 				</if>
@@ -479,6 +482,9 @@
 				</if>
 				<if test="type != null and type !='' ">
 					and `type` LIKE CONCAT(#{type}, '%')
+				</if>
+				<if test="id != null and id !='' ">
+					and equipment.id = #{id,jdbcType=VARCHAR}
 				</if>
 				<if test='role=="2"'>
 					and equipment.userId=#{userId,jdbcType=VARCHAR}
@@ -619,7 +625,7 @@
 			resultMap="BaseResultMap">
 		select equipment.id, equipment.name, hostName, type,
 		ip,createTime,equipment.upDateTime,endTime,
-		startUp,userId,equipment.departmentId,logType,macAdress,system,systemVersion,assetNum,
+		startUp,userId,equipment.departmentId,logType,macAdress,`system`,systemVersion,assetNum,
 		serialNum,equipment.describe,valuation,log_level,high_risk,moderate_risk,low_risk,
 		equipment.departmentNodeId,equipment.port,domain
 		,a.`name` AS userName

@@ -22,11 +22,11 @@ public class Pattern_Matcher {
 	/**
 	 * 正则匹配
 	 * @param soap 内容
-	 * @param rgex 正则
+	 * @param regex 正则
 	 * @return 返回是否匹配成功
 	 */
-	public static Boolean isMatched(String soap,String rgex){
-		Pattern pattern = Pattern.compile(rgex);// 匹配的模式
+	public static Boolean isMatched(String soap,String regex){
+		Pattern pattern = Pattern.compile(regex);// 匹配的模式
 		Matcher m = pattern.matcher(soap);
 		return m.find();
 	}

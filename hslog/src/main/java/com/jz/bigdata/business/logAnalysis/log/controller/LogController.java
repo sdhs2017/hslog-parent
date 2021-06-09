@@ -1,7 +1,6 @@
 package com.jz.bigdata.business.logAnalysis.log.controller;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,10 +10,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.google.common.base.Strings;
 import com.google.gson.*;
+import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.entity.*;
 import com.hs.elsearch.service.ISearchService;
 import com.jz.bigdata.common.alert.entity.AlertSnapshot;
@@ -26,11 +27,15 @@ import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfNet;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfSyslog;
 import com.jz.bigdata.util.*;
+import com.jz.bigdata.util.POI.ReadExcel;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
+import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -48,6 +53,9 @@ import com.jz.bigdata.common.safeStrategy.service.ISafeStrategyService;
 
 
 import net.sf.json.JSONArray;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
+
 @Slf4j
 @Controller
 @RequestMapping("/log")
@@ -56,7 +64,9 @@ public class LogController extends BaseController{
 	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	//
 	private static final DateTimeFormatter dtf_day = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final DateTimeFormatter dtf_es_index = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 	private static final DateTimeFormatter dtf_time_file = DateTimeFormatter.ofPattern("yyyy-MM-dd'_'HHmmss");
+	private static final DateTimeFormatter dtf_log_timestamp = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 	@Resource(name="logService")
 	private IlogService logService;
 
@@ -80,7 +90,8 @@ public class LogController extends BaseController{
 
 	@Resource(name ="BeatTemplate")
 	private BeatTemplate beatTemplate;
-
+	@Autowired
+	protected ILogCrudDao logCurdDao;
 	@Resource(name ="HsData")
 	private HsData hsData;
 	@Autowired
@@ -1141,6 +1152,204 @@ public class LogController extends BaseController{
 		return replace;
 	}
 
+    /**
+     * 日志导入模板下载
+     * @param session
+     * @param request
+     * @param response
+     * @return
+     * @throws UnsupportedEncodingException
+     */
+	@RequestMapping(value="/logTemplateFileDownload")
+	@DescribeLog(describe="日志模板下载")
+	public String logTemplateFileDownload(HttpSession session, HttpServletRequest request,
+									HttpServletResponse response) throws UnsupportedEncodingException {
+		//String dataDirectory = request.getServletContext().getRealPath("/WEB-INF/data");
+		//System.out.println(dataDirectory);
+		//设置模板下载路径.
+		String path =getClass().getClassLoader().getResource("/download/").getFile();
+		String fileName="日志导入模板.xlsm";
+
+		File file = new File(path, fileName);
+
+		if (file.exists()) {
+			//设置响应类型，这里是下载pdf文件
+			response.setContentType("application/xlsm");
+			//设置Content-Disposition，设置attachment，浏览器会激活文件下载框；filename指定下载后默认保存的文件名
+			//不设置Content-Disposition的话，文件会在浏览器内打卡，比如txt、img文件
+			//为了解决中文名称乱码问题
+			fileName = new String(fileName.getBytes("utf-8"),"iso-8859-1");
+			response.addHeader("Content-Disposition", "attachment; filename="+fileName);
+			byte[] buffer = new byte[1024];
+			FileInputStream fis = null;
+			BufferedInputStream bis = null;
+			// if using Java 7, use try-with-resources
+			try {
+				fis = new FileInputStream(file);
+				bis = new BufferedInputStream(fis);
+				OutputStream os = response.getOutputStream();
+				int i = bis.read(buffer);
+				while (i != -1) {
+					os.write(buffer, 0, i);
+					i = bis.read(buffer);
+				}
+			} catch (IOException ex) {
+				// do something,
+				// probably forward to an Error page
+			} finally {
+				if (bis != null) {
+					try {
+						bis.close();
+					} catch (IOException e) {
+					}
+				}
+				if (fis != null) {
+					try {
+						fis.close();
+					} catch (IOException e) {
+					}
+				}
+			}
+		}
+		return null;
+	}
+	@ResponseBody
+	@RequestMapping(value="insertLog")
+	@DescribeLog(describe="日志导入")
+	public String insertLog(MultipartHttpServletRequest request, HttpSession session) {
+		//提交到ES的数量
+		int bulk_count = 0;
+		Iterator<String> fileNames = request.getFileNames();
+		String filePath ="";
+		while (fileNames.hasNext()) {
+
+			//把fileNames集合中的值打出来
+			String fileName=fileNames.next();
+
+			/*
+			 * request.getFiles(fileName)方法即通过fileName这个Key, 得到对应的文件
+			 * 集合列表. 只是在这个Map中, 文件被包装成MultipartFile类型
+			 */
+			List<MultipartFile> fileList=request.getFiles(fileName);
+
+			if (fileList.size()>0) {
+				//遍历文件列表
+				Iterator<MultipartFile> fileIte=fileList.iterator();
+				while (fileIte.hasNext()) {
+
+					//获得每一个文件
+					MultipartFile multipartFile=fileIte.next();
+					//获得原文件名
+					String originalFilename = multipartFile.getOriginalFilename();
+					//System.out.println("originalFilename: "+originalFilename);
+//					if(!originalFilename.equals("资产清单.xlsm")&&!originalFilename.equals("资产清单.xlsx")){
+//						return Constant.failureMessage("文件名称或者文件类型有误，请确认！文件名称：资产清单，文件类型为Excel");
+//					}
+					//设置保存路径.
+					String path =getClass().getClassLoader().getResource("").getFile();
+					/*System.out.println(path);*/
+					//检查该路径对应的目录是否存在. 如果不存在则创建目录
+					File dir=new File(path);
+					if (!dir.exists()) {
+						dir.mkdirs();
+					}
+					filePath = path + originalFilename;
+					System.out.println("filePath: "+filePath);
+					//保存文件
+					File dest = new File(filePath);
+					if (!(dest.exists())) {
+						/*
+						 * MultipartFile提供了void transferTo(File dest)方法,
+						 * 将获取到的文件以File形式传输至指定路径.
+						 */
+						try {
+							multipartFile.transferTo(dest);
+						} catch (Exception e) {
+							log.error("日志文件上传失败0x01："+e.getMessage());
+							return Constant.failureMessage("日志文件上传失败！");
+						}
+					} else {
+						if(dest.delete()) {
+							try {
+								multipartFile.transferTo(dest);
+							} catch (IllegalStateException e) {
+								log.error("日志文件上传失败0x02"+e.getMessage());
+								return Constant.failureMessage("日志文件上传失败！");
+							} catch (IOException e) {
+								log.error("日志文件上传失败0x03"+e.getMessage());
+								return Constant.failureMessage("日志文件上传失败！");
+							}
+						}
+					}
+				}
+			}
+		}
+		ReadExcel readExcel= new ReadExcel();
+		//获取excel内容
+		List<List<String>> logs = null;
+		try {
+			logs = readExcel.getExcelInfo(filePath);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return Constant.failureMessage("导入失败，资产清单有误，请确认");
+		}
+		try{
+			//遍历日志，生成日志入库对象
+			for (List<String> log_info : logs){
+				//2 日志类型
+				String logType = log_info.get(2);
+				//3 资产ip
+				String ipadress = log_info.get(3);
+				//资产ip是否在资产库中
+				if(AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)){
+					Equipment equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress+logType);
+					//日志类型是否匹配
+					if (equipment!=null) {
+						//日志入库对象
+						Logstash2ECS logstash2ECS = new Logstash2ECS();
+						//0 时间
+						String timestamp = LocalDateTime.parse(log_info.get(0),dtf_time).format(dtf_log_timestamp);
+						logstash2ECS.setTimestamp(timestamp);
+						//1 日志级别
+						logstash2ECS.getLog().setLevel(log_info.get(1));
+						logstash2ECS.getAgent().setType(logType);
+						//资产相关信息
+						logstash2ECS.getFields().setUserid(equipment.getUserId());
+						logstash2ECS.getFields().setDeptid(String.valueOf(equipment.getDepartmentId()));
+						logstash2ECS.getFields().setEquipmentname(equipment.getName());
+						logstash2ECS.getFields().setEquipmentid(equipment.getId());
+						logstash2ECS.getFields().setIp(equipment.getIp());
+						logstash2ECS.getFields().setFailure(false);
+
+						//日志内容
+						String message = log_info.get(5);
+						logstash2ECS.setMessage(message);
+						//syslog日志需根据内容生成事件
+						if(logType.equals("syslog")){
+							logstash2ECS.setEvent(message);
+						}else{
+							if(!Strings.isNullOrEmpty(log_info.get(4))){
+								logstash2ECS.getEvent().setAction(log_info.get(4));
+							}
+						}
+
+						//入库index
+						IndexRequest es_request = new IndexRequest();
+						es_request.index("winlogbeat-"+LocalDateTime.parse(log_info.get(0),dtf_time).format(dtf_es_index));
+						es_request.source(gson.toJson(logstash2ECS), XContentType.JSON);
+						logCurdDao.bulkProcessor_add(es_request);
+						bulk_count++;
+					}
+				}
+			}
+			return Constant.successMessage("导入成功！共导入"+bulk_count+"条数据！");
+		}catch (Exception e){
+			log.error("导入失败："+e.getMessage());
+			e.printStackTrace();
+			return Constant.successMessage("导入失败！共导入"+bulk_count+"条数据！");
+		}
+
+	}
 	/**
 	 * 查询+导出至文件，放在服务器指定目录
 	 * @param request
@@ -2391,6 +2600,67 @@ public class LogController extends BaseController{
 		}
 	}
 
+	/**
+	 * 数据库日志查询
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getDBLogList",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="数据库日志查询")
+	public String getDBLogList(HttpServletRequest request,HttpSession session) {
+		// receive parameter
+		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, String> map = new ConcurrentHashMap<String, String>();
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		Object pageo = map.get("page");
+		Object sizeo = map.get("size");
+		map.remove("page");
+		map.remove("size");
+		String page = pageo.toString();
+		String size = sizeo.toString();
+
+		// 从参数中将时间条件提出
+		String starttime = "";
+		if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
+			starttime = map.get("starttime");
+			map.remove("starttime");
+
+		}
+		String endtime = "";
+		if (map.get("endtime")!=null&&!map.get("endtime").equals("")){
+			endtime = map.get("endtime");
+			map.remove("endtime");
+		}
+		List<Map<String, Object>> list = null;
+		Map<String, Object> allmap = new HashMap<>();
+		try {
+			list = logService.getLogListByBlend(map, starttime, endtime, page, size,Constant.MYSQL_AUDIT_INDEX_NAME);
+		} catch (Exception e) {
+			log.error("日志精确查询：失败！");
+			e.printStackTrace();
+			allmap.put("count",0);
+			allmap.put("list",null);
+			return JSONArray.fromObject(allmap).toString();
+		}
+
+		allmap = list.get(0);
+		list.remove(0);
+		allmap.put("list", list);
+		String result = JSONArray.fromObject(allmap).toString();
+		String replace=result.replace("\\\\005", "<br/>");
+
+		return replace;
+	}
 
 
 	public static void main(String[] args) {

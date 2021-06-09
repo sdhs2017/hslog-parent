@@ -13,8 +13,7 @@ import javax.servlet.http.HttpSession;
 
 import com.jz.bigdata.common.configuration.dao.IConfigurationDao;
 import com.jz.bigdata.common.configuration.entity.Configuration;
-import com.jz.bigdata.util.RSAUtil;
-import com.jz.bigdata.util.RandomPwd;
+import com.jz.bigdata.util.*;
 import joptsimple.internal.Strings;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
@@ -29,8 +28,6 @@ import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.roleauthority.user.util.Page;
-import com.jz.bigdata.util.MD5;
-import com.jz.bigdata.util.Uuid;
 
 import net.sf.json.JSONObject;
 import org.springframework.transaction.TransactionDefinition;
@@ -59,6 +56,8 @@ public class UserServiceImpl implements IUserService {
 	
 	@Resource(name = "licenseService")
 	private VerifyLicense verifyLicense;
+	@Resource(name ="configProperty")
+	private ConfigProperty configProperty;
 	@Resource
 	private IConfigurationDao configurationDao;
 	/**
@@ -191,6 +190,8 @@ public class UserServiceImpl implements IUserService {
 		//通过账号和密码查询用户信息
 		User _user = userDao.selectByPhonePwd(user);
 		Map<String,Object> map =new HashMap<String,Object>();
+		//首页，用于登录成功后的跳转
+		map.put("homepage",configProperty.getHomepage_url());
 		//获取参数
 		verifyLicense.setParam("/verifyparam.properties");
 		//验证证书

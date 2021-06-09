@@ -11,6 +11,7 @@ import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;
 
 import javax.annotation.Resource;
@@ -31,6 +32,7 @@ import java.util.*;
  */
 @Slf4j
 public class HttpRequestUtil {
+
     //数据转换时用到的gson对象
     private final static Gson gson = new Gson();
     //今天、这周、本月等时间类型对应的格式化定义
@@ -594,7 +596,7 @@ public class HttpRequestUtil {
             //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
             if(searchConditions.getIndex_name().indexOf("packet-")>=0){
                 searchConditions.setDateField(Constant.PACKET_DATE_FIELD);
-            }else if(searchConditions.getIndex_name().indexOf("beat")>=0||searchConditions.getIndex_name().indexOf("hsfile")>=0){
+            }else if(searchConditions.getIndex_name().indexOf("beat")>=0||searchConditions.getIndex_name().indexOf("hsfile")>=0||searchConditions.getIndex_name().indexOf("hs_")>=0){
                 searchConditions.setDateField(Constant.BEAT_DATE_FIELD);
             }else{
                 searchConditions.setErrorInfo("数据源异常，请重新选择数据源!");

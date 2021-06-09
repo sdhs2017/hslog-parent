@@ -37,7 +37,7 @@ public class RSAUtil {
         //生成公钥和私钥
         //genKeyPair();
         //加密字符串
-        String message = "123456";
+        String message = "15069109870";
 //        System.out.println("随机生成的公钥为:" + keyMap.get(0));
 //        System.out.println("随机生成的私钥为:" + keyMap.get(1));
         String messageEn = encrypt(message,publicKey);
@@ -148,4 +148,5 @@ public class RSAUtil {
         String outStr = new String(cipher.doFinal(inputByte));
         return outStr;
     }
+
 }

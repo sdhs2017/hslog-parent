@@ -2,9 +2,12 @@ package com.jz.bigdata.common.data_source_metadata.controller;
 
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata;
+import com.jz.bigdata.common.data_source_metadata.entity.MetadataDatabase;
 import com.jz.bigdata.common.data_source_metadata.entity.MetadataField;
 import com.jz.bigdata.common.data_source_metadata.entity.MetadataTable;
 import com.jz.bigdata.common.data_source_metadata.service.IDataSourceMetadataService;
+import com.jz.bigdata.common.dictionary.cache.DictionaryCache;
+import com.jz.bigdata.common.dictionary.init.DictionaryInit;
 import com.jz.bigdata.util.DescribeLog;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
@@ -46,6 +49,26 @@ public class DataSourceMetadataController {
         }
     }
     /**
+     * 获取数据源下的库信息
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDatabaseInfo",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取数据源下的库信息")
+    public String getDatabaseInfo(HttpServletRequest request, DataSourceMetadata dataSourceMetadata){
+        try{
+            //分页信息处理
+            if(dataSourceMetadata.getPageIndex()!=null&&dataSourceMetadata.getPageSize()!=null){
+                dataSourceMetadata.setStartRecord((dataSourceMetadata.getPageSize() * (dataSourceMetadata.getPageIndex() - 1)));
+            }
+            return Constant.successData(JSONArray.fromObject(dataSourceMetadataService.getDatabaseInfo(dataSourceMetadata)).toString());
+        }catch (Exception e){
+            log.error("获取元数据tree异常："+e.getMessage());
+            return Constant.failureMessage("数据获取失败");
+        }
+    }
+    /**
      * 获取库下的表信息
      * @param request
      * @return
@@ -61,7 +84,7 @@ public class DataSourceMetadataController {
             }
             return Constant.successData(JSONArray.fromObject(dataSourceMetadataService.getTableInfo(dataSourceMetadata)).toString());
         }catch (Exception e){
-            log.error("获取元数据tree异常："+e.getMessage());
+            log.error("获取库下的表信息异常："+e.getMessage());
             return Constant.failureMessage("数据获取失败");
         }
     }
@@ -96,6 +119,22 @@ public class DataSourceMetadataController {
     public String getMetadataTableType(HttpServletRequest request){
         try{
             return Constant.successData(JSONArray.fromObject(Constant.DATA_SOURCE_METADATA_TABLE_TYPE).toString());
+        }catch (Exception e){
+            log.error("获取数据异常："+e.getMessage());
+            return Constant.failureMessage("数据获取失败！");
+        }
+    }
+    /**
+     * 获取是否自动发现
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getIsAutoDiscoveryCombobox",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取表格分类")
+    public String getIsAutoDiscoveryCombobox(HttpServletRequest request){
+        try{
+            return Constant.successData(JSONArray.fromObject(DictionaryCache.INSTANCE.getComboboxList(DictionaryInit.DATA_SOURCE_IS_AUTO_DISCOVERY)).toString());
         }catch (Exception e){
             log.error("获取数据异常："+e.getMessage());
             return Constant.failureMessage("数据获取失败！");
@@ -155,7 +194,7 @@ public class DataSourceMetadataController {
             return Constant.successData(JSONObject.fromObject(result).toString());
         }catch (Exception e){
             log.error("获取元数据字段信息失败："+e.getMessage());
-            return Constant.failureMessage("获取信息失败失败");
+            return Constant.failureMessage("获取信息失败");
         }
     }
 
@@ -170,6 +209,63 @@ public class DataSourceMetadataController {
     public String updateMetadataFieldInfo(HttpServletRequest request, MetadataField metadataField){
         try{
             int result = dataSourceMetadataService.updateMetadataFieldInfo(metadataField);
+            if(result>0){
+                return Constant.successMessage("更新成功");
+            }else{
+                return Constant.failureMessage("更新失败");
+            }
+        }catch (Exception e){
+            log.error("更新失败："+e.getMessage());
+            return Constant.failureMessage("更新失败");
+        }
+    }
+    /**
+     * 获取元数据 数据库信息
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getMetadataDatabaseInfo",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取元数据库信息")
+    public String getMetadataDatabaseInfo(HttpServletRequest request){
+        try{
+            String id = request.getParameter("metadata_database_id");
+            MetadataDatabase result = dataSourceMetadataService.getMetadataDatabaseInfo(id);
+            return Constant.successData(JSONObject.fromObject(result).toString());
+        }catch (Exception e){
+            log.error("获取元数据库信息失败："+e.getMessage());
+            return Constant.failureMessage("获取信息失败");
+        }
+    }
+    /**
+     * 获取元数据 表信息
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getMetadataTableInfo",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取元数据-表信息")
+    public String getMetadataTableInfo(HttpServletRequest request){
+        try{
+            String id = request.getParameter("metadata_table_id");
+            MetadataTable result = dataSourceMetadataService.getMetadataTableInfo(id);
+            return Constant.successData(JSONObject.fromObject(result).toString());
+        }catch (Exception e){
+            log.error("获取元数据-表信息失败："+e.getMessage());
+            return Constant.failureMessage("获取信息失败");
+        }
+    }
+    /**
+     * 更新元数据库信息
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/updateMetadataDatabaseInfo",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "更新元数据库信息")
+    public String updateMetadataDatabaseInfo(HttpServletRequest request, MetadataDatabase metadataDatabase){
+        try{
+            int result = dataSourceMetadataService.updateMetadataDatabaseInfo(metadataDatabase);
             if(result>0){
                 return Constant.successMessage("更新成功");
             }else{

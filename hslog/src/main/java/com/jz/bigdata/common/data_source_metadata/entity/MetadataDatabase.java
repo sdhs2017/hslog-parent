@@ -1,5 +1,7 @@
 package com.jz.bigdata.common.data_source_metadata.entity;
 
+import java.util.List;
+
 /**
  * @Author: yiyang
  * @Date: 2021/3/10 16:06
@@ -10,6 +12,15 @@ public class MetadataDatabase {
     private String data_source_id;//数据源ID
     private String metadata_database_name;//数据库名称
     private String metadata_remark;//对数据库的描述信息
+    private String metadata_is_auto_discovery;//是否自动发现（正则匹配）
+
+    public String getMetadata_is_auto_discovery() {
+        return metadata_is_auto_discovery;
+    }
+
+    public void setMetadata_is_auto_discovery(String metadata_is_auto_discovery) {
+        this.metadata_is_auto_discovery = metadata_is_auto_discovery;
+    }
 
     public String getMetadata_database_id() {
         return metadata_database_id;

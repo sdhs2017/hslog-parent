@@ -1,5 +1,8 @@
 package com.jz.bigdata.common.data_source_metadata.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @Author: yiyang
  * @Date: 2021/3/10 16:07
@@ -19,6 +22,43 @@ public class MetadataField {
     private String metadata_remark;//描述信息
     private String metadata_identify_ids;//元数据标识id，多个标识
     private String metadata_identify_names;//元数据标识名称，多个标识
+    private String metadata_label_ids;//元数据标签id，多个标签
+    private String metadata_label_names;//元数据标签名称，多个标签
+    private String metadata_is_auto_discovery;//是否自动发现（正则匹配）
+
+    public String getMetadata_is_auto_discovery() {
+        return metadata_is_auto_discovery;
+    }
+
+    public void setMetadata_is_auto_discovery(String metadata_is_auto_discovery) {
+        this.metadata_is_auto_discovery = metadata_is_auto_discovery;
+    }
+
+    public String getMetadata_label_ids() {
+        return metadata_label_ids;
+    }
+
+    public void setMetadata_label_ids(String metadata_label_ids) {
+        this.metadata_label_ids = metadata_label_ids;
+    }
+
+    public String getMetadata_label_names() {
+        return metadata_label_names;
+    }
+
+    public void setMetadata_label_names(String metadata_label_names) {
+        this.metadata_label_names = metadata_label_names;
+    }
+
+    private List<DataSourceSample> sampleList = new ArrayList<>();
+
+    public List<DataSourceSample> getSampleList() {
+        return sampleList;
+    }
+
+    public void setSampleList(List<DataSourceSample> sampleList) {
+        this.sampleList = sampleList;
+    }
 
     public String getMetadata_identify_names() {
         return metadata_identify_names;

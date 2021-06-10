@@ -131,10 +131,16 @@ export default new Router({
                     meta: { title: '资产概览' }
                 },
                 {
+                    path: '/assetOverviewUser',
+                    name:'assetOverviewUser',
+                    component: resolve => require(['../components/equipment/assetOverviewUser.vue'], resolve),
+                    meta: { title: '资产概览(用户)' }
+                },
+                {
                     path: '/equipment_group',
                     name:'equipment_group',
                     component: resolve => require(['../components/equipment/equipment_group.vue'], resolve),
-                    meta: { title: '资产概览' }
+                    meta: { title: '资产组' }
                 },
                 {
                     path: '/allEquipmentMonitor',
@@ -455,10 +461,16 @@ export default new Router({
                     meta: { title: '添加资产' }
                 },
                 {
+                    path: '/addAssetOverviewUser',
+                    name:'addAssetOverviewUser',
+                    component: resolve => require(['../components/equipment/addAssetOverviewUser.vue'], resolve),
+                    meta: { title: '添加资产' }
+                },
+                {
                     path: '/addEquipmentWithGroup',
                     name:'addEquipmentWithGroup',
                     component: resolve => require(['../components/equipment/addEquipmentWithGroup.vue'], resolve),
-                    meta: { title: '添加资产' }
+                    meta: { title: '添加资产组' }
                 },
                 {
                     path: '/dashboardList',

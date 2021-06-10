@@ -174,6 +174,29 @@ public class ConfigProperty {
 	//#数据源管理-数据预览条数
 	@Value("#{prop.data_source_preview_num}")
 	private Integer data_source_preview_num;
+	//首页
+	@Value("#{prop.homepage_url}")
+	private String homepage_url;
+
+	//产品信息
+	@Value("#{prop.product_info}")
+	private String product_info;
+
+	public String getProduct_info() {
+		return product_info;
+	}
+
+	public void setProduct_info(String product_info) {
+		this.product_info = product_info;
+	}
+
+	public String getHomepage_url() {
+		return homepage_url;
+	}
+
+	public void setHomepage_url(String homepage_url) {
+		this.homepage_url = homepage_url;
+	}
 
 	public Integer getData_source_preview_num() {
 		return data_source_preview_num;

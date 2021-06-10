@@ -148,8 +148,7 @@
         </foreach>
     </insert>
     <delete id="deleteRelationsByDataSourceId">
-        delete from metadata_label_relation
-        where data_source_id = #{data_source_id,jdbcType=VARCHAR}
+        delete from metadata_label_relation where data_source_id = #{data_source_id,jdbcType=VARCHAR}
     </delete>
     <delete id="deleteRelationsByFieldId">
         delete from metadata_label_relation

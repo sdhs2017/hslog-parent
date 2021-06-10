@@ -8,6 +8,7 @@ import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.util.ConfigProperty;
+import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -170,25 +171,13 @@ public class KafkaAllListener {
                         //IP是否在虚拟资产中
                         if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
                             equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress+logType);
-                            if (equipment!=null) {
-                                logstash2ECS.getFields().setUserid(equipment.getUserId());
-                                logstash2ECS.getFields().setDeptid(String.valueOf(equipment.getDepartmentId()));
-                                logstash2ECS.getFields().setEquipmentname(equipment.getName());
-                                logstash2ECS.getFields().setEquipmentid(equipment.getId());
-                                logstash2ECS.getFields().setIp(equipment.getIp());
-                            }else{
-                                logstash2ECS.getFields().setUserid(LogType.LOGTYPE_UNKNOWN);
-                                logstash2ECS.getFields().setDeptid(LogType.LOGTYPE_UNKNOWN);
-                                logstash2ECS.getFields().setEquipmentname(LogType.LOGTYPE_UNKNOWN);
-                                logstash2ECS.getFields().setEquipmentid(LogType.LOGTYPE_UNKNOWN);
-                            }
 
                             if(logstash2ECS.getTimestamp()!=null){
                                 dateTime = DateTime.parse(logstash2ECS.getTimestamp().toString(), dtf);
                             }else{
                                 dateTime = DateTime.now();
                             }
-                            // TODO 后期需要把module字段补全到资产信息中，nodule数据将不再从日志数据中获取
+                            // TODO 后期需要把module字段补全到资产信息中，Module数据将不再从日志数据中获取
                             // 判断syslog的module是否为空，不为空的情况下索引名称拼接module字段信息
                             module = jsonObject.get("module")==null?"":jsonObject.get("module").getAsString();
                             if(!Strings.isNullOrEmpty(module)){
@@ -197,28 +186,56 @@ public class KafkaAllListener {
                                 // module信息为空的情况下使用标准索引名称
                                 logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
                             }
-                            //日志级别
-                            Object severityName = logstash2ECS.getLog().getSyslog().getSeverity().getName();
-                            //如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
-                            if(severityName==null||(severityName!=null&&"".equals(severityName.toString()))){
-                                // 将bulkrequest替换为bulkprocessor方式
-                                request.index(logstashIndexName);
-                                request.source(gson.toJson(logstash2ECS), XContentType.JSON);
-                                logCurdDao.bulkProcessor_add(request);
-                            }else{
-                                // 判定应收集的日志级别，通过日志级别进行日志过滤
-                                if (AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1) {
+                            //判断资产是否为空，打上资产标签
+                            if (equipment!=null) {
+                                logstash2ECS.getFields().setUserid(equipment.getUserId());
+                                logstash2ECS.getFields().setDeptid(String.valueOf(equipment.getDepartmentId()));
+                                logstash2ECS.getFields().setEquipmentname(equipment.getName());
+                                logstash2ECS.getFields().setEquipmentid(equipment.getId());
+                                logstash2ECS.getFields().setIp(equipment.getIp());
+                                //日志级别
+                                Object severityName = logstash2ECS.getLog().getSyslog().getSeverity().getName();
+                                //如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
+                                /**
+                                 * severityName
+                                 * 1.!null && !"" 有日志级别 需要对日志级别进行筛选
+                                 * 2.null
+                                 * 3.""
+                                 *2-3情况不进行日志级别筛选，直接入库
+                                 */
+                                if(severityName!=null&&!"".equals(severityName.toString())){
+                                    // 判定应收集的日志级别，通过日志级别进行日志过滤
+                                    if(AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1){
+                                        //提交到es
+                                        request.index(logstashIndexName);
+                                        request.source(gson.toJson(logstash2ECS), XContentType.JSON);
+                                        logCurdDao.bulkProcessor_add(request);
+                                    }
+                                }else{
+                                    //提交到es
                                     request.index(logstashIndexName);
                                     request.source(gson.toJson(logstash2ECS), XContentType.JSON);
                                     logCurdDao.bulkProcessor_add(request);
                                 }
+                            }else{//资产不存在的也统一入库
+                                //资产未发现需要打的标签
+                                logstash2ECS.getFields().setUserid(LogType.LOGTYPE_UNKNOWN);
+                                logstash2ECS.getFields().setDeptid(LogType.LOGTYPE_UNKNOWN);
+                                logstash2ECS.getFields().setEquipmentname(LogType.LOGTYPE_UNKNOWN);
+                                logstash2ECS.getFields().setEquipmentid(LogType.LOGTYPE_UNKNOWN);
+                                logstash2ECS.getFields().setIp(ipadress);
+                                //入ES
+                                request.index(logstashIndexName);
+                                request.source(gson.toJson(logstash2ECS), XContentType.JSON);
+                                logCurdDao.bulkProcessor_add(request);
                             }
                         }else{
                             //System.out.println("");
                         }
                     }catch (Exception e){
-                        e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+builder.toString());
+                        //e.printStackTrace();
+                        log.error("范式化失败 :"+e.getMessage());
+                        log.error("日志内容："+logs);
                         continue;
                     }
                 }
@@ -692,6 +709,18 @@ public class KafkaAllListener {
             log.error("kafka—beats消费数据处理异常："+e.getMessage());
         }
         ack.acknowledge();//提交偏移量
+    }
+
+    /**
+     * 将数据提交到es
+     * @param indexName 索引名称
+     * @param json 要提交的数据
+     * @param request es提交需要接受的request对象
+     */
+    private void bulk_processor_add(String indexName,String json,IndexRequest request){
+        request.index(indexName);
+        request.source(json, XContentType.JSON);
+        logCurdDao.bulkProcessor_add(request);
     }
     // 正则匹配
     public static String getSubUtilSimple(String soap,String rgex){

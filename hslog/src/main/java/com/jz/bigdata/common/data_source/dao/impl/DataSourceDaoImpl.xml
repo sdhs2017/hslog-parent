@@ -15,9 +15,11 @@
 		<result column="data_source_dbname" jdbcType="VARCHAR" property="data_source_dbname" />
 		<result column="data_source_create_time" jdbcType="VARCHAR" property="data_source_create_time" />
 		<result column="data_source_update_time" jdbcType="VARCHAR" property="data_source_update_time" />
+		<result column="data_source_sample_num" jdbcType="INTEGER" property="data_source_sample_num" />
 		<result column="description" jdbcType="VARCHAR" property="description" />
 		<result column="data_source_is_initialized" jdbcType="INTEGER" property="data_source_is_initialized" />
 		<result column="data_source_init_time" jdbcType="VARCHAR" property="data_source_init_time" />
+		<result column="data_source_discovery_state" jdbcType="INTEGER" property="data_source_discovery_state" />
 	</resultMap>
 	<!--   添加资产组基本信息 -->
 	<insert id="insert" parameterType="com.jz.bigdata.common.data_source.entity.DataSource">
@@ -52,11 +54,17 @@
 			<if test="data_source_dbname != null">
 				data_source_dbname,
 			</if>
+			<if test="data_source_sample_num != null">
+				data_source_sample_num,
+			</if>
 			<if test="data_source_create_time != null">
 				data_source_create_time,
 			</if>
 			<if test="data_source_is_initialized != null">
 				data_source_is_initialized,
+			</if>
+			<if test="data_source_discovery_state != null">
+				data_source_discovery_state,
 			</if>
 		</trim>
 		<trim prefix="values (" suffix=")" suffixOverrides=",">
@@ -87,17 +95,24 @@
 			<if test="data_source_dbname != null">
 				#{data_source_dbname,jdbcType=VARCHAR},
 			</if>
+			<if test="data_source_sample_num != null">
+				#{data_source_sample_num,jdbcType=INTEGER},
+			</if>
 			<if test="data_source_create_time != null">
 				#{data_source_create_time,jdbcType=VARCHAR},
 			</if>
 			<if test="data_source_is_initialized != null">
 				#{data_source_is_initialized,jdbcType=INTEGER},
 			</if>
+			<if test="data_source_discovery_state != null">
+				#{data_source_discovery_state,jdbcType=INTEGER},
+			</if>
 		</trim>
 	</insert>
 
 	<select id="getListByConditionWithPage" parameterType="com.jz.bigdata.common.data_source.entity.DataSource" resultMap="BaseResultMap">
-		select *,CONCAT("IP:【",data_source_ip,"】； 端口:【",data_source_port,"】；用户:【",data_source_username,"】") as description
+		select data_source_id,data_source_name,data_source_item,data_source_item_type,data_source_sample_num,data_source_is_initialized,data_source_init_time,data_source_discovery_state
+		,CONCAT("IP:【",data_source_ip,"】； 端口:【",data_source_port,"】；用户:【",data_source_username,"】") as description
 		from data_source
 		where 1=1
 		<if test="data_source_ip != null and data_source_ip !=''" >
@@ -166,6 +181,9 @@
 			<if test="data_source_dbname != null">
 				data_source_dbname = #{data_source_dbname,jdbcType=VARCHAR},
 			</if>
+			<if test="data_source_sample_num != null">
+				data_source_sample_num = #{data_source_sample_num,jdbcType=VARCHAR},
+			</if>
 			<if test="data_source_update_time != null">
 				data_source_update_time = #{data_source_update_time,jdbcType=VARCHAR},
 			</if>
@@ -176,6 +194,11 @@
 				data_source_init_time = #{data_source_init_time,jdbcType=VARCHAR},
 			</if>
 		</set>
+		where data_source_id = #{data_source_id,jdbcType=VARCHAR}
+	</update>
+	<update id="updateDiscoveryState" parameterType="java.lang.Object">
+		update data_source
+		set data_source_discovery_state = #{data_source_discovery_state,jdbcType=INTEGER}
 		where data_source_id = #{data_source_id,jdbcType=VARCHAR}
 	</update>
 	<select id="selectDataSourceInfoById" parameterType="java.lang.String" resultMap="BaseResultMap">

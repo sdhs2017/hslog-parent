@@ -22,6 +22,7 @@
         <result column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
         <result column="metadata_database_name" jdbcType="VARCHAR" property="metadata_database_name" />
         <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+        <result column="metadata_is_auto_discovery" jdbcType="VARCHAR" property="metadata_is_auto_discovery" />
     </resultMap>
     <!--元数据，表基本信息 -->
     <resultMap id="BaseResultMap_Table"
@@ -32,6 +33,7 @@
         <result column="metadata_table_name" jdbcType="VARCHAR" property="metadata_table_name" />
         <result column="metadata_table_type" jdbcType="VARCHAR" property="metadata_table_type" />
         <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+        <result column="metadata_is_auto_discovery" jdbcType="VARCHAR" property="metadata_is_auto_discovery" />
     </resultMap>
     <!--元数据，字段基本信息 -->
     <resultMap id="BaseResultMap_Field"
@@ -48,8 +50,38 @@
         <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
         <result column="metadata_identify_ids" jdbcType="VARCHAR" property="metadata_identify_ids" />
         <result column="metadata_identify_names" jdbcType="VARCHAR" property="metadata_identify_names" />
+        <result column="metadata_label_ids" jdbcType="VARCHAR" property="metadata_label_ids" />
+        <result column="metadata_label_names" jdbcType="VARCHAR" property="metadata_label_names" />
+        <result column="metadata_is_auto_discovery" jdbcType="VARCHAR" property="metadata_is_auto_discovery" />
     </resultMap>
-    <!--   添加资产组基本信息 -->
+    <!--元数据，字段以及样本数据 字段与样本数据为 一对多关系 -->
+    <resultMap id="BaseResultMap_Field_Sample"
+               type="com.jz.bigdata.common.data_source_metadata.entity.MetadataField">
+        <id column="metadata_field_id" jdbcType="VARCHAR" property="metadata_field_id" />
+        <result column="data_source_id" jdbcType="VARCHAR" property="data_source_id" />
+        <result column="metadata_database_name" jdbcType="VARCHAR" property="metadata_database_name" />
+        <result column="metadata_table_name" jdbcType="VARCHAR" property="metadata_table_name" />
+        <result column="metadata_field_name" jdbcType="VARCHAR" property="metadata_field_name" />
+        <result column="metadata_field_type" jdbcType="VARCHAR" property="metadata_field_type" />
+        <result column="metadata_field_length" jdbcType="VARCHAR" property="metadata_field_length" />
+        <result column="metadata_field_isnull" jdbcType="VARCHAR" property="metadata_field_isnull" />
+        <result column="metadata_field_comment" jdbcType="VARCHAR" property="metadata_field_comment" />
+        <result column="metadata_remark" jdbcType="VARCHAR" property="metadata_remark" />
+        <result column="metadata_identify_ids" jdbcType="VARCHAR" property="metadata_identify_ids" />
+        <result column="metadata_identify_names" jdbcType="VARCHAR" property="metadata_identify_names" />
+        <collection property="sampleList" javaType="java.util.ArrayList" ofType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceSample">
+            <result column="field_content" jdbcType="VARCHAR" property="field_content" />
+        </collection>
+    </resultMap>
+    <!--元数据，样本数据字段信息 -->
+    <resultMap id="BaseResultMap_Sample"
+               type="com.jz.bigdata.common.data_source_metadata.entity.DataSourceSample">
+        <result column="database_name" jdbcType="VARCHAR" property="database_name" />
+        <result column="table_name" jdbcType="VARCHAR" property="table_name" />
+        <result column="field_name" jdbcType="VARCHAR" property="field_name" />
+        <result column="field_content" jdbcType="VARCHAR" property="field_content" />
+    </resultMap>
+    <!--   添加元数据基本信息 -->
     <insert id="insert" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata">
         insert into data_source_metadata
         <!--     格式化 -->
@@ -138,6 +170,9 @@
             <if test="metadata_remark != null">
                 metadata_remark = #{metadata_remark,jdbcType=VARCHAR},
             </if>
+            <if test="metadata_is_auto_discovery != null">
+                metadata_is_auto_discovery = #{metadata_is_auto_discovery,jdbcType=VARCHAR},
+            </if>
         </set>
         where metadata_table_id = #{metadata_table_id,jdbcType=VARCHAR}
     </update>
@@ -150,8 +185,23 @@
             <if test="metadata_remark != null">
                 metadata_remark = #{metadata_remark,jdbcType=VARCHAR},
             </if>
+            <if test="metadata_is_auto_discovery != null">
+                metadata_is_auto_discovery = #{metadata_is_auto_discovery,jdbcType=VARCHAR},
+            </if>
         </set>
         where metadata_field_id = #{metadata_field_id,jdbcType=VARCHAR}
+    </update>
+    <update id="updateMetadataDatabaseInfo" parameterType="com.jz.bigdata.common.data_source_metadata.entity.MetadataDatabase">
+        update data_source_metadata_database
+        <set>
+            <if test="metadata_is_auto_discovery != null">
+                metadata_is_auto_discovery = #{metadata_is_auto_discovery,jdbcType=VARCHAR},
+            </if>
+            <if test="metadata_remark != null">
+                metadata_remark = #{metadata_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where metadata_database_id = #{metadata_database_id,jdbcType=VARCHAR}
     </update>
     <delete id="deleteByDataSourceId">
         delete from data_source_metadata where data_source_id=#{data_source_id,jdbcType=VARCHAR}
@@ -160,40 +210,59 @@
         delete from data_source_metadata_database where data_source_id=#{data_source_id,jdbcType=VARCHAR};
         delete from data_source_metadata_table where data_source_id=#{data_source_id,jdbcType=VARCHAR};
         delete from data_source_metadata_field where data_source_id=#{data_source_id,jdbcType=VARCHAR};
+        delete from data_source_sample_data where data_source_id=#{data_source_id,jdbcType=VARCHAR};
     </delete>
     <insert id ="batchInsertDatabase" parameterType="java.util.List" >
         insert into data_source_metadata_database
-        (metadata_database_id, data_source_id, metadata_database_name, metadata_remark)
+        (metadata_database_id, data_source_id, metadata_database_name, metadata_remark,metadata_is_auto_discovery)
         values
         <foreach collection="list" item="item" index="index" separator=",">
-            (#{item.metadata_database_id}, #{item.data_source_id}, #{item.metadata_database_name}, #{item.metadata_remark})
+            (#{item.metadata_database_id}, #{item.data_source_id}, #{item.metadata_database_name}, #{item.metadata_remark}, #{item.metadata_is_auto_discovery})
         </foreach>
     </insert>
     <insert id ="batchInsertTable" parameterType="java.util.List" >
         insert into data_source_metadata_table
-        (metadata_table_id, data_source_id, metadata_database_name, metadata_table_name,metadata_table_type,metadata_remark)
+        (metadata_table_id, data_source_id, metadata_database_name, metadata_table_name,metadata_table_type,metadata_remark,metadata_is_auto_discovery)
         values
         <foreach collection="list" item="item" index="index" separator=",">
-            (#{item.metadata_table_id}, #{item.data_source_id}, #{item.metadata_database_name},#{item.metadata_table_name},#{item.metadata_table_type} ,#{item.metadata_remark})
+            (#{item.metadata_table_id}, #{item.data_source_id}, #{item.metadata_database_name},#{item.metadata_table_name},#{item.metadata_table_type} ,#{item.metadata_remark}, #{item.metadata_is_auto_discovery})
         </foreach>
     </insert>
     <insert id ="batchInsertField" parameterType="java.util.List" >
         insert into data_source_metadata_field
         (metadata_field_id, data_source_id, metadata_database_name, metadata_table_name,metadata_field_name,metadata_field_type,
-        metadata_field_length,metadata_field_isnull,metadata_field_comment,metadata_remark)
+        metadata_field_length,metadata_field_isnull,metadata_field_comment,metadata_remark,metadata_is_auto_discovery)
         values
         <foreach collection="list" item="item" index="index" separator=",">
             (#{item.metadata_field_id}, #{item.data_source_id}, #{item.metadata_database_name},#{item.metadata_table_name},#{item.metadata_field_name},
-            #{item.metadata_field_type},#{item.metadata_field_length},#{item.metadata_field_isnull},#{item.metadata_field_comment},#{item.metadata_remark})
+            #{item.metadata_field_type},#{item.metadata_field_length},#{item.metadata_field_isnull},#{item.metadata_field_comment},#{item.metadata_remark}, #{item.metadata_is_auto_discovery})
+        </foreach>
+    </insert>
+    <insert id ="batchInsertSample" parameterType="java.util.List" >
+        insert into data_source_sample_data
+        (data_source_id, database_name, table_name, field_name,field_content)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.data_source_id}, #{item.database_name}, #{item.table_name},#{item.field_name},#{item.field_content})
         </foreach>
     </insert>
     <select id="getMetadataDatabaseList" parameterType="java.lang.String" resultMap="BaseResultMap_Database">
         select * from data_source_metadata_database where data_source_id=#{data_source_id,jdbcType=VARCHAR}
         order by metadata_database_name
     </select>
+    <select id="getMetadataDatabaseList_discovery" parameterType="java.lang.String" resultMap="BaseResultMap_Database">
+        select * from data_source_metadata_database where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        and metadata_is_auto_discovery = '1'
+        order by metadata_database_name
+    </select>
     <select id="getMetadataTableList" parameterType="java.lang.String" resultMap="BaseResultMap_Table">
         select * from data_source_metadata_table where data_source_id=#{data_source_id,jdbcType=VARCHAR}
         and metadata_database_name=#{metadata_database_name,jdbcType=VARCHAR}
+        order by metadata_table_name
+    </select>
+    <select id="getMetadataTableList_discovery" parameterType="java.lang.String" resultMap="BaseResultMap_Table">
+        select * from data_source_metadata_table where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        and metadata_database_name=#{metadata_database_name,jdbcType=VARCHAR} and metadata_is_auto_discovery = '1'
         order by metadata_table_name
     </select>
     <select id="getMetadataFieldList" parameterType="java.lang.String" resultMap="BaseResultMap_Field">
@@ -202,11 +271,17 @@
         and metadata_table_name=#{metadata_table_name,jdbcType=VARCHAR}
         order by metadata_field_name
     </select>
-
+    <select id="getMetadataFieldAllByDataSourceId" parameterType="java.lang.String" resultMap="BaseResultMap_Field">
+        select * from data_source_metadata_field
+        where data_source_id = #{data_source_id,jdbcType=VARCHAR}
+    </select>
 
     <select id="getMetadataFieldListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Field">
-        select *,(select group_concat(metadata_identify_name separator ';') from metadata_identify_relation
-        where metadata_identify_relation.metadata_field_id=data_source_metadata_field.metadata_field_id) as metadata_identify_names
+        select *,
+        (select group_concat(metadata_identify_name separator ';') from metadata_identify_relation
+        where metadata_identify_relation.metadata_field_id=data_source_metadata_field.metadata_field_id) as metadata_identify_names,
+        (select group_concat(dsg_label_name separator ';') from metadata_label_relation
+        where metadata_label_relation.metadata_field_id=data_source_metadata_field.metadata_field_id) as metadata_label_names
          from data_source_metadata_field
         where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
         and metadata_table_name = #{metadata_table,jdbcType=VARCHAR}
@@ -224,6 +299,18 @@
         select * from data_source_metadata_table
         where data_source_id=#{data_source_id,jdbcType=VARCHAR} and metadata_database_name=#{metadata_database,jdbcType=VARCHAR}
         order by metadata_table_name
+        <if test="startRecord != null and pageSize !=null" >
+            limit #{startRecord},#{pageSize}
+        </if>
+    </select>
+    <select id="getMetadataDatabaseCount" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Database">
+        select count(1) as count from data_source_metadata_database
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+    </select>
+    <select id="getMetadataDatabaseListWithPage" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata" resultMap="BaseResultMap_Database">
+        select * from data_source_metadata_database
+        where data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        order by metadata_database_name
         <if test="startRecord != null and pageSize !=null" >
             limit #{startRecord},#{pageSize}
         </if>
@@ -292,13 +379,61 @@
         (#{metadata_field_id,jdbcType=VARCHAR},#{metadata_identify_id,jdbcType=VARCHAR},#{metadata_identify_name,jdbcType=VARCHAR})
     </insert>
     <select id="getMetadataFieldInfo" parameterType="java.lang.String">
-    select *,(select group_concat(metadata_identify_id separator ',') from metadata_identify_relation
-    where metadata_field_id=#{metadata_field_id,jdbcType=VARCHAR}) as metadata_identify_ids
+    select *,
+        (select group_concat(metadata_identify_id separator ',') from metadata_identify_relation
+        where metadata_field_id=#{metadata_field_id,jdbcType=VARCHAR}) as metadata_identify_ids,
+        (select group_concat(dsg_label_id separator ',') from metadata_label_relation
+        where metadata_field_id=#{metadata_field_id,jdbcType=VARCHAR}) as metadata_label_ids
     from data_source_metadata_field
     where metadata_field_id = #{metadata_field_id,jdbcType=VARCHAR}
+
+    </select>
+    <select id="getMetadataDatabaseInfo" parameterType="java.lang.String" resultMap="BaseResultMap_Database">
+    select *
+    from data_source_metadata_database
+    where metadata_database_id = #{metadata_database_id,jdbcType=VARCHAR}
+
+    </select>
+    <select id="getMetadataTableInfo" parameterType="java.lang.String" resultMap="BaseResultMap_Table">
+    select *
+    from data_source_metadata_table
+    where metadata_table_id = #{metadata_table_id,jdbcType=VARCHAR}
 
     </select>
     <delete id="deleteRelationByFieldId">
         delete from metadata_identify_relation where metadata_field_id=#{metadata_field_id,jdbcType=VARCHAR}
     </delete>
+    <!-- 查询样本数据，用于计算匹配度，匹配度的结算需要排除字段内容为NULL或为空字符串的情况-->
+    <select id="getSampleDataByCondition" parameterType="com.jz.bigdata.common.data_source_metadata.entity.DataSourceSample" resultMap="BaseResultMap_Sample">
+        select * from data_source_sample_data
+
+        where 1=1 and field_content is not null and field_content!=''
+        <if test="data_source_id != null" >
+            and data_source_id=#{data_source_id,jdbcType=VARCHAR}
+        </if>
+        <if test="database_name != null" >
+            and database_name=#{database_name,jdbcType=VARCHAR}
+        </if>
+        <if test="table_name != null" >
+            and table_name=#{table_name,jdbcType=VARCHAR}
+        </if>
+        <if test="field_name != null" >
+            and field_name=#{field_name,jdbcType=VARCHAR}
+        </if>
+
+    </select>
+    <select id="getFieldSampleData" parameterType="java.lang.String" resultMap="BaseResultMap_Field_Sample">
+        select d_field.*,d_sample.field_content
+        from data_source_metadata_field d_field
+        left join data_source_sample_data d_sample
+        on d_sample.data_source_id = d_field.data_source_id
+        and d_sample.database_name = d_field.metadata_database_name
+        and d_sample.table_name = d_field.metadata_table_name
+        and d_sample.field_name = d_field.metadata_field_name
+        where 1=1 and d_sample.field_content is not null and d_sample.field_content!=''
+        and d_field.data_source_id = #{data_source_id,jdbcType=VARCHAR}
+        and d_field.metadata_database_name = #{database_name,jdbcType=VARCHAR}
+        and d_field.metadata_table_name = #{table_name,jdbcType=VARCHAR}
+        and d_field.metadata_is_auto_discovery = #{is_auto_discovery,jdbcType=VARCHAR}
+    </select>
 </mapper>

@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.data_source_metadata.service.impl;
 
+import com.jz.bigdata.business.data_sec_govern.label.dao.IDSGLabelDao;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source.dao.IDataSourceDao;
 import com.jz.bigdata.common.data_source.entity.DataSource;
@@ -35,6 +36,8 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
     protected IDataSourceDao dataSourceDao;
     @Autowired
     protected IDataSourceMetadataDao dataSourceMetadataDao;
+    @Autowired
+    protected IDSGLabelDao labelDao;
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
     @Override
@@ -93,7 +96,18 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
         allMap.put("list",result);
         return allMap;
     }
-
+    @Override
+    public Map<String, Object> getDatabaseInfo(DataSourceMetadata dataSourceMetadata) {
+        //获取count
+        List<List<Map<String, String>>> count = dataSourceMetadataDao.getMetadataDatabaseCount(dataSourceMetadata);
+        //分页后的结果列表
+        List<MetadataDatabase> result = dataSourceMetadataDao.getMetadataDatabaseListWithPage(dataSourceMetadata);
+        //组装前端需要的数据格式
+        Map<String, Object> allMap = new HashMap<>();
+        allMap.put("count",count.get(0).get(0).get("count"));
+        allMap.put("list",result);
+        return allMap;
+    }
     @Override
     public Map<String, Object> getFieldInfo(DataSourceMetadata dataSourceMetadata) {
         //获取count
@@ -120,6 +134,7 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
     @Override
     @Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
     public int updateMetadataFieldInfo(MetadataField metadataField) {
+        //---------------该部分为 字段多级tree标识的更新------------
         //获取标识id
         String identify_ids = metadataField.getMetadata_identify_ids();
         //获取标识名称
@@ -138,13 +153,37 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
             }else{
                 return 0;
             }
-
+        }
+        //---------------该部分为 字段正则标签的更新------------
+        //获取标签id
+        String label_ids = metadataField.getMetadata_label_ids();
+        //获取标签名称
+        String label_names = metadataField.getMetadata_label_names();
+        //标签id不为空
+        if(null!=label_ids&&null!=label_names){
+            String[] ids = label_ids.split(",");
+            String[] names = label_names.split(",");
+            if(ids.length==names.length){
+                //先删除，再更新
+                labelDao.deleteRelationsByFieldId(metadataField.getMetadata_field_id());
+                for(int i=0;i<ids.length;i++){
+                    //将标识信息插入中间表
+                    labelDao.insertFieldLabelRelation(metadataField.getData_source_id(),metadataField.getMetadata_field_id(),ids[i],names[i]);
+                }
+            }else{
+                return 0;
+            }
         }
         return dataSourceMetadataDao.updateMetadataFieldInfo(metadataField);
     }
 
     @Override
-    public Map<String,Object> getDataPreview(String databaseName, String tableName, String data_source_id) throws SQLException {
+    public int updateMetadataDatabaseInfo(MetadataDatabase metadataDatabase) {
+        return dataSourceMetadataDao.updateMetadataDatabaseInfo(metadataDatabase);
+    }
+
+    @Override
+    public Map<String,Object> getDataPreview(String databaseName, String tableName, String data_source_id) throws Exception {
         //获取数据源信息
         DataSource dataSource = dataSourceDao.selectDataSourceInfoById(data_source_id);
 
@@ -160,12 +199,85 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
             fieldList.add(column);
         }
         //表内的数据，取前N条，条数根据配置信息
-        List<Map<String, String>> table_data = new ArrayList<>();
+        List<Map<String, String>> table_data = getTableData(dataSource,databaseName,tableName,configProperty.getData_source_preview_num());
+//        List<Map<String, String>> table_data = new ArrayList<>();
+//        String sql_check;
+//        List<Map<String,Object>> check_result;
+//        //要执行的查询sql
+//        String sql;
+//        //判断数据源类型
+//        switch (dataSource.getData_source_item_type()){
+//            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+//                //先确认表是否存在
+//                sql_check = "select count(1)  from information_schema.`TABLES` where TABLE_SCHEMA = ? AND TABLE_NAME = ?";
+//                check_result = DruidUtil.executeQuery(dataSource,sql_check,new Object[]{databaseName,tableName});
+//                if(check_result.size()==1){
+//                    sql = "select * from "+databaseName+"."+tableName+" limit 0,"+configProperty.getData_source_preview_num();
+//                    table_data = DruidUtil.executeQuery_stringValue(dataSource,sql, null);
+//                }
+//                break;
+//            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+//                //sqlserver 必须设置数据库/实例，所以只需要表名
+//                //SELECT * FROM SYSOBJECTS WHERE XTYPE='U' WHERE NAME=''
+//                sql_check = "SELECT COUNT(1) FROM SYSOBJECTS WHERE XTYPE='U' AND NAME=?";
+//                check_result = DruidUtil.executeQuery(dataSource,sql_check,new Object[]{tableName});
+//                if(check_result.size()==1){
+//                    sql = "select top "+configProperty.getData_source_preview_num()+" * from "+tableName;
+//                    table_data = DruidUtil.executeQuery_stringValue(dataSource,sql, null);
+//                }
+//                break;
+//            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+//                //select * from all_tables WHERE OWNER='AUDSYS' AND TABLE_NAME='AUD$UNIFIED'
+//                sql_check = "select COUNT(1) from all_tables WHERE OWNER=? AND TABLE_NAME=?";
+//                check_result = DruidUtil.executeQuery(dataSource,sql_check,new Object[]{databaseName,tableName});
+//                if(check_result.size()==1){
+//                    sql = "select * from \""+databaseName+"\".\""+tableName+"\" where rownum<="+configProperty.getData_source_preview_num();
+//                    table_data = DruidUtil.executeQuery_stringValue(dataSource,sql, null);
+//                }
+//                break;
+//            default:
+//                table_data = new ArrayList<>();
+//                break;
+//        }
+        //组装前端所需数据
+        Map<String,Object> result = new HashMap<>();
+        result.put("fields",fieldList);
+        result.put("data",table_data);
+        return result;
+    }
+
+    @Override
+    public Map<String,String> getMetadataFieldInfo(String metadata_field_id) {
+        List<List<Map<String,String>>> result = dataSourceMetadataDao.getMetadataFieldInfo(metadata_field_id);
+        //多表联合查询，结果无法用bean处理，result：list1 不同结果集 list2 多行   map为一行的数据
+        if(result.size()>0&&result.get(0).size()>0){
+            return result.get(0).get(0);
+        }else{
+            return new HashMap<>();
+        }
+    }
+
+    @Override
+    public MetadataDatabase getMetadataDatabaseInfo(String metadata_database_id) {
+        return dataSourceMetadataDao.getMetadataDatabaseInfo(metadata_database_id);
+    }
+
+    @Override
+    public MetadataTable getMetadataTableInfo(String metadata_table_id) {
+        return dataSourceMetadataDao.getMetadataTableInfo(metadata_table_id);
+    }
+
+    @Override
+    public List<Map<String, String>> getTableData(DataSource dataSource, String databaseName, String tableName, int sample_num) throws Exception {
+        //检查表是否存在的sql
         String sql_check;
+        //sql_check执行结果
         List<Map<String,Object>> check_result;
-        //要执行的查询sql
+        //获取样本数据的sql
         String sql;
-        //判断数据源类型
+        //sql的执行结果
+        List<Map<String, String>> table_data = new ArrayList<>();
+
         switch (dataSource.getData_source_item_type()){
             case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
                 //先确认表是否存在
@@ -199,22 +311,60 @@ public class DataSourceMetadataServiceImpl implements IDataSourceMetadataService
                 table_data = new ArrayList<>();
                 break;
         }
-        //组装前端所需数据
-        Map<String,Object> result = new HashMap<>();
-        result.put("fields",fieldList);
-        result.put("data",table_data);
-        return result;
+
+
+        return table_data;
     }
 
     @Override
-    public Map<String,String> getMetadataFieldInfo(String metadata_field_id) {
-        List<List<Map<String,String>>> result = dataSourceMetadataDao.getMetadataFieldInfo(metadata_field_id);
-        //多表联合查询，结果无法用bean处理，result：list1 不同结果集 list2 多行   map为一行的数据
-        if(result.size()>0&&result.get(0).size()>0){
-            return result.get(0).get(0);
-        }else{
-            return new HashMap<>();
+    public List<Map<String, String>> getTableSampleData(DataSource dataSource, String databaseName, String tableName, int sample_num) throws Exception {
+        //检查表是否存在的sql
+        String sql_check;
+        //sql_check执行结果
+        List<Map<String,Object>> check_result;
+        //获取样本数据的sql
+        String sql;
+        //sql的执行结果
+        List<Map<String, String>> table_data = new ArrayList<>();
+
+        switch (dataSource.getData_source_item_type()){
+            case Constant.DATA_SOURCE_ITEM_TYPE_MYSQL:
+                //先确认表是否存在
+                sql_check = "select count(1)  from information_schema.`TABLES` where TABLE_SCHEMA = ? AND TABLE_NAME = ?";
+                check_result = DruidUtil.executeQuery(dataSource,sql_check,new Object[]{databaseName,tableName});
+                if(check_result.size()==1){
+                    sql = "select * from "+databaseName+"."+tableName+" ORDER BY rand() limit "+sample_num;
+                    table_data = DruidUtil.executeQuery_stringValue(dataSource,sql, null);
+                }
+                break;
+            case Constant.DATA_SOURCE_ITEM_TYPE_SQLSERVER:
+                //sqlserver 必须设置数据库/实例，所以只需要表名
+                //SELECT * FROM SYSOBJECTS WHERE XTYPE='U' WHERE NAME=''
+                sql_check = "SELECT COUNT(1) FROM SYSOBJECTS WHERE XTYPE='U' AND NAME=?";
+                check_result = DruidUtil.executeQuery(dataSource,sql_check,new Object[]{tableName});
+                if(check_result.size()==1){
+                    sql = "select top "+sample_num+" * from "+tableName+" order by newid()";
+                    table_data = DruidUtil.executeQuery_stringValue(dataSource,sql, null);
+                }
+                break;
+            case Constant.DATA_SOURCE_ITEM_TYPE_ORACLE:
+                //select * from all_tables WHERE OWNER='AUDSYS' AND TABLE_NAME='AUD$UNIFIED'
+                sql_check = "select COUNT(1) from all_tables WHERE OWNER=? AND TABLE_NAME=?";
+                check_result = DruidUtil.executeQuery(dataSource,sql_check,new Object[]{databaseName,tableName});
+                if(check_result.size()==1){
+                    //sql = "select * from \""+databaseName+"\".\""+tableName+"\" where rownum<="+configProperty.getData_source_preview_num();
+                    sql = "select * from (select * from \""+databaseName+"\".\""+tableName+"\" sample(50) order by dbms_random.value) where rownum<="+sample_num;
+                    System.out.println("-----"+sql);
+                    table_data = DruidUtil.executeQuery_stringValue(dataSource,sql, null);
+                }
+                break;
+            default:
+                table_data = new ArrayList<>();
+                break;
         }
+
+
+        return table_data;
     }
 
 

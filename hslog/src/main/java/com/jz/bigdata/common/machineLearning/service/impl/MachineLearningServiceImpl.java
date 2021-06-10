@@ -49,8 +49,8 @@ public class MachineLearningServiceImpl implements IMachineLearningService {
         List<Map<String,String>> result = new LinkedList<>();
 
         //1.1 待检测数据
-        //String testFilePath = "E:/work/hs/MachineLearning/files/test.csv";//windows
-        String testFilePath = "/opt/ml/files_linux/test.csv";//linux
+        String testFilePath = "E:/work/hs/MachineLearning/files/test.csv";//windows
+        //String testFilePath = "/opt/ml/files_linux/test.csv";//linux
         // 创建CSV读对象
         CsvReader testCsvReader = new CsvReader(testFilePath);
         // 读表头
@@ -69,8 +69,8 @@ public class MachineLearningServiceImpl implements IMachineLearningService {
         }
         //1.2 检测结果数据
 
-        //String detectResultFilePath = "E:/work/hs/MachineLearning/files/res.csv";//windows
-        String detectResultFilePath = "/opt/ml/files_linux/res.csv";//linux
+        String detectResultFilePath = "E:/work/hs/MachineLearning/files/res.csv";//windows
+        //String detectResultFilePath = "/opt/ml/files_linux/res.csv";//linux
         // 创建CSV读对象
         CsvReader detectResultCsvReader = new CsvReader(detectResultFilePath);
         // 读表头
@@ -131,8 +131,8 @@ public class MachineLearningServiceImpl implements IMachineLearningService {
      */
     @Override
     public Map<String, Object> getTrainData() throws Exception {
-        //String detectResultFilePath = "E:/work/hs/MachineLearning/files/train0901.csv";//windows
-        String detectResultFilePath = "/opt/ml/files_linux/train0901.csv";//linux
+        String detectResultFilePath = "E:/work/hs/MachineLearning/files/train0901.csv";//windows
+        //String detectResultFilePath = "/opt/ml/files_linux/train0901.csv";//linux
         // 创建CSV读对象
         CsvReader detectResultCsvReader = new CsvReader(detectResultFilePath);
         // 读表头
@@ -155,8 +155,8 @@ public class MachineLearningServiceImpl implements IMachineLearningService {
      */
     @Override
     public Map<String, Object> getTestData() throws Exception {
-        //String detectResultFilePath = "E:/work/hs/MachineLearning/files/test.csv";//windows
-        String detectResultFilePath = "/opt/ml/files_linux/test.csv";//linux
+        String detectResultFilePath = "E:/work/hs/MachineLearning/files/test.csv";//windows
+        //String detectResultFilePath = "/opt/ml/files_linux/test.csv";//linux
         // 创建CSV读对象
         CsvReader detectResultCsvReader = new CsvReader(detectResultFilePath);
         // 读表头

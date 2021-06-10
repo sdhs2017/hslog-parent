@@ -40,7 +40,7 @@ public class start {
 
         //2.各种cache
         AssetCache.INSTANCE.init(equipmentService,assetService);//资产初始化（虚拟资产and逻辑资产）
-        FileLogCache.INSTANCE.init(fileLogService);//文件日志模板数据初始化
+        //FileLogCache.INSTANCE.init(fileLogService);//文件日志模板数据初始化
         ConfigurationCache.INSTANCE.init(configurationService);//mysql全局配置项初始化
         //TODO search cache初始化，目前其初始化逻辑与数据可视化模块绑定，
         //3.bulk_processor (ES 批量提交)

@@ -1,9 +1,7 @@
 package com.jz.bigdata.common.data_source_metadata.service;
 
-import com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadata;
-import com.jz.bigdata.common.data_source_metadata.entity.DataSourceMetadataMenu;
-import com.jz.bigdata.common.data_source_metadata.entity.MetadataField;
-import com.jz.bigdata.common.data_source_metadata.entity.MetadataTable;
+import com.jz.bigdata.common.data_source.entity.DataSource;
+import com.jz.bigdata.common.data_source_metadata.entity.*;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
 
 import java.sql.SQLException;
@@ -28,6 +26,12 @@ public interface IDataSourceMetadataService {
      * @return 表的基本信息，由于返回需要count和数据list，因此通过map存放，key：count value：总条数。key：list value：表的信息（list<MetadataTable>）
      */
     public Map<String, Object> getTableInfo(DataSourceMetadata dataSourceMetadata);
+    /**
+     * 获取库信息
+     * @param dataSourceMetadata 查询条件对象
+     * @return 库的基本信息，由于返回需要count和数据list，因此通过map存放，key：count value：总条数。key：list value：表的信息（list<MetadataTable>）
+     */
+    public Map<String, Object> getDatabaseInfo(DataSourceMetadata dataSourceMetadata);
     /**
      * 获取字段信息
      * @param dataSourceMetadata 查询条件对象
@@ -55,13 +59,19 @@ public interface IDataSourceMetadataService {
      */
     public int updateMetadataFieldInfo(MetadataField metadataField);
     /**
+     * 更新元数据数据库信息
+     * @param metadataDatabase
+     * @return
+     */
+    public int updateMetadataDatabaseInfo(MetadataDatabase metadataDatabase);
+    /**
      * 数据预览功能
      * @param databaseName
      * @param tableName
      * @param data_source_id
      * @return
      */
-    public Map<String,Object> getDataPreview(String databaseName,String tableName,String data_source_id) throws SQLException;
+    public Map<String,Object> getDataPreview(String databaseName,String tableName,String data_source_id) throws Exception;
 
     /**
      * 通过元数据字段id获取详细信息
@@ -69,4 +79,34 @@ public interface IDataSourceMetadataService {
      * @return
      */
     public Map<String,String> getMetadataFieldInfo(String metadata_field_id);
+    /**
+     * 通过元数据数据库id获取详细信息
+     * @param metadata_database_id 数据库id
+     * @return
+     */
+    public MetadataDatabase getMetadataDatabaseInfo(String metadata_database_id);
+    /**
+     * 通过元数据表id获取详细信息
+     * @param metadata_table_id  表id
+     * @return
+     */
+    public MetadataTable getMetadataTableInfo(String metadata_table_id);
+    /**
+     * 获取表 top n 数据
+     * @param dataSource 数据源基本信息
+     * @param databaseName 数据库名称
+     * @param tableName 表名
+     * @param sample_num 前n条数据
+     * @return List<Map<String, String>> 一个map为一行数据 map key为字段名 value为字段值
+     */
+    public List<Map<String, String>> getTableData(DataSource dataSource, String databaseName, String tableName, int sample_num ) throws Exception;
+    /**
+     * 获取表样本数据
+     * @param dataSource 数据源基本信息
+     * @param databaseName 数据库名称
+     * @param tableName 表名
+     * @param sample_num 样本数
+     * @return List<Map<String, String>> 一个map为一行数据 map key为字段名 value为字段值
+     */
+    public List<Map<String, String>> getTableSampleData(DataSource dataSource, String databaseName, String tableName, int sample_num ) throws Exception;
 }

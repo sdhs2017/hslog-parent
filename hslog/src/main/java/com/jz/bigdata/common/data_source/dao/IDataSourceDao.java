@@ -28,6 +28,14 @@ public interface IDataSourceDao {
     public int update(DataSource dataSource);
 
     /**
+     * 更新数据源，数据发现进程状态
+     * @param data_source_id 数据源id
+     * @param data_source_discovery_state 数据发现进程状态
+     * @return
+     */
+    public int updateDiscoveryState(@Param("data_source_id") String data_source_id,@Param("data_source_discovery_state") Integer data_source_discovery_state );
+
+    /**
      * 根据id获取详情
      * @param data_source_id
      * @return
@@ -39,7 +47,7 @@ public interface IDataSourceDao {
      * @param dataSource
      * @return
      */
-    public List<DataSource> getListByConditionWithPage(DataSource dataSource);
+    public List<List<Map<String,Object>>> getListByConditionWithPage(DataSource dataSource);
     /**
      * 查询数据源信息列表，带分页
      * @param dataSource

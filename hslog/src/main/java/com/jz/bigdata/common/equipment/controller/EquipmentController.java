@@ -355,7 +355,8 @@ public class EquipmentController {
 	public Map<String, Object> selectEquipmentByLog(HttpServletRequest request, Equipment equipment) {
 		List<Equipment> list= null;
 		try {
-			list = this.equipmentService.selectEquipment(equipment);
+			//list = this.equipmentService.selectEquipment(equipment);
+			list = this.equipmentService.selectEquipmentByLog(equipment);
 		} catch (Exception e) {
 			log.error("查询资产：失败！");
 			e.printStackTrace();

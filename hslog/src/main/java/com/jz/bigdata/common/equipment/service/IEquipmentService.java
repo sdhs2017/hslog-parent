@@ -37,6 +37,8 @@ public interface IEquipmentService {
 	int deleteWithAssetGroup (String[] ids);
 	
 	List<Equipment> selectEquipment(Equipment equipment) throws Exception;
+
+	List<Equipment> selectEquipmentByLog(Equipment equipment) throws Exception;
 	
 	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session,String asset_group_id) throws Exception;
 	

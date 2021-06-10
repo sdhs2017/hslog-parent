@@ -4,9 +4,15 @@ import com.alibaba.druid.DbType;
 import com.alibaba.druid.pool.DruidAbstractDataSource;
 import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.proxy.DruidDriver;
+import com.alibaba.druid.sql.SQLUtils;
+import com.alibaba.druid.sql.ast.SQLStatement;
+import com.alibaba.druid.sql.dialect.mysql.parser.MySqlStatementParser;
+import com.alibaba.druid.sql.dialect.mysql.visitor.MySqlOutputVisitor;
+import com.alibaba.druid.sql.visitor.SchemaStatVisitor;
 import com.alibaba.druid.stat.DruidDataSourceStatManager;
 import com.alibaba.druid.stat.DruidStatManagerFacade;
 import com.alibaba.druid.util.HexBin;
+import com.alibaba.druid.util.JdbcConstants;
 import com.alibaba.druid.util.JdbcUtils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -41,63 +47,97 @@ public class DruidUtil {
 
 //    public static Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss.SSSSSS").create();
     public static void main(String[] args) {
-        String driver_mysql = "com.mysql.jdbc.Driver";
-        String driver_sqlserver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-        String driver_oracle = "oracle.jdbc.driver.OracleDriver";
-        String driver_db2 = "com.ibm.db2.jdbc.app.DB2Driver";
-        String url_mysql = "jdbc:mysql://192.168.2.181:3306/jzLogAnalysis";
-        String url_sqlserver = "jdbc:sqlserver://192.168.2.211:1433;DatabaseName=jzmssql";
-        String url_oracle = "jdbc:oracle:thin:@//192.168.2.133:1521/ORCL";
-        String url_db2 = "jdbc:db2://<:port>/dbname";
-        String userName = "system";
-        String password = "jzxt@2021";
+        //sql语句获取 库 表  字段信息，
+        String sql = "select t1.c1,t2.c2 from table1 as t1 left join table2 as t2 on t1.id = t2.id where t1.name=1";
+        sql = "select jzLogAnalysis.equipment.t1,jzLogAnalysis.equipment.t2,jzLogAnalysis.equipment.t1 from jzLogAnalysis.equipment,jzLogAnalysis0517.test";
+        sql = "select 1";
+        sql = "insert into note\\\\n\\\\t\\\\t\\\\n\\\\t\\\\t ( id,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\tresult,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\tnote.`describe`,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\ttime,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\tuserId,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\taccount,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\tdepartmentId,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\tip,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\tstate ) \\\\n\\\\t\\\\t values ( '21648dbabe2e4f1fbf7d6622b80ed60f',\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t1,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t'用户账号:15069109870    部门:公司    操作:监控agent采集器状态    操作状态:成功',\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t'2021-05-26 12:20:10.45',\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t'81ce6983fc1542c69706c70bb7b2098e',\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t'15069109870',\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t1,\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t'0:0:0:0:0:0:0:1',\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\n\\\\t\\\\t\\\\t\\\\t1 )\\\"}";
+//        sql = "update t1 set c1='' and c2=''";
+//        sql = "delete from t1 where c1=''";
+        //String sql = "select name, age from t_user where id = 1";
+
+        DbType dbType = JdbcConstants.MYSQL;
+        List<SQLStatement> stmtList = SQLUtils.parseStatements(sql, dbType);
+        SQLStatement stmt = stmtList.get(0);
+
+        SchemaStatVisitor statVisitor = SQLUtils.createSchemaStatVisitor(dbType);
+        stmt.accept(statVisitor);
+        //涉及到的字段，真实表名.字段名：
+        System.out.println(""+statVisitor.getColumns()); // [t_user.name, t_user.age, t_user.id]
+        //表的操作类型SELECT/UPDATE/DELETE等：
+        System.out.println(""+statVisitor.getTables()); // {t_user=Select}
+        //条件：
+        System.out.println(""+statVisitor.getConditions()); // [t_user.id = 1]
 
 
-        DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setUsername(userName);
-        druidDataSource.setPassword(password);
-        druidDataSource.setUrl(url_sqlserver);
-        druidDataSource.setDriverClassName(driver_sqlserver);
-        druidDataSource.setBreakAfterAcquireFailure(true);//失败后不继续重连
-        druidDataSource.setFailFast(true);//异常可捕获
-        druidDataSource.setConnectionErrorRetryAttempts(0);
-        //druidDataSource.setMaxWait(2000);
-        Connection connection = null;
-        try {
-            // 通过直接创建连接池对象的方式创建连接池对象
-            connection =  druidDataSource.getConnection();
+//        String driver_mysql = "com.mysql.jdbc.Driver";
+//        String driver_sqlserver = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+//        String driver_oracle = "oracle.jdbc.driver.OracleDriver";
+//        String driver_db2 = "com.ibm.db2.jdbc.app.DB2Driver";
+//        String url_mysql = "jdbc:mysql://192.168.2.181:3306/jzLogAnalysis";
+//        String url_sqlserver = "jdbc:sqlserver://192.168.2.211:1433;DatabaseName=jzmssql";
+//        String url_oracle = "jdbc:oracle:thin:@//192.168.2.133:1521/ORCL";
+//        String url_db2 = "jdbc:db2://<:port>/dbname";
+//        String userName = "system";
+//        String password = "jzxt@2021";
+//
+//
+//        DruidDataSource druidDataSource = new DruidDataSource();
+//        druidDataSource.setUsername(userName);
+//        druidDataSource.setPassword(password);
+//        druidDataSource.setUrl(url_sqlserver);
+//        druidDataSource.setDriverClassName(driver_sqlserver);
+//        druidDataSource.setBreakAfterAcquireFailure(true);//失败后不继续重连
+//        druidDataSource.setFailFast(true);//异常可捕获
+//        druidDataSource.setConnectionErrorRetryAttempts(0);
+//        //druidDataSource.setMaxWait(2000);
+//        Connection connection = null;
+//        try {
+//            // 通过直接创建连接池对象的方式创建连接池对象
+//            connection =  druidDataSource.getConnection();
+//
+//            //DruidAbstractDataSource.PhysicalConnectionInfo physicalConnectionInfo = druidDataSource.createPhysicalConnection();
+//
+////            String sql = "select * from \"AUDSYS\".\"AUD$UNIFIED\" where rownum<=100";
+////            PreparedStatement statement= null;
+////            ResultSet resultSet = null;
+////            try{
+////                //sql+参数
+////                statement = connection.prepareStatement(sql);
+////                // 执行
+////                resultSet =  statement.executeQuery();
+////                //处理resultset数据，处理后才能关闭statment和resultset
+////                List<Map<String, String>> list = resultSetToListString(resultSet);
+////                System.out.println(JSONArray.fromObject(list).toString());
+//////                System.out.println(gson.toJson(list));
+////            }catch (Exception e){
+////                e.printStackTrace();
+////            }finally {
+////                close(null,resultSet,statement);
+////            }
+//
+//        } catch (SQLException e) {
+//            // TODO Auto-generated catch block
+//            e.printStackTrace();
+//            //log.error(e.getMessage());
+//            System.out.println("----------------"+e.getCause().getMessage());
+//        }finally {
+////            close
+//            JdbcUtils.close( connection);
+//            //druidDataSource.close();
+//        }
 
-            //DruidAbstractDataSource.PhysicalConnectionInfo physicalConnectionInfo = druidDataSource.createPhysicalConnection();
-
-//            String sql = "select * from \"AUDSYS\".\"AUD$UNIFIED\" where rownum<=100";
-//            PreparedStatement statement= null;
-//            ResultSet resultSet = null;
-//            try{
-//                //sql+参数
-//                statement = connection.prepareStatement(sql);
-//                // 执行
-//                resultSet =  statement.executeQuery();
-//                //处理resultset数据，处理后才能关闭statment和resultset
-//                List<Map<String, String>> list = resultSetToListString(resultSet);
-//                System.out.println(JSONArray.fromObject(list).toString());
-////                System.out.println(gson.toJson(list));
-//            }catch (Exception e){
-//                e.printStackTrace();
-//            }finally {
-//                close(null,resultSet,statement);
-//            }
-
-        } catch (SQLException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            //log.error(e.getMessage());
-            System.out.println("----------------"+e.getCause().getMessage());
-        }finally {
-//            close
-            JdbcUtils.close( connection);
-            //druidDataSource.close();
-        }
-
+    }
+    private static String execMySql(String sql) {
+        StringBuilder out = new StringBuilder();
+        MySqlOutputVisitor visitor = new MySqlOutputVisitor(out);
+        MySqlStatementParser parser = new MySqlStatementParser(sql);
+        List<SQLStatement> statementList = parser.parseStatementList();
+         for (SQLStatement statement : statementList) {
+         statement.accept(visitor);
+         visitor.println();
+         }
+        return out.toString();
     }
     private static  List<Map<String, Object>> resultSetToList2Test(ResultSet rst) throws SQLException {
         ResultSetMetaData md = rst.getMetaData(); //获得结果集结构信息,元数据

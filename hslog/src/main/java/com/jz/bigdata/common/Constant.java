@@ -11,6 +11,32 @@ import java.util.Map;
  * @description 系统常量
  */
 public class Constant {
+	//filebeat file_type = db 文件类型=数据库
+	public static final String FILEBEAT_FILE_TYPE_DB = "db";
+	//filebeat db_type = mysql 数据库类型=mysql
+	public static final String FILEBEAT_DB_TYPE_MYSQL = "mysql";
+	//mysql-audit插件产生的日志
+	public static final String FILEBEAT_LOG_TYPE_MYSQL_AUDIT = "mysql-audit";
+	//mysql-audit 日志类型 activity 正常sql查询产生的日志类型
+	public static final String FILEBEAT_MYSQL_AUDIT_MSGTYPE_ACT = "activity";
+	//mysql-audit 日志类型 header mysql启动时会产生一条日志，记录mysql启动信息
+	public static final String FILEBEAT_MYSQL_AUDIT_MSGTYPE_HEADER = "header";
+	//mysql-audit审计日志index前缀
+	public static final String MYSQL_AUDIT_INDEX_NAME = "hs_db_mysql_log-*";
+
+	//TODO 方法提出公共类
+	//数据安全治理 标签管理，发现方式  0：无规则  1：按正则发现
+	public static List<Map<String,Object>> DSG_TAG_LIBRARY_DISCOVER_WAY = new ArrayList<>();
+	static{
+		Map<String,Object> no_rule = new HashMap<>();
+		no_rule.put("label","无规则");
+		no_rule.put("value",0);
+		DSG_TAG_LIBRARY_DISCOVER_WAY.add(no_rule);
+		Map<String,Object> regex_rule = new HashMap<>();
+		regex_rule.put("label","按正则发现");
+		regex_rule.put("value",1);
+		DSG_TAG_LIBRARY_DISCOVER_WAY.add(regex_rule);
+	}
 	/**
 	 * 数据源-元数据-字段敏感等级
 	 */
@@ -60,6 +86,11 @@ public class Constant {
 	public static final String DATA_SOURCE_ITEM_TYPE_MYSQL = "MySQL";
 	public static final String DATA_SOURCE_ITEM_TYPE_SQLSERVER = "SQL Server";
 	public static final String DATA_SOURCE_ITEM_TYPE_ORACLE = "Oracle";
+	//多种类型数据库查询出的数据库列名不一致，通过别名统一
+	//由于mysql 查询数据库的语句无法设置别名，因此向mysql的名称靠齐
+	public static final String DATA_SOURCE_DATABASE_ALIAS = "Database";
+	//统一表的别名
+	public static final String DATA_SOURCE_TABLE_ALIAS = "TABLE_NAME";
 	/**
 	 * 数据源管理中，数据源类型，目前仅适配 mysql oracle sqlserver
 	 */
@@ -96,6 +127,8 @@ public class Constant {
 	public static String ES_BULK_NAME = "es_bulk";
 	//ES bulk提交 线程数
 	public static String ES_BULK_PROCESSOR_CONCURRENT_REQUESTS_NAME = "concurrent_requests";
+	//configuration 配置项，密码超时时间-key
+	public static String PWD_EXPIRE_DAY_NAME = "pwd_expire_day";
 	//beats的日期字段
 	public static String BEAT_DATE_FIELD = "@timestamp";
 	//系统日志对应的index名称
@@ -149,6 +182,11 @@ public class Constant {
 	 * 获取RSA公钥
 	 */
 	public static String RSAKEYPATH="java.lang.String com.jz.bigdata.common.rsa.controller.RSAController.getRSAPublicKey";
+
+	/**
+	 * 获取产品信息
+	 */
+	public static String PRODUCTPATH="java.lang.String com.jz.bigdata.common.product.controller.ProductController.getProductInfo";
 	/**
 	 * api数据接口
 	 */

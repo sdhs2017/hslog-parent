@@ -16,6 +16,7 @@ import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.HttpRequestUtil;
+import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -239,7 +240,7 @@ public class AlertController {
     public String update(HttpServletRequest request,Alert alert,HttpSession session){
         try{
             //判定告警id是否存在
-            if(com.mysql.jdbc.StringUtils.isNullOrEmpty(alert.getAlert_id())){
+            if(StringUtils.isNullOrEmpty(alert.getAlert_id())){
                 return Constant.failureMessage("告警组信息修改失败！");
             }
             return this.iAlertService.updateById(alert,session);

@@ -15,7 +15,6 @@ import com.google.gson.JsonObject;
 import com.jz.bigdata.common.assetGroup.entity.AssetGroup;
 import com.jz.bigdata.common.assetGroup.service.IAssetGroupService;
 import com.mysql.jdbc.StringUtils;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.slf4j.Logger;

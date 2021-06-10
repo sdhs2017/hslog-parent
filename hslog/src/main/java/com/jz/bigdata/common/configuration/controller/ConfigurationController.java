@@ -82,6 +82,24 @@ public class ConfigurationController {
         }
     }
     @ResponseBody
+    @RequestMapping(value="/selectPwdExpireDay.do", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe="获取密码超时时间")
+    public String selectPwdExpireDay(HttpServletRequest request, Configuration configuration, HttpSession session) {
+        try{
+
+            List<Configuration> result = configurationService.selectByKey(Constant.PWD_EXPIRE_DAY_NAME);
+            //查询回的数据不为空且长度为1，证明查询成功，其他情况都返回空
+            if(null!=result&&result.size()==1){
+                return Constant.successData(result.get(0).getConfiguration_value());
+            }else{
+                return Constant.failureMessage("未找到该配置项");
+            }
+        }catch (Exception e){
+            log.error("查询配置信息失败"+e.getMessage());
+            return Constant.failureMessage("查询配置信息失败");
+        }
+    }
+    @ResponseBody
     @RequestMapping(value="/selectAll.do", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取所有配置信息")
     public String selectAll(HttpServletRequest request, Configuration configuration, HttpSession session) {

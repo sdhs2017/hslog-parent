@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.data_source_metadata_identify.dao.IMetadataIdentifyDao">
+    <!-- 返回结果设置 -->
+    <resultMap id="BaseResultMap_Basic"
+               type="com.jz.bigdata.business.data_sec_govern.tag_library.entity.TagBasic">
+        <id column="tag_basic_id" jdbcType="VARCHAR" property="tag_basic_id" />
+        <result column="tag_basic_name" jdbcType="VARCHAR" property="tag_basic_name" />
+        <result column="tag_basic_custom" jdbcType="INTEGER" property="tag_basic_custom" />
+        <result column="tag_basic_remark" jdbcType="VARCHAR" property="tag_basic_remark" />
+    </resultMap>
+    <resultMap id="BaseResultMap_tempTable"
+               type="com.jz.bigdata.business.data_sec_govern.tag_library.entity.TagTempTable">
+        <id column="ids" jdbcType="VARCHAR" property="ids" />
+    </resultMap>
+
+    <!--元数据，数据库基本信息 -->
+    <resultMap id="BaseResultMap_Detail"
+               type="com.jz.bigdata.business.data_sec_govern.tag_library.entity.TagDetail">
+        <id column="tag_detail_id" jdbcType="VARCHAR" property="tag_detail_id" />
+        <result column="tag_basic_id" jdbcType="VARCHAR" property="tag_basic_id" />
+        <result column="tag_detail_name" jdbcType="VARCHAR" property="tag_detail_name" />
+        <result column="tag_detail_superior" jdbcType="VARCHAR" property="tag_detail_superior" />
+        <result column="tag_detail_custom" jdbcType="VARCHAR" property="tag_detail_custom" />
+        <result column="tag_detail_sensitive" jdbcType="VARCHAR" property="tag_detail_sensitive" />
+        <result column="tag_detail_regex" jdbcType="VARCHAR" property="tag_detail_regex" />
+        <result column="tag_detail_remark" jdbcType="VARCHAR" property="tag_detail_remark" />
+    </resultMap>
+    <update id="updateRelations" parameterType="java.lang.String">
+        update metadata_identify_relation
+        set metadata_identify_name = #{metadata_identify_name,jdbcType=VARCHAR}
+        where metadata_identify_id = #{metadata_identify_id,jdbcType=VARCHAR}
+    </update>
+    <delete id="deleteRelations" parameterType="java.lang.String">
+        delete from metadata_identify_relation
+        where metadata_identify_id = #{metadata_identify_id,jdbcType=VARCHAR}
+    </delete>
+    <!--  元数据标识基本分类  增删改 -->
+    <insert id="insertTagLibrary_Basic" parameterType="com.jz.bigdata.business.data_sec_govern.tag_library.entity.TagBasic">
+        insert into dsg_tag_basic
+        <!--     格式化 -->
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--     判断参数是否为空 -->
+            <if test="tag_basic_id != null">
+                tag_basic_id,
+            </if>
+            <if test="tag_basic_name != null">
+                tag_basic_name,
+            </if>
+            <if test="tag_basic_custom != null">
+                tag_basic_custom,
+            </if>
+            <if test="tag_basic_remark != null">
+                tag_basic_remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tag_basic_id != null">
+                #{tag_basic_id,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_basic_name != null">
+                #{tag_basic_name,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_basic_custom != null">
+                #{tag_basic_custom,jdbcType=INTEGER},
+            </if>
+            <if test="tag_basic_remark != null">
+                #{tag_basic_remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateTagLibrary_basic" parameterType="com.jz.bigdata.business.data_sec_govern.tag_library.entity.TagBasic">
+        update dsg_tag_basic
+        <set>
+            <if test="tag_basic_name != null">
+                tag_basic_name = #{tag_basic_name,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_basic_remark != null">
+                tag_basic_remark = #{tag_basic_remark,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_basic_custom != null">
+                tag_basic_custom = #{tag_basic_custom,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where tag_basic_id = #{tag_basic_id,jdbcType=VARCHAR}
+    </update>
+    <update id="deleteTagLibrary_basic" parameterType="java.lang.String">
+        DELETE FROM dsg_tag_basic  where tag_basic_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </update>
+    <select id="getTagLibraryBasicInfoById" parameterType="java.lang.String" resultMap="BaseResultMap_Basic">
+		select * from dsg_tag_basic
+		where tag_basic_id=#{tag_basic_id,jdbcType=VARCHAR}
+	</select>
+    <select id="getTagBasicList" resultMap="BaseResultMap_Basic">
+		select * from dsg_tag_basic
+		order by tag_basic_name
+	</select>
+    <select id="selectBasicInfoById" parameterType="java.lang.String" resultMap="BaseResultMap_Basic">
+		select * from dsg_tag_basic
+		where tag_basic_id=#{tag_basic_id,jdbcType=VARCHAR}
+	</select>
+    <!--  元数据标识详细分类  增删改 -->
+    <insert id="insertTagLibrary_detail" parameterType="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyDetails">
+        insert into dsg_tag_detail
+        <!--     格式化 -->
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <!--     判断参数是否为空 -->
+            <if test="tag_detail_id != null">
+                tag_detail_id,
+            </if>
+            <if test="tag_basic_id != null">
+                tag_basic_id,
+            </if>
+            <if test="tag_detail_name != null">
+                tag_detail_name,
+            </if>
+            <if test="tag_detail_superior != null">
+                tag_detail_superior,
+            </if>
+            <if test="tag_detail_custom != null">
+                tag_detail_custom,
+            </if>
+            <if test="tag_detail_discover_way != null">
+                tag_detail_discover_way,
+            </if>
+            <if test="tag_detail_discover_percent != null">
+                tag_detail_discover_percent,
+            </if>
+            <if test="tag_detail_discover_regex != null">
+                tag_detail_discover_regex,
+            </if>
+            <if test="tag_detail_remark != null">
+                tag_detail_remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tag_detail_id != null">
+                #{tag_detail_id,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_basic_id != null">
+                #{tag_basic_id,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_name != null">
+                #{tag_detail_name,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_superior != null">
+                #{tag_detail_superior,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_custom != null">
+                #{tag_detail_custom,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_discover_way != null">
+                #{tag_detail_discover_way,jdbcType=INTEGER},
+            </if>
+            <if test="tag_detail_discover_percent != null">
+                #{tag_detail_discover_percent,jdbcType=INTEGER},
+            </if>
+            <if test="tag_detail_discover_regex != null">
+                #{tag_detail_discover_regex,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_remark != null">
+                #{tag_detail_remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateTag_detail" parameterType="com.jz.bigdata.common.data_source_metadata_identify.entity.MetadataIdentifyDetails">
+        update dsg_tag_detail
+        <set>
+            <if test="tag_basic_id != null">
+                tag_basic_id = #{tag_basic_id,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_name != null">
+                tag_detail_name = #{tag_detail_name,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_superior != null">
+                tag_detail_superior = #{tag_detail_superior,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_custom != null">
+                tag_detail_custom = #{tag_detail_custom,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_discover_way != null">
+                tag_detail_discover_way = #{tag_detail_custom,jdbcType=INTEGER},
+            </if>
+            <if test="tag_detail_discover_percent != null">
+                tag_detail_discover_percent = #{tag_detail_custom,jdbcType=INTEGER},
+            </if>
+            <if test="tag_detail_discover_regex != null">
+                tag_detail_discover_regex = #{tag_detail_custom,jdbcType=VARCHAR},
+            </if>
+            <if test="tag_detail_remark != null">
+                tag_detail_remark = #{tag_detail_remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where tag_detail_id = #{tag_detail_id,jdbcType=VARCHAR}
+    </update>
+    <select id="getTagLibraryDetailInfoById" parameterType="java.lang.String" resultMap="BaseResultMap_Detail">
+		select * from dsg_tag_detail
+		where tag_detail_id=#{tag_detail_id,jdbcType=VARCHAR}
+	</select>
+    <select id="selectTagDetail_ids" parameterType="java.lang.String" resultMap="BaseResultMap_tempTable">
+        {call proc_del_metadata_tag_detail_exec(#{tag_detail_id,mode=IN})}
+<!--        DELETE FROM metadata_tag_detail  where tag_detail_id in-->
+<!--        <foreach item="ids" index="index" collection="array" open="("-->
+<!--                 separator="," close=")">-->
+<!--            #{ids}-->
+<!--        </foreach>-->
+    </select>
+    <delete id="deleteTagDetail_batch" parameterType="java.lang.String">
+        delete from dsg_tag_detail where tag_detail_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <delete id="deleteTag_relation_batch" parameterType="java.lang.String">
+        delete from dsg_identify_relation where tag_identify_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <delete id="deleteRelationByTag_basic" parameterType="java.lang.String">
+        delete from dsg_tag_relation where metadata_identify_id
+        in (select tag_detail_id from metadata_tag_detail where tag_basic_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>)
+        or metadata_identify_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <delete id="deleteTagDetailByBasicId" parameterType="java.lang.String">
+        DELETE FROM dsg_tag_detail  where tag_basic_id in
+        <foreach item="ids" index="index" collection="array" open="("
+                 separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <select id="selectDetailInfoById" parameterType="java.lang.String" resultMap="BaseResultMap_Detail">
+		select * from metadata_tag_detail
+		where tag_detail_id=#{tag_detail_id,jdbcType=VARCHAR}
+	</select>
+
+    <select id="getTagDetailListBySuperiorId" parameterType="java.lang.String" resultMap="BaseResultMap_Detail">
+		select * from dsg_tag_detail
+		where tag_detail_superior=#{tag_detail_superior,jdbcType=VARCHAR}
+		order by tag_detail_name
+	</select>
+</mapper>

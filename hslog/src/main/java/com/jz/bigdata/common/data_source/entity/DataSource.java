@@ -17,12 +17,48 @@ public class DataSource {
     private String data_source_dbname;//数据库/实例
     private String data_source_create_time;//创建时间
     private String data_source_update_time;//更新时间
+    private Integer data_source_sample_num;//样本数
     private Integer pageIndex;//第N页
     private Integer pageSize;//每页的条数
     private Integer startRecord;//根据分页信息计算出的起始条数
     private String description;//描述
-    private Integer data_source_is_initialized;//是否已经初始化  0:未初始化 1：已初始化
-    private String data_source_init_time;//数据源初始化时间
+    private Integer data_source_is_initialized;//是否已经初始化  0:未初始化 1：已完成初始化 2:正在初始化 3：初始化失败
+    private String data_source_is_initialized_label;//是否已经初始化 文字
+    private String data_source_init_time;//数据源初始化完成时间
+    private Integer data_source_discovery_state;//数据发现状态 0；未开始   1：敏感数据发现中...   2：敏感数据发现完成
+    private String data_source_discovery_state_label;//数据发现状态 文字
+
+    public Integer getData_source_sample_num() {
+        return data_source_sample_num;
+    }
+
+    public void setData_source_sample_num(Integer data_source_sample_num) {
+        this.data_source_sample_num = data_source_sample_num;
+    }
+
+    public String getData_source_is_initialized_label() {
+        return data_source_is_initialized_label;
+    }
+
+    public void setData_source_is_initialized_label(String data_source_is_initialized_label) {
+        this.data_source_is_initialized_label = data_source_is_initialized_label;
+    }
+
+    public String getData_source_discovery_state_label() {
+        return data_source_discovery_state_label;
+    }
+
+    public void setData_source_discovery_state_label(String data_source_discovery_state_label) {
+        this.data_source_discovery_state_label = data_source_discovery_state_label;
+    }
+
+    public Integer getData_source_discovery_state() {
+        return data_source_discovery_state;
+    }
+
+    public void setData_source_discovery_state(Integer data_source_discovery_state) {
+        this.data_source_discovery_state = data_source_discovery_state;
+    }
 
     public Integer getData_source_is_initialized() {
         return data_source_is_initialized;

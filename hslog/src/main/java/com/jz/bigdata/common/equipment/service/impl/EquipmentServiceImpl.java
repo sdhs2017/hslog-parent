@@ -12,7 +12,6 @@ import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import com.jz.bigdata.util.*;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -342,6 +341,30 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		return myList;
 	}
 
+	@Override
+	public List<Equipment> selectEquipmentByLog(Equipment equipment) throws Exception {
+		// 查询所有数据
+		List<Equipment> listEquipment = equipmentDao.searchAllByPage(equipment.getId(),"", "", "", "", "", "","", 0,15,"");
+		// System.err.println(listEquipment.get(0).getCreateTime());
+
+		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
+		String starttime = LocalDateTime.now().format(dtf_time_zero);
+		String endtime = LocalDateTime.now().format(dtf_time);
+		for(Equipment equipment_tmp : listEquipment) {
+			Map<String, String> esMap = new HashMap<>();
+			//esMap.put("equipmentid", equipment.getId());
+			//equipment.setLog_count(logService.getCount(esMap,starttime,endtime,null,configProperty.getEs_index())+"");
+			/**
+			 * ECS的资产id改成fields.equipmentid
+			 */
+			esMap.put("fields.equipmentid", equipment_tmp.getId());
+			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
+			equipment_tmp.setLog_count(getEquipmentLogCount(equipment_tmp.getLogType(),esMap,starttime,endtime)+"");
+
+		}
+		return listEquipment;
+	}
+
 	/**
 	 * 分页查询数据
 	 * @param hostName
@@ -368,7 +391,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		// 总数添加到map
 		map.put("count", (listCount.get(0)));
 		// 查询所有数据
-		List<Equipment> listEquipment = equipmentDao.searchAllByPage(hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize,asset_group_id);
+		List<Equipment> listEquipment = equipmentDao.searchAllByPage("",hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize,asset_group_id);
 		// System.err.println(listEquipment.get(0).getCreateTime());
 
 		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
@@ -383,18 +406,21 @@ public class EquipmentServiceImpl implements IEquipmentService {
  			 */
 			esMap.put("fields.equipmentid", equipment.getId());
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
-			if(equipment.getLogType().equals("file")){//文件日志
-				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_file_index())+"");
-			}else if(equipment.getLogType().equals("winlog")||equipment.getLogType().equals("syslog")){//日志
-				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
-			}else if(equipment.getLogType().equals("metric")){//指标
-				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_metric_index())+"");
-			}else if(equipment.getLogType().equals("packet")){//流量
-				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_packet_index())+"");
-			}else{
-				//其他情况
-				equipment.setLog_count("0");
-			}
+			equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),esMap,starttime,endtime)+"");
+//			if(equipment.getLogType().equals("file")){//文件日志
+//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_file_index())+"");
+//			}else if(equipment.getLogType().equals("winlog")||equipment.getLogType().equals("syslog")){//日志
+//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
+//			}else if(equipment.getLogType().equals("metric")){//指标
+//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_metric_index())+"");
+//			}else if(equipment.getLogType().equals("packet")){//流量
+//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_packet_index())+"");
+//			}else if(equipment.getLogType().equals("mysql")){//mysql-audit
+//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,Constant.MYSQL_AUDIT_INDEX_NAME)+"");
+//			}else{
+//				//其他情况
+//				equipment.setLog_count("0");
+//			}
 
 		}
 		// 数据添加到map
@@ -402,6 +428,42 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		return JSONArray.fromObject(map).toString();
 	}
 
+	/**
+	 * 查询日志count
+	 * @param logType 日志类型
+	 * @param esMap 查询条件
+	 * @param starttime 起始时间
+	 * @param endtime 截止时间
+	 * @return 日志数
+	 * @throws Exception
+	 */
+	private long getEquipmentLogCount(String logType,Map<String, String> esMap,String starttime,String endtime) throws Exception {
+		String index;
+		//根据日志类型设置要查询的index
+		switch (logType){
+			case "file":
+				index = configProperty.getEs_file_index();
+				break;
+			case "winlog":
+			case "syslog":
+				index = configProperty.getEs_index();
+				break;
+			case "metric":
+				index = configProperty.getEs_metric_index();
+				break;
+			case "packet":
+				index = configProperty.getEs_packet_index();
+				break;
+			case "mysql":
+				index = Constant.MYSQL_AUDIT_INDEX_NAME;
+				break;
+			default:
+				//其他类型，日志量为0
+				return 0;
+		}
+		return ecsService.getCount(esMap,starttime,endtime,index);
+
+	}
 	/**
 	 * @param equipment
 	 * @return

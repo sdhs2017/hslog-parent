@@ -80,7 +80,7 @@
 	<sql id="Base_Column_List">
 		asset.id, asset.name, hostName, type,
 		ip,createTime,asset.upDateTime,endTime,
-		startUp,userId,asset.departmentId,logType,macAdress,system,systemVersion,assetNum,
+		startUp,userId,asset.departmentId,logType,macAdress,`system`,systemVersion,assetNum,
 		serialNum,asset.describe,valuation,log_level,high_risk,moderate_risk,low_risk,asset.departmentNodeId,
 		domain,asset.port
 	</sql>
@@ -165,8 +165,8 @@
 			<if test="macAdress !=null and  macAdress !=''">
 				macAdress,
 			</if>
-			<if test="system !=null and  system !=''">
-				system,
+			<if test="`system` !=null and  `system` !=''">
+				`system`,
 			</if>
 			<if test="systemVersion !=null and  systemVersion !=''">
 				systemVersion,
@@ -236,7 +236,7 @@
 			<if test="macAdress != null and  macAdress !=''">
 				#{macAdress,jdbcType=VARCHAR},
 			</if>
-			<if test="system != null and  system !=''">
+			<if test="`system` != null and  `system` !=''">
 				#{system,jdbcType=VARCHAR},
 			</if>
 			<if test="systemVersion != null and  systemVersion !=''">
@@ -282,7 +282,7 @@
 	<update id="updateById" parameterType="com.jz.bigdata.common.asset.entity.Asset">
 		update asset set
 		name=#{name},hostName=#{hostName},type=#{type},ip=#{ip},startUp=#{startUp},logType=#{logType},
-		macAdress=#{macAdress},system=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
+		macAdress=#{macAdress},`system`=#{system},systemVersion=#{systemVersion},assetNum=#{assetNum},serialNum=#{serialNum},
 		asset.describe=#{describe},valuation=#{valuation},log_level=#{log_level},domain=#{domain},asset.port=#{port},
 		asset.departmentNodeId=#{departmentNodeId},
 		<!-- if判断语句 -->

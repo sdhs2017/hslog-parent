@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -131,8 +134,10 @@ public class ReadExcel {
             for(int c = 0; c <this.totalCells; c++){
                 Cell cell = row.getCell(c);
                 if (cell != null){
-                    cell.setCellType(CellType.STRING);
-                    sList.add(cell.getStringCellValue());
+
+//                    cell.setCellType(CellType.STRING);
+//                    sList.add(cell.getStringCellValue());
+                    sList.add(getCellValueByCell(cell));
                 }else {
                     sList.add("");
                 }
@@ -142,5 +147,58 @@ public class ReadExcel {
             lList.add(sList);
         }
         return lList;
+    }
+
+    /**
+     * 获取表格里的值，增加对时间类型数据的处理
+     * @param cell
+     * @return
+     */
+    public static String getCellValueByCell(Cell cell) {
+        //判断是否为null或空串
+        if (cell==null || cell.toString().trim().equals("")) {
+            return "";
+        }
+        String cellValue = "";
+        CellType cellType=cell.getCellType();
+
+        if(cellType.equals(CellType.NUMERIC)){
+            short format = cell.getCellStyle().getDataFormat();
+            if (DateUtil.isCellDateFormatted(cell)) {
+                SimpleDateFormat sdf = null;
+                //System.out.println("cell.getCellStyle().getDataFormat()="+cell.getCellStyle().getDataFormat());
+                if (format == 20 || format == 32) {
+                    sdf = new SimpleDateFormat("HH:mm");
+                } else if (format == 14 || format == 31 || format == 57 || format == 58) {
+                    // 处理自定义日期格式：m月d日(通过判断单元格的格式id解决，id的值是58)
+                    sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    double value = cell.getNumericCellValue();
+                    Date date = org.apache.poi.ss.usermodel.DateUtil
+                            .getJavaDate(value);
+                    cellValue = sdf.format(date);
+                }else {// 日期
+                    sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                }
+                try {
+                    cellValue = sdf.format(cell.getDateCellValue());// 日期
+                } catch (Exception e) {
+                    try {
+                        throw new Exception("exception on get date data !".concat(e.toString()));
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    }
+                }finally{
+                    sdf = null;
+                }
+            }  else {
+                BigDecimal bd = new BigDecimal(cell.getNumericCellValue());
+                cellValue = bd.toPlainString();// 数值 这种用BigDecimal包装再获取plainString，可以防止获取到科学计数值
+            }
+        }else{
+            cell.setCellType(CellType.STRING);
+            cellValue = cell.getStringCellValue();
+        }
+        return cellValue;
+
     }
 }

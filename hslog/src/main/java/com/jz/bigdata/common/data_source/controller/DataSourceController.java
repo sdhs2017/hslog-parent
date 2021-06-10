@@ -4,11 +4,14 @@ import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.data_source.entity.DataSource;
 import com.jz.bigdata.common.data_source.service.IDataSourceService;
+import com.jz.bigdata.common.dictionary.cache.DictionaryCache;
+import com.jz.bigdata.common.dictionary.init.DictionaryInit;
 import com.jz.bigdata.common.eventGroup.service.IEventGroupService;
 import com.jz.bigdata.common.event_alert.entity.EventAlert;
 import com.jz.bigdata.common.event_alert.service.IEventAlertService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
+import com.jz.bigdata.util.RSAUtil;
 import com.sun.tools.internal.jxc.ap.Const;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
@@ -48,6 +51,17 @@ public class DataSourceController {
         return Constant.successData(JSONArray.fromObject(Constant.DATA_SOURCE_ITEM_TYPE).toString());
     }
     /**
+     * 数据源 数据发现状态
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDataSourceDiscoveryState",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "数据源 数据发现状态")
+    public String getDataSourceDiscoveryState(HttpServletRequest request){
+        return Constant.successData(JSONArray.fromObject(DictionaryCache.INSTANCE.getComboboxList(DictionaryInit.DATA_SOURCE_DISCOVER_STATE)).toString());
+    }
+    /**
      * 测试链接
      * @param request
      * @return
@@ -57,6 +71,8 @@ public class DataSourceController {
     @DescribeLog(describe = "数据源连接测试")
     public String testConnection(HttpServletRequest request,DataSource dataSource){
         try{
+            //账号密码RSA解密
+            dataSource = decryptDataSource(dataSource);
             return dataSourceService.checkConnection(dataSource);
         }catch (Exception e){
             log.error("数据源连接测试失败："+e.getMessage());
@@ -86,6 +102,54 @@ public class DataSourceController {
             return Constant.failureMessage("数据源初始化失败！");
         }
     }
+    /**
+     * 数据发现，通过内置或用户自定义的标签，对样本数据进行自动识别及标记
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/dataDiscovery",produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "数据发现")
+    public String dataDiscovery(HttpServletRequest request){
+        String ids = request.getParameter("data_source_ids");//数据源id
+        try{
+            boolean result = dataSourceService.dataDiscovery(ids);
+            if(result){
+                return Constant.successMessage("数据发现任务已启动！");
+            }else{
+                return Constant.failureMessage("数据发现任务启动失败！");
+            }
+        }catch (Exception e){
+            //e.printStackTrace();
+            log.error("数据发现任务启动失败："+e.getMessage());
+            return Constant.failureMessage("数据发现任务启动失败！");
+        }
+    }
+    /**
+     * 数据源初始化
+     * @param request
+     * @return
+     */
+//    @ResponseBody
+//    @RequestMapping(value="/dataSourceInit",produces = "application/json; charset=utf-8")
+//    @DescribeLog(describe = "数据源初始化")
+//    public String dataSourceInit(HttpServletRequest request){
+//        String ids = request.getParameter("data_source_ids");//数据源id
+//        String is_auto_identify = request.getParameter("is_auto_identify");//是否自动标识
+//        String sample_num = request.getParameter("sample_num");//抽样行数
+//        try{
+//            boolean result =  dataSourceService.initByDataSourceIds(ids);
+//            if(result){
+//                return Constant.successMessage("初始化成功！");
+//            }else{
+//                return Constant.failureMessage("初始化失败！");
+//            }
+//        }catch (Exception e){
+//            //e.printStackTrace();
+//            log.error("数据源初始化失败："+e.getMessage());
+//            return Constant.failureMessage("数据源初始化失败！");
+//        }
+//    }
     /**
      * 测试链接
      * @param request
@@ -157,6 +221,8 @@ public class DataSourceController {
     @DescribeLog(describe = "保存数据源")
     public String save (HttpServletRequest request, DataSource dataSource){
         try{
+            //解密数据源信息中的账号和密码（RSA）
+            dataSource = decryptDataSource(dataSource);
             if(dataSourceService.save(dataSource)){
                 return Constant.successMessage("保存成功！");
             }else{
@@ -248,7 +314,8 @@ public class DataSourceController {
     @DescribeLog(describe = "更新数据源")
     public String update(HttpServletRequest request,DataSource dataSource){
         try{
-
+            //解密数据源信息中的账号和密码（RSA）
+            dataSource = decryptDataSource(dataSource);
             if(dataSourceService.update(dataSource)){
                 return Constant.successMessage("更新成功！");
             }else{
@@ -279,5 +346,18 @@ public class DataSourceController {
             log.error("数据获取失败："+e.getMessage());
             return Constant.failureMessage("数据获取失败！");
         }
+    }
+
+    /**
+     * 解密数据源信息中的账号 密码
+     * @param dataSource 数据源信息
+     * @return 修改后的数据源信息对象
+     * @throws Exception
+     */
+    private DataSource decryptDataSource(DataSource dataSource) throws Exception {
+        //账号密码解密RSA
+        dataSource.setData_source_username(RSAUtil.decrypt(dataSource.getData_source_username(),RSAUtil.getPrivateKey()));
+        dataSource.setData_source_password(RSAUtil.decrypt(dataSource.getData_source_password(),RSAUtil.getPrivateKey()));
+        return dataSource;
     }
 }

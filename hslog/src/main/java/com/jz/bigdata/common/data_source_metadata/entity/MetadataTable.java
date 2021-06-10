@@ -1,5 +1,7 @@
 package com.jz.bigdata.common.data_source_metadata.entity;
 
+import java.util.List;
+
 /**
  * @Author: yiyang
  * @Date: 2021/3/10 16:07
@@ -12,6 +14,15 @@ public class MetadataTable {
     private String metadata_table_name;//表名
     private String metadata_table_type;//表类型，主体表，参考表等
     private String metadata_remark;//描述信息
+    private String metadata_is_auto_discovery;//是否自动发现（正则匹配）
+
+    public String getMetadata_is_auto_discovery() {
+        return metadata_is_auto_discovery;
+    }
+
+    public void setMetadata_is_auto_discovery(String metadata_is_auto_discovery) {
+        this.metadata_is_auto_discovery = metadata_is_auto_discovery;
+    }
 
     public String getMetadata_table_id() {
         return metadata_table_id;

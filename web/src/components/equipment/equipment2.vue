@@ -33,7 +33,10 @@
                     <div class="eq-type">
                         <!--<i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
                         <i class="el-icon-data-line"  v-else></i>-->
-                        <el-popover
+                        <!--临时-->
+                        <i class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+                        <!--正常-->
+                        <!--<el-popover
                             v-if="i.logType === 'metric' || i.logType === 'packet' || i.logType === 'syslog' || i.logType === 'winlog' || i.logType ==='winlogbeat'"
                             placement="right"
                             width="150"
@@ -45,7 +48,7 @@
                             </div>
                             <el-button slot="reference" title="查看资产报表" @click="getEquipmentCharts(i)"><i class="el-icon-s-data go_metric" ></i></el-button>
                         </el-popover>
-                        <i v-else class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+                        <i v-else class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>-->
                     </div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
@@ -493,9 +496,11 @@
             },
             /*查看资产图表*/
             equipmentEcharts(rowData,index){
-                let logType = rowData.logType;
-                layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
-               /* //判断资产日志类型
+                /*正常*/
+               /* let logType = rowData.logType;
+                layer.msg(`${logType} 类型资产暂无报表`,{icon:5})*/
+               /*临时*/
+                //判断资产日志类型
                 let logType = rowData.logType;
                 if(logType === 'syslog'){
                     //跳转页面
@@ -507,7 +512,7 @@
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
                 }else{
                     layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
-                }*/
+                }
             },
             /*资产仪表盘*/
             equipmentDashboard(rowData,index){

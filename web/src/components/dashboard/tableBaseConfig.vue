@@ -172,7 +172,7 @@
                 <div id="charts-wapper">
                     <v-basetable :tableHead="chartsConfig.tableHead" :emptyText="emptyText" :height="tableHeight" :tableData="chartsConfig.tableData"></v-basetable>
                     <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="chartsConfig.tableData.length !== 0">
-                        总条数 <b style="color: #409eff;margin: 0 10px;"> {{this.chartsConfig.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{this.showCount}} </b>
+                        总条数 <b style="color: #409eff;margin: 0 10px;"> {{this.chartsConfig.trueCount}} </b>,最大显示条数 <b style="color: #409eff;margin: 0 10px;"> {{this.showCount}} </b>
                         <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="chartsConfig.page.cPage" :page-size="pageSize" :total="chartsConfig.page.allCounts"></el-pagination>
                     </div>
                 </div>
@@ -210,7 +210,7 @@
                 <el-button type="primary" @click="saveChart" :disabled="chartParams.chartName === '' ? 'disabled' : false">确 定</el-button>
             </div>
         </el-dialog>
-        <tableDetail :dialogState="tableDetailObj.dialogState" :columnHead="tableDetailObj.columnHead" :rowData="tableDetailObj.rowData"></tableDetail>
+        <tableDetail :dialogState="dialogState" :columnHead="tableDetailObj.columnHead" :rowData="tableDetailObj.rowData" :busName="busTableDetailName"></tableDetail>
     </div>
 
 </template>
@@ -403,8 +403,8 @@
                 //分页
                 pageSize:10,
                 showCount:100,
+                dialogState:false,
                 tableDetailObj:{
-                    dialogState:false,
                     columnHead:[],
                     rowData:{},
                 }
@@ -545,11 +545,12 @@
             })
             //详情监听事件
             bus.$on(this.busTableDetailName,(obj)=>{
-                this.tableDetailObj={
+                /*this.tableDetailObj={
                     dialogState:false,
                     columnHead:[],
                     rowData:{},
-                }
+                }*/
+                this.dialogState = false
             })
             //监听过滤条件
             bus.$on(this.busFilterName,(str)=>{
@@ -965,11 +966,10 @@
                     width: '100',
                     btns: [
                         {
-                            icon: 'el-icon-view',
-                            text: '查看',
+                            icon: 'el-icon-tickets',
+                            text: '查看详情',
                             clickFun: (row, index) => {
                                 //this.seeChart(row,index)
-                                console.log(typeof row)
                                 let arr = []
                                 //拼接头部
                                 this.chartsConfig.columnArr.forEach((item)=>{
@@ -978,13 +978,13 @@
                                         label:item.aliasName === '' ? item.field : item.aliasName,
                                     })
                                 })
+                                this.dialogState = true
                                 this.tableDetailObj = {
-                                    dialogState:true,
                                     columnHead:arr,
                                     rowData:row,
                                 }
                             }
-                        },]
+                        }]
                 })
 
                 this.$nextTick(()=>{
@@ -1073,6 +1073,7 @@
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
                     filters_visual:this.filters,
+                    index_name:this.chartsConfig.custom_index_name,
                     type:this.chartType,
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,

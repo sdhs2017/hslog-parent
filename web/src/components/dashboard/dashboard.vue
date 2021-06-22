@@ -97,7 +97,7 @@
                         <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
                             <v-basetable :selection="item.opt.selection" :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText" :busName="item.opt.busNames" :selectionArr="selected_row"></v-basetable>
                             <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="item.opt.tableData">
-                                总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
+                                总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,最大显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
                                 <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="Number(item.opt.page.size)" :total="item.opt.page.allCounts"></el-pagination>
                             </div>
                         </div>
@@ -363,6 +363,7 @@
             </div>
 
         </div>
+        <tableDetail :dialogState="dialogState" :columnHead="tableDetailObj.columnHead" :rowData="tableDetailObj.rowData" :busName="dashboardTableDetailName"></tableDetail>
     </div>
 
 </template>
@@ -378,6 +379,7 @@
     import queryFilter from '../dashboard/queryFilter'
     import vEcharts from '../common/echarts'
     import vBasetable from '../common/Basetable2';
+    import tableDetail from '../dashboard/tableDetail'
     import bus from '../common/bus';
     import {dateFormat,jumpHtml,setChartParam,changeEchartsTooltip} from "../../../static/js/common";
     import allComps from '../charts/index'
@@ -399,6 +401,16 @@
         name: "dashboard",
         data() {
             return {
+                //表格详情弹窗绑定事件名称
+                dashboardTableDetailName:'dashboardTableDetailName',
+                //表格详情弹窗状态
+                dialogState:false,
+                //表格详情弹窗参数
+                tableDetailObj:{
+                    columnHead:[],//名称（key）
+                    rowData:{},//数据
+                },
+                //loading
                 setAssetLoading:false,
                 //设置资产条件dialog状态
                 setAssetConditionState:false,
@@ -737,6 +749,7 @@
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = 'resiveDashboard'+this.$route.query.eid;
                 this.busFilterName = 'resiveDashboardFilters'+this.$route.query.eid;
+                this.dashboardTableDetailName = 'resiveDashboardTableDetail'+this.$route.query.eid;
                 this.busQueryName = 'resiveDashboardQuery'+this.$route.query.eid;
                 this.operType = 'edit';
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
@@ -751,6 +764,7 @@
                 this.busName = 'seeDashboard'+this.$route.query.id;
                 this.busFilterName = 'seeDashboardFilters'+this.$route.query.eid;
                 this.busQueryName = 'seeDashboardQuery'+this.$route.query.eid;
+                this.dashboardTableDetailName = 'seeDashboardTableDetail'+this.$route.query.eid;
                 this.operType = 'see'
                 if(this.dashboardId === '' || this.dashboardId !== this.$route.query.id){
                     this.dashboardId = this.$route.query.id;
@@ -763,6 +777,7 @@
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'equipmentDashboard'+this.$route.query.eid;
                 this.busFilterName = 'eqDashboardFilters'+this.$route.query.eid;
+                this.dashboardTableDetailName = 'eqDashboardTableDetail'+this.$route.query.eid;
                 this.busQueryName = 'eqDashboardQuery'+this.$route.query.eid;
                 //设置时间为 今天
                 this.defaultVal.lastVal = '1-daying'
@@ -781,6 +796,7 @@
                 this.htmlTitle = `查看 ${this.$route.query.name}`;
                 this.busName = 'assetGroupDashboard'+this.$route.query.eid;
                 this.busFilterName = 'assetGroupDashboardFilters'+this.$route.query.eid;
+                this.dashboardTableDetailName = 'assetGroupDashboardTableDetail'+this.$route.query.eid;
                 this.busQueryName = 'assetGroupDashboardQuery'+this.$route.query.eid;
                 //设置时间为 今天
                 this.defaultVal.lastVal = '1-daying'
@@ -816,6 +832,10 @@
                     let arr = setChartParam(obj);
                     this.sysChartParams = arr[0];
                 }
+            })
+            //表格详情 监听
+            bus.$on(this.dashboardTableDetailName,(str)=>{
+                this.dialogState = false
             })
             //过滤条件
             bus.$on(this.busFilterName,(str)=>{
@@ -853,6 +873,7 @@
             bus.$off(this.busName)
             bus.$off(this.busFilterName)
             bus.$off(this.busQueryName)
+            bus.$off(this.dashboardTableDetailName)
         },
         computed:{
             assetGroupShow(){
@@ -1144,13 +1165,17 @@
                 this.layout[i].emptyText = '数据获取中，请稍后'
                 let param = this.layout[i].opt.param;
                 param.page = page;
-                //获取数据
+               /* //获取数据
                 let obj = {
                     obj:this.layout[i],
-                    param:param
-                }
-                this.getEchartsData(obj)
+                    param:param,
+                    chartType:'table'
+                }*/
+                this.layout[i].param.page = page
+                this.getEchartsData(this.layout[i])
             },
+            /*表格详情*/
+
             /*修改图表*/
             editChartBtn(i){
                 switch (this.layout[i].chartType) {
@@ -1520,7 +1545,40 @@
                                         option = JSON.parse(data.data.option)
                                     }
                                     else if(obj.chartType === 'table'){//表格
-                                        option.tableHead = JSON.parse(data.data.option).config.tableHead;
+                                        //截取表头 重新写 操作 列逻辑
+                                        let TH = JSON.parse(data.data.option).config.tableHead;
+                                        //删除最后一位
+                                        TH.pop()
+                                        //添加操作列
+                                        TH.push({
+                                            prop: 'tools',
+                                            label: '操作',
+                                            width: '100',
+                                            btns: [
+                                                {
+                                                    icon: 'el-icon-tickets',
+                                                    text: '查看详情',
+                                                    clickFun: (row, index) => {
+                                                        let columnArr = JSON.parse(data.data.option).config.columnArr;
+                                                        let arr = []
+                                                        //拼接key
+                                                        columnArr.forEach((item)=>{
+                                                            arr.push({
+                                                                prop:item.field,
+                                                                label:item.aliasName === '' ? item.field : item.aliasName,
+                                                            })
+                                                        })
+                                                        //弹窗
+                                                        this.dialogState = true
+                                                        this.tableDetailObj = {
+                                                            columnHead:arr,
+                                                            rowData:row,
+                                                        }
+                                                    }
+                                                }]
+                                        })
+                                        //option.tableHead = JSON.parse(data.data.option).config.tableHead;
+                                        option.tableHead = TH;
                                         //特殊资产表 设置多选框 以及资产跳转
                                         if(obj.eId === TABLEID){
                                             option.busNames={
@@ -1669,7 +1727,6 @@
                                     //填充数据
                                     obj.opt.dataset = res.data.data;
                                     obj.opt.series=[];
-
                                     //判断图表类型
                                     if(obj.chartType === 'bar'){
                                         let xL = res.data.data[0].dimensions.length - 1;//维度
@@ -1850,6 +1907,7 @@
                                         if(obj.opt.tableData.length === 0){
                                             obj.emptyText = '暂无数据'
                                         }
+
                                         //判断表格类型
                                         if(obj.tableType === 'es'){
                                             //判断分页
@@ -1875,9 +1933,12 @@
                                             obj.opt.counts = Number(obj.opt.trueCount);
 
                                         }
+                                    }else{
+                                        console.log('eeeeeeee')
                                     }
                                     resolve(obj);
                                 }else{
+                                    console.log('false')
                                     //显示error提示
                                     $(document.getElementById('err'+obj.i)).css("zIndex","200")
                                     $(document.getElementById('err'+obj.i)).html(res.data.message)
@@ -2186,6 +2247,7 @@
             quillEditor,
             queryFilter,
             vBasetable,
+            tableDetail,
             GridLayout: VueGridLayout.GridLayout,
             GridItem: VueGridLayout.GridItem,
 

@@ -1,9 +1,9 @@
 <template>
     <div>
-        <el-dialog title="详情" :visible.sync="state" width="500px">
+        <el-dialog title="详情" :visible.sync="state" width="650px" >
             <div style="max-height: 500px;overflow-y: auto;">
                 <div class="row-wapper" v-for="(item,i) in columnHead">
-                    <div class="row-tit">{{item.label}}</div>
+                    <div class="row-tit">{{item.label}}：</div>
                     <div class="row-val">{{rowData[item.prop]}}</div>
                 </div>
             </div>
@@ -40,19 +40,20 @@
         },
         watch:{
             'dialogState'(){
-                console.log(this.dialogState)
                 if(this.dialogState){
                     this.state = this.dialogState;
                 }
             },
             'state'(){
                 if(!this.state){
-                    bus.$emit(this.busName,'false')
+                   bus.$emit(this.busName,this.state)
                 }
             }
         },
         created() {
             this.state = this.dialogState;
+        },
+        methods:{
         }
     }
 </script>
@@ -62,9 +63,15 @@
         display: flex;
         align-items: start;
         color: #D6DFEB;
+        margin: 10px 0;
+        padding: 5px 10px;
+    }
+    .row-wapper:nth-child(even){
+        background: #3a4b5f;
     }
     .row-tit{
-        width: 100px;
+        width: 110px;
+        font-weight: 600;
     }
     .row-val{
         flex: 1;

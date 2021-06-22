@@ -10,12 +10,12 @@
                 </el-select>
                 <el-select v-model="chartsConfig.dataSourceTypeWay" placeholder="" size="mini" style="width: 111px;" @change="dataSourceWayChange" v-if="chartsConfig.dataSourceType === 'ElasticSearch'">
                     <el-option label="模板" value="template"></el-option>
-                    <el-option label="自定义索引" value="custom"></el-option>
+                    <el-option label="自定义索引" value="index"></el-option>
                 </el-select>
             </div>
             <div class="choose-wapper" v-if="chartsConfig.dataSourceType ==='ElasticSearch'">
                 <choose-index :busName="this.busIndexName" :arr = "indexVal"  v-if="chartsConfig.dataSourceTypeWay === 'template'"></choose-index>
-                <div class="choose-wapper"  v-if="chartsConfig.dataSourceTypeWay === 'custom'">
+                <div class="choose-wapper"  v-if="chartsConfig.dataSourceTypeWay === 'index'">
                     <customIndex :busName="this.busCustomIndexName" :defaultVal = "customIndexVal"></customIndex>
                 </div>
             </div>
@@ -45,7 +45,8 @@
                 :defaultFilterArr="this.defaultFilter"
                 :queryVal="this.defaultQuery"
                 :useType="this.operType"
-                useObject="chart"
+                :useObject="this.chartsConfig.dataSourceTypeWay"
+                :tableTypeVal = "this.customIndexVal"
                 :templateName="this.chartsConfig.templateName"
                 :preIndexName="this.chartsConfig.preIndexName"
                 :suffixIndexName="this.chartsConfig.suffixIndexName"
@@ -84,8 +85,11 @@
                                     <el-form-item label="名称" v-if="chartsConfig.dataSourceType === 'ElasticSearch'">
                                         <el-input v-model="columnItem.aliasName" size="mini"></el-input>
                                     </el-form-item>
-                                    <el-form-item label="显示">
+                                    <el-form-item label="是否显示">
                                         <el-switch v-model="columnItem.show"></el-switch>
+                                    </el-form-item>
+                                    <el-form-item label="是否作为查询条件">
+                                        <el-switch v-model="columnItem.isSearch"></el-switch>
                                     </el-form-item>
                                 </el-form>
                             </el-collapse-item>
@@ -188,6 +192,18 @@
                     <jsonView :data="this.sourceData" theme="one-dark" :line-height="20" :deep="5" class="jsonView"></jsonView>
                     <el-button type="primary" plain size="mini" slot="reference" >源数据</el-button>
                 </el-popover>
+            </div>
+            <div class="search-wapper" :style="{height:wapperHeight}">
+                <div class="search-tit">查询条件</div>
+                <div class="search-con">
+                    <div v-for="(fromItem,i) in chartsConfig.columnArr" :key="i" style="margin-bottom: 5px;">
+                        <div style="font-size: 12px;margin-bottom: 3px;">{{fromItem.aliasName ? fromItem.aliasName : fromItem.field}}</div>
+                        <el-input v-model="fromItem.searchVal" size="mini" class="seach-input"></el-input>
+                    </div>
+                </div>
+                <div class="search-btn">
+                    <el-button type="primary" size="mini" @click="">确定</el-button>
+                </div>
             </div>
         </div>
         <el-dialog title="保存" :visible.sync="dialogFormVisible" width="400px">
@@ -331,7 +347,7 @@
                 chartsConfig:{
                     //源数据类型
                     dataSourceType:'ElasticSearch',
-                    //方式template、custom
+                    //方式template、index
                     dataSourceTypeWay:'template',
                     custom_index_name:'',
                     //mysql源数据
@@ -351,10 +367,12 @@
                     //列集合
                     columnArr:[
                         {
-                            field:'',
-                            sort:'',
-                            aliasName: '',
-                            show:true
+                            field:'',//字段名
+                            sort:'',//排序方式
+                            aliasName: '',//中文名
+                            show:true,//是否显示
+                            isSearch:false,//是否作为查询条件
+                            searchVal:''//查询条件 值
                         }
                     ],
                     //条件集合
@@ -1070,6 +1088,7 @@
                    // opt:this.opt
                 }
                 let params = {
+                    source_type:this.chartsConfig.dataSourceTypeWay,
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
                     filters_visual:this.filters,
@@ -1306,9 +1325,34 @@
         padding-bottom: 0;
     }
     .view-wapper{
-        width: calc(100% - 330px);
+        width: calc(100% - 580px);
         margin-right: 10px;
         position: relative;
+    }
+    .search-wapper{
+        width: 250px;
+        background: #455b75;
+    }
+    .search-tit{
+        height: 39px;
+        background: #48617d;
+        text-align: center;
+        line-height: 39px;
+    }
+    .search-con{
+        height: calc(100% - 71px);
+        overflow-y: auto;
+        padding: 5px;
+    }
+    .seach-input /deep/ .el-input__inner{
+        border-color: #5583b7;
+    }
+    .search-btn{
+        height: 40px;
+    }
+    .search-btn button{
+        width: 100%;
+        height: 32px;
     }
     .config-item{
         /*height:100*/

@@ -242,7 +242,7 @@
                     return 'see'
                 }
             },
-            //使用对象  chart/dashboard
+            //使用对象  chart/dashboard/template/index
             useObject:{
                 type:String
             },
@@ -284,6 +284,9 @@
                 default(){
                     return ''
                 }
+            },
+            tableTypeVal:{
+                type:String,
             },
             ids:{
                 type:Array,
@@ -423,7 +426,7 @@
             /*添加过滤*/
             addFilters(){
                 //判断是否已经选择数据源
-                if(this.suffixIndexName !== '' || this.useObject === 'dashboard'){
+                if(this.suffixIndexName !== '' || this.useObject === 'dashboard' || this.useObject === 'template' || this.useObject === 'index'){
                     this.filterDialog = true;
                     if(this.useObject === 'dashboard'){
                         this.getIndexPattern();
@@ -453,8 +456,9 @@
                                 this.indexPatternOpt = [];
                                 obj.data.forEach(item=>{
                                     this.indexPatternOpt.push({
-                                        value:item,
-                                        label:item
+                                        value:item.value,
+                                        label:item.label,
+                                        source_type:item.source_type
                                     })
                                 })
                             }else{
@@ -472,14 +476,34 @@
                     this.loading = true;
                     let params = {};
                     //判断使用对象 chart dashboard
-                    if(this.useObject === 'chart'){
+                    if(this.useObject === 'chart'){//图表
                         params = {
                             suffix_index_name:this.suffixIndexName,
                             pre_index_name:this.preIndexName,
                             template_name:this.templateName
                         }
+                    }else if(this.useObject === 'template'){//表格 - 模板
+                        params = {
+                            source_type : 'template',
+                            template_name:this.templateName
+                        }
+                    }else if(this.useObject === 'index'){//表格 - 自定义
+                        params = {
+                            source_type : 'index',
+                            index_name:this.tableTypeVal
+                        }
                     }else if(this.useObject === 'dashboard'){
-                        params.template_name = val
+                       // params.source_type = val;
+                        this.indexPatternOpt.forEach(item=>{
+                            if(item.value ===  val){
+                                params.source_type = item.source_type;
+                                if(item.source_type === 'index'){
+                                    params.index_name = val;
+                                }else if(item.source_type === 'template'){
+                                    params.template_name = val;
+                                }
+                            }
+                        })
                     }
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByFilter.do',this.$qs.stringify(params))
                         .then(res=>{

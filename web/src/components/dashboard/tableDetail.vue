@@ -4,7 +4,7 @@
             <div style="max-height: 500px;overflow-y: auto;">
                 <div class="row-wapper" v-for="(item,i) in columnHead">
                     <div class="row-tit">{{item.label}}：</div>
-                    <div class="row-val">{{rowData[item.prop]}}</div>
+                    <div class="row-val" v-html="dataChange(rowData,item.prop)"><!--{{rowData[item.prop]}}--><!--{{dataChange(rowData,item.prop)}}--></div>
                 </div>
             </div>
            <!-- <div slot="footer" class="dialog-footer">
@@ -41,6 +41,8 @@
         watch:{
             'dialogState'(){
                 if(this.dialogState){
+                    console.log(this.columnHead)
+                    console.log(this.rowData)
                     this.state = this.dialogState;
                 }
             },
@@ -54,6 +56,20 @@
             this.state = this.dialogState;
         },
         methods:{
+            //数据处理
+            dataChange(obj,prop){
+                let arr = prop.split('.');
+                let currentData = obj;
+                for (let i in arr){
+                    if( currentData[arr[i]]){
+                        currentData = currentData[arr[i]];
+                    }else{
+                        return  ''
+                    }
+
+                }
+                return  currentData;
+            },
         }
     }
 </script>

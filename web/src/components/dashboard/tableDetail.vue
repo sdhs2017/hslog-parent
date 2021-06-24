@@ -41,8 +41,6 @@
         watch:{
             'dialogState'(){
                 if(this.dialogState){
-                    console.log(this.columnHead)
-                    console.log(this.rowData)
                     this.state = this.dialogState;
                 }
             },

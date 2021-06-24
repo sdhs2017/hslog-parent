@@ -94,11 +94,42 @@
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="no-chart" :id="`err${item.i}`"></div>
-                        <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
-                            <v-basetable :selection="item.opt.selection" :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText" :busName="item.opt.busNames" :selectionArr="selected_row"></v-basetable>
-                            <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="item.opt.tableData">
-                                总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,最大显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
-                                <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="Number(item.opt.page.size)" :total="item.opt.page.allCounts"></el-pagination>
+                        <div class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}">
+                            <div class="table-wapper"  style="width: calc(100% - 200px);float: left;position: relative;">
+                                <div class="no-chart" :id="`loading${item.i}`" style="top: 0;"></div>
+                                <v-basetable  v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" :selection="item.opt.selection" :tableHead="item.opt.tableHead" :height="item.tableHeight" :tableData="item.opt.tableData" :emptyText="item.emptyText" :busName="item.opt.busNames" :selectionArr="selected_row"></v-basetable>
+                                <div style="display:flex;height: 50px;align-items: center;justify-content: flex-end;border-top: 1px solid #5a7494;" v-if="item.opt.tableData">
+                                    总条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.trueCount}} </b>,最大显示条数 <b style="color: #409eff;margin: 0 10px;"> {{item.opt.counts}} </b>
+                                    <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange($event,i)" :current-page.sync="item.opt.page.cPage" :page-size="Number(item.opt.page.size)" :total="item.opt.page.allCounts"></el-pagination>
+                                </div>
+                            </div>
+                            <div class="table-search-wapper" style="width: 200px;float: right;height:100%;">
+                                <div class="search-tit">查询条件</div>
+                                <div class="search-con">
+                                   <div v-for="(fromItem,i) in item.opt.searchArr" :key="i" style="margin-bottom: 5px;" v-if="fromItem.isSearch">
+                                       <div style="font-size: 12px;margin-bottom: 3px;">{{fromItem.aliasName ? fromItem.aliasName : fromItem.field}}</div>
+                                       <el-input v-model="fromItem.searchVal" size="mini" class="seach-input"></el-input>
+                                   </div>
+                                    <div style="margin-bottom: 5px;">
+                                        <div style="font-size: 12px;margin-bottom: 3px;">时间范围</div>
+                                        <div style="border: 1px solid #5583b7;" class="search-date-wapper">
+                                            <el-date-picker
+                                                style="width: 180px;flex-wrap: wrap;border: 0;"
+                                                v-model="item.opt.searchTime"
+                                                type="datetimerange"
+                                                value-format="yyyy-MM-dd HH:mm:ss"
+                                                size="mini"
+                                                :default-time="['00:00:00', '23:59:59']"
+                                                range-separator=""
+                                                start-placeholder="开始日期"
+                                                end-placeholder="结束日期">
+                                            </el-date-picker>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="search-btn">
+                                    <el-button type="primary" size="mini" @click="searchData(i)">确定</el-button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -112,6 +143,7 @@
                         </div>
                         <div class="no-chart" v-if="item.eId == ''">图表已被删除</div>
                         <div class="no-chart" :id="`err${item.i}`"></div>
+                        <div class="no-chart" :id="`loading${item.i}`"></div>
                         <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)" class="item-con" :ref="`eb${item.i}`" :id="`${item.i}`" :style="{zIndex:htmlTitle.substr(0,2) == '查看' ? '100' : ''}"></div>
                     </div>
                 </grid-item>
@@ -1161,8 +1193,11 @@
             },
             /*分页*/
             handleCurrentChange(page,i){
+                //清空表格数据
                 this.layout[i].opt.tableData = [];
                 this.layout[i].emptyText = '数据获取中，请稍后'
+                //设置当前页为1
+                this.layout[i].opt.page.cPage = page
                 let param = this.layout[i].opt.param;
                 param.page = page;
                /* //获取数据
@@ -1171,28 +1206,40 @@
                     param:param,
                     chartType:'table'
                 }*/
-                this.layout[i].param.page = page
+                this.layout[i].param.page = page;
+                //获取数据
+                this.getEchartsData(this.layout[i]);
+            },
+            /*检索条件查询按钮*/
+            searchData(i){
+                //清空表格数据
+                this.layout[i].opt.tableData = [];
+                this.layout[i].emptyText = '数据获取中，请稍后'
+                //设置当前页为1
+                this.layout[i].opt.page.cPage = 1
+                let param = this.layout[i].opt.param;
+                param.page = 1;
+                this.layout[i].param.page = 1
+                //获取数据
                 this.getEchartsData(this.layout[i])
             },
-            /*表格详情*/
-
             /*修改图表*/
             editChartBtn(i){
                 switch (this.layout[i].chartType) {
                     case 'bar':
-                        jumpHtml('barChart'+this.layout[i].eId,'dashboard/barChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        jumpHtml('editBarChart'+this.layout[i].eId,'dashboard/barChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'pie':
-                        jumpHtml('pieChart'+this.layout[i].eId,'dashboard/pieChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        jumpHtml('editPieChart'+this.layout[i].eId,'dashboard/pieChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'line':
-                        jumpHtml('lineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        jumpHtml('editLineChart'+this.layout[i].eId,'dashboard/lineChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'metric':
-                        jumpHtml('metricChart'+this.layout[i].eId,'dashboard/metricChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        jumpHtml('editMetricChart'+this.layout[i].eId,'dashboard/metricChart.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                     case 'table':
-                        jumpHtml('dynamicTable'+this.layout[i].eId,'dashboard/dynamicTable.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
+                        jumpHtml('editDynamicTable'+this.layout[i].eId,'dashboard/dynamicTable.vue',{name:this.layout[i].tit,id:this.layout[i].eId,type:'edit'},' 修改');
                         break;
                 }
             },
@@ -1379,12 +1426,17 @@
                 //获取数据
                 for(let i in this.layout){
                     this.chartsCount += 1;
+
                     //特殊资产表 不需要刷新
                     if(this.layout[i].eId === TABLEID){
                         if(this.layout.length === 1){
                             this.loading = false;
                         }
                         continue;
+                    }
+                    //表格数据 刷新需要重置分页
+                    if(this.layout[i].chartType === 'table'){
+                        this.layout[i].opt.page.cPage = 1
                     }
                     //判断是否是文字块  不是则是图表类型 需要获取图表结构
                     if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
@@ -1545,6 +1597,23 @@
                                         option = JSON.parse(data.data.option)
                                     }
                                     else if(obj.chartType === 'table'){//表格
+                                        //获取检索条件
+                                        let searchArr = [];
+                                        // console.log(JSON.parse(data.data.option).config)
+                                        JSON.parse(data.data.option).config.columnArr.forEach((item)=>{
+                                            // console.log(item)
+                                            //item.searchVal = ''
+                                            searchArr.push({
+                                                isSearch:item.isSearch,
+                                                field:item.field,
+                                                aliasName:item.aliasName,
+                                                searchVal:item.searchVal
+                                            })
+                                        })
+                                        option.searchArr = searchArr;
+                                        option.searchTime = [];
+                                        //查询条件中的日期范围参数
+                                        option.searchTime = [];
                                         //截取表头 重新写 操作 列逻辑
                                         let TH = JSON.parse(data.data.option).config.tableHead;
                                         //删除最后一位
@@ -1663,9 +1732,14 @@
             },
             /*获取echarts数据*/
             getEchartsData(resObj){
-                //显示error提示
-                $(document.getElementById('err'+resObj.i)).css("zIndex","200")
-                $(document.getElementById('err'+resObj.i)).html('<i class="el-icon-loading"></i>')
+                //定义参数
+                let obj = resObj;
+                let param = resObj.param;
+                //显示loading提示
+                /*$(document.getElementById('err'+resObj.i)).css("zIndex","200")
+                $(document.getElementById('err'+resObj.i)).html('<i class="el-icon-loading"></i>')*/
+                $(document.getElementById('loading'+resObj.i)).css("zIndex","200")
+                $(document.getElementById('loading'+resObj.i)).html('<i class="el-icon-loading"></i>')
                 //判断请求的方法
                 let url = '';
                 if(resObj.chartType === 'pie'){
@@ -1677,10 +1751,45 @@
                 }else if(resObj.chartType === 'metric'){
                     url = '/BI/getDataByChartParams_metric.do'
                 }else if(resObj.chartType === 'table'){
+                    //检索条件
+                    let visualSearchArr = [];
+                    resObj.opt.searchArr.forEach(item=>{
+                        if(item.isSearch){
+                            //searchObj[item.field] = item.searchVal
+                            visualSearchArr.push({
+                                field:item.field,
+                                value:item.searchVal,
+                                fieldType:'text',
+                                operator:'is term',
+                                enable:true
+                            })
+                        }
+                    })
+                    //判断时间范围控件是否有效
+                    if(!resObj.opt.searchTime){ //无效
+                        visualSearchArr.push({
+                            field:'@timestamp',
+                            fieldType:'date',
+                            operator:'is between',
+                            start:'',
+                            end:'',
+                            enable:true
+                        })
+                    }else{ //有效
+                        visualSearchArr.push({
+                            field:'@timestamp',
+                            fieldType:'date',
+                            operator:'is between',
+                            start:resObj.opt.searchTime[0],
+                            end:resObj.opt.searchTime[1],
+                            enable:true
+                        })
+                    }
+                    param.visual_search = JSON.stringify(visualSearchArr);
                     //判断表格类型
                     if(resObj.param.tableName){//mysql
-                        url = '/BI/getDataBySql.do'
-                        resObj.tableType = 'mysql'
+                        url = '/BI/getDataBySql.do';
+                        resObj.tableType = 'mysql';
                         //首先判断是否是资产组的报表 在判断是否是资产表格
                         if(this.assetGroupId !== '' && resObj.eId === TABLEID){
                             let arr = [];
@@ -1699,14 +1808,13 @@
                         url = '/BI/getDataByParams_dynamicTable.do'
                     }
                 }
-                let obj = resObj;
-                let param = resObj.param;
                 param.starttime = this.dateArr.starttime;
                 param.endtime = this.dateArr.endtime;
                 param.last = this.dateArr.last;
                 param.filters_dashboard=this.filters;
                 param.filters_table = this.filters_table;
-                param.queryBox = this.queryVal
+                param.queryBox = this.queryVal;
+                // console.log(param)
                 //判断是否是单个资产的统计
                 if (this.equipmentId !== ''){
                     let eqObj = {
@@ -1721,9 +1829,11 @@
                             .then(res=>{
                                 obj.loading = false;
                                 if(res.data.success === 'true'){
-                                    //隐藏error提示
+                                    //隐藏loading提示
                                     $(document.getElementById('err'+obj.i)).css("zIndex","0")
                                     $(document.getElementById('err'+obj.i)).html('')
+                                    $(document.getElementById('loading'+obj.i)).css("zIndex","0")
+                                    $(document.getElementById('loading'+obj.i)).html('')
                                     //填充数据
                                     obj.opt.dataset = res.data.data;
                                     obj.opt.series=[];
@@ -2447,6 +2557,40 @@
         /*z-index: 101;*/
         /*width: 613px;
         height: 260px;*/
+    }
+    .search-tit{
+        height: 39px;
+        background: #48617d;
+        text-align: center;
+        line-height: 39px;
+        font-size: 14px;
+    }
+    .search-con{
+        height: calc(100% - 82px);
+        overflow-y: auto;
+        padding: 5px;
+        border: 1px solid #425b79;
+    }
+    .seach-input /deep/ .el-input__inner{
+        border-color: #5583b7;
+    }
+    .search-btn{
+        height: 40px;
+    }
+    .search-btn button{
+        width: 100%;
+        height: 32px;
+    }
+    .search-date-wapper{
+        height: 50px;
+        border-radius: 5px;
+    }
+    .search-date-wapper /deep/ .el-range-editor--mini .el-range-input, .el-range-editor--small .el-range-input{
+        width: 124px;
+    }
+    .search-date-wapper /deep/ .el-range-editor--mini .el-range__close-icon, .el-range-editor--mini .el-range__icon{
+        position: absolute;
+        right: 0;
     }
     .no-chart{
         width: 100%;

@@ -209,6 +209,7 @@
                                 type="datetimerange"
                                 value-format="yyyy-MM-dd HH:mm:ss"
                                 size="mini"
+                                :default-time="['00:00:00', '23:59:59']"
                                 range-separator=""
                                 start-placeholder="开始日期"
                                 end-placeholder="结束日期">
@@ -574,9 +575,15 @@
                 //获取column数据
                 this.getColumnField()
             })
+            //自定义数据源 监听
             bus.$on(this.busCustomIndexName,(val)=>{
+                //还原配置
+                this.initialize();
+                //设置数据
+                this.chartsConfig.dataSourceTypeWay = 'index';
                 this.chartsConfig.custom_index_name = val;
-                this.getCustomIndex(val)
+                //获取column数据
+                this.getCustomIndex(val);
             })
             //详情监听事件
             bus.$on(this.busTableDetailName,(obj)=>{
@@ -701,6 +708,7 @@
                 let typeWay = this.chartsConfig.dataSourceTypeWay;
                 //重置配置
                 this.initialize();
+                this.customIndexVal = ''
                 this.chartsConfig.dataSourceTypeWay = typeWay;
                 this.chartsConfig.custom_index_name = ''
                 /*if(typeWay === 'MySQL'){
@@ -792,6 +800,8 @@
                 //销毁已经创建的图表
                 this.opt = {};
                 this.chartParams.searchParam='';
+                //清空filter
+                this.defaultFilter = [];
             },
             /*添加列*/
             addColumn(){

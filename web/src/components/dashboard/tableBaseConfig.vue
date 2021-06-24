@@ -196,13 +196,29 @@
             <div class="search-wapper" :style="{height:wapperHeight}">
                 <div class="search-tit">查询条件</div>
                 <div class="search-con">
-                    <div v-for="(fromItem,i) in chartsConfig.columnArr" :key="i" style="margin-bottom: 5px;">
+                    <div v-for="(fromItem,i) in chartsConfig.columnArr" :key="i" style="margin-bottom: 5px;" v-if="fromItem.isSearch && fromItem.field !== ''">
                         <div style="font-size: 12px;margin-bottom: 3px;">{{fromItem.aliasName ? fromItem.aliasName : fromItem.field}}</div>
                         <el-input v-model="fromItem.searchVal" size="mini" class="seach-input"></el-input>
                     </div>
+                    <div style="margin-bottom: 5px;">
+                        <div style="font-size: 12px;margin-bottom: 3px;">时间范围</div>
+                        <div style="border: 1px solid #5583b7;" class="search-date-wapper">
+                            <el-date-picker
+                                style="width: 230px;flex-wrap: wrap;border: 0;"
+                                v-model="searchTime"
+                                type="datetimerange"
+                                value-format="yyyy-MM-dd HH:mm:ss"
+                                size="mini"
+                                range-separator=""
+                                start-placeholder="开始日期"
+                                end-placeholder="结束日期">
+                            </el-date-picker>
+                        </div>
+
+                    </div>
                 </div>
                 <div class="search-btn">
-                    <el-button type="primary" size="mini" @click="">确定</el-button>
+                    <el-button type="primary" size="mini" @click="searchData" :disabled="isCanCreate || operType === 'see'">确定</el-button>
                 </div>
             </div>
         </div>
@@ -343,6 +359,7 @@
                 yUnit :'',
                 //mysql添加多个值
                 addValues:'',
+                searchTime:[],
                 //图表基本配置
                 chartsConfig:{
                     //源数据类型
@@ -650,6 +667,12 @@
             }
         },
         methods:{
+            //检索条件 查询数据
+            searchData(){
+                this.loading = true;
+                this.chartsConfig.page.cPage = 1;
+                this.getData();
+            },
             //设置高度
             setHeight(){
                 let windowHeight = document.body.clientHeight;
@@ -777,7 +800,9 @@
                     field:'',
                     sort:'desc',
                     aliasName: '',
-                    show:true
+                    show:true,
+                    isSearch:false,
+                    searchVal:'',
                 })
             },
             /*添加条件*/
@@ -917,6 +942,42 @@
             },
             /*获取数据*/
             getData(page){
+                //拼接检索条件
+                let searchArr = [];
+                this.chartsConfig.columnArr.forEach(item=>{
+                    if(item.isSearch){
+                        //searchObj[item.field] = item.searchVal
+                        searchArr.push({
+                            field:item.field,
+                            value:item.searchVal,
+                            fieldType:'text',
+                            operator:'is term',
+                            enable:true
+                        })
+                    }
+                })
+                //判断时间范围控件是否有效
+                if(!this.searchTime){ //无效
+                    searchArr.push({
+                        field:'@timestamp',
+                        fieldType:'date',
+                        operator:'is between',
+                        start:'',
+                        end:'',
+                        enable:true
+                    })
+                }else{ //有效
+                    searchArr.push({
+                        field:'@timestamp',
+                        fieldType:'date',
+                        operator:'is between',
+                        start:this.searchTime[0],
+                        end:this.searchTime[1],
+                        enable:true
+                    })
+                }
+
+                // console.log(searchObj)
                 //判断请求的方法
                 let url = ''
                 if (this.chartsConfig.dataSourceType === 'ElasticSearch') {//es
@@ -935,6 +996,7 @@
                             endtime:this.dateObj.endtime,//结束时间
                             last:this.dateObj.last,
                             unit:this.yUnit,
+                            source_type:this.chartsConfig.dataSourceTypeWay,
                             index_name:this.chartsConfig.custom_index_name,
                             pre_index_name:this.chartsConfig.preIndexName,
                             suffix_index_name:this.chartsConfig.suffixIndexName,
@@ -964,6 +1026,8 @@
                         }
                     }
                 }
+                param.visual_search = JSON.stringify(searchArr)
+
                 this.chartsConfig.tableHead = [];
                 this.chartsConfig.tableData = [];
                 this.emptyText = '加载中'
@@ -1080,6 +1144,9 @@
             saveChart(){
                 let cObj = JSON.parse(JSON.stringify(this.chartsConfig))
                 //清空已经获取的参数
+                cObj.columnArr.forEach((item)=>{
+                    item.searchVal = ''
+                })
                 cObj.columnOpt = [];
                 cObj.tableData = [];
                 //定义参数
@@ -1354,6 +1421,17 @@
         width: 100%;
         height: 32px;
     }
+    .search-date-wapper{
+        height: 50px;
+        border-radius: 5px;
+    }
+    .search-date-wapper /deep/ .el-range-editor--mini .el-range-input, .el-range-editor--small .el-range-input{
+        width: 180px;
+    }
+    .search-date-wapper /deep/ .el-range-editor--mini .el-range__close-icon, .el-range-editor--mini .el-range__icon{
+        position: absolute;
+        right: 0;
+    }
     .config-item{
         /*height:100*/
     }
@@ -1470,4 +1548,5 @@
     .filter-box /deep/ .el-input__inner{
         border-radius: 0;
     }
+
 </style>

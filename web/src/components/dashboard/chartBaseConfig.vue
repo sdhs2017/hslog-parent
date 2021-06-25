@@ -2,10 +2,20 @@
     <div v-loading="allLoading"  element-loading-background="rgba(26,36,47, 0.2)">
         <div class="top-title" style="padding-left: 10px;"><!--{{htmlTitle}}-->
             <div class="top-zz" v-if="operType === 'see'"></div>
-            <div class="choose-wapper">
-                <choose-index :busName="this.busIndexName" :arr = "indexVal"></choose-index>
+            <div style="float: left;display: flex;margin-right: 15px;">
+                <span style="width: 42px;color: #409eff;text-shadow: none">类型:</span>
+                <el-select v-model="chartsConfig.dataSourceTypeWay" placeholder="" size="mini" style="width: 111px;" @change="dataSourceWayChange">
+                    <el-option label="模板" value="template"></el-option>
+                    <el-option label="自定义索引" value="index"></el-option>
+                </el-select>
             </div>
-            <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true"  size="mini">保存</el-button>
+            <div class="choose-wapper">
+                <choose-index :busName="this.busIndexName" :arr = "indexVal" v-if="chartsConfig.dataSourceTypeWay === 'template'"></choose-index>
+                <div class="choose-wapper"  v-if="chartsConfig.dataSourceTypeWay === 'index'">
+                    <customIndex :busName="this.busCustomIndexName" :defaultVal = "customIndexVal"></customIndex>
+                </div>
+            </div>
+            <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true" :disabled="isCanCreate || JSON.stringify(opt) === '{}'"  size="mini">保存</el-button>
             <el-button class="update-btn" v-if="updateBtn && isCanCreate !== 'disabled'"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
             <el-button type="primary" v-else size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
             <div class="date-wapper"><date-layout :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>
@@ -17,7 +27,8 @@
                 :defaultFilterArr="this.defaultFilter"
                 :queryVal="this.defaultQuery"
                 :useType="this.operType"
-                useObject="chart"
+                :useObject="this.chartsConfig.dataSourceTypeWay"
+                :tableTypeVal = "this.customIndexVal"
                 :templateName="this.chartsConfig.templateName"
                 :preIndexName="this.chartsConfig.preIndexName"
                 :suffixIndexName="this.chartsConfig.suffixIndexName"
@@ -473,6 +484,7 @@
     import jsonView from 'vue-json-views'
     import queryFilter from '../dashboard/queryFilter'
     import chooseIndex from '../dashboard/chooseIndex'
+    import customIndex from '../dashboard/customIndex'
     const echarts = require('echarts');
     export default {
         name: "chartBaseConfig",
@@ -563,10 +575,13 @@
                 //bus监听事件的名称
                 busName:'createBarChart',
                 busIndexName:'barIndexName',
+                busCustomIndexName:'customChartIndexBusName',
                 busFilterName:'',
                 busQueryName:'',
                 //默认数据源索引
                 indexVal:[],
+                //自定义索引 参数
+                customIndexVal:'',
                 //展开的选项卡
                 configOpened:['1','2','3','4','5','6','7','8','9'],
                 yUnit :'',
@@ -578,6 +593,10 @@
                     preIndexName:'',
                     //index后时间
                     suffixIndexName:'',
+                    //数据源类型  template、index
+                    dataSourceTypeWay:'template',
+                    //自定义数据源 值
+                    custom_index_name:'',
                     //datefield
                     datefield:'',
                     //标题
@@ -832,9 +851,10 @@
                 this.htmlTitle = `编辑 ${this.$route.query.name}`;
                 this.busName = this.chartType + 'resiveChart'+this.$route.query.id;
                 this.busIndexName = this.chartType + 'IndexName' +this.$route.query.id;
+                this.busCustomIndexName = this.chartType + 'chartBusCustomIndexName' +this.$route.query.id;
                 this.busFilterName = this.chartType + 'FilterName' +this.$route.query.id;
                 this.busQueryName = this.chartType + 'QueryName' +this.$route.query.id;
-                //时间范围监听事件
+               /* //时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
                     this.dateObj = arr[0];
@@ -864,7 +884,7 @@
                 //监听query
                 bus.$on(this.busQueryName,(str)=>{
                     this.isUpdate(str)
-                })
+                })*/
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
                     path:'editBarChart'+this.$route.query.id,
@@ -883,8 +903,9 @@
                 this.busName = 'seeChart'+this.$route.query.id;
                 this.busIndexName = 'seeIndexName' +this.$route.query.id;
                 this.busFilterName = 'seeFliterName' +this.$route.query.id;
+                this.busCustomIndexName = 'seeChartCustomIndexName' +this.$route.query.id;
                 this.busQueryName = 'seeQueryName' +this.$route.query.id;
-                //时间范围监听事件
+                /*//时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
                     this.dateObj = arr[0];
@@ -914,7 +935,7 @@
                 //监听query
                 bus.$on(this.busQueryName,(str)=>{
                     this.isUpdate(str)
-                })
+                })*/
                 //将路由存放在本地 用来刷新页面时添加路由
                 let obj = {
                     path:'seeBarChart'+this.$route.query.id,
@@ -930,7 +951,8 @@
                 this.busIndexName = this.chartType + 'addIndexName';
                 this.busFilterName = this.chartType + 'addFliterName';
                 this.busQueryName = this.chartType + 'addQueryName';
-                //时间范围监听事件
+                this.busCustomIndexName = this.chartType + 'addChartCustomIndexName';
+                /*//时间范围监听事件
                 bus.$on(this.busName,(obj)=>{
                     let arr = setChartParam(obj);
                     this.dateObj = arr[0];
@@ -960,8 +982,49 @@
                 //监听query
                 bus.$on(this.busQueryName,(str)=>{
                     this.isUpdate(str)
-                })
+                })*/
             }
+            //时间范围监听事件
+            bus.$on(this.busName,(obj)=>{
+                let arr = setChartParam(obj);
+                this.dateObj = arr[0];
+                this.intervalObj = arr[1];
+            })
+            //数据源监听
+            bus.$on(this.busIndexName,(arr)=>{
+                //还原配置
+                this.initialize();
+                //设置数据源
+                this.chartsConfig.suffixIndexName = arr[2];
+                this.chartsConfig.preIndexName = arr[1];
+                this.chartsConfig.templateName = arr[0];
+                this.chartsConfig.datefield = arr[3];
+            })
+            //自定义数据源 监听
+            bus.$on(this.busCustomIndexName,(val)=>{
+                //还原配置
+                this.initialize();
+                //设置数据
+                this.chartsConfig.dataSourceTypeWay = 'index';
+                this.chartsConfig.custom_index_name = val;
+                //获取dateField数据
+                this.getDateField();
+            })
+            //监听过滤条件
+            bus.$on(this.busFilterName,(str)=>{
+                this.filters = str;
+                //刷新
+                //判断是否具备生成图表的条件
+                if(this.isCanCreate !== 'disabled'){
+                    this.loading = true;
+                    //获取数据
+                    this.getData()
+                }
+            })
+            //监听query
+            bus.$on(this.busQueryName,(str)=>{
+                this.isUpdate(str)
+            })
         },
 
         beforeDestroy(){
@@ -1006,6 +1069,38 @@
             }
         },
         methods:{
+            //数据源类型方式改变事件
+            dataSourceWayChange(){
+                let typeWay = this.chartsConfig.dataSourceTypeWay;
+                //重置配置
+                this.initialize();
+                this.customIndexVal = ''
+                this.chartsConfig.dataSourceTypeWay = typeWay;
+                this.chartsConfig.custom_index_name = ''
+                /*if(typeWay === 'MySQL'){
+                    this.chartsConfig.custom_index_name = '';
+                }
+                this.setHeight()*/
+            },
+            /*获取datefield*/
+            getDateField(){
+                this.$nextTick(()=>{
+                    this.leftLoading = true;
+                    this.$axios.post(this.$baseUrl+'/metadata/getDateFieldByIndexName.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.leftLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.chartsConfig.datefield = obj.data.dateField;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.leftLoading = false;
+                        })
+                })
+            },
             //刷新
             refreshChart(){
                 this.refresh++;
@@ -1090,8 +1185,12 @@
             /*y轴聚合类型改变*/
 
             yAggregationChange($event,index){
-                if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
+                if ( this.chartsConfig.suffixIndexName === '' && this.chartsConfig.dataSourceTypeWay === 'template'){
                     layer.msg('请选择数据源',{icon:'5'});
+                    return;
+                }
+                if ( this.chartsConfig.custom_index_name === '' && this.chartsConfig.dataSourceTypeWay === 'index'){
+                    layer.msg('请填写数据源',{icon:'5'});
                     return;
                 }
                 //清空聚合字段
@@ -1103,6 +1202,8 @@
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByYAxisAggregation.do',this.$qs.stringify(
                         {
                             agg:$event,
+                            source_type:this.chartsConfig.dataSourceTypeWay,
+                            index_name:this.chartsConfig.custom_index_name,
                             pre_index_name:this.chartsConfig.preIndexName,
                             suffix_index_name:this.chartsConfig.suffixIndexName,
                             template_name:this.chartsConfig.templateName
@@ -1127,8 +1228,12 @@
             },
             /*x轴聚合类型改变*/
             xAggregationChange($event,index){
-                if (this.chartsConfig.preIndexName === '' || this.chartsConfig.suffixIndexName === '' || this.chartsConfig.templateName === ''){
+                if ( this.chartsConfig.suffixIndexName === '' && this.chartsConfig.dataSourceTypeWay === 'template'){
                     layer.msg('请选择数据源',{icon:'5'});
+                    return;
+                }
+                if ( this.chartsConfig.custom_index_name === '' && this.chartsConfig.dataSourceTypeWay === 'index'){
+                    layer.msg('请填写数据源',{icon:'5'});
                     return;
                 }
                 //清空聚合字段
@@ -1142,6 +1247,8 @@
                     this.leftLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getFieldByXAxisAggregation.do',this.$qs.stringify({
                         agg:$event,
+                        source_type:this.chartsConfig.dataSourceTypeWay,
+                        index_name:this.chartsConfig.custom_index_name,
                         pre_index_name:this.chartsConfig.preIndexName,
                         suffix_index_name:this.chartsConfig.suffixIndexName,
                         template_name:this.chartsConfig.templateName
@@ -1271,6 +1378,8 @@
                     endtime:this.dateObj.endtime,//结束时间
                     last:this.dateObj.last,
                     unit:this.yUnit,
+                    source_type:this.chartsConfig.dataSourceTypeWay,
+                    index_name:this.chartsConfig.custom_index_name,
                     pre_index_name:this.chartsConfig.preIndexName,
                     suffix_index_name:this.chartsConfig.suffixIndexName,
                     template_name:this.chartsConfig.templateName,
@@ -1298,7 +1407,24 @@
                                 }else{
                                     xDataArr = obj.data[0].dimensions;
                                 }
-                                if(xDataArr.length > 1){
+
+                                echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
+                                this.sourceData = obj.data;
+                                this.emptyTipState = false;
+                                //this.createChart(obj.data[0]);
+                                if(this.chartType === 'bar'){
+                                    this.createBarChart(obj.data[0])
+                                }else if(this.chartType === 'line'){
+                                    this.createLineChart(obj.data[0])
+                                }else if(this.chartType === 'pie'){
+                                    if(obj.data.length === 0){
+                                        this.emptyTipState = true;
+                                    }
+                                    this.createPieChart(obj.data)
+                                }else if(this.chartType === 'metric'){
+                                    this.createMetric(obj.data)
+                                }
+                                /*if(xDataArr.length > 1){
                                     // echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
                                     this.sourceData = obj.data;
                                     this.emptyTipState = false;
@@ -1315,7 +1441,7 @@
                                 }else{
                                     this.emptyTipState = true;
                                     echarts.init(document.getElementById('charts-wapper')).dispose();//销毁前一个实例
-                                }
+                                }*/
 
                             } else {
                                 layer.msg(obj.message,{icon:5});
@@ -1329,6 +1455,7 @@
             },
             /*创建柱状图图表*/
             createBarChart(data){
+                console.log('creat')
                 this.opt = {
                     title: {
                         text: "",
@@ -1446,6 +1573,7 @@
                 window.addEventListener("resize",()=>{
                     myChart.resize();
                 });
+                console.log(opt)
                 //保存结构数据
                 this.chartsConfigArr.push(JSON.stringify(this.chartsConfig));
             },
@@ -1753,6 +1881,8 @@
                     opt:this.opt
                 }
                 let params = {
+                    source_type:this.chartsConfig.dataSourceTypeWay,
+                    index_name:this.chartsConfig.custom_index_name,
                     title:this.chartParams.chartName,
                     description:this.chartParams.chartDes,
                     filters_visual:this.filters,
@@ -1827,6 +1957,7 @@
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;
+                                        this.customIndexVal = this.chartsConfig.custom_index_name;
                                         //x轴聚合参数
                                         /* let xap = this.chartsConfig.xAxisArr[0].aggregationParam;
                                          this.xAggregationChange();
@@ -1987,6 +2118,7 @@
         components:{
             dateLayout,
             chooseIndex,
+            customIndex,
             jsonView,
             queryFilter
         }

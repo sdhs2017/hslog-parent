@@ -15,7 +15,7 @@
                     <customIndex :busName="this.busCustomIndexName" :defaultVal = "customIndexVal"></customIndex>
                 </div>
             </div>
-            <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true" :disabled="isCanCreate || JSON.stringify(opt) === '{}'"  size="mini">保存</el-button>
+            <el-button class="saveChart" type="success" plain @click="dialogFormVisible = true" :disabled="isCanCreate || JSON.stringify(opt) === '{}'"  size="mini" title="提示：先生成图表，再保存">保存</el-button>
             <el-button class="update-btn" v-if="updateBtn && isCanCreate !== 'disabled'"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
             <el-button type="primary" v-else size="mini" plain @click="refreshChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
             <div class="date-wapper"><date-layout :busName="busName" :defaultVal="defaultVal" :refresh="refresh"></date-layout></div>

@@ -2332,11 +2332,11 @@
                 }else if(JSON.stringify(to.query) !== "{}" && to.query.type === "EQedit"){
                     //将路由存放在本地 用来刷新页面时添加路由
                     let obj = {
-                        path:'equipmentDashboard'+to.query.eid,
+                        path:'equipmentDashboard'+to.query.conType+to.query.eid,
                         component:'dashboard/dashboard.vue',
                         title:'编辑'
                     }
-                    sessionStorage.setItem('/equipmentDashboard'+to.query.eid,JSON.stringify(obj))
+                    sessionStorage.setItem('/equipmentDashboard'+to.query.conType+to.query.eid,JSON.stringify(obj))
                 }else if(JSON.stringify(to.query) !== "{}" && to.query.type === "assetGroupEdit"){
                     //将路由存放在本地 用来刷新页面时添加路由
                     let obj = {

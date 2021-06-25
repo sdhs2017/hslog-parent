@@ -1237,6 +1237,7 @@
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;
                                         this.customIndexVal = this.chartsConfig.custom_index_name
+                                        this.chartsConfig.dataSourceTypeWay = obj.data.source_type;
                                         this.chartParams.chartName = obj.data.title;
                                         this.chartParams.chartDes = obj.data.description;
                                         this.chartParams.searchParam = obj.data.params;

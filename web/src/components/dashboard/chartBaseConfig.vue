@@ -1957,6 +1957,7 @@
                                         let option = JSON.parse(obj.data.option);
                                         this.indexVal = [obj.data.template_name,obj.data.pre_index_name,obj.data.suffix_index_name,this.chartsConfig.datefield]
                                         this.chartsConfig = option.config;
+                                        this.chartsConfig.dataSourceTypeWay = obj.data.source_type;
                                         this.customIndexVal = this.chartsConfig.custom_index_name;
                                         //x轴聚合参数
                                         /* let xap = this.chartsConfig.xAxisArr[0].aggregationParam;

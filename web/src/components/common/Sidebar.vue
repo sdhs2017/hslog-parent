@@ -1,7 +1,7 @@
 <template>
     <div class="sidebar">
         <el-menu class="sidebar-el-menu" :default-active="onRoutes" :collapse="collapse" background-color="#1A242F"
-            text-color="#bfcbd9" active-text-color="#20a0ff" router>
+            text-color="#bfcbd9" active-text-color="#20a0ff" >
             <template v-for="item in items">
                 <template v-if="item.menus">
                     <el-submenu :index="item.id" :key="item.id">
@@ -11,17 +11,17 @@
                         <template v-for="subItem in item.menus">
                             <el-submenu v-if="subItem.menus" :index="subItem.url" :key="subItem.url">
                                 <template slot="title">{{ subItem.menuName }}</template>
-                                <el-menu-item v-for="(threeItem,i) in subItem.menus" :key="i" :index="threeItem.url">
+                                <el-menu-item v-for="(threeItem,i) in subItem.menus" :key="i" :index="threeItem.url" >
                                     {{ threeItem.menuName }}
                                 </el-menu-item>
                             </el-submenu>
-                            <el-menu-item v-else :index="subItem.url" :key="subItem.url">
+                            <el-menu-item v-else :index="subItem.url" :key="subItem.url" @click.native="goToHtml(subItem)" :class="subItem.url === currentUrl ? 'currentClass' :''">
                                 {{ subItem.menuName }}
                             </el-menu-item>
                         </template>
                     </el-submenu>
                 </template>
-                <!--<template v-else>
+                <!--<template v-else>router
                     <el-menu-item :index="item.index" :key="item.index">
                         <i :class="item.icon"></i><span slot="title">{{ item.title }}</span>
                     </el-menu-item>
@@ -33,6 +33,7 @@
 
 <script>
     import bus from '../common/bus';
+    import {jumpHtml} from "../../../static/js/common";
     export default {
         data() {
             return {
@@ -113,7 +114,8 @@
                         ]
                     }*/
                 ],
-                systemId:1
+                systemId:1,
+                currentUrl:'',
             }
         },
         computed:{
@@ -152,13 +154,59 @@
             }
         },
         methods:{
+            /**/
+            goToHtml(item){
+                this.currentUrl = item.url
+                //判断是否url 存在于路由表中  通过url特殊字符帕努单
+                if(item.url.split('path=').length > 1){ //不存在 需要手动添加
+                    let obj = JSON.parse(JSON.parse(item.url.split('path=')[1]));
+                    let queryObj = {}
+                    queryObj.name = item.menuName
+                    for(let i in obj.query){
+                        queryObj[i] = obj.query[i]
+                    }
+                    jumpHtml(obj.routeName+obj.query.id,obj.vuePath,queryObj,'');
+                }else{ //存在
+                    //第一次需要对特殊的url 进行处理  替换URl
+                    if(item.url.indexOf('/') !== -1){
+                        item.url =  item.url.split('/')[1].split('.')[0];
+                        if(item.url === 'logIndex'){
+                            item.url = 'index';
+                        }
+                        if(item.url === 'searchLogs2'){
+                            item.url = 'accurateSearch';
+                        }
+                        if(item.url === 'serviceManage'){
+                            item.url = 'controlCenter'
+                        }
+                        let us = item.url.replace('device','equipment');
+                        item.url = us;
+                        let us2 = item.url.replace('Device','Equipment');
+                        item.url = us2;
+                    }
+
+                    this.$router.push(item.url)
+                }
+                //console.log(item)
+                /*if(item.url.split('?').length > 1){
+                    jumpHtml(item.url,'dashboard/dashboard.vue',{name:row.title,id:row.id,type:'see'},' 查看');
+                }else{
+                    this.$route.push(item.url)
+                }*/
+               /* let obj2 = {routeName:'seeDashboardkhcbOHoBW9kPociCJKTP',vuePath:'dashboard/dashboard.vue',query:{id:'khcbOHoBW9kPociCJKTP',type:'see'}};
+                let obj = {
+                    url:'',
+                    path:'',
+
+                }*/
+            },
             /*获取菜单*/
             getMenuData(id){
                 this.$nextTick(() => {
                     this.$axios.post(this.$baseUrl+'/menu/selectMenu.do',this.$qs.stringify({systemID:id}))
                         .then((res) => {
                             //
-                            res.data.forEach(item =>{
+                           /* res.data.forEach(item =>{
                                 //处理以前版本 的数据
                                 item.id = item.id.toString();
                                 item.menus.forEach(subItem =>{
@@ -178,7 +226,7 @@
                                     subItem.url = us2;
 
                                 })
-                            })
+                            })*/
                             this.items = res.data;
                             //console.log(this.items)
                         })
@@ -233,5 +281,9 @@
     }
     .is-opened{
         background: #fff;
+    }
+    .currentClass{
+        color: rgb(32, 160, 255) !important;
+        background-color: rgb(26, 36, 47) !important;
     }
 </style>

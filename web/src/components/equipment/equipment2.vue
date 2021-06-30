@@ -442,13 +442,19 @@
             },
             /*查看资产日志*/
             equipmentLogs(rowData,index){
-                if(rowData.type === "安全-IPS"){//IPS
-                    jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'khcbOHoBW9kPociCJKTP',type:'EQedit',conType:'Log' },'查看')
-                    return;
-                }else if(rowData.type === "安全-防火墙"){
-                    jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'QhoqOHoBW9kPociCF0Rj',type:'EQedit' ,conType:'Log'},'查看')
+                if(rowData.logType === 'syslog'){
+                    if(rowData.type === "安全-IPS"){//IPS
+                        jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'khcbOHoBW9kPociCJKTP',type:'EQedit',conType:'Log' },'查看')
+                        return;
+                    }else if(rowData.type === "安全-防火墙"){
+                        jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'QhoqOHoBW9kPociCF0Rj',type:'EQedit' ,conType:'Log'},'查看')
+                        return;
+                    }
+                }else if(rowData.logType === 'packet'){
+                    jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'TsEeV3oBW9kPociCftyS',type:'EQedit',conType:'Log' },'查看')
                     return;
                 }
+
                 //跳转页面
                 jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
             },
@@ -525,6 +531,9 @@
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }else if(logType === 'metric'){
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
+                }else if(logType === 'packet'){
+                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'5ukeWHoBW9kPociCdCo7',type:'EQedit',conType:'Chart' },'查看')
+                    return;
                 }else{
                     layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
                 }

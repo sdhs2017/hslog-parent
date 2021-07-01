@@ -453,6 +453,9 @@
                 }else if(rowData.logType === 'packet'){
                     jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'TsEeV3oBW9kPociCftyS',type:'EQedit',conType:'Log' },'查看')
                     return;
+                }else if(rowData.logType === 'mysql'){
+                    jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:'bkykYHoBW9kPociCgN85',type:'EQedit',conType:'Log' },'查看')
+                    return;
                 }
 
                 //跳转页面
@@ -533,6 +536,9 @@
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
                 }else if(logType === 'packet'){
                     jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'5ukeWHoBW9kPociCdCo7',type:'EQedit',conType:'Chart' },'查看')
+                    return;
+                }else if(logType === 'mysql'){
+                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'ES8HYHoBW9kPociCqddN',type:'EQedit',conType:'Chart' },'查看')
                     return;
                 }else{
                     layer.msg(`${logType} 类型资产暂无报表`,{icon:5})

@@ -285,6 +285,14 @@
                                if(res.data.state === '1'){//状态正常
                                    localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                    localStorage.setItem("homePage", res.data.homepage);
+                                   //判断是否存在 字段
+                                   if(res.data.custom_name){
+                                       localStorage.setItem("customName", res.data.custom_name);
+                                   }
+                                   if(res.data.license_due_time){
+                                       localStorage.setItem("licenseDueTime", res.data.license_due_time);
+
+                                   }
                                    this.getLogConfig();
                                    this.$router.push(this.systemObj.index);
                                }else if(res.data.state === '0'){//密码过期

@@ -5,6 +5,9 @@
             <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（阈值设置）</span> </div>
             <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span class="set-rang" @click="editIpWapper = true">（修改IP）</span></div>
 <!--            <div class="backupConfig">备份时间：<span  @click="backupWapper = true">{{this.backupObj2.backupDate === '' ? '未设置' :this.backupObj2.backupDate}}</span></div>-->
+            <div class="custonName" v-if="customName">单位名称：<span style="color: #e4956d;">{{customName}}</span></div>
+            <div class="licenseDueTime" v-if="licenseDueTime">证书到期时间：<span style="color: #e4956d;">{{licenseDueTime}}</span></div>
+
             <div class="company"> 版权所有  © 2020-2021  山东九州信泰信息科技股份有限公司  </div>
 <!--            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>-->
         </div>
@@ -117,7 +120,10 @@
                 backupObj2:{
                     backupState:false,
                     backupDate:''
-                }
+                },
+                licenseDueTime:'',//证书到期事时间
+                customName:"",//客户名称
+
             }
         },
         created() {
@@ -133,6 +139,8 @@
                 this.backupObj = JSON.parse(obj)
                 this.backupObj2 = JSON.parse(obj)
             }
+            this.licenseDueTime = localStorage.getItem('licenseDueTime')
+            this.customName = localStorage.getItem('customName')
             /*setInterval(()=>{
                 let date1 = new Date();
                 let date2 = new Date(this.backupObj2.backupDate);
@@ -372,6 +380,10 @@
         text-decoration: underline;
     }
     .systemIp{
+        float: left;
+        margin-left: 20px;
+    }
+    .custonName,.licenseDueTime{
         float: left;
         margin-left: 20px;
     }

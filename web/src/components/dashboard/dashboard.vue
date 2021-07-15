@@ -1109,7 +1109,6 @@
                         .then((res)=>{
                             let typeArr = res.data
                             let type = '';
-                            console.log(data)
                             const str = data.type.substring(0,2);
                             for (let n in typeArr){
                                 let obj = typeArr[n];
@@ -2334,7 +2333,7 @@
                     let obj = {
                         path:'equipmentDashboard'+to.query.conType+to.query.eid,
                         component:'dashboard/dashboard.vue',
-                        title:'编辑'
+                        title:'查看'
                     }
                     sessionStorage.setItem('/equipmentDashboard'+to.query.conType+to.query.eid,JSON.stringify(obj))
                 }else if(JSON.stringify(to.query) !== "{}" && to.query.type === "assetGroupEdit"){
@@ -2342,7 +2341,7 @@
                     let obj = {
                         path:'assetGroupDashboard'+to.query.eid,
                         component:'dashboard/dashboard.vue',
-                        title:'编辑'
+                        title:'查看'
                     }
                     sessionStorage.setItem('/assetGroupDashboard'+to.query.eid,JSON.stringify(obj))
                 }

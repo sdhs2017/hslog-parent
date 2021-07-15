@@ -34,10 +34,9 @@
                         <!--<i class="el-icon-data-line go_metric" title="查看资产指标统计" @click="equipmentDashboard(i)" v-if="$is_has('equipment2_dashboard')"></i>
                         <i class="el-icon-data-line"  v-else></i>-->
                         <!--临时-->
-                        <i class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>
+<!--                        <i class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>-->
                         <!--正常-->
-                        <!--<el-popover
-                            v-if="i.logType === 'metric' || i.logType === 'packet' || i.logType === 'syslog' || i.logType === 'winlog' || i.logType ==='winlogbeat'"
+                        <el-popover
                             placement="right"
                             width="150"
                             trigger="click">
@@ -46,9 +45,9 @@
                                    {{ec.name}}
                                </div>
                             </div>
-                            <el-button slot="reference" title="查看资产报表" @click="getEquipmentCharts(i)"><i class="el-icon-s-data go_metric" ></i></el-button>
+                            <el-button slot="reference" title="查看资产报表" @click="eqChartIcon(i)"><i class="el-icon-s-data go_metric" ></i></el-button>
                         </el-popover>
-                        <i v-else class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>-->
+<!--                        <i v-else class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>-->
                     </div>
                     <div class="eq-inf">
                         <span class="eq-logtype">{{i.logType}}</span>
@@ -100,7 +99,10 @@
                         </ul>
                     </div>
                     <div class="eq-tools-02">
-                        <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>
+                        <!--旧的-->
+<!--                        <i class="el-icon-tickets"  title="查看资产日志"  @click="equipmentLogs(i)"></i>-->
+                        <!--新的-->
+                        <i class="el-icon-tickets"  title="查看资产日志"  @click="eqLogTableIcon(i)"></i>
                         <i class="el-icon-date" title="查看资产事件" @click="equipmentEvents(i)"></i>
                         <i class="el-icon-bell" title="设置安全策略" @click="setSafe(i)"></i>
                         <i class="el-icon-view" title="潜在威胁分析" :style="{color:i.high_risk !== 0 ? '#f55446' : i.moderate_risk !== 0 ? '#f1ae09' : '#4995bb'}" @click="theartAnalyse(i)"></i>
@@ -440,6 +442,44 @@
                 //跳转页面
                 jumpHtml('reviseEquipment2'+rowData.id,'equipment/reviseEquipment2.vue',{ name:rowData.name,id: rowData.id },'资产修改')
             },
+            /*查看资产图表*/
+            equipmentEcharts(rowData,index){
+                /*正常*/
+                /* let logType = rowData.logType;
+                 layer.msg(`${logType} 类型资产暂无报表`,{icon:5})*/
+                /*临时*/
+                //判断资产日志类型
+                let logType = rowData.logType;
+                if(logType === 'syslog'){
+                    if(rowData.type === "安全-IPS"){//IPS
+                        jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'6BWBQXoBW9kPociCM55N',type:'EQedit',conType:'Chart' },'查看')
+                        return;
+                    }else if(rowData.type === "安全-防火墙"){
+                        jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'yhN4QXoBW9kPociCBM9u',type:'EQedit',conType:'Chart' },'查看')
+                        return;
+                    }
+                    //跳转页面
+                    jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+
+                }else if(logType === 'winlog' || logType === 'winlogbeat'){
+                    //跳转页面
+                    jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                }else if(logType === 'metric'){
+                    jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
+                }else if(logType === 'packet'){
+                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'5ukeWHoBW9kPociCdCo7',type:'EQedit',conType:'Chart' },'查看')
+                    return;
+                }else if(logType === 'mysql'){
+                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'ES8HYHoBW9kPociCqddN',type:'EQedit',conType:'Chart' },'查看')
+                    return;
+                }else{
+                    layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
+                }
+            },
+            /**/
+
+
+
             /*查看资产日志*/
             equipmentLogs(rowData,index){
                 if(rowData.logType === 'syslog'){
@@ -488,8 +528,85 @@
                 }
 
             },
+            /*获取资产table、chart 页面路径*/
+            getEquipmentChartTable:async function(){
+                this.loading = true;
+                await this.$axios.post(this.$baseUrl+'/equipment/getEquipmentVisual.do',this.$qs.stringify())
+                    .then(res=>{
+                        this.loading = false;
+                        let obj = res.data;
+                        if(obj.success == 'true'){
+                            localStorage.setItem('equipmentTableChart',JSON.stringify(obj.data))
+                        }else{
+                            layer.msg(obj.message,{icon:5})
+                        }
+                    })
+                    .catch(err=>{
+                         this.loading = false;
+                    })
+
+            },
+            /*资产图表按钮点击事件*/
+            eqChartIcon:async function(rowData){
+                //获取本地跳转路径
+                let chartUrlObj = JSON.parse(localStorage.getItem('equipmentTableChart'))
+                //判断是否存在路径数据
+                if(!chartUrlObj){//不存在  重新请求数据。
+                    await this.getEquipmentChartTable();
+                }
+                chartUrlObj = JSON.parse(localStorage.getItem('equipmentTableChart'))
+                this.getEqChartsUrl(rowData,chartUrlObj.chart);
+            },
+            /*资产日志报表按钮点击事件*/
+            eqLogTableIcon:async function(rowData){
+                //获取本地跳转路径
+                let tableUrlObj = JSON.parse(localStorage.getItem('equipmentTableChart'))
+                //判断是否存在路径数据
+                if(!tableUrlObj){//不存在  重新请求数据。
+                    await this.getEquipmentChartTable();
+                }
+                tableUrlObj = JSON.parse(localStorage.getItem('equipmentTableChart'))
+                this.goToLogs(rowData,tableUrlObj.table);
+            },
+            /*读取本地缓存的table url路径   跳转对应表格*/
+            goToLogs(rowData,tableUrlObj){
+                let logTypeObj = tableUrlObj[rowData.logType]
+                //判断有无此日志类型的 页面
+                if(logTypeObj){
+                    let urlObj = logTypeObj[rowData.type]
+                    //判断有无特殊资产类型的
+                    if(urlObj){
+                        jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:urlObj.id,type:'EQedit',conType:'Log' },'查看')
+                    }else{
+                        //urlObj = logTypeObj.default;
+                        jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
+                    }
+                }else{
+                    layer.msg(`${rowData.logType} 类型资产暂无报表`,{icon:5})
+                }
+            },
+            /*获取本地缓存的chart url路径*/
+            getEqChartsUrl(rowData,chartUrlObj){
+                this.eqChartList = [];
+                let logTypeObj = chartUrlObj[rowData.logType];
+                //判断有无此类型的图标数据
+                if(logTypeObj){
+                    let urlObj = logTypeObj[rowData.type];
+                    //判断是否存在特殊资产类型的图表
+                    if(urlObj){//存在
+                        this.eqChartList = urlObj;
+                    }else{//不存在 查看默认
+                        this.eqChartList = logTypeObj.default;
+                    }
+                }else{
+                    layer.msg(`${rowData.logType} 类型资产暂无图表`,{icon:5})
+                }
+
+            },
+
             /*查看资产dashboard*/ //rowData:资产数据 dID：dashboard ID
             goToDashboard(rowData,dId,type){
+
                 //判断资产日志类型
                // let logType = rowData.logType;
                 if(type === 'siem'){
@@ -499,7 +616,7 @@
                 }else if(type === 'winlog'){
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }else if(type === 'dashboard'){
-                    jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
+                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit',conType:'Chart' },'查看')
                 }
 
                 // if(dId === ''){//SEIM
@@ -509,41 +626,20 @@
                 //     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit' },'查看')
                 // }
                 //dId = 'CMCPunUBEtm5D8ifHXoY'
-            },
-            /*查看资产图表*/
-            equipmentEcharts(rowData,index){
-                /*正常*/
-               /* let logType = rowData.logType;
-                layer.msg(`${logType} 类型资产暂无报表`,{icon:5})*/
-               /*临时*/
-                //判断资产日志类型
-                let logType = rowData.logType;
-                if(logType === 'syslog'){
-                    if(rowData.type === "安全-IPS"){//IPS
-                        jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'6BWBQXoBW9kPociCM55N',type:'EQedit',conType:'Chart' },'查看')
-                        return;
-                    }else if(rowData.type === "安全-防火墙"){
-                        jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'yhN4QXoBW9kPociCBM9u',type:'EQedit',conType:'Chart' },'查看')
-                        return;
-                    }
-                    //跳转页面
-                    jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
+                /*data = {
+                    chart:{
+                        syslog:{
+                            '安全-IPS':[{id:'',name:'',type:''}],//type:  siem / dashboard
+                            '安全-IDS':[{id:'',name:'',type:''}],//type:  siem / dashboard
+                            'default':[]
+                        }
+                    },
+                    table:{
 
-                }else if(logType === 'winlog' || logType === 'winlogbeat'){
-                    //跳转页面
-                    jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
-                }else if(logType === 'metric'){
-                    jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
-                }else if(logType === 'packet'){
-                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'5ukeWHoBW9kPociCdCo7',type:'EQedit',conType:'Chart' },'查看')
-                    return;
-                }else if(logType === 'mysql'){
-                    jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'ES8HYHoBW9kPociCqddN',type:'EQedit',conType:'Chart' },'查看')
-                    return;
-                }else{
-                    layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
-                }
+                    }
+                }*/
             },
+
             /*资产仪表盘*/
             equipmentDashboard(rowData,index){
                 jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'修改')

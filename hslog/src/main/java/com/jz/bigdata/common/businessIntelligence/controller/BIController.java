@@ -17,6 +17,7 @@ import com.jz.bigdata.util.HttpRequestUtil;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.DocWriteResponse;
@@ -47,6 +48,8 @@ public class BIController {
 
     @Autowired
     protected ISearchService searchService;
+    //filter通过聚合类型获取字段信息，默认获取所有字段信息(除了geo_point类型)
+    private static final String FILTER_AGG_TYPE="AllExceptGeo";
     /**
      * Buckets
      * 通过X轴的聚合方式获取fields
@@ -59,16 +62,20 @@ public class BIController {
         try{
             //聚合方式  支持count/max/min/sum/avg
             String agg = request.getParameter("agg");
-            //索引名称
-            //String indexName = request.getParameter("indexName");
-            //template名称
-            String templateName = request.getParameter("template_name");
-            //索引前缀
-            String preIndexName = request.getParameter("pre_index_name");
-            //索引后缀
-            String suffixIndexName = request.getParameter("suffix_index_name");
-            //
-            List<MappingField> result = iBIService.getFieldByXAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
+            //获取数据源类型
+            String source_type = request.getParameter("source_type")==null?"":request.getParameter("source_type");
+            //数据返回结果
+            List<MappingField> result;
+            //数据源是index_name
+            if(ElasticConstant.BI_SOURCE_TYPE_INDEX.equals(source_type)){
+                String index_name = request.getParameter("index_name");
+                result = iBIService.getFieldByXAxisAggregation(index_name,ElasticConstant.BI_SOURCE_TYPE_INDEX,agg);
+            }else{
+                //数据源是模板
+                String templateName = request.getParameter("template_name");
+                result = iBIService.getFieldByXAxisAggregation(templateName,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE,agg);
+            }
+//            List<MappingField> result = iBIService.getFieldByXAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
             log.error("通过X轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
@@ -87,15 +94,19 @@ public class BIController {
         try{
             //聚合方式  支持count/max/min/sum/avg
             String agg = request.getParameter("agg");
-            //索引名称
-            //String indexName = request.getParameter("indexName");
-            //template名称
-            String templateName = request.getParameter("template_name");
-            //索引前缀
-            String preIndexName = request.getParameter("pre_index_name");
-            //索引后缀
-            String suffixIndexName = request.getParameter("suffix_index_name");
-            List<MappingField> result = iBIService.getFieldByYAxisAggregation(templateName,preIndexName+suffixIndexName,agg);
+            //获取数据源类型
+            String source_type = request.getParameter("source_type")==null?"":request.getParameter("source_type");
+            //数据返回结果
+            List<MappingField> result;
+            //数据源是index_name
+            if(ElasticConstant.BI_SOURCE_TYPE_INDEX.equals(source_type)){
+                String index_name = request.getParameter("index_name");
+                result = iBIService.getFieldByYAxisAggregation(index_name,ElasticConstant.BI_SOURCE_TYPE_INDEX,agg);
+            }else{
+                //数据源是模板
+                String templateName = request.getParameter("template_name");
+                result = iBIService.getFieldByYAxisAggregation(templateName,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE,agg);
+            }
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
             log.error("通过Y轴的聚合方式获取对应的列失败："+e.getStackTrace().toString());
@@ -111,17 +122,20 @@ public class BIController {
     @DescribeLog(describe = "通过Filter方式获取对应的列")
     public String getFieldByFilter(HttpServletRequest request){
         try{
-            //filter方式默认获取所有字段信息(除了geo_point类型)
-            String agg = "AllExceptGeo";
-            //索引名称
-            //String indexName = request.getParameter("indexName");
-            //template名称
-            String templateName = request.getParameter("template_name");
-            //索引前缀
-            String preIndexName = request.getParameter("pre_index_name");
-            //索引后缀
-            String suffixIndexName = request.getParameter("suffix_index_name");
-            List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
+            //获取数据源类型
+            String source_type = request.getParameter("source_type")==null?"":request.getParameter("source_type");
+            //数据返回结果
+            List<MappingField> result;
+            //数据源是index_name
+            if(ElasticConstant.BI_SOURCE_TYPE_INDEX.equals(source_type)){
+                String index_name = request.getParameter("index_name");
+                result = iBIService.getFilterField(index_name,ElasticConstant.BI_SOURCE_TYPE_INDEX,FILTER_AGG_TYPE);
+            }else{
+                //数据源是模板
+                String templateName = request.getParameter("template_name");
+                result = iBIService.getFilterField(templateName,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE,FILTER_AGG_TYPE);
+            }
+
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
             log.error("通过Filter方式获取对应的列失败："+e.getStackTrace().toString());
@@ -147,7 +161,7 @@ public class BIController {
             String preIndexName = request.getParameter("pre_index_name");
             //索引后缀
             String suffixIndexName = request.getParameter("suffix_index_name");
-            List<MappingField> result = iBIService.getFilterField(templateName,preIndexName+suffixIndexName,agg);
+            List<MappingField> result = iBIService.getFilterField(templateName,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE,agg);
             return JSONArray.fromObject(result).toString();
         }catch(Exception e){
             log.error("动态表格获取字段失败："+e.getStackTrace().toString());
@@ -702,6 +716,46 @@ public class BIController {
         }catch(Exception e){
             log.error("数据查询失败"+e.getMessage());
             return Constant.failureMessage("数据查询失败");
+        }
+    }
+
+    /**
+     * 通过用户自定义索引名称查询其下的字段信息（mapping），并返回前端可用的数据格式
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getFieldsByCustomIndex", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取自定义index的字段信息")
+    public String getFieldsByCustomIndex(HttpServletRequest request){
+        //自定义索引名称
+        String customIndex = request.getParameter("custom_index_name");
+        try {
+            List<MappingField> result = iBIService.getFieldsByCustomIndex(customIndex,ElasticConstant.ES_FIELDS_TYPE_SOURCE);
+            return JSONArray.fromObject(result).toString();
+        } catch (Exception e) {
+            log.error("通过自定义index获取字段信息失败："+e.getMessage());
+            return Constant.failureMessage("获取数据失败！");
+        }
+    }
+
+    /**
+     * 通过ES每条数据中的_id 查询该条数据的详情
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/getDetailsById", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "查询ES数据详情")
+    public String getDetailsById(HttpServletRequest request){
+        String _id = request.getParameter("_id");
+        String _index = request.getParameter("_index");
+        try {
+            Map<String,String> result = iBIService.getDetailsById(_index,_id);
+            return Constant.successData(JSONObject.fromObject(result).toString());
+        } catch (Exception e) {
+            log.error("获取详情失败！"+e.getMessage());
+            return Constant.failureMessage("获取数据详情失败");
         }
     }
 }

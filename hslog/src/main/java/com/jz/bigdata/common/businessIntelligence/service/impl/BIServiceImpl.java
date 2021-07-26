@@ -13,10 +13,7 @@ import com.hs.elsearch.dao.globalDao.IGlobalDao;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.hs.elsearch.dao.logDao.ILogIndexDao;
 import com.hs.elsearch.service.ISearchService;
-import com.hs.elsearch.util.ElasticConstant;
-import com.hs.elsearch.util.FieldsValueFormatter;
-import com.hs.elsearch.util.MappingField;
-import com.hs.elsearch.util.ValueFormat;
+import com.hs.elsearch.util.*;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.dao.IBusinessIntelligenceDao;
 import com.jz.bigdata.common.businessIntelligence.entity.*;
@@ -28,6 +25,7 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.cluster.settings.ClusterGetSettingsResponse;
+import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.elasticsearch.search.aggregations.metrics.NumericMetricsAggregation;
@@ -60,19 +58,21 @@ public class BIServiceImpl implements IBIService {
     protected ISearchService searchService;
     @Autowired
     protected IBusinessIntelligenceDao businessIntelligenceDao;
+    //combobox新增一列，代表数据源类型  template或index
+    private static final String COMBOBOX_COLUMN_SOURCE_TYPE = "source_type";
     @Override
-    public List<MappingField> getFieldByXAxisAggregation(String templateName, String indexName, String agg) throws Exception {
-        return getMappingFieldByAggType(templateName,agg);
+    public List<MappingField> getFieldByXAxisAggregation(String templateName, String source_type, String agg) throws Exception {
+        return getMappingFieldByAggType(templateName,source_type,agg);
     }
 
     @Override
-    public List<MappingField> getFieldByYAxisAggregation(String templateName, String indexName, String agg) throws Exception {
-        return getMappingFieldByAggType(templateName,agg);
+    public List<MappingField> getFieldByYAxisAggregation(String templateName, String source_type, String agg) throws Exception {
+        return getMappingFieldByAggType(templateName,source_type,agg);
     }
 
     @Override
-    public List<MappingField> getFilterField(String templateName, String indexName, String agg) throws Exception {
-        return getMappingFieldByAggType(templateName,agg);
+    public List<MappingField> getFilterField(String templateName, String source_type, String agg) throws Exception {
+        return getMappingFieldByAggType(templateName,source_type,agg);
     }
 
 
@@ -155,7 +155,11 @@ public class BIServiceImpl implements IBIService {
 
     @Override
     public String getDashboardTemplates(String ids,String indexName) throws Exception {
-        Set<String> result = new TreeSet<>();
+        //用于templates的去重
+        Set<String> tmpSet = new TreeSet<>();
+        //返回前端的combobox数据 map存放一个combobox的对象，包含template名称和类型
+        //类型分为：template 和  index
+        List<Map<String, String>> comboboxList = new ArrayList<>();
         if(ids!=null&&!"".equals(ids)){
             String[] idArray = ids.split(",");
             for(String id:idArray){
@@ -164,12 +168,53 @@ public class BIServiceImpl implements IBIService {
                 //List<Map<String, Object>> list = logSearchDao.getListByMap(searchMap,indexName);
                 Map<String, Object> map = logCurdDao.searchById(indexName,"",id);
                 if(null!=map){
+                    //一个combobox对象，代表一条数据
+                    Map<String,String> comboboxEntity = new HashMap<>();
                     Map<String,Object> visualization = (HashMap<String,Object>)map.get("visualization");
-                    result.add(visualization.get("template_name").toString());
+                    Object source_type = visualization.get("source_type");
+                    //如果数据源类型不为空，且为index类型（自定义索引）
+                    if(source_type!=null&&ElasticConstant.BI_SOURCE_TYPE_INDEX.equals(source_type.toString())){
+                        Object index_name = visualization.get("index_name");
+                        if(index_name!=null&&!StringUtils.isNullOrEmpty(index_name.toString())){
+                            //判断该是否存在，去重
+                            if(!tmpSet.contains(index_name.toString())){
+                                tmpSet.add(index_name.toString());
+                                comboboxEntity.put(Constant.COMBOBOX_LABEL,index_name.toString());
+                                comboboxEntity.put(Constant.COMBOBOX_VALUE,index_name.toString());
+                                comboboxEntity.put(COMBOBOX_COLUMN_SOURCE_TYPE,ElasticConstant.BI_SOURCE_TYPE_INDEX);
+                                comboboxList.add(comboboxEntity);
+                            }else{
+                                //已存在，不处理
+                            }
+
+                        }else{
+                            //获取不到，不处理
+                        }
+                    }else{
+                        //不是index类型或者不存在，取template类型
+                        Object template_name = visualization.get("template_name");
+                        //不为空
+                        if(template_name!=null&&!StringUtils.isNullOrEmpty(template_name.toString())){
+                            //判断该是否存在，去重
+                            if(!tmpSet.contains(template_name.toString())){
+                                tmpSet.add(template_name.toString());
+                                comboboxEntity.put(Constant.COMBOBOX_LABEL,template_name.toString());
+                                comboboxEntity.put(Constant.COMBOBOX_VALUE,template_name.toString());
+                                comboboxEntity.put(COMBOBOX_COLUMN_SOURCE_TYPE,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE);
+                                comboboxList.add(comboboxEntity);
+                            }else{
+                                //已存在，不处理
+                            }
+                        }else{
+                            //template为空，不处理
+                        }
+
+                    }
+
                 }
             }
         }
-        return JSONArray.fromObject(result).toString();
+        return JSONArray.fromObject(comboboxList).toString();
     }
 
     @Override
@@ -193,6 +238,8 @@ public class BIServiceImpl implements IBIService {
             visual.setPre_index_name(visualization.get("pre_index_name").toString());
             visual.setSuffix_index_name(visualization.get("suffix_index_name").toString());
             visual.setOption(visualization.get("option").toString());
+            visual.setSource_type(visualization.get("source_type").toString());
+            //visual.setIndex_name(visualization.get("index_name").toString());
             //处理查询参数
             String params = visualization.get("params").toString();
             visual.setParams(params);
@@ -269,7 +316,7 @@ public class BIServiceImpl implements IBIService {
      * @param aggType 聚合类型
      * @return
      */
-    public List<MappingField> getMappingFieldByAggType(String templateName, String aggType) throws Exception {
+    public List<MappingField> getMappingFieldByAggType(String templateName,String source_type,String aggType) throws Exception {
         //通过模糊的indexName 获取index列表
 
         //获取indices
@@ -285,40 +332,40 @@ public class BIServiceImpl implements IBIService {
 
             case "Average":case "Sum"://获取所有number类型字段信息
                 //result = formatFields(list,numberTypes,false);
-                result = getFieldByIndexAndAgg(templateName,"Number");
+                result = getFieldByIndexAndAgg(templateName,source_type,"Number");
                 break;
             case "Max":case "Min"://获取所有number和date类型字段信息
                 //result = formatFields(list,numberTypes+dateTypes,false);
-                result = getFieldByIndexAndAgg(templateName,"NumberOrDate");
+                result = getFieldByIndexAndAgg(templateName,source_type,"NumberOrDate");
                 break;
             case "Terms"://type为keyword，或者fielddata=true
                 //result = formatFields(list,keywordTypes,true);
-                result = getFieldByIndexAndAgg(templateName,"Terms");
+                result = getFieldByIndexAndAgg(templateName,source_type,"Terms");
                 break;
             case "Date Histogram"://获取所有date类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(templateName,"Date");
+                result = getFieldByIndexAndAgg(templateName,source_type,"Date");
                 break;
             case "Range"://获取所有number类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(templateName,"Number");
+                result = getFieldByIndexAndAgg(templateName,source_type,"Number");
                 break;
             case "Date Range"://获取所有date类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(templateName,"Date");
+                result = getFieldByIndexAndAgg(templateName,source_type,"Date");
                 break;
             case "IPv4 Range"://获取所有ip类型字段信息
                 //result = formatFields(list,dateTypes,false);
-                result = getFieldByIndexAndAgg(templateName,"Ip");
+                result = getFieldByIndexAndAgg(templateName,source_type,"Ip");
                 break;
             case "AllExceptGeo"://filter字段信息
-                result = getFieldByIndexAndAgg(templateName,"AllExceptGeo");
+                result = getFieldByIndexAndAgg(templateName,source_type,"AllExceptGeo");
                 break;
             case "All"://filter字段信息
-                result = getFieldByIndexAndAgg(templateName,"All");
+                result = getFieldByIndexAndAgg(templateName,source_type,"All");
                 break;
             case "alertAgg"://alert聚合查询的结果字段，服务于所有template  因此templateNmae为空字符串
-                result = getFieldByIndexAndAgg("","alertAgg");
+                result = getFieldByIndexAndAgg("",source_type,"alertAgg");
                 break;
             default:
                 break;
@@ -332,12 +379,12 @@ public class BIServiceImpl implements IBIService {
      * @param agg 聚合参数
      * @return
      */
-    private List<MappingField> getFieldByIndexAndAgg(String templateName,String agg){
+    private List<MappingField> getFieldByIndexAndAgg(String templateName,String source_type,String agg){
         List<MappingField> list = SearchCache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
 
         //如果没有获取到mapping信息，尝试更新cache
         if(null==list||0==list.size()){
-            SearchCache.INSTANCE.init(templateName,logIndexDao);
+            SearchCache.INSTANCE.init(templateName,source_type,logIndexDao);
             //更新完毕后根据template+agg获取fields
             list = SearchCache.INSTANCE.getBiCache().getIfPresent(templateName+agg);
         }
@@ -480,10 +527,10 @@ public class BIServiceImpl implements IBIService {
         allMap.put("list",list);
         String result = JSONArray.fromObject(allMap).toString();
         //处理数据
-        JSONArray obj = JSONArray.fromObject(list);
-        for (int i = 0; i < obj.size(); i++) {
-            result = analysisJson(obj.get(i),result);
-        }
+//        JSONArray obj = JSONArray.fromObject(list);
+//        for (int i = 0; i < obj.size(); i++) {
+//            result = analysisJson(obj.get(i),result);
+//        }
         return result;
     }
 
@@ -630,6 +677,67 @@ public class BIServiceImpl implements IBIService {
         return allMap;
     }
 
+    @Override
+    public List<MappingField> getFieldsByCustomIndex(String custom_index_name,String agg) throws Exception {
+
+        List<MappingField> list = SearchCache.INSTANCE.getBiCache().getIfPresent(custom_index_name+agg);
+
+        //如果没有获取到mapping信息，尝试更新cache
+        if(null==list||0==list.size()){
+            SearchCache.INSTANCE.init(custom_index_name,ElasticConstant.BI_SOURCE_TYPE_INDEX,logIndexDao);
+            //更新完毕后根据template+agg获取fields
+            list = SearchCache.INSTANCE.getBiCache().getIfPresent(custom_index_name+agg);
+        }
+        return list;
+        //TODO 该逻辑默认index的mapping未发生变化，因此获取全量字段信息仅需要取并集即可
+        //定义Map<String,MappingField> key为字段名，value为字段详情
+//        Map<String,MappingField> result = new HashMap<>();
+//        //通过ES API获取 自定义index的mapping信息 key为真实index名称，value为mapping对象
+//        Map<String, MappingMetaData> mappingList = logIndexDao.getIndexMappingData(custom_index_name);
+//        //遍历mappingList
+//        for (Map.Entry<String, MappingMetaData> mappingListEntry : mappingList.entrySet()) {
+//            //获取mapping信息并转为map
+//            Map<String,Object> mappingMetaData = mappingListEntry.getValue().getSourceAsMap();
+//            result.putAll(MappingUtil.getAllMapMetadataBySourceMap(mappingMetaData));
+//        }
+//        //排序 并获取所有value 行程前端所需的list
+//        return new ArrayList(MappingUtil.sortByKey(result).values());
+    }
+
+    @Override
+    public Map<String, String> getDetailsById(String index, String id) throws Exception {
+        Map<String, String> result = new HashMap<>();
+        //根据index和id获取ES原始数据
+        Map<String, Object> detailsInfo = logCurdDao.searchById(index,"",id);
+        //将数据打平
+        getFormDataBySourceMap(detailsInfo,"",result);
+        return result;
+    }
+
+    /**
+     * 递归，遍历sourcemap,组装多级key
+     * @param sourceMap
+     * @param parentName
+     * @return
+     */
+    private Map<String, String> getFormDataBySourceMap(Map<String, Object> sourceMap,String parentName,Map<String, String> result){
+        //遍历map
+        for(Map.Entry<String,Object> entry:sourceMap.entrySet()){
+            //获取kv
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            String realKey = StringUtils.isNullOrEmpty(parentName)?key:parentName+"."+key;
+            //判断value是不是map
+            if(entry.getValue() instanceof Map){
+                //递归
+                getFormDataBySourceMap((Map<String, Object>)entry.getValue(),realKey,result);
+            }else{
+                //获取KV,写入结果集中
+                result.put(realKey,value.toString());
+            }
+        }
+        return null;
+    }
     /**
      * 针对折线图和柱状图的数据处理，当聚合是以时间序列处理，对最后一个时间点的数据需要进行处理，保证图表显示的友好度
      * @param conditions

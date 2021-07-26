@@ -602,9 +602,9 @@ public class FlowController {
                 map.remove("endtime");
             }
 
-            if (!userrole.equals("1")) {
-                map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
-            }
+//            if (!userrole.equals("1")) {
+//                map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
+//            }
 
             ArrayList<String> arrayList = new ArrayList<>();
 
@@ -713,6 +713,7 @@ public class FlowController {
                 arrayList.add(map.get("type"));
                 map.remove("type");
                 String [] types = arrayList.toArray(new String[arrayList.size()]);
+                //TODO userid？
                 if (userrole.equals("1")) {
                     //list = logService.getListByMap(configProperty.getEs_old_index(), types, starttime, endtime, map,page,size);
                     try {
@@ -721,7 +722,7 @@ public class FlowController {
                         e.printStackTrace();
                     }
                 }else {
-                    map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
+                    //map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
                     try {
                         list = flowService.getFlowListByBlend(map,  starttime, endtime, page, size, types, configProperty.getEs_flow_index());
                     } catch (Exception e) {

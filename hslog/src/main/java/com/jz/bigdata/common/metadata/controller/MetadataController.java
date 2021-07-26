@@ -154,6 +154,16 @@ public class MetadataController {
         }
     }
     @ResponseBody
+    @RequestMapping(value="/getDateFieldByIndexName", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "获取日期字段名称")
+    public String getDateFieldByIndexName(HttpServletRequest request){
+        //所有index都使用@timestamp作为count的字段。
+        //TODO 获取count方式需要调整
+        Map<String,Object> result = new HashMap<>();
+        result.put("dateField","@timestamp");
+        return Constant.successData(JSONObject.fromObject(result).toString());
+    }
+    @ResponseBody
     @RequestMapping(value="/getSuffixIndexByPre", produces = "application/json; charset=utf-8")
     @DescribeLog(describe = "获取index后缀列表信息")
     public String getSuffixIndexByPre(HttpServletRequest request){

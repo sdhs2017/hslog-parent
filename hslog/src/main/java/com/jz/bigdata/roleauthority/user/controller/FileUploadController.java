@@ -1,15 +1,30 @@
 package com.jz.bigdata.roleauthority.user.controller;
 import java.io.File;  
-import java.io.IOException;  
-import java.util.Iterator;  
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
+import javax.sql.DataSource;
 
-import org.springframework.stereotype.Controller;  
+import com.jz.bigdata.common.Constant;
+import com.jz.bigdata.common.license.LicenseExtra;
+import com.jz.bigdata.roleauthority.user.service.IUserService;
+import com.jz.bigdata.util.DruidUtil;
+import com.jz.bigdata.util.SpringUtils;
+import de.schlichtherle.license.LicenseContent;
+import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONObject;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;  
-import org.springframework.web.bind.annotation.ResponseBody;  
-import org.springframework.web.multipart.MultipartFile;  
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import com.jz.bigdata.common.license.VerifyLicense;
@@ -17,12 +32,15 @@ import com.jz.bigdata.util.DescribeLog;
   
 /** 
  * 文件上传测试类 
- */  
+ */
+@Slf4j
 @Controller  
 @RequestMapping("/upload")  
-public class FileUploadController {  
-  
-	@Resource(name = "licenseService")
+public class FileUploadController {
+
+    @Resource(name = "UserService")
+    private IUserService userService;
+    @Resource(name = "licenseService")
 	private VerifyLicense verifyLicense;
 	
     @ResponseBody  
@@ -255,7 +273,15 @@ public class FileUploadController {
                 }  
             }  
         }
-        return "证书上传成功！";
+        //证书上传后，根据证书信息初始化用户及菜单信息
+        try{
+            userService.updateProduct();
+        }catch(Exception e){
+            log.error("产品激活失败:"+e.getMessage());
+            return "产品激活失败！";
+        }
+        return "产品激活成功";
+
     } 
     
     @ResponseBody  

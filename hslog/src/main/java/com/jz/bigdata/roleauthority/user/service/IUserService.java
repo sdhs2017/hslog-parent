@@ -60,4 +60,12 @@ public interface IUserService {
 	 * @return 更新角色信息的条数
 	 */
 	 public int setUserRole(String user_ids,String role_ids);
+
+	/**
+	 * 证书激活，激活进行数据库内容的初始化（用户、角色、菜单、权限等表的初始化）
+	 * 激活成功才能进行使用master进行登录
+	 * 重复激活或进行菜单、角色权限的更新
+	 * @return
+	 */
+	 public boolean updateProduct() ;
 }

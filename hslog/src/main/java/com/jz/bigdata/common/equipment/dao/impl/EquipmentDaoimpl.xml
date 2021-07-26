@@ -69,6 +69,8 @@
 		<result column="departmentNodeId" jdbcType="INTEGER" property="departmentNodeId" />
 		<result column="domain" jdbcType="VARCHAR" property="domain" />
 		<result column="port" jdbcType="VARCHAR" property="port" />
+		<result column="phone" jdbcType="VARCHAR" property="phone" />
+		<result column="roleNames" jdbcType="VARCHAR" property="roleNames" />
 	</resultMap>
 
 
@@ -386,11 +388,27 @@
 		<!-- 引用查询字段 -->
 		<include refid="Base_Column_List" />
 		,HS_User.`name` AS userName
-		FROM equipment LEFT JOIN `HS_User` ON
+		FROM equipment
+		LEFT JOIN `HS_User` ON
 		equipment.userId=`HS_User`.id
 		where equipment.id=#{id}
 	</select>
-
+	<!-- 查询单个数据 -->
+	<select id="selectEquipmentWithRole" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
+			resultMap="BaseResultMapUserName">
+		<!-- <bind name="name" value="'%' + name + '%'" /> -->
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		,HS_User.`name` AS userName,HS_User.`phone` AS phone,
+		(select GROUP_CONCAT(HS_Role.role_name)
+		from HS_Role
+		left join HS_UserRole on HS_UserRole.FK_RoleID = HS_Role.id
+		where HS_UserRole.FK_UserID=equipment.userId) as roleNames
+		FROM equipment
+		LEFT JOIN `HS_User` ON equipment.userId=`HS_User`.id
+		where equipment.id=#{id}
+	</select>
 	<!-- 查询单个数据 -->
 	<select id="selectOneEquipment" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
 			resultMap="BaseResultMapUserName">
@@ -494,6 +512,80 @@
 		</choose>
 
 	</select>
+	<!-- 分页查询所有数据 -->
+	<select id="searchAllByPageWithRole" resultMap="BaseResultMapUserName">
+
+		<choose>
+			<when test="asset_group_id!= null and asset_group_id !=''">
+				select
+				<include refid="Base_Column_List" />
+				,HS_User.phone,HS_User.name as userName,(select GROUP_CONCAT(HS_Role.role_name)
+				from HS_Role
+				left join HS_UserRole on HS_UserRole.FK_RoleID = HS_Role.id
+				where HS_UserRole.FK_UserID=equipment.userId) as roleNames
+
+				from equipment
+				left join HS_User on HS_User.id=equipment.userId
+				left join asset_group_relations on asset_group_relations.asset_id=equipment.id
+				where 1=1 and asset_group_relations.asset_group_id=#{asset_group_id}
+
+				<if test="userId != null and userId !=''">
+					and equipment.userId = #{userId,jdbcType=VARCHAR}
+				</if>
+				<if test="name != null and name !=''"> and equipment.name LIKE CONCAT('%',
+					#{name}, '%') </if>
+				<if test="hostName != null and hostName !=''"> and equipment.hostName LIKE
+					CONCAT('%',
+					#{hostName}, '%') </if>
+				<if test="ip != null and ip !=''">
+					and equipment.ip LIKE CONCAT('%',#{ip}, '%')
+				</if>
+				<if test="logType != null and logType !='' ">
+					and equipment.logType = #{logType,jdbcType=VARCHAR}
+				</if>
+				<if test="type != null and type !='' ">
+					and equipment.`type` LIKE CONCAT(#{type}, '%')
+				</if>
+				<if test="id != null and id !='' ">
+					and equipment.id = #{id,jdbcType=VARCHAR}
+				</if>
+				limit #{startRecord},#{pageSize}
+			</when>
+			<otherwise>
+				select
+				<include refid="Base_Column_List" />
+				,HS_User.phone,HS_User.name as userName,(select GROUP_CONCAT(HS_Role.role_name)
+				from HS_Role
+				left join HS_UserRole on HS_UserRole.FK_RoleID = HS_Role.id
+				where HS_UserRole.FK_UserID=equipment.userId) as roleNames
+				from equipment
+				left join HS_User on HS_User.id=equipment.userId
+				where 1=1
+				<if test="userId != null and userId !=''">
+					and equipment.userId = #{userId,jdbcType=VARCHAR}
+				</if>
+				<if test="name != null and name !=''"> and equipment.name LIKE CONCAT('%',
+					#{name}, '%') </if>
+				<if test="hostName != null and hostName !=''"> and equipment.hostName LIKE
+					CONCAT('%',
+					#{hostName}, '%') </if>
+				<if test="ip != null and ip !=''">
+					and equipment.ip LIKE CONCAT('%',#{ip}, '%')
+				</if>
+				<if test="logType != null and logType !='' ">
+					and equipment.logType = #{logType,jdbcType=VARCHAR}
+				</if>
+				<if test="type != null and type !='' ">
+					and equipment.`type` LIKE CONCAT(#{type}, '%')
+				</if>
+				<if test="id != null and id !='' ">
+					and equipment.id = #{id,jdbcType=VARCHAR}
+				</if>
+				limit #{startRecord},#{pageSize}
+			</otherwise>
+		</choose>
+
+	</select>
 	<!-- 查询总数量 -->
 	<select id="count">
 
@@ -549,12 +641,64 @@
 				</if>
 			</otherwise>
 		</choose>
-
-
-
-
 	</select>
+	<!-- 查询总数量，包含角色判定 -->
+	<select id="countWithRole">
 
+		<choose>
+			<!-- 带资产组信息的查询-->
+			<when test="asset_group_id!= null and asset_group_id !=''">
+				select count(*) as count
+				<!-- 引用查询字段 -->
+				from equipment
+				left join asset_group_relations on asset_group_relations.asset_id=equipment.id
+				where 1=1 and asset_group_relations.asset_group_id=#{asset_group_id}
+				and equipment.userId = #{userId,jdbcType=VARCHAR}
+				<if test="name != null and name !=''"> and name LIKE CONCAT('%',
+					#{name}, '%') </if>
+				<if test="hostName != null and hostName !=''"> and hostName LIKE
+					CONCAT('%',
+					#{hostName}, '%') </if>
+				<if test="ip != null and ip !=''">
+					<!--and ip = #{ip,jdbcType=VARCHAR}-->
+					and ip LIKE CONCAT('%',#{ip}, '%')
+				</if>
+				<if test="logType != null and logType !='' ">
+					and logType = #{logType,jdbcType=VARCHAR}
+				</if>
+				<if test="type != null and type !='' ">
+					and `type` LIKE CONCAT(#{type}, '%')
+				</if>
+				<if test='role=="2"'>
+					and equipment.userId=#{userId,jdbcType=VARCHAR}
+				</if>
+			</when>
+			<otherwise>
+				select count(*) as count
+				<!-- 引用查询字段 -->
+				from equipment
+				where 1=1 and equipment.userId = #{userId,jdbcType=VARCHAR}
+				<if test="name != null and name !=''"> and name LIKE CONCAT('%',
+					#{name}, '%') </if>
+				<if test="hostName != null and hostName !=''"> and hostName LIKE
+					CONCAT('%',
+					#{hostName}, '%') </if>
+				<if test="ip != null and ip !=''">
+					<!--and ip = #{ip,jdbcType=VARCHAR}-->
+					and ip LIKE CONCAT('%',#{ip}, '%')
+				</if>
+				<if test="logType != null and logType !='' ">
+					and logType = #{logType,jdbcType=VARCHAR}
+				</if>
+				<if test="type != null and type !='' ">
+					and `type` LIKE CONCAT(#{type}, '%')
+				</if>
+				<if test='role=="2"'>
+					and equipment.userId=#{userId,jdbcType=VARCHAR}
+				</if>
+			</otherwise>
+		</choose>
+	</select>
 
 	<!-- 根据id修改数据 -->
 	<update id="upRiskById">

@@ -61,7 +61,7 @@
 		</set>
 		where event_group_id = #{event_group_id,jdbcType=VARCHAR}
 	</update>
-	<!--   添加资产/资产组关系表 -->
+	<!--   添加事件/事件组关系表 -->
 	<insert id="insertEventGroupRelations" parameterType="com.jz.bigdata.common.eventGroup.entity.EventGroupRelations">
 		insert into event_group_relations (event_id,event_group_id)
 		values

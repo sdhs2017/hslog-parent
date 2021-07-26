@@ -384,6 +384,29 @@ public class DruidUtil {
         return result;
     }
 
+    /**
+     * 执行sql语句，返回执行成功或者失败
+     * @param connection 链接
+     * @param sql 执行语句
+     * @param params 参数
+     * @return
+     * @throws SQLException
+     */
+    public static boolean execute(Connection connection,String sql, Object[] params) throws SQLException {
+
+        PreparedStatement statement= null;
+        ResultSet resultSet = null;
+        try{
+            //sql+参数
+            statement = connection.prepareStatement(sql);
+            // 参数赋值
+            setParameters(statement, params);
+            // 执行
+            return statement.execute();
+        }finally {
+            close(null,resultSet,statement);
+        }
+    }
     /**用于一个connection需要执行多个sql后,connection需要在执行完多个sql后再关闭
      * SQL 查询将查询结果直接放入ResultSet中
      * @param connection

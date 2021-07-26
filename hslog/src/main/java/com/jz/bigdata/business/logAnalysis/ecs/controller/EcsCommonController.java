@@ -75,7 +75,7 @@ public class EcsCommonController {
     @ResponseBody
     @RequestMapping(value="/getIndicesCount",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取索引数据的数量")
-    public String getIndicesCount(HttpServletRequest request) {
+    public String getIndicesCount(HttpServletRequest request,HttpSession session) {
         //参数处理
         HttpRequestParams params = HttpRequestUtil.getParams(request);
         //返回结果
@@ -89,6 +89,12 @@ public class EcsCommonController {
             long count = 0;
             Map<String, String> allParam = new HashMap<>();
             allParam.putAll(params.getQueryMap());
+            //获取用户角色信息
+            Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+            // 管理员角色为操作管理员，添加条件，获取该用户权限下的数据
+            if (userrole.equals(ContextRoles.MANAGEMENT)) {
+                allParam.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
+            }
             count = ecsService.getCount(allParam, null, null, configProperty.getEs_index());
             resultMap.put("indices", count);
         } catch (Exception e) {
@@ -112,7 +118,7 @@ public class EcsCommonController {
     @ResponseBody
     @RequestMapping(value="/getIndicesCountByLevel",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取error索引数据的数量")
-    public String getIndicesCountByLevel(HttpServletRequest request) {
+    public String getIndicesCountByLevel(HttpServletRequest request,HttpSession session) {
         //参数处理
         HttpRequestParams params = HttpRequestUtil.getParams(request);
         //返回结果
@@ -126,6 +132,12 @@ public class EcsCommonController {
             Map<String, String> errorParam = new HashMap<>();
             errorParam.putAll(params.getQueryMap());
             errorParam.put("log.level", "error");
+            //获取用户角色信息
+            Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+            // 管理员角色为操作管理员，添加条件，获取该用户权限下的数据
+            if (userrole.equals(ContextRoles.MANAGEMENT)) {
+                errorParam.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
+            }
             count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
             resultMap.put("indiceserror", count);
         } catch (Exception e) {
@@ -364,7 +376,7 @@ public class EcsCommonController {
         map.put("exists", "event.action");
 
         // 判断是否是非管理员角色，是传入参数用户id
-        if (!userrole.equals(ContextRoles.MANAGEMENT)){
+        if (userrole.equals(ContextRoles.MANAGEMENT)){
             map.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
         }
         //事件组处理

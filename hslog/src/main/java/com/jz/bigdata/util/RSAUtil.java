@@ -1,6 +1,6 @@
 package com.jz.bigdata.util;
 
-import com.jz.bigdata.common.license.CreateLicense;
+//import com.jz.bigdata.common.license.CreateLicense;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
@@ -74,7 +74,7 @@ public class RSAUtil {
      */
     private static void getKeyPair(){
         Properties prop = new Properties();
-        InputStream in = CreateLicense.class.getClassLoader().getResourceAsStream(RSAKeyFile);
+        InputStream in = RSAUtil.class.getClassLoader().getResourceAsStream(RSAKeyFile);
         try {
             prop.load(in);
         } catch (IOException e) {

@@ -1017,8 +1017,8 @@ public class LogController extends BaseController{
 		String page = pageo.toString();
 		String size = sizeo.toString();
 
-		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
-		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+		// 判断是否是操作管理员角色，如果是添加用户id条件，获取该用户权限下的数据
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 		// 从参数中将时间条件提出
@@ -1103,8 +1103,8 @@ public class LogController extends BaseController{
 		String page = pageo.toString();
 		String size = sizeo.toString();
 
-		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
-		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+		// 判断是否是操作管理员角色，如果是 添加用户id条件，获取该用户权限下的数据
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
 			map.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 		// 从参数中将时间条件提出
@@ -1385,7 +1385,7 @@ public class LogController extends BaseController{
 		Object exportSizeo = map.get("exportSize");
 
 		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
-		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 
@@ -1595,8 +1595,8 @@ public class LogController extends BaseController{
 			endtime = end.toString();
 			map.remove("endtime");
 		}
-		// 判断是否是非管理员角色，是传入参数用户id
-		if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+		// 判断是否是管理员角色，是传入参数用户id
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 
@@ -1697,7 +1697,7 @@ public class LogController extends BaseController{
 		map.put("event", "event");
 
 		// 判断是否是非管理员角色，是传入参数用户id
-		if (!userrole.equals(ContextRoles.MANAGEMENT)){
+		if (userrole.equals(ContextRoles.MANAGEMENT)){
 			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
 		}
 
@@ -2386,12 +2386,19 @@ public class LogController extends BaseController{
 	@ResponseBody
 	@RequestMapping(value="/getLogCountGroupByTime_line", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="统计各时间段的日志数据量")
-	public String getLogCountGroupByTime_line(HttpServletRequest request) {
+	public String getLogCountGroupByTime_line(HttpServletRequest request,HttpSession session) {
 		//处理参数
 		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
 		//参数异常
 		if(!Strings.isNullOrEmpty(params.getErrorInfo())){
 			return Constant.failureMessage(params.getErrorInfo());
+		}
+		//获取用户角色信息
+		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+		// 管理员角色为操作管理员，添加条件，获取该用户权限下的数据
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
+			QueryCondition userCondition = new QueryCondition("term",ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString(),"");
+			params.getQueryConditions().add(userCondition);
 		}
 		//index 和 日期字段初始化
 		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
@@ -2462,7 +2469,7 @@ public class LogController extends BaseController{
 	@ResponseBody
 	@RequestMapping(value="/getCountGroupByLogLevel_barAndPie", produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="读取日志级别数据量")
-	public String getCountGroupByLogLevel_barAndPie(HttpServletRequest request) {
+	public String getCountGroupByLogLevel_barAndPie(HttpServletRequest request,HttpSession session) {
 
 		//处理参数
 		VisualParam params = HttpRequestUtil.getVisualParamByRequest(request);
@@ -2479,6 +2486,14 @@ public class LogController extends BaseController{
 //				return Constant.successData(result_cache) ;
 //			}
 //		}
+		//获取用户角色信息
+		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+		// 管理员角色为操作管理员，添加条件，获取该用户权限下的数据
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
+			QueryCondition userCondition = new QueryCondition("term",ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString(),"");
+			params.getQueryConditions().add(userCondition);
+		}
+
 		//index 和 日期字段初始化
 		params.initDateFieldAndIndex(Constant.BEAT_DATE_FIELD,Constant.WINLOG_BEAT_INDEX);
 		//X轴，日志级别（log.level）

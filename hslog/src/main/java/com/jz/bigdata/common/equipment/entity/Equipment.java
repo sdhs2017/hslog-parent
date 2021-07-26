@@ -39,8 +39,27 @@ public class Equipment {
 	private String port;//端口
 	// 资产当天的日志条数
 	private String log_count;
-	
-	
+	// 用户手机号
+	private String phone;
+	// 用户角色
+	private String roleNames;
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public String getRoleNames() {
+		return roleNames;
+	}
+
+	public void setRoleNames(String roleNames) {
+		this.roleNames = roleNames;
+	}
+
 	public int getHigh_risk() {
 		return high_risk;
 	}

@@ -118,8 +118,8 @@ public class EcsWinlogController {
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String, String> querymap = new HashMap<>();
 
-        // 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
-        if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+        // 判断是否是管理员角色，如果是 添加用户id条件，获取该用户权限下的数据
+        if (userrole.equals(ContextRoles.MANAGEMENT)) {
             querymap.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
         }
         // winlog可能涉及全文检索的字段
@@ -176,8 +176,8 @@ public class EcsWinlogController {
         String page = pageo.toString();
         String size = sizeo.toString();
 
-        // 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
-        if (!userrole.equals(ContextRoles.MANAGEMENT)) {
+        // 判断是否是操作管理员角色，如果是 添加用户id条件，获取该用户权限下的数据
+        if (userrole.equals(ContextRoles.MANAGEMENT)) {
             map.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
         }
         // 从参数中将时间条件提出
@@ -273,8 +273,8 @@ public class EcsWinlogController {
         // 业务只查询范式化成功的日志
         //map.put("fields.failure","false");
 
-        // 判断是否是非管理员角色，是传入参数用户id
-        if (!userrole.equals(ContextRoles.MANAGEMENT)){
+        // 判断是否是 操作管理员角色，是传入参数用户id
+        if (userrole.equals(ContextRoles.MANAGEMENT)){
             map.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
         }
 

@@ -76,7 +76,7 @@ public class AlertController {
             String agg = request.getParameter("aggType");
             //template名称
             String templateName = request.getParameter("template_name");
-            List<MappingField> result = iBIService.getMappingFieldByAggType(templateName,agg);
+            List<MappingField> result = iBIService.getMappingFieldByAggType(templateName,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE,agg);
             return JSONArray.toJSONString(result);
         }catch(Exception e){
             log.error("通过alert查询结果获取对应的列失败："+e.getStackTrace().toString());

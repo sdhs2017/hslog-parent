@@ -23,6 +23,15 @@ public class Visualization {
     private Boolean editable;//是否可编辑，默认可编辑
     private Boolean deletable;//是否可删除，默认可删除
     private String group_name;//分组
+    private String source_type;//数据源类型，通过模板（template） 或 自定义index(index)
+
+    public String getSource_type() {
+        return source_type;
+    }
+
+    public void setSource_type(String source_type) {
+        this.source_type = source_type;
+    }
 
     public String getIndex_id() {
         return index_id;

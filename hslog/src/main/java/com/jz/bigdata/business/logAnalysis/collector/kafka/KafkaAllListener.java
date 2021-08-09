@@ -4,10 +4,12 @@ import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.SyslogUtil;
 import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
@@ -188,35 +190,45 @@ public class KafkaAllListener {
                             }
                             //判断资产是否为空，打上资产标签
                             if (equipment!=null) {
-                                logstash2ECS.getFields().setUserid(equipment.getUserId());
-                                logstash2ECS.getFields().setDeptid(String.valueOf(equipment.getDepartmentId()));
-                                logstash2ECS.getFields().setEquipmentname(equipment.getName());
-                                logstash2ECS.getFields().setEquipmentid(equipment.getId());
-                                logstash2ECS.getFields().setIp(equipment.getIp());
-                                //日志级别
-                                Object severityName = logstash2ECS.getLog().getSyslog().getSeverity().getName();
-                                //如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
-                                /**
-                                 * severityName
-                                 * 1.!null && !"" 有日志级别 需要对日志级别进行筛选
-                                 * 2.null
-                                 * 3.""
-                                 *2-3情况不进行日志级别筛选，直接入库
-                                 */
-                                if(severityName!=null&&!"".equals(severityName.toString())){
-                                    // 判定应收集的日志级别，通过日志级别进行日志过滤
-                                    if(AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1){
+                                //如果资产类型是否是防火墙
+                                if(Constant.EQUIPMENT_TYPE_FIREWALL_CODE.equals(equipment.getType())||Constant.EQUIPMENT_TYPE_IPS_CODE.equals(equipment.getType())){
+                                    //处理防火墙、IPS数据的逻辑，返回ES提交对象
+                                    SyslogUtil.SyslogHandler(jsonObject,equipment,request);
+                                    //提交到es bulk
+                                    logCurdDao.bulkProcessor_add(request);
+                                }else{
+                                    logstash2ECS.getFields().setUserid(equipment.getUserId());
+                                    logstash2ECS.getFields().setDeptid(String.valueOf(equipment.getDepartmentId()));
+                                    logstash2ECS.getFields().setEquipmentname(equipment.getName());
+                                    logstash2ECS.getFields().setEquipmentid(equipment.getId());
+                                    logstash2ECS.getFields().setIp(equipment.getIp());
+                                    //日志级别
+                                    Object severityName = logstash2ECS.getLog().getSyslog().getSeverity().getName();
+                                    //如果获取不到日志数据中的日志级别，则认为日志数据未范式化，不进行级别判定，统一入库
+                                    /**
+                                     * severityName
+                                     * 1.!null && !"" 有日志级别 需要对日志级别进行筛选
+                                     * 2.null
+                                     * 3.""
+                                     *2-3情况不进行日志级别筛选，直接入库
+                                     */
+                                    if(severityName!=null&&!"".equals(severityName.toString())){
+                                        // 判定应收集的日志级别，通过日志级别进行日志过滤
+                                        if(AssetCache.INSTANCE.getEquipmentLogLevel().get(equipment.getId()).indexOf(severityName.toString().toLowerCase())!=-1){
+                                            //提交到es
+                                            request.index(logstashIndexName);
+                                            request.source(gson.toJson(logstash2ECS), XContentType.JSON);
+                                            logCurdDao.bulkProcessor_add(request);
+                                        }
+                                    }else{
                                         //提交到es
                                         request.index(logstashIndexName);
                                         request.source(gson.toJson(logstash2ECS), XContentType.JSON);
                                         logCurdDao.bulkProcessor_add(request);
                                     }
-                                }else{
-                                    //提交到es
-                                    request.index(logstashIndexName);
-                                    request.source(gson.toJson(logstash2ECS), XContentType.JSON);
-                                    logCurdDao.bulkProcessor_add(request);
                                 }
+
+
                             }else{//资产不存在的也统一入库
                                 //资产未发现需要打的标签
                                 logstash2ECS.getFields().setUserid(LogType.LOGTYPE_UNKNOWN);
@@ -230,7 +242,7 @@ public class KafkaAllListener {
                                 logCurdDao.bulkProcessor_add(request);
                             }
                         }else{
-                            //System.out.println("");
+                            //System.out.println("11");
                         }
                     }catch (Exception e){
                         //e.printStackTrace();

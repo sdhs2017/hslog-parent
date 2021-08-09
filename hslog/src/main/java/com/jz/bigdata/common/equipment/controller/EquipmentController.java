@@ -16,10 +16,13 @@ import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.POI.ReadExcel;
 import com.sun.tools.internal.jxc.ap.Const;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +49,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 @Slf4j
 @Controller
 @RequestMapping("/equipment")
+@Component
 public class EquipmentController {
 	
 	@Resource(name = "EquipmentService")
@@ -56,6 +60,9 @@ public class EquipmentController {
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
+
+	@Value(value="classpath:equipmentVisual.json")
+	private org.springframework.core.io.Resource equipmentVisual;
 
 	public final static HashMap<String,String> equipment_type = new HashMap<>();
 	static{
@@ -341,7 +348,40 @@ public class EquipmentController {
 		}
 		return result;
 	}
-	
+	/**
+	 * @param request
+	 * @param session
+	 * @return 分页测试例子
+	 */
+	@ResponseBody
+	@RequestMapping(value="/selectPageWithRole.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="分页查询资产，带角色判定")
+	public String selectPageWithRole(HttpServletRequest request,HttpSession session) {
+		//页码数
+		int pageIndex=Integer.parseInt(request.getParameter("pageIndex"));
+		//每页显示的数量
+		int pageSize=Integer.parseInt(request.getParameter("pageSize"));
+		//主机名
+		String hostName=request.getParameter("hostName");
+		//名字
+		String name=request.getParameter("name");
+		//ip地址
+		String ip=request.getParameter("ip");
+		//日志类型
+		String logType =request.getParameter("logType");
+		// 资产类型
+		String type = request.getParameter("type");
+		//资产组id
+		String asset_group_id = request.getParameter("asset_group_id");
+		String result = "";
+		try {
+			result = equipmentService.selectAllByPageWithRole(hostName,name,ip,logType,type, pageIndex, pageSize,session,asset_group_id);
+			log.info("查询资产：成功");
+		} catch (Exception e) {
+			log.error("查询资产：失败"+e.getMessage());
+		}
+		return result;
+	}
 	/**
 	 * @param request
 	 * @param equipment
@@ -714,8 +754,8 @@ public class EquipmentController {
 			if (!Strings.isNullOrEmpty(list.get(15))){
 				equipment.setDomain(list.get(15));
 			}
-
-
+			//添加用户信息
+			equipment.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
 			equipmentList.add(equipment);
 		}
 		return equipmentService.insertBatch(equipmentList,session);
@@ -830,6 +870,23 @@ public class EquipmentController {
 		}catch(Exception e){
 			log.error("获取资产对应的dashboard信息失败："+e.getMessage());
 			return Constant.failureMessage("获取dashboard信息失败！");
+		}
+
+	}
+
+	/**
+	 * 获取资产信息报表和详情相关的链接信息，用户点击时进行跳转
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getEquipmentVisual", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取资产可视化信息")
+	public String getEquipmentVisual(){
+		try{
+			String content = FileUtils.readFileToString(equipmentVisual.getFile(), "UTF-8");
+			return Constant.successData(content);
+		}catch (Exception e){
+			return Constant.failureMessage("资产可视化信息获取失败！");
 		}
 
 	}

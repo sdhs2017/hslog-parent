@@ -11,6 +11,37 @@ import java.util.Map;
  * @description 系统常量
  */
 public class Constant {
+	/**
+	 * license 版本信息，通过标识初始化功能菜单。
+	 * #1. 日志模块  log
+	 * #2. 流量模块 packet
+	 * #3. 资产模块 asset
+	 * #4. 可视化 visual
+	 * #5. 告警模块 alert
+	 * #6. 数据资产安全治理 dsg
+	 * #7. 系统管理 system
+	 * #目前分为4款产品：宸析日志、宸析数据可视化、宸析全维度、宸析数据资产安全治理
+	 * #对应的菜单分别为：
+	 * #宸析日志：system,log,asset
+	 * #宸析数据可视化：system,log,packet,asset,visual
+	 * #宸析全维度：system,log,packet,asset,visual,alert
+	 * #宸析数据资产安全治理：system,dsg
+	 */
+	public static final String LICENSE_TYPE_LOG = "log";
+	public static final String LICENSE_TYPE_VISUAL = "visual";
+	public static final String LICENSE_TYPE_PACKET = "packet";
+	public static final String LICENSE_TYPE_ASSET = "asset";
+	public static final String LICENSE_TYPE_ALERT = "alert";
+	public static final String LICENSE_TYPE_DSG = "dsg";
+	public static final String LICENSE_TYPE_SYSTEM = "system";
+
+	//资产类型为防火墙，在数据库中的存储代码
+	public static final String EQUIPMENT_TYPE_FIREWALL_CODE = "0204";
+	//资产类型为IPS，在数据库中的存储代码
+	public static final String EQUIPMENT_TYPE_IPS_CODE = "0201";
+
+	//操作管理员角色id
+	public static final String USER_ROLE_OPERATION_MANAGER = "manager";
 	//filebeat file_type = db 文件类型=数据库
 	public static final String FILEBEAT_FILE_TYPE_DB = "db";
 	//filebeat db_type = mysql 数据库类型=mysql

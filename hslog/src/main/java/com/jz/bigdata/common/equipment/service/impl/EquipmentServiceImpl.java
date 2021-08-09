@@ -8,6 +8,7 @@ import java.util.Map.Entry;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
+import com.hs.elsearch.util.ElasticConstant;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
@@ -304,7 +305,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 */
 	@Override
 	public List<Equipment> selectEquipment(Equipment equipment) throws Exception {
-		List<Equipment> list = equipmentDao.selectEquipment(equipment);
+		//List<Equipment> list = equipmentDao.selectEquipment(equipment);
+		List<Equipment> list = equipmentDao.selectEquipmentWithRole(equipment);
 		List<Equipment> listEquipment = (List<Equipment>) list.get(0);
 
 		List<Equipment> myList = new ArrayList<>();
@@ -359,7 +361,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			 */
 			esMap.put("fields.equipmentid", equipment_tmp.getId());
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
-			equipment_tmp.setLog_count(getEquipmentLogCount(equipment_tmp.getLogType(),esMap,starttime,endtime)+"");
+			equipment_tmp.setLog_count(getEquipmentLogCount(equipment_tmp.getLogType(),equipment_tmp.getType(),esMap,starttime,endtime)+"");
 
 		}
 		return listEquipment;
@@ -406,25 +408,55 @@ public class EquipmentServiceImpl implements IEquipmentService {
  			 */
 			esMap.put("fields.equipmentid", equipment.getId());
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
-			equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),esMap,starttime,endtime)+"");
-//			if(equipment.getLogType().equals("file")){//文件日志
-//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_file_index())+"");
-//			}else if(equipment.getLogType().equals("winlog")||equipment.getLogType().equals("syslog")){//日志
-//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_index())+"");
-//			}else if(equipment.getLogType().equals("metric")){//指标
-//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_metric_index())+"");
-//			}else if(equipment.getLogType().equals("packet")){//流量
-//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,configProperty.getEs_packet_index())+"");
-//			}else if(equipment.getLogType().equals("mysql")){//mysql-audit
-//				equipment.setLog_count(ecsService.getCount(esMap,starttime,endtime,Constant.MYSQL_AUDIT_INDEX_NAME)+"");
-//			}else{
-//				//其他情况
-//				equipment.setLog_count("0");
-//			}
-
+			equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),equipment.getType(),esMap,starttime,endtime)+"");
 		}
 		// 数据添加到map
 		map.put("equipment", listEquipment);
+		return JSONArray.fromObject(map).toString();
+	}
+
+	@Override
+	public String selectAllByPageWithRole(String hostName, String name, String ip, String logType, String type, int pageIndex, int pageSize, HttpSession session, String asset_group_id) throws Exception {
+		//返回结果
+		Map<String, Object> map = new HashMap<String, Object>();
+		// 获取起始数
+		int startRecord = (pageSize * (pageIndex - 1));
+		//获取用户角色信息
+		String userRole = session.getAttribute(Constant.SESSION_USERROLE).toString();
+		List<List<Map<String,String>>> listEquipment;
+		//如果角色仅仅是操作管理员，则只查询该管理员的资产
+		if(Constant.USER_ROLE_OPERATION_MANAGER.equals(userRole)){
+			// 获取总数
+			List<List<Map<String,String>>> count = equipmentDao.countWithRole(hostName, name, ip, logType,type,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(),asset_group_id);
+			// 总数添加到map
+			map.put("count", (count.get(0).get(0)));
+			listEquipment = equipmentDao.searchAllByPageWithRole("",hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(), startRecord,pageSize,asset_group_id);
+		}else{
+			// 获取总数
+			List count = equipmentDao.count(hostName, name, ip, logType,type,session.getAttribute(Constant.SESSION_USERROLE).toString(),session.getAttribute(Constant.SESSION_USERID).toString(),asset_group_id);
+			List listCount = new ArrayList<>();
+			// 获取总数集合
+			listCount = (List) count.get(0);
+			// 总数添加到map
+			map.put("count", (listCount.get(0)));
+			// 查询所有数据
+			listEquipment = equipmentDao.searchAllByPageWithRole("",hostName, name, ip, logType, type, session.getAttribute(Constant.SESSION_USERROLE).toString(),null, startRecord,pageSize,asset_group_id);
+		}
+
+		// 遍历资产，通过资产id查询该资产下当天的日志条数，时间范围当天的00:00:00到当天的查询时间
+		String starttime = LocalDateTime.now().format(dtf_time_zero);
+		String endtime = LocalDateTime.now().format(dtf_time);
+		for(Map<String,String> equipment : listEquipment.get(0)) {
+			Map<String, String> esMap = new HashMap<>();
+			/**
+			 * ECS的资产id改成fields.equipmentid
+			 */
+			esMap.put("fields.equipmentid", equipment.get("id"));
+			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
+			equipment.put("log_count",getEquipmentLogCount(equipment.get("logType"),equipment.get("type"),esMap,starttime,endtime)+"");
+		}
+		// 数据添加到map
+		map.put("equipment", listEquipment.get(0));
 		return JSONArray.fromObject(map).toString();
 	}
 
@@ -437,7 +469,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	 * @return 日志数
 	 * @throws Exception
 	 */
-	private long getEquipmentLogCount(String logType,Map<String, String> esMap,String starttime,String endtime) throws Exception {
+	private long getEquipmentLogCount(String logType,String equipment_type,Map<String, String> esMap,String starttime,String endtime) throws Exception {
 		String index;
 		//根据日志类型设置要查询的index
 		switch (logType){
@@ -446,7 +478,16 @@ public class EquipmentServiceImpl implements IEquipmentService {
 				break;
 			case "winlog":
 			case "syslog":
-				index = configProperty.getEs_index();
+				//syslog类型  对于防火墙和IPS类型资产进行单独处理
+				if(equipment_type.equals(Constant.EQUIPMENT_TYPE_IPS_CODE)){
+					//IPS
+					index = "hs_syslog_ips-*";
+				}else if(equipment_type.equals(Constant.EQUIPMENT_TYPE_FIREWALL_CODE)){
+					//防火墙
+					index = "hs_syslog_firewall-*";
+				}else{
+					index = configProperty.getEs_index();
+				}
 				break;
 			case "metric":
 				index = configProperty.getEs_metric_index();

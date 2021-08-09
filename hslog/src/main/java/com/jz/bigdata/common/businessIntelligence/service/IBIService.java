@@ -35,11 +35,11 @@ public interface IBIService {
     /**
      * 获取filter字段信息
      * @param templateName
-     * @param indexName
+     * @param source_type 数据源类型， template index
      * @param agg 聚合方式
      * @return
      */
-    public List<MappingField> getFilterField(String templateName, String indexName, String agg) throws Exception;
+    public List<MappingField> getFilterField(String templateName, String source_type, String agg) throws Exception;
 
     /**
      * 保存图表信息
@@ -52,7 +52,7 @@ public interface IBIService {
      * @param aggType 聚合类型
      * @return
      */
-    public List<MappingField> getMappingFieldByAggType(String templateName, String aggType) throws Exception;
+    public List<MappingField> getMappingFieldByAggType(String templateName,String source_type, String aggType) throws Exception;
     /**
      * 保存图表信息
      * @param visual 图表信息bean
@@ -187,4 +187,21 @@ public interface IBIService {
      * @throws Exception
      */
     public Map<String, Object> getDataByConditions(SqlSearchConditions sqlSearchConditions)throws Exception;
+
+    /**
+     * 通过自定义索引名称获取该索引下的所有字段信息（基于mapping）
+     * @param custom_index_name 索引名称
+     * @param agg 聚合方式
+     * @return 字段信息list
+     * @throws Exception
+     */
+    public List<MappingField> getFieldsByCustomIndex(String custom_index_name,String agg) throws Exception;
+
+    /**
+     * 通过id获取ES该条记录的详情
+     * @param index 索引名称
+     * @param id 数据id
+     * @return
+     */
+    public Map<String, String> getDetailsById(String index,String id) throws Exception;
 }

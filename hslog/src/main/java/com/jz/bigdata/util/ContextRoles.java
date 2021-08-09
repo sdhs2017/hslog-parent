@@ -15,8 +15,8 @@ import java.util.TimeZone;
  **/
 public class ContextRoles {
 
-    // 管理员角色
-    public static final String MANAGEMENT = "1";
+    // 操作管理员角色 ，用来限制用户仅查询自己用户下的资产及数据
+    public static final String MANAGEMENT = "manager";
 
     /**
      * beats types

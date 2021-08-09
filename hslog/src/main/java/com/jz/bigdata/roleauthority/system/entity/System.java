@@ -14,6 +14,7 @@ public class System {
 	private String sys_name;//系统名称
 	private String icon;//图标
 	private String note;//说明
+	private String order;//排序
 
 	public String getIcon() {
 		return icon;
@@ -45,5 +46,13 @@ public class System {
 
 	public void setNote(String note) {
 		this.note = note;
+	}
+
+	public String getOrder() {
+		return order;
+	}
+
+	public void setOrder(String order) {
+		this.order = order;
 	}
 }

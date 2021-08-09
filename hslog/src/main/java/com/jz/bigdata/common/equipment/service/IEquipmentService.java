@@ -41,7 +41,23 @@ public interface IEquipmentService {
 	List<Equipment> selectEquipmentByLog(Equipment equipment) throws Exception;
 	
 	String selectAllByPage(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session,String asset_group_id) throws Exception;
-	
+
+	/**
+	 * 获取资产信息，带角色判定（查询操作管理员的资产）
+	 * @param hostName 主机名
+	 * @param name 资产名称
+	 * @param ip 资产ip
+	 * @param logType 日志类型
+	 * @param type
+	 * @param pageIndex 第N页
+	 * @param pageSize 每页条数
+	 * @param session
+	 * @param asset_group_id 资产组id
+	 * @return
+	 * @throws Exception
+	 */
+	String selectAllByPageWithRole(String hostName, String name, String ip, String logType,String type, int pageIndex, int pageSize, HttpSession session,String asset_group_id) throws Exception;
+
 	Equipment selectOneEquipment(Equipment equipment);
 	
 	List<Equipment> selectAllHostName();

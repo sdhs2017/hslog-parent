@@ -7,6 +7,7 @@ import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchColumn;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchWhere;
+import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
@@ -159,6 +160,7 @@ public class HttpRequestUtil {
                     }
                 }
             }
+
             //分页处理
             Integer page = searchConditions.getPage();
             Integer page_size = searchConditions.getPage_size();
@@ -584,15 +586,21 @@ public class HttpRequestUtil {
                 //聚合后端用到的参数处理魔石
                 for(Map.Entry<String,String> entity:paramMap.entrySet()){
                     //目前通过参数传递过来的查询信息，默认采用term构建查询条件
-                    //TODO 查询参数需要重新设计
                     QueryCondition qc = new QueryCondition("term",entity.getKey(),entity.getValue(),"");
                     searchConditions.getQueryConditions().add(qc);
                 }
                 //原后端用到的参数处理
-                searchConditions.setQueryParam(paramMap);
+                //searchConditions.setQueryParam(paramMap);
             }
-            //组装要检索的index的名称： 前缀+后缀
-            searchConditions.setIndex_name(searchConditions.getPre_index_name()+searchConditions.getSuffix_index_name());
+
+            //如果index_name为空, 用户使用模板选择index，组装要检索的index的名称： 前缀+后缀
+            if(StringUtils.isNullOrEmpty(searchConditions.getIndex_name())){
+                searchConditions.setIndex_name(searchConditions.getPre_index_name()+searchConditions.getSuffix_index_name());
+            }else{
+                //如果index_name 不为空，说明用户使用自定义填写了index，不进行操作
+                //continue
+            }
+
             //判断index名称，如果是hslog*，则日期字段设置为logdate，如果是*beat*，则日期字段设置为@timestamp
             if(searchConditions.getIndex_name().indexOf("packet-")>=0){
                 searchConditions.setDateField(Constant.PACKET_DATE_FIELD);
@@ -639,6 +647,31 @@ public class HttpRequestUtil {
                 //遍历
                 for(Object beanObj:json.toArray()){
                     searchConditions.getFilters_table().add((Map)JSONObject.fromObject(beanObj));
+                }
+            }
+            //图表中的查询框
+            String visual_search = request.getParameter("visual_search");
+            if(null!=visual_search&&!"".equals(visual_search)){
+                //filters中包含多个filter
+                JSONArray json = JSONArray.fromObject(visual_search);
+                //遍历
+                for(Object beanObj:json.toArray()){
+                    //转bean
+                    Filter filter = JavaBeanUtil.mapToBean((Map)JSONObject.fromObject(beanObj), Filter.class);
+
+                    //转换成功时，写入参数对象中
+                    if(null!=filter){
+                        //判断是否是时间范围，如果存在，则以此时间范围为主，替换外部的时间范围
+                        if(filter.getFieldType().equals("date")&&!StringUtils.isNullOrEmpty(filter.getStart())&&!StringUtils.isNullOrEmpty(filter.getEnd())){
+                            searchConditions.setStartTime(filter.getStart());
+                            searchConditions.setEndTime(filter.getEnd());
+                        }else{
+                            //图表列表部分的查询框，暂定使用match查询
+                            filter.setOperator("is match");
+                        }
+
+                        searchConditions.getVisual_search().add(filter);
+                    }
                 }
             }
             //queryBox 无法通过mapToBean的方式获取

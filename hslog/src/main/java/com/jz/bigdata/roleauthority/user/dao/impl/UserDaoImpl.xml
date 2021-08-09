@@ -377,4 +377,47 @@
 	<select id="selectRoleByUserID" parameterType="java.lang.String" resultMap="BaseResultMap">
 		select GROUP_CONCAT(fk_roleID) as role from HS_UserRole WHERE fk_userid=#{userID}
 	</select>
+	<insert id="insertMenuBatch" parameterType="java.util.List" >
+		insert into HS_Menu
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id}, #{item.menuName}, #{item.superiorId}, #{item.childId},#{item.url}, #{item.icon},
+			#{item.state}, #{item.fk_system_id})
+		</foreach>
+	</insert>
+	<insert id="insertSystemBatch" parameterType="java.util.List" >
+		insert into HS_System
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id}, #{item.sys_name}, #{item.note}, #{item.icon},#{item.order})
+		</foreach>
+	</insert>
+	<insert id="insertButtonBatch" parameterType="java.util.List" >
+		insert into HS_Button
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id}, #{item.buttonName}, #{item.buttonID}, #{item.pk_menu_id})
+		</foreach>
+	</insert>
+	<insert id="insertIgnoreRoleBatch" parameterType="java.util.List" >
+		insert ignore into HS_Role
+		values
+		<foreach collection="list" item="item" index="index" separator=",">
+			(#{item.id}, #{item.role_name}, #{item.note})
+		</foreach>
+	</insert>
+	<delete id="deleteButtonMenuSystem">
+		delete from HS_Menu;
+		delete from HS_System;
+		delete from HS_Button;
+	</delete>
+	<delete id="deleteNotExistRoleMenus">
+		delete from HS_RoleMenuButton
+		where fk_menuAndButon_id not in (select id from HS_Menu)
+		and fk_menuAndButon_id not in (select id from HS_Button)
+		and fk_menuAndButon_id not in (select id from HS_System);
+	</delete>
+	<insert id="insertIgnoreMenuButton" parameterType="java.lang.String">
+		insert ignore into HS_RoleMenuButton(fk_menuAndButon_id,fk_roleid) values(#{menuAndButtonID},#{fk_roleid})
+	</insert>
 </mapper>

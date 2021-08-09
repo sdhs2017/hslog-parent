@@ -578,8 +578,11 @@
                     if(urlObj){
                         jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:urlObj.id,type:'EQedit',conType:'Log' },'查看')
                     }else{
-                        //urlObj = logTypeObj.default;
-                        jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
+                        if( logTypeObj.default.type === "dashboard"){
+                            jumpHtml('equipmentDashboardLog'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'日志',eid: rowData.id,id:logTypeObj.default.id,type:'EQedit',conType:'Log' },'查看')
+                        }else {
+                            jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
+                        }
                     }
                 }else{
                     layer.msg(`${rowData.logType} 类型资产暂无报表`,{icon:5})

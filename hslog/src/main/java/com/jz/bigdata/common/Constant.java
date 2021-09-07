@@ -39,7 +39,31 @@ public class Constant {
 	public static final String EQUIPMENT_TYPE_FIREWALL_CODE = "0204";
 	//资产类型为IPS，在数据库中的存储代码
 	public static final String EQUIPMENT_TYPE_IPS_CODE = "0201";
-
+	//资产类型，代码与汉字对应关系
+	public static Map<String,String> EQUIPMENT_TYPE_EN = new HashMap<>();
+	static{
+		EQUIPMENT_TYPE_EN.put("01","网络-全部");
+		EQUIPMENT_TYPE_EN.put("0101","网络-交换机");
+		EQUIPMENT_TYPE_EN.put("0102","网络-路由器");
+		EQUIPMENT_TYPE_EN.put("02","安全-全部");
+		EQUIPMENT_TYPE_EN.put("0201","安全-IPS");
+		EQUIPMENT_TYPE_EN.put("0202","安全-IDS");
+		EQUIPMENT_TYPE_EN.put("0203","安全-抗DDOS");
+		EQUIPMENT_TYPE_EN.put("0204","防火墙");
+		EQUIPMENT_TYPE_EN.put("03","主机-全部");
+		EQUIPMENT_TYPE_EN.put("0301","主机-Windows");
+		EQUIPMENT_TYPE_EN.put("0302","主机-Linux");
+		EQUIPMENT_TYPE_EN.put("0303","主机-虚拟机");
+		EQUIPMENT_TYPE_EN.put("04","应用-全部");
+		EQUIPMENT_TYPE_EN.put("0401","应用-Tomcat");
+		EQUIPMENT_TYPE_EN.put("0402","应用-Apache");
+		EQUIPMENT_TYPE_EN.put("0403","应用-IIS");
+		EQUIPMENT_TYPE_EN.put("0404","应用-Weblogic");
+		EQUIPMENT_TYPE_EN.put("0405","应用-Mysql");
+		EQUIPMENT_TYPE_EN.put("0406","应用-Oracle");
+		EQUIPMENT_TYPE_EN.put("0407","应用-Sqlserver");
+		EQUIPMENT_TYPE_EN.put("0408","应用-Db2");
+	}
 	//操作管理员角色id
 	public static final String USER_ROLE_OPERATION_MANAGER = "manager";
 	//filebeat file_type = db 文件类型=数据库

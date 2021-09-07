@@ -7,6 +7,7 @@
                     <el-button type="warning" size="mini" plain @click="importEquipment()">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
                     <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
+                    <el-button type="info" size="mini" plain ><a id="exportEq" @click='exportEquipment'>资产导出</a></el-button>
                     <el-button type="success" size="mini" plain  @click="refreshEq">刷新</el-button>
 <!--                    <el-button type="success" size="mini" plain @click="goToAllEcharts">报表</el-button>-->
                 </div>
@@ -693,6 +694,12 @@
             downLoadEq(){
                 let ahtml = document.getElementById('eqDownload');
                 ahtml.href = this.$baseUrl+'/equipment/equipmentDownload.do';
+                ahtml.click();
+            },
+            /*资产导出*/
+            exportEquipment(){
+                let ahtml = document.getElementById('exportEq');
+                ahtml.href = this.$baseUrl+'/equipment/equipmentExport.do';
                 ahtml.click();
             }
         },

@@ -1,6 +1,8 @@
 package com.jz.bigdata.common.equipment.controller;
 
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import javax.annotation.Resource;
@@ -63,6 +65,8 @@ public class EquipmentController {
 
 	@Value(value="classpath:equipmentVisual.json")
 	private org.springframework.core.io.Resource equipmentVisual;
+	//日期格式
+	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	public final static HashMap<String,String> equipment_type = new HashMap<>();
 	static{
@@ -538,7 +542,64 @@ public class EquipmentController {
 //		return null;
 		
 	}
+	@RequestMapping(value="/equipmentExport")
+	@DescribeLog(describe="资产导出")
+	public String equipmentExport(HttpSession session, HttpServletRequest request,
+									HttpServletResponse response){
+		try{
+			String path = getClass().getClassLoader().getResource("/download/").getFile();
+			//生成文件
+			String fileName = equipmentService.createEquipmentExportFile(path);
 
+			File file = new File(path, fileName);
+
+			if (file.exists()) {
+				//设置响应类型
+				response.setContentType("application/xlsm");
+				//生成文件
+
+				//设置Content-Disposition，设置attachment，浏览器会激活文件下载框；filename指定下载后默认保存的文件名
+				//不设置Content-Disposition的话，文件会在浏览器内打卡，比如txt、img文件
+				//为了解决中文名称乱码问题，浏览器下载的文件名 eg:资产列表2021-01-01
+				String downloadFileName = new String(("资产列表"+LocalDateTime.now().format(dtf_time)).getBytes("utf-8"),"iso-8859-1");
+				response.addHeader("Content-Disposition", "attachment; filename="+ downloadFileName+".xls");
+				byte[] buffer = new byte[1024];
+				FileInputStream fis = null;
+				BufferedInputStream bis = null;
+				// if using Java 7, use try-with-resources
+				try {
+					fis = new FileInputStream(file);
+					bis = new BufferedInputStream(fis);
+					OutputStream os = response.getOutputStream();
+					int i = bis.read(buffer);
+					while (i != -1) {
+						os.write(buffer, 0, i);
+						i = bis.read(buffer);
+					}
+				} catch (IOException ex) {
+					// do something,
+					// probably forward to an Error page
+				} finally {
+					if (bis != null) {
+						try {
+							bis.close();
+						} catch (IOException e) {
+						}
+					}
+					if (fis != null) {
+						try {
+							fis.close();
+						} catch (IOException e) {
+						}
+					}
+				}
+			}
+		}catch (Exception e){
+			log.error("资产导出失败！");
+			return Constant.failureMessage("资产导出失败!");
+		}
+		return null;
+	}
     @RequestMapping(value="/equipmentDownload")
     @DescribeLog(describe="资产清单模板下载")
     public String equipmentDownload(HttpSession session, HttpServletRequest request,

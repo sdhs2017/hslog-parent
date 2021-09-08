@@ -3,19 +3,16 @@ package com.jz.bigdata.common.equipment.service.impl;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.Map.Entry;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 
-import com.hs.elsearch.util.ElasticConstant;
+import com.alibaba.excel.EasyExcel;
 import com.jz.bigdata.business.logAnalysis.ecs.service.IecsService;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import com.jz.bigdata.util.*;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +38,10 @@ public class EquipmentServiceImpl implements IEquipmentService {
 	//日期时间格式
 	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	private static final DateTimeFormatter dtf_time_zero = DateTimeFormatter.ofPattern("yyyy-MM-dd 00:00:00");
+	//生成文件时的日期格式
+	private static final DateTimeFormatter dtf_time_file = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH-mm-ss-SSS");
+	//资产导出excel模板 名称
+	private static final String EquipmentTemplateFileName = "资产导出模板.xls";
 	@Resource
 	private IEquipmentDao equipmentDao;
 
@@ -677,6 +678,41 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			result.clear();
 		}
 		return result;
+	}
+
+	@Override
+	public String createEquipmentExportFile(String path){
+		String fileName = "资产导出"+LocalDateTime.now().format(dtf_time_file) + ".xls";
+		List<List<Map<String,String>>> equipmentList = equipmentDao.selectAllEquipmentExport();
+		//多表关联数据返回后，结果放在最外层list的第一项中，具体可看拦截器部分代码
+		List<Map<String,String>> list = equipmentList.get(0);
+		//生成excel可接收数据
+		List<List<Object>> excelDataList = new ArrayList<List<Object>>();
+		for(Map<String,String> map:list){
+			List<Object> row = new ArrayList<>();
+			row.add(map.get("name"));//资产名称
+			row.add(map.get("ip"));//资产IP
+			row.add(map.get("hostName"));//主机名
+			row.add(map.get("logType"));//日志类型
+			row.add(map.get("log_level"));//日志级别
+			row.add(Constant.EQUIPMENT_TYPE_EN.get(map.get("type")));//资产类型？
+			row.add("1".equals(map.get("startUp"))?"启用":"未启用");//是否启用
+			row.add(map.get("domain"));//根域名
+			row.add(map.get("port"));//端口
+			row.add(map.get("system"));//系统
+			row.add(map.get("systemVersion"));//系统版本号
+			row.add(map.get("assetNum"));//资产编号
+			row.add(map.get("serialNum"));//序列好
+			row.add(map.get("macAdress"));//MAC地址
+			row.add(map.get("describe"));//描述
+			row.add(map.get("valuation"));//资产价值
+			row.add(map.get("userName"));//负责人
+			row.add(map.get("phone"));//联系方式
+			excelDataList.add(row);
+		}
+		//生成结果文件
+		EasyExcel.write(path+fileName).withTemplate(path+EquipmentTemplateFileName).sheet().doWrite(excelDataList);
+		return fileName;
 	}
 
 

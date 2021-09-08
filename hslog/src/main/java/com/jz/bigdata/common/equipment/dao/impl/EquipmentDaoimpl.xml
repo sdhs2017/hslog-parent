@@ -393,6 +393,7 @@
 		equipment.userId=`HS_User`.id
 		where equipment.id=#{id}
 	</select>
+
 	<!-- 查询单个数据 -->
 	<select id="selectEquipmentWithRole" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"
 			resultMap="BaseResultMapUserName">
@@ -408,6 +409,14 @@
 		FROM equipment
 		LEFT JOIN `HS_User` ON equipment.userId=`HS_User`.id
 		where equipment.id=#{id}
+	</select>
+	<select id="selectAllEquipmentExport">
+		select
+		<!-- 引用查询字段 -->
+		<include refid="Base_Column_List" />
+		,HS_User.`name` AS userName,HS_User.`phone` AS phone
+		FROM equipment
+		LEFT JOIN `HS_User` ON equipment.userId=`HS_User`.id
 	</select>
 	<!-- 查询单个数据 -->
 	<select id="selectOneEquipment" parameterType="com.jz.bigdata.common.equipment.entity.Equipment"

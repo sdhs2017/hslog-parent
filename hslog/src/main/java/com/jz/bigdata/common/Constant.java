@@ -49,7 +49,7 @@ public class Constant {
 		EQUIPMENT_TYPE_EN.put("0201","安全-IPS");
 		EQUIPMENT_TYPE_EN.put("0202","安全-IDS");
 		EQUIPMENT_TYPE_EN.put("0203","安全-抗DDOS");
-		EQUIPMENT_TYPE_EN.put("0204","防火墙");
+		EQUIPMENT_TYPE_EN.put("0204","安全-防火墙");
 		EQUIPMENT_TYPE_EN.put("03","主机-全部");
 		EQUIPMENT_TYPE_EN.put("0301","主机-Windows");
 		EQUIPMENT_TYPE_EN.put("0302","主机-Linux");
@@ -242,6 +242,22 @@ public class Constant {
 	 * 获取产品信息
 	 */
 	public static String PRODUCTPATH="java.lang.String com.jz.bigdata.common.product.controller.ProductController.getProductInfo";
+	/**
+	 * SYSLOG开启采集URL
+	 */
+	public static String COLLECTOR_START_SYSLOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startSyslogKafkaListener";
+	/**
+	 * AGENT开启采集URL
+	 */
+	public static String COLLECTOR_START_AGENT_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startAgentKafkaListener";
+	/**
+	 * SYSLOG关闭采集URL
+	 */
+	public static String COLLECTOR_STOP_SYSLOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopSyslogKafkaListener";
+	/**
+	 * AGENT关闭采集URL
+	 */
+	public static String COLLECTOR_STOP_AGENT_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopAgentKafkaListener";
 	/**
 	 * api数据接口
 	 */

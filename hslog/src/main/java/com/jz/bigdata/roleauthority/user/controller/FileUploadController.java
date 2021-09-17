@@ -274,12 +274,12 @@ public class FileUploadController {
             }  
         }
         //证书上传后，根据证书信息初始化用户及菜单信息
-        try{
-            userService.updateProduct();
-        }catch(Exception e){
-            log.error("产品激活失败:"+e.getMessage());
-            return "产品激活失败！";
-        }
+//        try{
+//            userService.updateProduct();
+//        }catch(Exception e){
+//            log.error("产品激活失败:"+e.getMessage());
+//            return "产品激活失败！";
+//        }
         return "产品激活成功";
 
     } 

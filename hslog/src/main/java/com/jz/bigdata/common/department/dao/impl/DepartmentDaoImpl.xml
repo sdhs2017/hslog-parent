@@ -153,26 +153,26 @@
 
 	<!-- 根据id修改信息 -->
 	<update id="updateById" parameterType="com.jz.bigdata.common.department.entity.Department">
-		update department set
-		name=#{name},level=#{level},superiorId=#{superiorId},subordinate=#{subordinate},
-		<choose>
-			<when test="comment != null and comment !='' and comment !='null'">
-				comment = #{comment},
-			</when>
-			<otherwise>
-				comment = null,
-			</otherwise>
-		</choose>
-		<choose>
-			<when test="orderId != null and orderId !='' and orderId !='null'">
-				orderId = #{orderId}
-			</when>
-			<otherwise>
-				orderId = null
-			</otherwise>
-		</choose>
-		where id=#{id}
-	</update>
+	update department set
+	name=#{name},level=#{level},superiorId=#{superiorId},subordinate=#{subordinate},
+	<choose>
+		<when test="comment != null and comment !='' and comment !='null'">
+			comment = #{comment},
+		</when>
+		<otherwise>
+			comment = null,
+		</otherwise>
+	</choose>
+	<choose>
+		<when test="orderId != null and orderId !='' and orderId !='null'">
+			orderId = #{orderId}
+		</when>
+		<otherwise>
+			orderId = null
+		</otherwise>
+	</choose>
+	where id=#{id}
+</update>
 	<!-- 修改上级目录是否由下一级 -->
 	<update id="updateSuperiorId" parameterType="com.jz.bigdata.common.department.entity.Department">
 		<if test="id != null and id !='0'">

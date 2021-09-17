@@ -307,6 +307,7 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
                 logService.getEventstypeCountByEquipmentid(index, types, equipment.getId(), enddate);
             }catch(Exception e){
                 logger.error("定时任务--统计客户自定义的安全策略数据,执行失败:"+e.getMessage());
+                logger.error("资产信息："+equipment.getName()+equipment.getId());
             }
         }
         Map<String, Object> map= new HashMap<>();

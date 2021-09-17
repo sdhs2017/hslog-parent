@@ -561,7 +561,7 @@ public class EquipmentController {
 				//设置Content-Disposition，设置attachment，浏览器会激活文件下载框；filename指定下载后默认保存的文件名
 				//不设置Content-Disposition的话，文件会在浏览器内打卡，比如txt、img文件
 				//为了解决中文名称乱码问题，浏览器下载的文件名 eg:资产列表2021-01-01
-				String downloadFileName = new String(("资产列表"+LocalDateTime.now().format(dtf_time)).getBytes("utf-8"),"iso-8859-1");
+				String downloadFileName = new String(("资产导出列表"+LocalDateTime.now().format(dtf_time)).getBytes("utf-8"),"iso-8859-1");
 				response.addHeader("Content-Disposition", "attachment; filename="+ downloadFileName+".xls");
 				byte[] buffer = new byte[1024];
 				FileInputStream fis = null;

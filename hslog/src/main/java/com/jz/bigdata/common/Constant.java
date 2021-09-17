@@ -66,6 +66,22 @@ public class Constant {
 	 * api数据接口
 	 */
 	public static String APIPATH="apiLog";
+	/**
+	 * SYSLOG开启采集URL
+	 */
+	public static String COLLECTOR_START_SYSLOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startSyslogKafkaListener";
+	/**
+	 * AGENT开启采集URL
+	 */
+	public static String COLLECTOR_START_AGENT_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startAgentKafkaListener";
+	/**
+	 * SYSLOG关闭采集URL
+	 */
+	public static String COLLECTOR_STOP_SYSLOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopSyslogKafkaListener";
+	/**
+	 * AGENT关闭采集URL
+	 */
+	public static String COLLECTOR_STOP_AGENT_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopAgentKafkaListener";
 
 	/**
 	 * 执行异常错误信息

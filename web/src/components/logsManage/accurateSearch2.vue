@@ -2,8 +2,8 @@
     <div class="content-bg">
         <div class="top-title">精确查询
             <div class="equipemnt-tools-btns">
-                <el-button type="primary" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
-                <el-button type="warning" size="mini" plain @click="importState = true">日志导入</el-button>
+                <!--<el-button type="primary" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
+                <el-button type="warning" size="mini" plain @click="importState = true">日志导入</el-button>-->
             </div>
         </div>
         <div class="search-wapper">

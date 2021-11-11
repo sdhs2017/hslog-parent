@@ -79,6 +79,19 @@ function checkStrong(sValue) {
     }
     return modes;
 }
+/*设置密码复杂度设置
+* length 长度 number 数字 letter 字母 symbol符号
+* */
+function setPasswordComplex(length,arr){
+    let complexStr = ''
+    arr.forEach(item =>{
+        complexStr += item +' '
+    })
+    let str = `长度大于${length}位，${complexStr} 组合`;
+
+    sessionStorage.setItem('pawComplex',str)
+}
+
 /*
 ****请求前缀*****
 * */
@@ -381,5 +394,6 @@ export {
     setChartParam,
     changeEchartsTooltip,
     encrypt,
-    decrypt
+    decrypt,
+    setPasswordComplex
 }

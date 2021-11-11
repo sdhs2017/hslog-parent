@@ -216,6 +216,7 @@
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/note/backup.do','')
                             .then(res=>{
+                                layer.closeAll()
                                 if(res.data.success === "true"){
                                     layer.msg(res.data.message,{icon: 1});
                                 }else if(res.data.success === "false"){//失败
@@ -242,13 +243,14 @@
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/note/restore.do','')
                             .then(res=>{
+                                layer.closeAll()
                                 if(res.data.success === "true"){
                                     layer.msg(res.data.message,{icon: 1});
                                 }else if(res.data.success === "false"){//失败
                                     layer.msg(res.data.message,{icon: 5});
                                 }
                             })
-                            .catch(err=>{
+                            .catch(err=>{s
                                 layer.closeAll()
                                 layer.msg('备份失败',{icon: 5});
                             })

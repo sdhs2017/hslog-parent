@@ -66,6 +66,12 @@
                         <i class="el-icon-rank"></i>
                     </el-tooltip>
                 </div>
+                <!--锁定-->
+                <div class="btn-block" @click="blockUser">
+                    <el-tooltip effect="dark" content="锁定" placement="bottom">
+                        <i class="el-icon-lock"></i>
+                    </el-tooltip>
+                </div>
             </div>
         </div>
         <el-dialog title="修改密码" :visible.sync="passWordForm" width="400px">
@@ -74,7 +80,7 @@
                     <el-input v-model="passwordObj.oldPassword" type="password" placeholder="旧的密码"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="新的密码:">
-                    <el-input v-model="passwordObj.password" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="passwordObj.password" type="password" :placeholder="paw_placeholder"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <ul class="pass_set" v-if="passwordObj.password.length > 0">
                     <li id="strength_L" style="background-color: rgb(237, 62, 13);">弱</li>
@@ -82,7 +88,7 @@
                     <li id="strength_H" :style="mode > 2 ? {background:'#6ba001'}:{}">强</li>
                 </ul>
                 <el-form-item label="确认密码:">
-                    <el-input v-model="password2" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="password2" type="password" :placeholder="paw_placeholder"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -90,6 +96,21 @@
                 <el-button @click="passWordForm = false">取 消</el-button>
             </div>
         </el-dialog>
+
+        <!--锁定遮罩-->
+        <div v-if="blockDialog" class="block-wapper">
+            <div class="con-wapper">
+                <div style="font-size:260px">
+                    <i class="el-icon-lock"></i>
+                </div>
+                <div style="display: flex;">
+                    <el-input v-model="userpaw" type="password" placeholder=""  maxlength="18"  class="item"></el-input>
+                    <el-button type="primary" @click="getKey">解锁</el-button>
+                    <div style="width: 30px;"> <i class="el-icon-loading"  v-if="lockLoading"></i></div>
+
+                </div>
+            </div>
+        </div>
     </div>
 </template>
 <script>
@@ -98,6 +119,7 @@
     export default {
         data() {
             return {
+                lockLoading:false,
                 alertCount:0,
                 alertParam:{
                     starttime:'',
@@ -111,14 +133,17 @@
                 message: 2,
                 phone:'',
                 roleName:'',
-                passwordObj:{
+                passwordObj:{//修改密码 参数
                     oldPassword:'',
                     password:''
                 },
                 password2:'',
                 mode:0,
                 systemMenu:[],
-                current:0
+                current:0,
+                blockDialog:false,//锁定遮罩 状态
+                userpaw:'',//解锁密码 也就是用户密码
+                paw_placeholder:''
             }
         },
         watch:{
@@ -153,6 +178,9 @@
             },300000)
             let user =  JSON.parse(localStorage.getItem('LoginUser'));
             this.phone = user.phone;
+
+            this.getLockState()
+
         },
         mounted(){
             window.onresize = () => {
@@ -177,38 +205,86 @@
                         })
                 })
             },
+            /*获取秘钥*/
+            getKey(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/rsa/getRSAPublicKey.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                let PUBLIC_KEY = obj.message
+                                //使用公钥加密
+                                var encrypt = new JSEncrypt();
+                                encrypt.setPublicKey('-----BEGIN PUBLIC KEY-----' + PUBLIC_KEY + '-----END PUBLIC KEY-----');
+                                // console.log(JSON.stringify(this.ruleForm.phone))
+                                let phone = encrypt.encrypt(this.ruleForm.phone)
+                                let password = encrypt.encrypt(this.ruleForm.password)
+                                this.login(phone,password,index1)
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
             /*改变密码*/
             changePassWord(){
                 if(this.passwordObj.oldPassword === ''){
                     layer.msg('请填写原来密码',{icon: 5});
                 }else if(this.passwordObj.password === ''){
                     layer.msg('未填写新的密码',{icon: 5});
-                }else if(this.mode < 2){
-                    layer.msg('密码格式不正确（8-18位数字、字母、字符至少两者组合）',{icon: 5});
-                }else if(this.passwordObj.password .length < 8 || this.passwordObj.password .length>18){
-                    layer.msg('密码长度不正确(8-18位)',{icon: 5});
                 }else if(this.passwordObj.password  !== this.password2 ){
                     layer.msg('两次密码输入不一致',{icon: 5});
                 }else{
                     layer.load(1)
-                    let userObj = JSON.parse(localStorage.getItem("LoginUser"));
-                    this.passwordObj.id = userObj.id;
+                    //获取密钥
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(this.passwordObj))
-                            .then(res =>{
-                                layer.closeAll();
-                                if(res.data.success === "true"){
-                                    layer.msg(res.data.message,{icon: 1});
-                                    //关闭弹窗
-                                    this.passWordForm =false;
-                                }else if(res.data.success === "false"){
-                                    layer.msg(res.data.message,{icon: 5});
+                        this.$axios.post(this.$baseUrl+'/rsa/getRSAPublicKey.do',this.$qs.stringify())
+                            .then(res=>{
+                               // this.loading = false;
+                                let obj = res.data;
+                                if(obj.success == 'true'){
+                                    let PUBLIC_KEY = obj.message
+                                    //使用公钥加密
+                                    var encrypt = new JSEncrypt();
+                                    encrypt.setPublicKey('-----BEGIN PUBLIC KEY-----' + PUBLIC_KEY + '-----END PUBLIC KEY-----');
+                                    let pawObj = JSON.parse(JSON.stringify(this.passwordObj))
+                                    let userObj = JSON.parse(localStorage.getItem("LoginUser"));
+                                    pawObj.id = userObj.id;
+                                    pawObj.oldPassword = encrypt.encrypt(pawObj.oldPassword);
+                                    pawObj.password = encrypt.encrypt(pawObj.password);
+                                    //修改密码
+                                    this.$nextTick(()=>{
+                                        this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(pawObj))
+                                            .then(res =>{
+                                                layer.closeAll();
+                                                if(res.data.success === "true"){
+                                                    layer.msg(res.data.message,{icon: 1});
+                                                    //关闭弹窗
+                                                    this.passWordForm =false;
+                                                }else if(res.data.success === "false"){
+                                                    layer.msg(res.data.message,{icon: 5});
+                                                }
+                                            })
+                                            .catch(res =>{
+
+                                            })
+                                    })
+
+
+                                }else{
+                                    layer.msg(obj.message,{icon:5})
                                 }
                             })
-                            .catch(res =>{
-
+                            .catch(err=>{
+                                this.loading = false;
                             })
                     })
+
                 }
             },
             // 用户名下拉菜单选择事件
@@ -230,6 +306,7 @@
                     })
 
                 }else if(command === 'showPasswordForm'){
+                    this.paw_placeholder = sessionStorage.getItem('pawComplex')
                     //初始化参数
                     this.passwordObj={
                         oldPassword:'',
@@ -334,6 +411,93 @@
             //点击跳转到告警页面
             goToAlert(){
                 this.$router.push('/alert');
+            },
+            /*获取秘钥*/
+            getKey(){
+                this.$nextTick(()=>{
+                    this.lockLoading = true;
+                    this.$axios.post(this.$baseUrl+'/rsa/getRSAPublicKey.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.lockLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                let PUBLIC_KEY = obj.message
+                                //使用公钥加密
+                                var encrypt = new JSEncrypt();
+                                encrypt.setPublicKey('-----BEGIN PUBLIC KEY-----' + PUBLIC_KEY + '-----END PUBLIC KEY-----');
+                                // console.log(JSON.stringify(this.ruleForm.phone))
+                                // let phone = encrypt.encrypt(this.ruleForm.phone)
+                                let password = encrypt.encrypt(this.userpaw)
+                                this.removeBlock(password)
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
+            //获取用户锁定状态
+            getLockState(){
+                this.$nextTick(()=>{
+                    // this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/user/getUserLockState.do',this.$qs.stringify())
+                        .then(res=>{
+                            //this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.blockDialog = true;
+                            }else{
+                                // layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+            //锁定用户
+            blockUser(){
+                this.$nextTick(()=>{
+                    // this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/user/userLocked.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.blockDialog = true;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+
+            },
+            //解除锁定
+            removeBlock(password){
+                this.lockLoading = true;
+                this.$nextTick(()=>{
+                    //this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/user/userUnlock.do',this.$qs.stringify({
+                        password:password
+                    }))
+                        .then(res=>{
+                            this.lockLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.blockDialog = false;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.lockLoading = false;
+                        })
+                })
             }
         },
         mounted(){
@@ -576,5 +740,28 @@
         background: #667e9a;
         color: #fff;
         list-style-type: none;
+    }
+    .block-wapper{
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.95);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+    }
+    .block-wapper .con-wapper{
+        width: 340px;
+    }
+    .block-wapper .con-wapper>div{
+        display: flex;
+        justify-content: center;
+        margin-bottom: 50px;
+    }
+    .block-wapper i{
+        /*font-size: 260px;*/
     }
 </style>

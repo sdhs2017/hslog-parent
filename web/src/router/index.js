@@ -601,6 +601,26 @@ export default new Router({
                     component: resolve => require(['../components/dataSource/tabManage.vue'], resolve),
                     meta: { title: '发现规则配置' }
                 },
+                /* **********涉密*************** */
+                {
+                    path: 'systemConfig_SR',
+                    name:'systemConfig_SR',
+                    component: resolve => require(['../components/platformManage/systemConfig_SR.vue'], resolve),
+                    meta: { title: '系统配置' }
+                },
+                {
+                    path: '/auditLog_SR',
+                    name:'auditLog_SR',
+                    component: resolve => require(['../components/platformManage/auditLog_SR.vue'], resolve),
+                    meta: { title: '审计日志' }
+                },
+                {
+                    path: '/userManage_SR',
+                    name:'userManage_SR',
+                    component: resolve => require(['../components/userManage/userManage_SR.vue'], resolve),
+                    meta: { title: '用户管理' }
+                },
+                /* **********涉密*************** */
                 /*{
                     path: '/test',
                     name:'test',

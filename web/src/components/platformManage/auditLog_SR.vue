@@ -7,8 +7,8 @@
         <div class="audit-btn-wapper">
             <el-button type="primary" plain size="mini" title="备份数据" @click="backupLogs"><i class="el-icon-printer"></i>备份</el-button>
             <el-button type="success" plain size="mini" title="还原备份数据" @click="recoverLogs"><i class="el-icon-sort"></i>还原</el-button>
-            <el-button type="info" plain size="mini" title="清空" @click="emptyLogs"><i class="el-icon-delete"></i>清空</el-button>
-            <el-button type="danger" plain size="mini" title="删除" @click="removeLogs"><i class="el-icon-close"></i>删除</el-button>
+            <!--<el-button type="info" plain size="mini" title="清空" @click="emptyLogs"><i class="el-icon-delete"></i>清空</el-button>
+            <el-button type="danger" plain size="mini" title="删除" @click="removeLogs"><i class="el-icon-close"></i>删除</el-button>-->
             <el-button type="warning" plain size="mini" title="刷新" @click="repeatLogs"><i class="el-icon-refresh"></i>刷新</el-button>
         </div>
         <div class="audit-table-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
@@ -216,6 +216,7 @@
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/note/backup.do','')
                             .then(res=>{
+                                layer.closeAll()
                                 if(res.data.success === "true"){
                                     layer.msg(res.data.message,{icon: 1});
                                 }else if(res.data.success === "false"){//失败
@@ -242,6 +243,7 @@
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/note/restore.do','')
                             .then(res=>{
+                                layer.closeAll()
                                 if(res.data.success === "true"){
                                     layer.msg(res.data.message,{icon: 1});
                                 }else if(res.data.success === "false"){//失败

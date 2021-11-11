@@ -25,8 +25,10 @@ import java.util.*;
 public class SearchServiceImpl implements ISearchService {
     @Autowired
     protected ISearchDao searchDao;
-
-
+    //ES查询出的数据的id字段
+    private final String ES_ID_FIELD = "_id";
+    //ES查询出的数据的index名称字段
+    private final String ES_INDEX_FIELD = "_index";
     /**
      * 获取复杂查询的数据，数据返回格式为echart的dataset格式
      * @param conditions
@@ -87,7 +89,18 @@ public class SearchServiceImpl implements ISearchService {
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         for(SearchHit hit : searchHit) {
             Map<String, Object> map = hit.getSourceAsMap();
-            list.add(map);
+            //如果命中数据，map的size>0，此时将id和index也写入返回数据中
+            if(map.size()>0){
+                //将该条记录的id信息也返回，用于通过id查看详情
+                map.put(ES_ID_FIELD,hit.getId());
+                //将该条记录的index名称也返回，用于通过id查看详情
+                map.put(ES_INDEX_FIELD,hit.getIndex());
+                list.add(map);
+            }else{
+                //如果没有命中数据，map的size=0
+                //continue
+            }
+
         }
         return list;
     }

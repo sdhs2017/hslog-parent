@@ -11,6 +11,16 @@ public class MappingField {
     private boolean fieldData;
     //字段是否可排序
     private boolean sortable;
+    //是否是fields下的字段，例如：ip为一个字段，ip下有个fields，然后定义了keyword，可以用ip.keyword访问
+    private boolean isFields;
+
+    public boolean getIsFields() {
+        return isFields;
+    }
+
+    public void setIsFields(boolean fields) {
+        isFields = fields;
+    }
 
     public boolean getSortable() {
         return sortable;

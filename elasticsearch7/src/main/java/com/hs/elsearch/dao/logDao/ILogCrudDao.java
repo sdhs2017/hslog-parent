@@ -60,7 +60,7 @@ public interface ILogCrudDao {
      */
     public DocWriteResponse.Result upsert(String index, String id, String json) throws Exception;
     /**
-     * 通过ID查询数据
+     * 通过ID查询数据,index必须是准确的index名称，不能是带*的，否则会报错
      * @param index
      * @param type
      * @param id

@@ -7,6 +7,25 @@ import java.util.*;
  */
 public class ElasticConstant {
     /**
+     * 字段类型分类
+     */
+    public static final String ES_FIELDS_TYPE_NUMBER = "Number";//数字
+    public static final String ES_FIELDS_TYPE_NUMBER_OR_DATE = "NumberOrDate";//数字或日期
+    public static final String ES_FIELDS_TYPE_TERMS = "Terms";//可
+    public static final String ES_FIELDS_TYPE_DATE = "Date";//日期
+    public static final String ES_FIELDS_TYPE_IP = "Ip";//IP
+    public static final String ES_FIELDS_TYPE_ALL_EXCEPT_GEO = "AllExceptGeo";//除了GEO外的类型
+    public static final String ES_FIELDS_TYPE_ALL = "All";//所有字段
+    public static final String ES_FIELDS_TYPE_SOURCE = "Source";//可使用_source获取字段的，去除了fields下的字段（常见的如keyword）
+    /*
+    数据源类型
+     */
+    //通过模板选择数据源
+    public static final String BI_SOURCE_TYPE_TEMPLATE = "template";
+    //通过自定义index选择数据源
+    public static final String BI_SOURCE_TYPE_INDEX = "index";
+
+    /**
      * BIDao层数据组装涉及到的系统常量
      */
     /**

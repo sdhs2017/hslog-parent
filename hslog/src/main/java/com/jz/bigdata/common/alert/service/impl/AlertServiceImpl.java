@@ -444,11 +444,15 @@ public class AlertServiceImpl implements IAlertService {
             String fire_count = map.get("value").toString();
             //获取alert信息
             Alert alert = alertDao.getAlertInfoById(alert_id);
-            alert.setFire_count(fire_count);
-            //获取告警对应的执行列表（fire）
-            //alert_fire 告警状态为true
+            //告警策略被删除，无法获取原始告警信息，不再显示
+            if(alert!=null){
+                alert.setFire_count(fire_count);
+                //获取告警对应的执行列表（fire）
+                //alert_fire 告警状态为true
 
-            result.add(alert);
+                result.add(alert);
+            }
+
         }
         return result;
     }

@@ -30,6 +30,7 @@ import com.jz.bigdata.util.*;
 import com.jz.bigdata.util.POI.ReadExcel;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
+import org.apache.commons.io.FileUtils;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -1449,7 +1450,8 @@ public class LogController extends BaseController{
 			resultmap.put("value", "0-1");
 			setExportProcess(JSONArray.fromObject(resultmap).toString());
 		}
-
+		//csv文件导出路径
+		String outputPath = "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day);
 		try {
 			// 先到处每个sheet页10000条的数据
 			for(int i=1;i<=forsize;i++) {
@@ -1466,7 +1468,7 @@ public class LogController extends BaseController{
 				Date date = new Date();
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day), "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
+				CSVUtil.createCSVFile(headList, list, outputPath, "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
 				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 
 				if (i==forsize&&modsize==0) {
@@ -1497,7 +1499,7 @@ public class LogController extends BaseController{
 				// 过滤第一条，第一条数据为总数统计
 				list.remove(0);
 				// 开始写入csv文件
-				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day), "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
+				CSVUtil.createCSVFile(headList, list, outputPath, "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
 				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
 				//  根据导出文件个数返回导出状态
 				if (forsize>0) {
@@ -1516,6 +1518,21 @@ public class LogController extends BaseController{
 			allmap.put("state", false);
 			allmap.put("msg", "日志导出失败");
 			e.printStackTrace();
+		}
+
+		boolean zipResult = ZipUtil.zipFilesAndEncrypt(outputPath,"/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+"exportlog"+LocalDateTime.now().format(dtf_time_file)+".zip",Constant.ZIP_PASS);
+		if(zipResult){
+			//压缩包成功生成，删除相关文件
+			File currentFile = new File(outputPath);
+
+			if(currentFile.isDirectory()){
+				try{
+					FileUtils.deleteDirectory(currentFile);
+				}catch (Exception e){
+					log.error("删除文件夹失败："+outputPath);
+				}
+
+			}
 		}
 
 		String result = JSONArray.fromObject(allmap).toString();

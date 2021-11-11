@@ -209,7 +209,7 @@ public class EcsWinlogController {
         try {
             list = ecsService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_index());
         } catch (Exception e) {
-            log.error("日志精确查询：失败！");
+            log.error("日志精确查询：失败！"+e.getMessage());
             e.printStackTrace();
             allmap.put("count",0);
             allmap.put("list",null);

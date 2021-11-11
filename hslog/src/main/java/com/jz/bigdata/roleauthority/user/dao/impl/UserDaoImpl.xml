@@ -57,6 +57,9 @@
 	    <if test="phone != null and phone !=''" >
 	        and phone = #{phone,jdbcType=VARCHAR} 
 	    </if>
+		<if test="role != null and role !=''" >
+			and HUR.FK_RoleID = #{role,jdbcType=VARCHAR}
+		</if>
 	    <if test="departmentId != null and departmentId !=''" >
 	        and departmentId = #{departmentId,jdbcType=INTEGER} 
 	    </if>
@@ -124,6 +127,9 @@
 	    <if test="departmentId != null and departmentId !='' and departmentId !=0" >
 	        and departmentId = #{departmentId,jdbcType=INTEGER} 
 	    </if>
+		<if test="roleid != null and roleid !=''" >
+			and HUR.FK_RoleID = #{roleid,jdbcType=VARCHAR}
+		</if>
 	    group by user.id, user.name, phone, password, sex,age,email,departmentId,state
 		, department.`name`
 	    limit #{startRecord},#{pageSize}
@@ -133,7 +139,8 @@
 	<select id="count"  parameterType="com.jz.bigdata.roleauthority.user.util.Page" >
 <!--   <bind name="name" value="'%' + name + '%'" /> -->
 	    select count(1) as count
-	    from HS_User 
+	    from HS_User user
+		LEFT JOIN HS_UserRole HUR ON HUR.FK_UserID = user.id
 	    where 1=1
 	    <if test="name != null and name !=''" >
 	        and name LIKE CONCAT('%', #{name}, '%')  
@@ -145,7 +152,9 @@
 	    <if test="departmentId != null and departmentId !=''" >
 	        and departmentId = #{departmentId,jdbcType=VARCHAR} 
 	    </if>
-
+		<if test="roleid != null and roleid !=''" >
+			and HUR.FK_RoleID = #{roleid,jdbcType=VARCHAR}
+		</if>
 	</select>
   
   

@@ -3,6 +3,7 @@ package com.hs.elsearch.entity;
 import org.apache.commons.beanutils.BeanUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,13 +16,13 @@ public class SearchConditions {
     private String index_name;//数据源：目前是索引，后期可能会调整
     private String pre_index_name;//索引前缀
     private String suffix_index_name;//索引后缀
-    private String template_name;//
-    private String startTime;
-    private String endTime;
+    private String template_name;//template名称
+    private String startTime;//起始时间
+    private String endTime;//截止时间
     private String dateField;//时间范围查询时对应的字段
-    private Map<String,String> queryParam;//查询条件 查询框和时间范围
+    //private Map<String,String> queryParam;//查询条件 查询框和时间范围
     private String errorInfo;//异常信息提示，用于在参数处理时产生异常时进行判定
-    private ArrayList<Bucket>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      bucketList = new ArrayList<>();//聚合字段（X轴）
+    private ArrayList<Bucket> bucketList = new ArrayList<>();//聚合字段（X轴）
     private ArrayList<Metric> metricList = new ArrayList<>();//指标字段（Y轴）
     private ArrayList<QueryCondition> queryConditions = new ArrayList<>();//查询条件
     private String queryConnectionType;//查询条件的连接类型  should/must
@@ -29,16 +30,26 @@ public class SearchConditions {
     private List<Filter> filters_visual = new ArrayList<>();//图表 filter级
     private List<Filter> filters_dashboard = new ArrayList<>();//dashboard filter级
     private List<Filter> filters_alert = new ArrayList<>();//alert filter级
-    private List<Map<String,String>> filters_table = new ArrayList<>();//
+    private List<Map<String,String>> filters_table = new ArrayList<>();//表格的filter
+    private List<Filter> visual_search = new ArrayList<>();//图表中的查询框
+
 
     private String queryBox;//query 查询框的内容
     private Integer page;//分页，第几页
     private Integer page_size;//分页，每页多少条
     private Integer from;//分页起始行，通过page和page_size计算而来
     private Integer size;//最终要展示的数量
-    private List<DataTableColumn> dataTableColumns = new ArrayList<>();
+    private List<DataTableColumn> dataTableColumns = new ArrayList<>();//表格的列信息
 
     private List<DataTableColumn> sortColumns = new ArrayList<>();//排序字段，用于查询所有数据时，对指定字段进行排序。
+
+    public List<Filter> getVisual_search() {
+        return visual_search;
+    }
+
+    public void setVisual_search(List<Filter> visual_search) {
+        this.visual_search = visual_search;
+    }
 
     public List<DataTableColumn> getSortColumns() {
         return sortColumns;
@@ -192,13 +203,13 @@ public class SearchConditions {
         this.endTime = endTime;
     }
 
-    public Map<String, String> getQueryParam() {
-        return queryParam;
-    }
-
-    public void setQueryParam(Map<String, String> queryParam) {
-        this.queryParam = queryParam;
-    }
+//    public Map<String, String> getQueryParam() {
+//        return queryParam;
+//    }
+//
+//    public void setQueryParam(Map<String, String> queryParam) {
+//        this.queryParam = queryParam;
+//    }
 
     public String getIndex_name() {
         return index_name;

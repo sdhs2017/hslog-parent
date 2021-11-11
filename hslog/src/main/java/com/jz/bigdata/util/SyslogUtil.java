@@ -276,8 +276,28 @@ public class SyslogUtil {
             String[] kvArr = kv.trim().split(secondRegex+MESSAGE_IGNORE_REGEX,-1);
             //正常拆分后，长度为2
             if(kvArr.length==2){
-                //3.将k v写入newMessageObj中
-                newMessageObj.addProperty(kvArr[0],kvArr[1]);
+                //TODO
+                //涉密特殊处理，IPS日志中，中英文对照 message.EventLevel 字段（事件优先级） 0：低  1：中  2：高
+                if("EventLevel".equals(kvArr[0])){
+                    switch (kvArr[1]){
+                        case "0":
+                            newMessageObj.addProperty(kvArr[0],"低");
+                            break;
+                        case "1":
+                            newMessageObj.addProperty(kvArr[0],"中");
+                            break;
+                        case "2":
+                            newMessageObj.addProperty(kvArr[0],"高");
+                            break;
+                        default:
+                            newMessageObj.addProperty(kvArr[0],kvArr[1]);
+                            break;
+                    }
+                }else{
+                    //3.将k v写入newMessageObj中
+                    newMessageObj.addProperty(kvArr[0],kvArr[1]);
+                }
+
             }else{
                 log.error("message拆分失败："+kv+"，原始message："+message);
             }

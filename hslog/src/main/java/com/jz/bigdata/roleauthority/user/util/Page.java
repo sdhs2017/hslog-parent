@@ -15,8 +15,17 @@ public class Page {
 	private Integer departmentId;
 	private int role;//角色
 	private int state;
-	
-public int getRole() {
+	private String roleid;//角色id
+
+	public String getRoleid() {
+		return roleid;
+	}
+
+	public void setRoleid(String roleid) {
+		this.roleid = roleid;
+	}
+
+	public int getRole() {
 		return role;
 	}
 	public void setRole(int role) {

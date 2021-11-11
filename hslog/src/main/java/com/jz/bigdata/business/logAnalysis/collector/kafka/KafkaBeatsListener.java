@@ -283,14 +283,19 @@ public class KafkaBeatsListener {
                                         /**
                                          * 判断windows日志事件event.action字段是否是中文，如果是中文改成英文
                                          */
-                                        String event_action = jsonObject.getAsJsonObject("event").get("action").toString().replaceAll("\"","");
-                                        if (Cn2En.event_cn.get(event_action)!=null){
-                                            jsonObject.getAsJsonObject("event").addProperty("action",Cn2En.event_cn.get(event_action));
+                                        JsonElement event_action_json = jsonObject.getAsJsonObject("event").get("action");
+                                        //存在部分日志没有事件（如：windows应用日志、系统日志）
+                                        if(event_action_json!=null){
+                                            String event_action = jsonObject.getAsJsonObject("event").get("action").toString().replaceAll("\"","");
+                                            if (Cn2En.event_cn.get(event_action)!=null){
+                                                jsonObject.getAsJsonObject("event").addProperty("action",Cn2En.event_cn.get(event_action));
+                                            }
+                                            /**
+                                             * 增加event.action_cn字段，作为event.action的中文对照,没有找到的情况下存""
+                                             */
+                                            jsonObject.getAsJsonObject("event").addProperty("action_cn",(Cn2En.event_en.get(event_action)!=null?Cn2En.event_en.get(event_action):""));
                                         }
-                                        /**
-                                         * 增加event.action_cn字段，作为event.action的中文对照,没有找到的情况下存""
-                                         */
-                                        jsonObject.getAsJsonObject("event").addProperty("action_cn",(Cn2En.event_en.get(event_action)!=null?Cn2En.event_en.get(event_action):""));
+
                                         /**
                                          * winlogbeat发送的日志时间为UTC/GMT 0 (零时区)，需要在原时间上加8小时
                                          */

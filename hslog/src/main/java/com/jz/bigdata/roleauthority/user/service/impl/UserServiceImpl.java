@@ -9,12 +9,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.sql.DataSource;
 
 import com.jz.bigdata.common.configuration.dao.IConfigurationDao;
 import com.jz.bigdata.common.configuration.entity.Configuration;
 import com.jz.bigdata.common.license.LicenseExtra;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.menu.entity.Button;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
 import com.jz.bigdata.roleauthority.role.entity.Role;
@@ -191,6 +193,7 @@ public class UserServiceImpl implements IUserService {
 	}
 
 
+
 	/**
 	 * @param id
 	 * @return
@@ -223,11 +226,18 @@ public class UserServiceImpl implements IUserService {
 	 * @return 是否登陆成功 true/false
 	 * @description 登陆操作
 	 */
-	public String login(User user,HttpSession session) throws Exception {
+	public String login(User user, HttpSession session, HttpServletRequest request) throws Exception {
+		//验证登录信息是否在登录黑名单
+
 		//查询账号密码对应的用户信息
 		// 2021-3-16 需求：前端传的账号密码要加密，目前通过RSA加密解密，因此需要先解密
 		user.setPhone(RSAUtil.decrypt(user.getPhone(),RSAUtil.getPrivateKey()));
 		user.setPassword(MD5.EncoderByMd5(RSAUtil.decrypt(user.getPassword(),RSAUtil.getPrivateKey())));
+		String ip = getIpAddr(request);
+		Object ip_black = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.IP_BLACK);
+		if(ip_black!=null&&ip_black.toString().indexOf(ip)>=0){
+			return Constant.failureMessage("IP被限制登录！");
+		}
 		//user.setPassword(MD5.EncoderByMd5(user.getPassword()));
 		//通过账号和密码查询用户信息
 		User _user = userDao.selectByPhonePwd(user);
@@ -257,7 +267,7 @@ public class UserServiceImpl implements IUserService {
 				}else if(_user.getState()==0){//状态值为 0 账号被锁定
 					//TODO 判定账号能否解锁
 					map.put("success", "false");
-					map.put("message", "您已连续5次输入密码错误，账号已被锁定");
+					map.put("message", "您已连续多次输入密码错误，账号已被锁定");
 					return JSONObject.fromObject(map).toString();
 				}else{//账号正常
 					Department department= departmentDao.selectDepartment((_user.getDepartmentId())+"");
@@ -273,7 +283,10 @@ public class UserServiceImpl implements IUserService {
 					}
 
 					session.setAttribute(Constant.SESSION_ID, session.getId());
-
+					//设置超时时间
+					String timeout = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.SESSION_TIMEOUT).toString();
+					//设置超时时间
+					session.setMaxInactiveInterval(Integer.parseInt(timeout)*60);
 					//账号密码超时判定
 					//获取超时时间，单位：天
 					List<Configuration> result = configurationDao.selectByKey(Constant.PWD_EXPIRE_DAY_NAME);
@@ -318,12 +331,14 @@ public class UserServiceImpl implements IUserService {
 			//起始时间
 			String startTime = end.minusMinutes(30).format(dtf_time);
 
-			// 查询半小时以内近5次的账号登录状态
-			List<Note> list=noteDao.selectLimitNote(user.getPhone(), startTime, endTime);
+
+			//获取密码尝试次数
+			String tryCount = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.PWD_TRY).toString();
+			// 查询半小时以内近X次的账号登录状态
+			List<Note> list=noteDao.selectLimitNote(user.getPhone(), startTime, endTime,tryCount!=null?Integer.parseInt(tryCount):5);
 			Boolean res = false;
-			//
-			//判断登录密码次数过多，5次锁定锁定账号
-			if(list.size()>=5){
+			//判断登录密码次数过多，默认5次
+			if(list.size()>=(tryCount!=null?Integer.parseInt(tryCount):5)){
 				for(int i=0;i<list.size();i++){
 					if(list.get(i).getResult()==1){
 						res=true;
@@ -458,8 +473,10 @@ public class UserServiceImpl implements IUserService {
 		if(user.size()>0){
 			result=userDao.updatePasswordById(id,pwd);
 		}
-		
-		return result >= 1 ? Constant.successMessage() : Constant.updateUserPasswordMessage();
+		//用户信息
+		User user_info = userDao.selectById(id);
+		return result >= 1 ?Constant.successMessageWithTarget("操作成功！","用户名:"+user_info.getPhone()) : Constant.failureMessageWithTarget("初始密码不正确，请重新输入！","用户名:"+user_info.getPhone());
+		//return result >= 1 ? Constant.successMessage() : Constant.updateUserPasswordMessage();
 	}
 
 	@Override
@@ -589,5 +606,106 @@ public class UserServiceImpl implements IUserService {
 			//激活失败
 			return false;
 		}
+	}
+
+	@Override
+	public User selectByPhonePwd(User user) {
+		return userDao.selectByPhonePwd(user);
+	}
+
+	@Override
+	public String checkPwd_info(String password) {
+		//获取密码长度
+		String pwd_length = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.PWD_LENGTH).toString();
+		//获取密码复杂度
+		String pwd_complex = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.PWD_COMPLEX).toString();
+		//验证密码长度是否符合要求
+		boolean lengthResult = PwdCheckUtil.checkPasswordLength(password,pwd_length,null);
+		if(lengthResult){
+			//密码中包含数字
+			if(pwd_complex.indexOf("数字")>=0){
+				boolean res = PwdCheckUtil.checkContainDigit(password);
+				if(!res){
+					return Constant.failureMessage("密码复杂度不符合要求，长度>="+pwd_length+",且必须包含"+pwd_complex);
+				}
+			}
+			//密码中包含字母，不区分大小写
+			if(pwd_complex.indexOf("字母")>=0){
+				boolean res = PwdCheckUtil.checkContainCase(password);
+				if(!res){
+					return Constant.failureMessage("密码复杂度不符合要求，长度>="+pwd_length+",且必须包含"+pwd_complex);
+				}
+			}
+			//密码中包含字符
+			if(pwd_complex.indexOf("字符")>=0){
+				boolean res = PwdCheckUtil.checkContainSpecialChar(password);
+				if(!res){
+					return Constant.failureMessage("密码复杂度不符合要求，长度>="+pwd_length+",且必须包含"+pwd_complex);
+				}
+			}
+		}else{
+			return Constant.failureMessage("密码复杂度不符合要求，长度>="+pwd_length+",且必须包含"+pwd_complex);
+		}
+		return Constant.successMessage();
+	}
+
+	@Override
+	public boolean checkPwd_Boolean(String password) {
+		//获取密码长度
+		String pwd_length = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.PWD_LENGTH).toString();
+		//获取密码复杂度
+		String pwd_complex = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.PWD_COMPLEX).toString();
+		//验证密码长度是否符合要求
+		boolean lengthResult = PwdCheckUtil.checkPasswordLength(password,pwd_length,null);
+		if(lengthResult){
+			//密码中包含数字
+			if(pwd_complex.indexOf("数字")>=0){
+				boolean res = PwdCheckUtil.checkContainDigit(password);
+				if(!res){
+					return false;
+				}
+			}
+			//密码中包含字母，不区分大小写
+			if(pwd_complex.indexOf("字母")>=0){
+				boolean res = PwdCheckUtil.checkContainCase(password);
+				if(!res){
+					return false;
+				}
+			}
+			//密码中包含字符
+			if(pwd_complex.indexOf("字符")>=0){
+				boolean res = PwdCheckUtil.checkContainSpecialChar(password);
+				if(!res){
+					return false;
+				}
+			}
+		}else{
+			return false;
+		}
+		return true;
+	}
+	/**
+	 * 获取用户登录ip
+	 * @param request
+	 * @return
+	 */
+	private String getIpAddr(HttpServletRequest request){
+		String ip = request.getHeader("x-forwarded-for");
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("Proxy-Client-IP");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+		}
+		if ("0:0:0:0:0:0:0:1".equals(ip)) {
+			ip = "127.0.0.1";
+		}
+		if (ip.split(",").length > 1) {
+			ip = ip.split(",")[0];
+		}
+		return ip;
 	}
 }

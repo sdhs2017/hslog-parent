@@ -1,5 +1,6 @@
 package com.jz.bigdata.common.fileLog.controller;
 
+import com.hs.elsearch.entity.DataTableColumn;
 import com.hs.elsearch.entity.SearchConditions;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.configuration.entity.Configuration;
@@ -141,6 +142,14 @@ public class FileLogController {
             searchConditions.setPage_size(sizeInt);
             //时间字段
             searchConditions.setDateField(Constant.BEAT_DATE_FIELD);
+            //排序
+
+            DataTableColumn sort = new DataTableColumn();
+            sort.setField("@timestamp");
+            sort.setSort("asc");
+            List<DataTableColumn> sortList = new ArrayList<>();
+            sortList.add(sort);
+            searchConditions.setSortColumns(sortList);
             String result = fileLogService.getTemplateData(searchConditions);
             return Constant.successData(result);
         }catch (Exception e){

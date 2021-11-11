@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.log4j.Logger;
+import org.elasticsearch.ElasticsearchStatusException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -148,8 +149,19 @@ public class MetadataController {
             result.put("preIndexName",preIndexName);//根据template获取的index前缀
             result.put("dateField", TemplateDateField.getDateField(templateName));//根据template获取其对应的日期字段
             return Constant.successData(JSONObject.fromObject(result).toString());
+        }catch (ElasticsearchStatusException e){//捕获ES异常
+            //索引未发现
+            if(e.getMessage().indexOf("index_not_found")>=0){
+                log.error("template对应索引未发现！");
+                log.error(e.getMessage());
+                return Constant.failureMessage("该数据源无数据！");
+            }else{
+                log.error("其他ES执行异常：");
+                log.error(e.getMessage());
+                return Constant.failureMessage("数据获取失败！");
+            }
         }catch(Exception e){
-            log.error("template数据获取失败");
+            log.error("数据获取失败:"+e.getMessage());
             return Constant.failureMessage("数据获取失败");
         }
     }

@@ -102,6 +102,28 @@ public class DepartmentServiceImpl implements IDepartmentService {
 		return map;
 	}
 
+	@Override
+	public Map<String, Object> selectAll_Security(Department department, HttpSession session) {
+		Map<String,Object> map=new HashMap<String,Object>();
+//		根据部门id查询用户
+		if(department.getId()!=0){
+			User user=new User();
+			user.setDepartmentId(department.getId());
+			//TODO
+			//user.setRole(Integer.valueOf((String) session.getAttribute(Constant.SESSION_USERROLE)));
+			user.setId( session.getAttribute(Constant.SESSION_USERID).toString());
+			//设置仅查询当前角色下的用户
+			user.setRole(session.getAttribute(Constant.SESSION_USERROLE).toString());
+			List<User> listUser= userDao.selectAll(user);
+			map.put("user", listUser);
+
+		}
+//		查询部门
+		List<Department> listDepartment=departmentDao.selectAll(department);
+		map.put("department", listDepartment);
+		return map;
+	}
+
 	/**
 	 * @param department
 	 * @return

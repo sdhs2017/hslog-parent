@@ -12,6 +12,7 @@ import javax.servlet.http.HttpSession;
 
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
+import net.sf.json.JSONObject;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -220,6 +221,8 @@ public class AopAspectJ {
 		Date date = new Date();
 		note.setTime(new Timestamp(date.getTime()));
 		note.setIp(ip);
+
+
 		// 密码错误登录不成功
 		if (describe.equals("用户登录")) {
 
@@ -249,10 +252,10 @@ public class AopAspectJ {
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:失败";
 				note.setDescribe(describeSrt);
 				noteService.insert(note);
-			}else if (result.toString().contains("{\"success\":\"false\",\"message\":\"您已连续5次输入密码错误，账号已被锁定\"}")) {
+			}else if (result.toString().contains("{\"success\":\"false\",\"message\":\"您已连续多次输入密码错误，账号已被锁定\"}")) {
 				//5次输入密码错误，账号已被锁定
 				note.setResult(0);
-				note.setError("连续5次输入密码错误，账号已被锁定");
+				note.setError("连续多次输入密码错误，账号已被锁定");
 				describeSrt = "用户账号:" + user.getPhone() + "    " + "操作:" + describe + "    " + "操作状态:失败";
 				note.setDescribe(describeSrt);
 				noteService.insert(note);
@@ -277,7 +280,32 @@ public class AopAspectJ {
 			// 定时任务
 		} else if (describe.equals("监控数据采集器状态") || describe.equals("获取服务器磁盘使用情况")) {
 			// 退出登录
-		} else if (session.getAttribute(Constant.SESSION_USERID) != null
+		}else if(describe.equals("添加/修改资产")||describe.equals("修改密码")||describe.equals("添加或修改用户")){
+			//将返回结果转化成json对象，方便获取数据
+			JSONObject returnJsonObject = JSONObject.fromObject(result);
+            note.setResult(1);
+            note.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());
+            String describeSrt = "";
+            if (session.getAttribute(Constant.SESSION_DEPARTMENTID) == null) {
+                describeSrt = "用户账号:" + session.getAttribute(Constant.SESSION_USERACCOUNT).toString() + "    " + "操作:"
+                        + describe + "    "+ returnJsonObject.get("target");
+            } else {
+                note.setDepartmentId(Integer.valueOf(session.getAttribute(Constant.SESSION_DEPARTMENTID).toString()));
+                // 拼接描述
+                describeSrt = "用户账号:" + session.getAttribute(Constant.SESSION_USERACCOUNT).toString() + "    " + "部门:"
+                        + session.getAttribute(Constant.SESSION_DEPARTMENTNAME).toString() + "    " + "操作:" + describe
+                        + "    " + returnJsonObject.get("target");
+
+            }
+            if(result.toString().indexOf("{\"success\":\"false\"")>=0){
+				describeSrt = describeSrt+"  操作状态:失败";
+			}else{
+				describeSrt = describeSrt+"  操作状态:成功";
+			}
+            note.setDescribe(describeSrt);
+            note.setAccount(session.getAttribute(Constant.SESSION_USERACCOUNT).toString());
+            noteService.insert(note);
+        } else if (session.getAttribute(Constant.SESSION_USERID) != null
 				&& !pjp.getSignature().getName().equals("loginOut")) {// 所有的不报异常方法
 			note.setResult(1);
 			note.setUserId(session.getAttribute(Constant.SESSION_USERID).toString());

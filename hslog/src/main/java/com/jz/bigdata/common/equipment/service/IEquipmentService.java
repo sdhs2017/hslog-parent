@@ -98,4 +98,12 @@ public interface IEquipmentService {
 	 * @return
 	 */
 	public List<Map<String,String>> getDashboardsInfo(String logType);
+
+
+	/**
+	 * 获取所有资产的数据
+	 * @param path 文件路径
+	 * @return 文件路径
+	 */
+	public String createEquipmentExportFile(String path);
 }

@@ -15,9 +15,17 @@ import com.jz.bigdata.common.department.entity.Department;
 public interface IDepartmentService {
 	
 	int insert(Department department);
-	
+
 	Map<String,Object> selectAll(Department department,HttpSession session);
-	
+
+	/**
+	 * 涉密，根据组织机构查询子机构信息及子用户信息
+	 * @param department
+	 * @param session
+	 * @return
+	 */
+	Map<String,Object> selectAll_Security(Department department,HttpSession session);
+
 	int updateById(Department department);
 	
 	Boolean delete(int id);

@@ -82,7 +82,9 @@ public class SearchDaoImpl implements ISearchDao {
         List<Filter> filter_visual = conditions.getFilters_visual();//filter
         List<Filter> filter_dashboard = conditions.getFilters_dashboard();//filter
         List<Filter> filter_alert = conditions.getFilters_alert();
+        List<Filter> visual_search = conditions.getVisual_search();//图表的查询框
         List<Map<String,String>> filter_table = conditions.getFilters_table();//filter
+
         String queryBox = conditions.getQueryBox();//查询框
         //最外层query的定义
         BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
@@ -175,6 +177,8 @@ public class SearchDaoImpl implements ISearchDao {
         addFilters(boolQueryBuilder,filter_dashboard);//dashboard
         //alert filters
         addFilters(boolQueryBuilder,filter_alert);
+        //图表查询框，也通过filter处理
+        addFilters(boolQueryBuilder,visual_search);
         //------处理table的点击事件产生的查询条件----
         addFilters4Table(boolQueryBuilder,filter_table);
 
@@ -216,91 +220,95 @@ public class SearchDaoImpl implements ISearchDao {
         for(Filter filter : filters){
             //是否启用
             if(filter.isEnable()){
-                switch(filter.getOperator()){
-                    case ElasticConstant.ALERT_OP_IS:
-                        boolQueryBuilder.filter(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
-                        break;
-                    case ElasticConstant.ALERT_OP_IS_NOT:
-                        boolQueryBuilder.mustNot(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
-                        break;
-                    case ElasticConstant.ALERT_OP_GT:
-                        if("date".equals(filter.getFieldType())){
-                            //date类型，添加format
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gt(filter.getValue()).format(dateFormat));
-                        }else{
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gt(filter.getValue()));
-                        }
-                        break;
-                    case ElasticConstant.ALERT_OP_GTE:
-                        if("date".equals(filter.getFieldType())){
-                            //date类型，添加format
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getValue()).format(dateFormat));
-                        }else{
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getValue()));
-                        }
-                        break;
-                    case ElasticConstant.ALERT_OP_LT:
-                        if("date".equals(filter.getFieldType())){
-                            //date类型，添加format
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lt(filter.getValue()).format(dateFormat));
-                        }else{
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lt(filter.getValue()));
-                        }
-                        break;
-                    case ElasticConstant.ALERT_OP_LTE:
-                        if("date".equals(filter.getFieldType())){
-                            //date类型，添加format
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lte(filter.getValue()).format(dateFormat));
-                        }else{
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lte(filter.getValue()));
-                        }
-                        break;
-                    case ElasticConstant.OP_IS_MATCH:
-                        boolQueryBuilder.filter(QueryBuilders.matchPhraseQuery(filter.getField(),filter.getValue()));
-                        break;
-                    case ElasticConstant.OP_IS_NOT_MATCH:
-                        boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(filter.getField(),filter.getValue()));
-                        break;
-                    case ElasticConstant.OP_IS_TERM:
-                        boolQueryBuilder.filter(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
-                        break;
-                    case ElasticConstant.OP_IS_NOT_TERM:
-                        boolQueryBuilder.mustNot(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
-                        break;
-                    case ElasticConstant.OP_IS_ONE_OF_MATCH:
-                        boolQueryBuilder.filter(this.buildOneOfQuery(filter,operator_match));
-                        break;
-                    case ElasticConstant.OP_IS_NOT_ONE_OF_MATCH:
-                        boolQueryBuilder.mustNot(this.buildOneOfQuery(filter,operator_match));
-                        break;
-                    case ElasticConstant.OP_IS_ONE_OF_TERM:
-                        boolQueryBuilder.filter(this.buildOneOfQuery(filter,operator_term));
-                        break;
-                    case ElasticConstant.OP_IS_NOT_ONE_OF_TERM:
-                        boolQueryBuilder.mustNot(this.buildOneOfQuery(filter,operator_term));
-                        break;
-                    case ElasticConstant.OP_IS_BETWEEN:
+                //保证值不为空，value或者  时间范围中的  起始截止时间
+                if(!StringUtils.isNullOrEmpty(filter.getValue())||!StringUtils.isNullOrEmpty(filter.getStart())||!StringUtils.isNullOrEmpty(filter.getEnd())||ElasticConstant.OP_EXISTS.equals(filter.getOperator())){
+                    switch(filter.getOperator()){
+                        case ElasticConstant.ALERT_OP_IS:
+                            boolQueryBuilder.filter(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
+                            break;
+                        case ElasticConstant.ALERT_OP_IS_NOT:
+                            boolQueryBuilder.mustNot(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
+                            break;
+                        case ElasticConstant.ALERT_OP_GT:
+                            if("date".equals(filter.getFieldType())){
+                                //date类型，添加format
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gt(filter.getValue()).format(dateFormat));
+                            }else{
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gt(filter.getValue()));
+                            }
+                            break;
+                        case ElasticConstant.ALERT_OP_GTE:
+                            if("date".equals(filter.getFieldType())){
+                                //date类型，添加format
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getValue()).format(dateFormat));
+                            }else{
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getValue()));
+                            }
+                            break;
+                        case ElasticConstant.ALERT_OP_LT:
+                            if("date".equals(filter.getFieldType())){
+                                //date类型，添加format
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lt(filter.getValue()).format(dateFormat));
+                            }else{
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lt(filter.getValue()));
+                            }
+                            break;
+                        case ElasticConstant.ALERT_OP_LTE:
+                            if("date".equals(filter.getFieldType())){
+                                //date类型，添加format
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lte(filter.getValue()).format(dateFormat));
+                            }else{
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).lte(filter.getValue()));
+                            }
+                            break;
+                        case ElasticConstant.OP_IS_MATCH:
+                            boolQueryBuilder.filter(QueryBuilders.matchPhraseQuery(filter.getField(),filter.getValue()));
+                            break;
+                        case ElasticConstant.OP_IS_NOT_MATCH:
+                            boolQueryBuilder.mustNot(QueryBuilders.matchPhraseQuery(filter.getField(),filter.getValue()));
+                            break;
+                        case ElasticConstant.OP_IS_TERM:
+                            boolQueryBuilder.filter(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
+                            break;
+                        case ElasticConstant.OP_IS_NOT_TERM:
+                            boolQueryBuilder.mustNot(QueryBuilders.termQuery(filter.getField(),filter.getValue()));
+                            break;
+                        case ElasticConstant.OP_IS_ONE_OF_MATCH:
+                            boolQueryBuilder.filter(this.buildOneOfQuery(filter,operator_match));
+                            break;
+                        case ElasticConstant.OP_IS_NOT_ONE_OF_MATCH:
+                            boolQueryBuilder.mustNot(this.buildOneOfQuery(filter,operator_match));
+                            break;
+                        case ElasticConstant.OP_IS_ONE_OF_TERM:
+                            boolQueryBuilder.filter(this.buildOneOfQuery(filter,operator_term));
+                            break;
+                        case ElasticConstant.OP_IS_NOT_ONE_OF_TERM:
+                            boolQueryBuilder.mustNot(this.buildOneOfQuery(filter,operator_term));
+                            break;
+                        case ElasticConstant.OP_IS_BETWEEN:
 
-                        if("date".equals(filter.getFieldType())){
-                            //date类型，添加format
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getStart()).lt(filter.getEnd()).format(dateFormat));
-                        }else{
-                            boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getStart()).lt(filter.getEnd()));
-                        }
+                            if("date".equals(filter.getFieldType())){
+                                //date类型，添加format
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getStart()).lt(filter.getEnd()).format(dateFormat));
+                            }else{
+                                boolQueryBuilder.filter(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getStart()).lt(filter.getEnd()));
+                            }
 
-                        break;
-                    case ElasticConstant.OP_IS_NOT_BETWEEN:
-                        boolQueryBuilder.mustNot(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getStart()).lt(filter.getEnd()));
-                        break;
-                    case ElasticConstant.OP_EXISTS:
-                        boolQueryBuilder.filter(QueryBuilders.existsQuery(filter.getField()));
-                        break;
-                    case ElasticConstant.OP_DOES_NOT_EXISTS:
-                        boolQueryBuilder.mustNot(QueryBuilders.existsQuery(filter.getField()));
-                        break;
-                    default:
-                        break;
+                            break;
+                        case ElasticConstant.OP_IS_NOT_BETWEEN:
+                            boolQueryBuilder.mustNot(QueryBuilders.rangeQuery(filter.getField()).gte(filter.getStart()).lt(filter.getEnd()));
+                            break;
+                        case ElasticConstant.OP_EXISTS:
+                            boolQueryBuilder.filter(QueryBuilders.existsQuery(filter.getField()));
+                            break;
+                        case ElasticConstant.OP_DOES_NOT_EXISTS:
+                            boolQueryBuilder.mustNot(QueryBuilders.existsQuery(filter.getField()));
+                            break;
+                        default:
+                            break;
+                    }
                 }
+
             }
         }
     }
@@ -406,8 +414,9 @@ public class SearchDaoImpl implements ISearchDao {
             Map<String,String> mapping = SearchCache.INSTANCE.getMappingCache().getIfPresent(template);
             //mapping找不到  进行一次cache初始化操作
             if(null==mapping){
-                SearchCache.INSTANCE.init(template,logIndexDao);
+                SearchCache.INSTANCE.init(template,ElasticConstant.BI_SOURCE_TYPE_TEMPLATE,logIndexDao);
             }
+
             mapping = SearchCache.INSTANCE.getMappingCache().getIfPresent(template);
             //在进行聚合查询时，cache已经进行了更新，不需要重复更新，
             //没有找到就说明template不存在

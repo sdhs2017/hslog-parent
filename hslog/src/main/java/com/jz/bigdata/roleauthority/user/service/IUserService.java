@@ -3,6 +3,7 @@ package com.jz.bigdata.roleauthority.user.service;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.annotations.Param;
@@ -27,12 +28,12 @@ public interface IUserService {
 	 int updateById(User user);
 	 
 	 Map<String,Object> selectPage(Page page, HttpSession session);
-	 
+
 	 List<User> selectUser(String id);
 	 
 	 User selectById(String id);
 	 
-	 String login(User user, HttpSession session) throws Exception;
+	 String login(User user, HttpSession session, HttpServletRequest request) throws Exception;
 	 
 	 public Boolean checkLogin(HttpSession session);
 	 
@@ -68,4 +69,24 @@ public interface IUserService {
 	 * @return
 	 */
 	 public boolean updateProduct() ;
+
+	/**
+	 * 根据用户密码查询用户信息
+	 * @param user
+	 * @return
+	 */
+	 public User selectByPhonePwd(User user);
+
+	/**
+	 * 验证密码复杂度
+	 * @param password
+	 * @return
+	 */
+	 public String checkPwd_info(String password);
+	/**
+	 * 验证密码复杂度
+	 * @param password
+	 * @return
+	 */
+	public boolean checkPwd_Boolean(String password);
 }

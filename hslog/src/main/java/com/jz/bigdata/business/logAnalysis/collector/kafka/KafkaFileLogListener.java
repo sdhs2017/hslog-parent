@@ -102,6 +102,11 @@ public class KafkaFileLogListener {
                             if(null!=fieldList){
                                 //字段信息中，第一个为日期字段，不参于与数据的对应
                                 for(int i=1;i<fieldList.size();i++){
+                                    //字段为timestamp字段
+                                    if(fieldList.get(i).getFile_log_is_timestamp().equals("true")){
+                                        //将该日期字段写入到timestamp
+                                        dataMap.put("@timestamp",dtf_time.format(LocalDateTime.parse(strArr[i-1].replaceAll("\"",""),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+                                    }
                                     dataMap.put(fieldList.get(i).getFile_log_field(),strArr[i-1].replaceAll("\"",""));
                                 }
                             }else{

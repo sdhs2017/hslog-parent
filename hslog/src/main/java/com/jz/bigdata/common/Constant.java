@@ -11,6 +11,14 @@ import java.util.Map;
  * @description 系统常量
  */
 public class Constant {
+	public static final String ZIP_PASS = "jzdata.123";
+	/**
+	 * 用户角色ID
+	 */
+	public static final String ROLE_ADMIN = "admin";//安全保密员
+	public static final String ROLE_USERADMIN = "useradmin";//系统管理员
+	public static final String ROLE_AUDIT = "audit";//安全审计员
+
 	/**
 	 * license 版本信息，通过标识初始化功能菜单。
 	 * #1. 日志模块  log
@@ -182,8 +190,26 @@ public class Constant {
 	public static String ES_BULK_NAME = "es_bulk";
 	//ES bulk提交 线程数
 	public static String ES_BULK_PROCESSOR_CONCURRENT_REQUESTS_NAME = "concurrent_requests";
-	//configuration 配置项，密码超时时间-key
+	//configuration 配置项，密码过期时间-key
 	public static String PWD_EXPIRE_DAY_NAME = "pwd_expire_day";
+	//configuration 配置项，磁盘已满百分比-key
+	public static String DISK_DATA_WATERMARK_HIGH = "disk_data_watermark_high";
+	//configuration 配置项，磁盘将满百分比-key
+	public static String DISK_DATA_WATERMARK = "disk_data_watermark";
+	//configuration 配置项，系统盘使用占比-key
+	public static String DISK_SYSTEM_WATERMARK = "disk_system_watermark";
+	//configuration 配置项，数据存储时间-key
+	public static String ES_STORAGE_DAY = "es_storage_day";
+	//configuration 配置项，密码复杂度-key
+	public static String PWD_COMPLEX = "pwd_complex";
+	//configuration 配置项，密码长度-key
+	public static String PWD_LENGTH = "pwd_length";
+	//configuration 配置项，密码错误可尝试次数-key
+	public static String PWD_TRY = "pwd_try";
+	//configuration 配置项，session过期时间-key
+	public static String SESSION_TIMEOUT = "session_timeout";
+	//configuration 配置项，IP黑名单-key
+	public static String IP_BLACK = "ip_black";
 	//beats的日期字段
 	public static String BEAT_DATE_FIELD = "@timestamp";
 	//系统日志对应的index名称
@@ -220,6 +246,26 @@ public class Constant {
 	 * 返回首页路径
 	 */
 	public static String REDIRECTPATH="/TestRedis/Login.jsp";
+	//涉密，临时添加，用于防止越权
+	public static String USER_PATH = "com.jz.bigdata.roleauthority.user";//用户相关
+	public static String MENU_PATH = "com.jz.bigdata.roleauthority.menu";//菜单相关
+	public static String ROLE_PATH = "com.jz.bigdata.roleauthority.role";//角色相关
+	public static String NOTE_PATH = "com.jz.bigdata.common.note";//系统自身审计日志相关
+	public static String RSA_PATH = "com.jz.bigdata.common.rsa";//RSA加密
+
+	public static String DEPARTMENT_PATH = "com.jz.bigdata.common.department";//组织机构
+
+	public static String IP_PATH = "com.jz.bigdata.common.updateIp";//获取IP
+	public static String DISK_USAGE = "com.jz.bigdata.common.manage.controller.ManageController.getDiskUsage";
+	//组织机构 查询url
+	public static String DEPARTMENT_SELECTALL = "com.jz.bigdata.common.department.controller.DepartmentController.selectAllDepartment";
+	public static String DEPARTMENT_SELECTALL_SEC = "com.jz.bigdata.common.department.controller.DepartmentController.selectAll_Security";
+	//密码过期时间
+	public static String CONFIGURATION_PWD_DAY_INFO = "com.jz.bigdata.common.configuration.controller.ConfigurationController.selectPwdExpireDay";
+	/**
+	 * 获取全局配置信息
+	 */
+	public static String CONFIGURATION_INFO = "com.jz.bigdata.common.configuration.controller.ConfigurationController.selectAll";
 	/**
 	 * 登陆包路径
 	 */
@@ -391,7 +437,24 @@ public class Constant {
 	public static String successData(String data){
 		return "{\"success\":\"true\",\"data\":"+data+"}";
 	}
-
+	/**
+	 * @param message 信息
+	 * @param message 客体信息，如资产名称，用户名称等
+	 * @return {success:false,message:...,target:"客体信息，如资产名称，用户名称等"}
+	 * @description
+	 */
+	public static String failureMessageWithTarget(String message,String target){
+		return "{\"success\":\"false\",\"message\":\""+message+"\",\"target\":\""+target+"\"}";
+	}
+	/**
+	 * @param message 信息
+	 * @param message 客体信息，如资产名称，用户名称等
+	 * @return {success:true,message:...,target:"客体信息，如资产名称，用户名称等"}
+	 * @description
+	 */
+	public static String successMessageWithTarget(String message,String target){
+		return "{\"success\":\"true\",\"message\":\""+message+"\",\"target\":\""+target+"\"}";
+	}
 	/**
 	 * @return {success:true,message:操作成功！,state:1}
 	 * @description 默认成功返回json信息

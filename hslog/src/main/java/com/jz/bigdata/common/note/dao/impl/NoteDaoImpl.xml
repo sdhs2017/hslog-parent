@@ -96,7 +96,7 @@
 		     <if test="account != null and account !=''" >
 		        and account = #{account,jdbcType=VARCHAR}  
 		    </if> 
-		    ORDER BY time desc LIMIT 0,5
+		    ORDER BY time desc LIMIT 0,#{size,jdbcType=VARCHAR}
 	</select>
 
 
@@ -193,7 +193,7 @@
 	</update>
 	<!--  表是否存在 -->
 	<select id="tableName" resultMap="BaseResultMap" >
-		SELECT table_name as tableName FROM information_schema.`TABLES`  WHERE table_name = 'note_backup'
+		SELECT table_name as tableName FROM information_schema.`TABLES`  WHERE table_name = 'note_backup' and TABLE_SCHEMA='jzLogAnalysis'
 		
 	</select>
 	<!--   删除表-->
@@ -208,7 +208,9 @@
     <update id="restore">
 		CREATE TABLE note SELECT * FROM note_backup;
 	</update>
-	
+	<insert id="restore_security">
+		insert into note (select * from note_backup where not EXISTS(select id from note where note.id=note_backup.id) )
+	</insert>
 	
 	<!-- 查询所有数据 -->
 	<select id="selectByPage" parameterType="com.jz.bigdata.common.note.entity.Note"  resultMap="BaseResultMap" >
@@ -243,40 +245,118 @@
 		  and note.state =1
 		 ORDER BY time DESC  limit #{startRecord},#{pageSize}
 	</select>
-	
-	
 	<!-- 查询所有数据 -->
 	<select id="countByPage"   resultMap="BaseResultMap" >
 		SELECT count(*) as count
 		FROM note LEFT JOIN HS_User ON note.account=HS_User.phone
 		LEFT JOIN  department  ON HS_User.departmentId=department.id
-		 where 1=1 
-		  <if test="startTime != null and startTime !=''" >
-		  	<![CDATA[
-		    	and time >= #{startTime,jdbcType=VARCHAR} 
-		   
-		    ]]> 
-		  </if>
-		  <if test="endTime != null and endTime !=''" >
-		  	<![CDATA[
+		where 1=1
+		<if test="startTime != null and startTime !=''" >
+			<![CDATA[
+		    	and time >= #{startTime,jdbcType=VARCHAR}
+
+		    ]]>
+		</if>
+		<if test="endTime != null and endTime !=''" >
+			<![CDATA[
 		  		and  time <= #{endTime,jdbcType=VARCHAR}
-		  	]]> 
-		  </if>
-		  <if test="account != null and account !=''" >
-		  	and account = #{account,jdbcType=VARCHAR} 
-		  </if>
-		  <if test="userName != null and userName !=''" >
-		  	and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
-		  </if>
-		  <if test="departmentName != null and departmentName !=''" >
-		  	and department.`name`  LIKE CONCAT('%', #{departmentName}, '%') 
-		  </if>
-		  <if test="ip != null and ip !=''" >
-		  	and ip =  #{ip,jdbcType=VARCHAR}
-		  </if>
-		  and note.state =1
-		  
-		 ORDER BY time DESC 
+		  	]]>
+		</if>
+		<if test="account != null and account !=''" >
+			and account = #{account,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null and userName !=''" >
+			and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
+		</if>
+		<if test="departmentName != null and departmentName !=''" >
+			and department.`name`  LIKE CONCAT('%', #{departmentName}, '%')
+		</if>
+		<if test="ip != null and ip !=''" >
+			and ip =  #{ip,jdbcType=VARCHAR}
+		</if>
+		and note.state =1
+
+		ORDER BY time DESC
+	</select>
+	<!--带角色查询 数据详情-->
+	<select id="selectByPage_Security" parameterType="com.jz.bigdata.common.note.entity.Note"  resultMap="BaseResultMap" >
+		SELECT note.id, result, note.`describe`, time, userId,note.departmentId,account,error,ip,
+		HS_User.`name` as userName, department.`name` as departmentName
+		FROM note LEFT JOIN HS_User ON note.account=HS_User.phone
+		LEFT JOIN  department  ON HS_User.departmentId=department.id
+		LEFT JOIN HS_UserRole ON HS_UserRole.FK_UserID = HS_User.id
+		where 1=1
+		<if test="startTime != null and startTime !=''" >
+			<![CDATA[
+		    	and time >= #{startTime,jdbcType=VARCHAR}
+
+		    ]]>
+		</if>
+		<if test="endTime != null and endTime !=''" >
+			<![CDATA[
+		  		and  time <= #{endTime,jdbcType=VARCHAR}
+		  	]]>
+		</if>
+		<if test="account != null and account !=''" >
+			and account = #{account,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null and userName !=''" >
+			and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
+		</if>
+		<if test="departmentName != null and departmentName !=''" >
+			and department.`name`  LIKE CONCAT('%', #{departmentName}, '%')
+		</if>
+		<if test="ip != null and ip !=''" >
+			and ip =  #{ip,jdbcType=VARCHAR}
+		</if>
+		<if test="roleids != null and roleids !=''">
+		 	and HS_UserRole.FK_RoleID in
+			<foreach item="item" collection="roleids" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and note.state =1
+		ORDER BY time DESC  limit #{startRecord},#{pageSize}
+	</select>
+	<!--带角色查询 count-->
+	<select id="countByPage_Security"   resultMap="BaseResultMap" >
+		SELECT count(*) as count
+		FROM note LEFT JOIN HS_User ON note.account=HS_User.phone
+		LEFT JOIN  department  ON HS_User.departmentId=department.id
+		LEFT JOIN HS_UserRole ON HS_UserRole.FK_UserID = HS_User.id
+		where 1=1
+		<if test="startTime != null and startTime !=''" >
+			<![CDATA[
+		    	and time >= #{startTime,jdbcType=VARCHAR}
+
+		    ]]>
+		</if>
+		<if test="endTime != null and endTime !=''" >
+			<![CDATA[
+		  		and  time <= #{endTime,jdbcType=VARCHAR}
+		  	]]>
+		</if>
+		<if test="account != null and account !=''" >
+			and account = #{account,jdbcType=VARCHAR}
+		</if>
+		<if test="userName != null and userName !=''" >
+			and HS_User.`name`  LIKE CONCAT('%', #{userName}, '%')
+		</if>
+		<if test="departmentName != null and departmentName !=''" >
+			and department.`name`  LIKE CONCAT('%', #{departmentName}, '%')
+		</if>
+		<if test="ip != null and ip !=''" >
+			and ip =  #{ip,jdbcType=VARCHAR}
+		</if>
+		<if test="roleids != null and roleids !=''">
+			and HS_UserRole.FK_RoleID in
+			<foreach item="item" collection="roleids" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and note.state =1
+
+		ORDER BY time DESC
 	</select>
 	
 </mapper>

@@ -103,11 +103,11 @@ public class EquipmentController {
 		try{
 			int result = this.equipmentService.upsert(equipment,session,false);
 			if(result==1){
-				return Constant.successMessage("操作成功！");
+				return Constant.successMessageWithTarget("操作成功！","资产名称:"+equipment.getName());
 			}else if(result==2){
 				return Constant.failureMessage("资产达到上限，无法添加！");
 			}else{
-				return Constant.successMessage("操作失败！");
+				return Constant.failureMessageWithTarget("操作失败！","资产名称:"+equipment.getName());
 			}
 		}catch(DataAccessException e){//spring
 			//异常类型
@@ -124,10 +124,10 @@ public class EquipmentController {
 				log.error("资产维护upsert 其他异常情况！"+e.getMessage());
 			}
 			//其他异常情况
-			return Constant.failureMessage("操作失败！");
+			return Constant.failureMessageWithTarget("操作失败！","资产名称:"+equipment.getName());
 		}catch (Exception e){
 			log.error(e.getMessage());
-			return Constant.failureMessage("操作失败！");
+			return Constant.failureMessageWithTarget("操作失败！","资产名称:"+equipment.getName());
 		}
 
 	}

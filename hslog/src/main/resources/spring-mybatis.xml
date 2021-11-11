@@ -94,6 +94,7 @@
 		 -->
 
 	</bean>
+
 	<!-- 电商业务数据源 jzDemo数据库 -->
 	<!-- <bean id="EBDataSource" class="org.apache.commons.dbcp.BasicDataSource"
 		destroy-method="close">
@@ -908,7 +909,7 @@
 	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
-				<entry key="es_ip" value="192.168.2.181"/>
+				<entry key="es_ip" value="xxx.xxx.xxx.xxx"/>
 				<entry key="es_port" value="9200"/>
 				<entry key="es_user" value="elastic"/>
 				<entry key="es_password" value="hsdata.123"/>
@@ -985,7 +986,16 @@
 		<!-- 设置编码格式 -->
 		<property name="fileEncoding" value="UTF-8"></property>
 	</bean>
-
+	<bean id="roleauthority" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<!-- 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组，跟上面一样  -->
+			<list>
+				<value>classpath:database/mysql/roleauthority.properties</value>
+			</list>
+		</property>
+		<!-- 设置编码格式 -->
+		<property name="fileEncoding" value="UTF-8"></property>
+	</bean>
 
 	<!--  计划任务 及cache初始化    -->
 	<bean id="start_execution" class="com.jz.bigdata.common.start_execution.start" scope="singleton" init-method="init"></bean>

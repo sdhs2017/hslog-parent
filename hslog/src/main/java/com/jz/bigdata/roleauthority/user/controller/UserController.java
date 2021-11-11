@@ -8,6 +8,9 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
+import com.jz.bigdata.util.MD5;
+import com.jz.bigdata.util.RSAUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +44,62 @@ public class UserController {
 	public static  String address;
 	
 	public static String map;
+
+	private boolean user_lock = false;
+	/**
+	 * @return 用户锁定页面
+	 */
+	@ResponseBody
+	@RequestMapping(value="/userLocked", produces="application/json; charset=utf-8")
+	@DescribeLog(describe="用户锁定页面")
+	public String userLock(Page page,HttpSession session) {
+		//锁定，即将用户session延长，72小时
+		session.setMaxInactiveInterval(60*60*72);
+		user_lock = true;
+		return Constant.successMessage();
+	}
+	/**
+	 * @return 用户解锁页面
+	 */
+	@ResponseBody
+	@RequestMapping(value="/userUnlock" ,produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="用户解锁页面")
+	public String userUnlock(HttpServletRequest request,HttpSession session) {
+		//验证密码
+		String password =request.getParameter("password");
+		String phone = session.getAttribute(Constant.SESSION_USERACCOUNT).toString();
+		try{
+			User user = new User();
+			user.setPhone(phone);
+			user.setPassword(MD5.EncoderByMd5(RSAUtil.decrypt(password,RSAUtil.getPrivateKey())));
+			//通过账号和密码查询用户信息
+			User _user = userService.selectByPhonePwd(user);
+			if(_user!=null){
+				//可以正常查询出用户
+				String timeout = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.SESSION_TIMEOUT).toString();
+				//锁定，即将用户session延长
+				session.setMaxInactiveInterval(Integer.parseInt(timeout)*60);
+				user_lock = false;
+				return Constant.successMessage();
+			}else{
+				return Constant.failureMessage("密码错误！");
+			}
+		}catch (Exception e){
+			return Constant.failureMessage("解锁失败！");
+		}
+
+
+	}
+	/**
+	 * @return 获取用户页面锁定状态
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getUserLockState" ,produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="获取用户页面锁定状态")
+	public String getUserLockState(Page page,HttpSession session) {
+		return user_lock?Constant.successMessage():Constant.failureMessage();
+	}
+
 	/**
 	 * @return 查询所有数据
 	 */
@@ -56,7 +115,23 @@ public class UserController {
 		}
 
 	}
+	/**
+	 * @return 涉密，查询当前角色下的所有用户
+	 */
+	@ResponseBody
+	@RequestMapping("/selectAll_Security")
+	@DescribeLog(describe="查询所有用户")
+	public  Map<String,Object> selectAll_Security(Page page,HttpSession session) {
+		try{
+			String roleid = session.getAttribute(Constant.SESSION_USERROLE).toString();
+			page.setRoleid(roleid);
+			return userService.selectPage(page,session);
+		}catch(Exception e){
+			log.error("查询所有用户"+e.getMessage());
+			return null;
+		}
 
+	}
 	/**
 	 * @param request
 	 * @param user
@@ -83,10 +158,50 @@ public class UserController {
 			} else {
 				result = this.userService.updateById(user);
 			}
-			return result >= 1 ? Constant.successMessage() : Constant.failureMessage();
+			return result >= 1 ? Constant.successMessageWithTarget("操作成功！","用户名:"+user.getPhone()) : Constant.failureMessageWithTarget("操作失败！","用户名:"+user.getPhone());
 		}catch(Exception e){
 			log.error("添加或修改用户"+e.getMessage());
-			return Constant.failureMessage("添加或修改用户失败！");
+			return Constant.failureMessageWithTarget("操作失败！","用户名:"+user.getPhone());
+		}
+
+	}
+	/**
+	 * @param request
+	 * @param user
+	 * @return 涉密，添加数据 修改数据，添加用户时会根据当前用户角色创建相同角色用户
+	 */
+	@ResponseBody
+//	@RequestMapping("/inserts")
+	@RequestMapping(value="/insert_Security", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="添加或修改用户")
+	public String insert_Secutiry(HttpServletRequest request, User user,HttpSession session) {
+		try{
+			int result = 0;
+			//判断id是否为空
+			if (user.getId() == null || user.getId().isEmpty()) {
+				List<User> userList =userService.selectByName(user);
+				if(userList.size()<1 ){
+					//验证密码复杂度
+					if(!userService.checkPwd_Boolean(user.getPassword())){
+						return Constant.failureMessage("密码复杂度未满足要求！");
+					}
+					user.setId(Uuid.getUUID());
+					//获取当前用户角色
+					String roleid = session.getAttribute(Constant.SESSION_USERROLE).toString();
+					user.setRole(roleid);//要添加的用户角色与当前用户角色相同
+					//添加数据
+					result = this.userService.insert(user);
+				}else{
+					return Constant.repetitionMessage();
+				}
+
+			} else {
+				result = this.userService.updateById(user);
+			}
+			return result >= 1 ? Constant.successMessageWithTarget("操作成功！","用户名:"+user.getPhone()) : Constant.failureMessageWithTarget("操作失败！","用户名:"+user.getPhone());
+		}catch(Exception e){
+			log.error("添加或修改用户"+e.getMessage());
+			return Constant.failureMessageWithTarget("操作失败！","用户名:"+user.getPhone());
 		}
 
 	}
@@ -227,14 +342,16 @@ public class UserController {
 	@DescribeLog(describe="用户登录")
 	public String login(HttpServletRequest request,User user,HttpSession session){
 		try{
-			return this.userService.login(user,session);
+
+			return this.userService.login(user,session,request);
 		}catch(Exception e){
 			log.error("用户登录"+e.getMessage());
 			return Constant.failureMessage("用户登录失败！");
 		}
 
 	}
-	
+
+
 	
 	/**
 	 * @param session
@@ -306,6 +423,13 @@ public class UserController {
 			String id= request.getParameter("id");
 			String password= request.getParameter("password");
 			String oldPassword=request.getParameter("oldPassword");
+			//密码解密
+			password = RSAUtil.decrypt(password,RSAUtil.getPrivateKey());
+			oldPassword = RSAUtil.decrypt(oldPassword,RSAUtil.getPrivateKey());
+			//验证密码复杂度
+			if(!userService.checkPwd_Boolean(password)){
+				return Constant.failureMessage("新密码复杂度未满足要求！");
+			}
 			return userService.updatePasswordById(id, password,oldPassword);
 		}catch(Exception e){
 			log.error("修改密码失败"+e.getMessage());
@@ -323,6 +447,19 @@ public class UserController {
 		}catch(Exception e){
 			log.error("密码重置失败："+e.getMessage());
 			return Constant.failureMessage("密码重置失败！");
+		}
+	}
+
+	@ResponseBody
+	@RequestMapping(value="/checkPwd", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="校验密码复杂度")
+	public String checkPwd(HttpServletRequest request) {
+		try{
+			String password= request.getParameter("password");
+			return userService.checkPwd_info(password);
+		}catch(Exception e){
+			log.error("校验密码复杂度失败："+e.getMessage());
+			return Constant.failureMessage("校验密码复杂度失败！");
 		}
 	}
 }

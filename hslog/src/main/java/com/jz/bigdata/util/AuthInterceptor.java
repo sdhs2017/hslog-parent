@@ -52,8 +52,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-		//如果是登陆、注册、上传激活请求，获取公钥，获取产品信息放行,开启关闭agent/syslog采集
- 		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0||handler.toString().indexOf(Constant.RSAKEYPATH)>=0||handler.toString().indexOf(Constant.PRODUCTPATH)>=0
+
+		//如果是登陆、注册、上传激活请求，获取公钥，获取产品信息放行,开启关闭agent/syslog采集，获取配置信息
+ 		if(handler.toString().indexOf(Constant.CONFIGURATION_INFO)>=0||handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0||handler.toString().indexOf(Constant.RSAKEYPATH)>=0||handler.toString().indexOf(Constant.PRODUCTPATH)>=0
 				||handler.toString().indexOf(Constant.COLLECTOR_START_SYSLOG_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_SYSLOG_PATH)>=0
 				||handler.toString().indexOf(Constant.COLLECTOR_START_AGENT_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_AGENT_PATH)>=0){
 //		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.uploadPATH)>=0||handler.toString().indexOf(Constant.APIPATH)>=0){
@@ -153,6 +154,47 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 //        		System.out.println(map.get(session.getAttribute(Constant.SESSION_USERROLE).toString()));
 //        		System.out.println(request.getRequestURI().toString());
 
+				//涉密，角色权限处理
+				//useradmin 系统管理员，只能访问用户管理
+				//audit 安全审计员，只能访问审计中心
+				//admin 访问大部分功能
+
+				//获取用户角色
+				Object roleid = session.getAttribute(Constant.SESSION_USERROLE);
+				if(roleid!=null){
+					String role = roleid.toString();
+					//组织机构的请求
+					if(handler.toString().indexOf(Constant.DEPARTMENT_PATH)>=0){
+						if(handler.toString().indexOf(Constant.DEPARTMENT_SELECTALL)>=0||handler.toString().indexOf(Constant.DEPARTMENT_SELECTALL_SEC)>=0){
+							return true;
+						}else{
+							if("useradmin".equals(role)){
+								return true;
+							}else{
+								return false;
+							}
+						}
+					}
+					//如果是审计账户
+					if("audit".equals(role)){
+						//只允许 user menu rsa note
+						if(handler.toString().indexOf(Constant.USER_PATH)<0&&handler.toString().indexOf(Constant.NOTE_PATH)<0&&
+								handler.toString().indexOf(Constant.MENU_PATH)<0&&handler.toString().indexOf(Constant.CONFIGURATION_PWD_DAY_INFO)<0
+								&&handler.toString().indexOf(Constant.IP_PATH)<0&&handler.toString().indexOf(Constant.DISK_USAGE)<0){
+							return false;
+						}
+					}else if("useradmin".equals(role)){
+						if(handler.toString().indexOf(Constant.USER_PATH)<0&&handler.toString().indexOf(Constant.MENU_PATH)<0
+							&&handler.toString().indexOf(Constant.DEPARTMENT_PATH)<0&&handler.toString().indexOf(Constant.ROLE_PATH)<0
+						&&handler.toString().indexOf(Constant.CONFIGURATION_PWD_DAY_INFO)<0&&handler.toString().indexOf(Constant.IP_PATH)<0
+								&&handler.toString().indexOf(Constant.DISK_USAGE)<0){
+
+							return false;
+						}
+					}else{
+						return true;
+					}
+				}
 				//是否有权限
 				/**
 				 * TODO

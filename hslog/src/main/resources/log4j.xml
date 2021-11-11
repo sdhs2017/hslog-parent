@@ -16,7 +16,7 @@
             <param name="ConversionPattern" value="%d [%p]  [%m]  [%c] %M()[%L] [%r] %n" />  
         </layout>  
       	<!--过滤器设置输出的级别-->
-        <filter class="org.apache.log4j.varia.LevelRangeFilter">  
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <!-- 设置日志输出的最小级别 -->
             <param name="levelMin" value="info" /> 
              <!-- 设置日志输出的最大级别 -->
@@ -24,11 +24,55 @@
             <!-- 设置日志输出的xxx，默认是false --> 
             <param name="AcceptOnMatch" value="true" />  <!-- 答案：http://bbs.csdn.net/topics/350195913 -->
         </filter>  
-    </appender>  
+    </appender>
+    <appender name="log4jError" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="/home/log/tomcat/log4j_error.log" />
+        <!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
+        <param name="Append" value="true" />
+        <!-- 设置当日志文件达到此阈值的时候自动新建文件，单位可以是KB，MB，GB，默认单位是KB -->
+        <param name="MaxFileSize" value="100MB" />
+        <!-- 设置保存备份日志的最大个数 -->
+        <param name="MaxBackupIndex" value="5" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <!--  存储格式   -->
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %c - %m%n" />
+        </layout>
+        <!--过滤器设置输出的级别-->
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <!-- 设置日志输出的最小级别 -->
+            <param name="levelMin" value="error" />
+            <!-- 设置日志输出的最大级别 -->
+            <param name="levelMax" value="error" />
+            <!-- 设置日志输出的xxx，默认是false -->
+            <param name="AcceptOnMatch" value="true" />  <!-- 答案：http://bbs.csdn.net/topics/350195913 -->
+        </filter>
+    </appender>
+    <appender name="log4jWarn" class="org.apache.log4j.RollingFileAppender">
+        <param name="File" value="/home/log/tomcat/log4j_warn.log" />
+        <!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
+        <param name="Append" value="true" />
+        <!-- 设置当日志文件达到此阈值的时候自动新建文件，单位可以是KB，MB，GB，默认单位是KB -->
+        <param name="MaxFileSize" value="100MB" />
+        <!-- 设置保存备份日志的最大个数 -->
+        <param name="MaxBackupIndex" value="5" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <!--  存储格式   -->
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %c - %m%n" />
+        </layout>
+        <!--过滤器设置输出的级别-->
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <!-- 设置日志输出的最小级别 -->
+            <param name="levelMin" value="warn" />
+            <!-- 设置日志输出的最大级别 -->
+            <param name="levelMax" value="warn" />
+            <!-- 设置日志输出的xxx，默认是false -->
+            <param name="AcceptOnMatch" value="true" />  <!-- 答案：http://bbs.csdn.net/topics/350195913 -->
+        </filter>
+    </appender>
     <!-- 输出日志到文件  文件大小到达指定尺寸的时候产生一个新的文件 --> 
-    <appender class="org.apache.log4j.RollingFileAppender" name="file">  
+    <appender class="org.apache.log4j.RollingFileAppender" name="all">
 		<!--     存储地址 -->
-        <param name="File" value="d:/logs/catering.log" />  
+        <param name="File" value="/home/log/tomcat/log4j_all.log" />
         <!-- 设置是否在重新启动服务时，在原有日志的基础添加新日志 -->
         <param name="Append" value="true" />  
    		<!-- 设置当日志文件达到此阈值的时候自动新建文件，单位可以是KB，MB，GB，默认单位是KB --> 
@@ -37,7 +81,7 @@
         <param name="MaxBackupIndex" value="5" />  
         <layout class="org.apache.log4j.PatternLayout">
        <!--  存储格式   -->
-            <param name="ConversionPattern" value="[CateringLog] %d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %c - %m%n" />  
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss,SSS} %-5p %c - %m%n" />
         </layout>  
     </appender>  
     <!--   
@@ -65,6 +109,7 @@
         <priority value="info" />
         <appender-ref ref="console" />
         <appender-ref ref="file" />
+        <appender-ref ref="log4jError" />
     </root>
     <!--
         <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/" debug="false">

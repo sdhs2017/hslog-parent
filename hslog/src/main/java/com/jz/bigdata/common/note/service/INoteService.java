@@ -25,7 +25,23 @@ public interface INoteService {
 	int backup();
 	
 	int restore();
+
 	
 	String selectByPage(String startTime,String endTime,String account,String userName,String departmentName,String ip,int pageIndex,int pageSize);
+
+	/**
+	 * 日志可根据角色查询
+	 * @param startTime
+	 * @param endTime
+	 * @param account
+	 * @param userName
+	 * @param departmentName
+	 * @param ip
+	 * @param pageIndex
+	 * @param pageSize
+	 * @param roleids
+	 * @return
+	 */
+	String selectByPage_Security(String startTime,String endTime,String account,String userName,String departmentName,String ip,int pageIndex,int pageSize,String[] roleids);
 
 }

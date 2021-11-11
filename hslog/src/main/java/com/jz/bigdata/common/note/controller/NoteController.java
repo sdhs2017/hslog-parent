@@ -3,6 +3,7 @@ package com.jz.bigdata.common.note.controller;
 import java.util.List;
 
 import javax.annotation.Resource;
+import javax.mail.Session;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
@@ -54,7 +55,7 @@ public class NoteController {
 	}
 	
 	/**
-	 * @param request
+	 * @param
 	 * @return 删除所有数据
 	 */
 	@ResponseBody
@@ -67,7 +68,7 @@ public class NoteController {
 	}
 	
 	/**
-	 * @param request
+	 * @param
 	 * @return 数据备份
 	 */
 	@ResponseBody
@@ -81,7 +82,7 @@ public class NoteController {
 
 	
 	/**
-	 * @param request
+	 * @param
 	 * @return 数据还原
 	 */
 	@ResponseBody
@@ -117,7 +118,35 @@ public class NoteController {
 		
 		return noteService.selectByPage(startTime, endTime, account, userName, departmentName, ip, pageIndex, pageSize);
 	}
-	
-	
-	
+
+	//涉密版本，要求三个管理员查看的日志要进行特殊处理
+	//安全保密员（roleid=admin）只能查看安全审计员（roleid=audit）的日志
+	//安全审计员只能查看 安全保密员和系统管理员（roleid=useradmin）的日志
+	@ResponseBody
+	@RequestMapping(value="/selectByPage_Security",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="分页查询审计日志")
+	public String selectByPage_Security(HttpServletRequest request, HttpSession session) {
+		//获取参数
+		String startTime=request.getParameter("startTime");
+		String endTime=request.getParameter("endTime");
+		String account=request.getParameter("account");
+		String userName=request.getParameter("userName");
+		String departmentName=request.getParameter("departmentName");
+		String ip=request.getParameter("ip");
+		//页码数
+		int pageIndex=Integer.parseInt(request.getParameter("pageIndex"));
+		//每页显示的数量
+		int pageSize=Integer.parseInt(request.getParameter("pageSize"));
+		//获取角色id
+		String roleid = session.getAttribute(Constant.SESSION_USERROLE).toString();
+		//如果是安全保密员
+		if(Constant.ROLE_ADMIN.equals(roleid)){
+			return noteService.selectByPage_Security(startTime, endTime, account, userName, departmentName, ip, pageIndex, pageSize,new String[]{"audit"});
+		}else if(Constant.ROLE_AUDIT.equals(roleid)){
+			//如果是安全审计员
+			return noteService.selectByPage_Security(startTime, endTime, account, userName, departmentName, ip, pageIndex, pageSize,new String[]{"admin","useradmin"});
+		}else{
+			return Constant.failureMessage();
+		}
+	}
 }

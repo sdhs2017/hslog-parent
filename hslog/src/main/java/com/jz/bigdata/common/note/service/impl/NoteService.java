@@ -129,8 +129,12 @@ public class NoteService implements INoteService {
 		List<Note> name=noteDao.tableName();
 		int num=0;
 		if(name.size()>0){
-		noteDao.dropTableNote();
-		num=noteDao.restore();
+			//涉密
+			//将备份后的表
+			noteDao.restore_security();
+			num=1;
+			//noteDao.dropTableNote();
+			//num=noteDao.restore();
 		}
 		
 		return num;
@@ -173,7 +177,23 @@ public class NoteService implements INoteService {
 		return JSONArray.fromObject(map).toString();
 	}
 
+	@Override
+	public String selectByPage_Security(String startTime, String endTime, String account, String userName, String departmentName, String ip, int pageIndex, int pageSize, String[] roleids) {
+		//获取起始数
+		int startRecord =(pageSize*(pageIndex-1));
+		//获取总数
+		List count=noteDao.countByPage_Security(startTime, endTime, account, userName, departmentName, ip,roleids);
+		List listCount=new ArrayList<>();
+		//获取总数集合
+		listCount=(List) count.get(0);
 
+		Map<String,Object> map =new HashMap<String,Object>();
+		//总数添加到map
+		map.put("count", (listCount.get(0)));
+		List<Note> listEquipment= noteDao.selectByPage_Security(startTime, endTime, account, userName, departmentName, ip, startRecord, pageSize,roleids);
+		map.put("note", listEquipment);
+		return JSONArray.fromObject(map).toString();
+	}
 
 
 }

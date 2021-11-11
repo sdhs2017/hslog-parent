@@ -59,7 +59,21 @@ public class DepartmentController {
 //		result=departmentService.insert(department);
 		return departmentService.selectAll(department,session);
 	}
-	
+	/**
+	 * @param request
+	 * @param department
+	 * @return 涉密，查询部门信息及部门下的用户信息
+	 */
+	@ResponseBody
+	@RequestMapping("/selectAll_Security")
+	@DescribeLog(describe="查询所有部门信息")
+	public Map<String,Object> selectAll_Security(HttpServletRequest request,Department department,HttpSession session){
+
+		//结果一般命名为result
+//		int result = 0;
+//		result=departmentService.insert(department);
+		return departmentService.selectAll_Security(department,session);
+	}
 	/**
 	 * @param request
 	 * @param department

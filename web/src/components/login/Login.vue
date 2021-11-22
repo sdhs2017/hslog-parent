@@ -74,6 +74,8 @@
     export default {
         data(){
             return {
+                encrypt:{},
+                PUBLIC_KEY:'',
                 loading:false,
                 systemObj:{
                    /* logo:'../../../static/img/qywjcpt.png',
@@ -317,6 +319,8 @@
                                 let PUBLIC_KEY = obj.message
                                 //使用公钥加密
                                 var encrypt = new JSEncrypt();
+                                this.PUBLIC_KEY = PUBLIC_KEY;
+                                this.encrypt = encrypt;
                                 encrypt.setPublicKey('-----BEGIN PUBLIC KEY-----' + PUBLIC_KEY + '-----END PUBLIC KEY-----');
                                // console.log(JSON.stringify(this.ruleForm.phone))
                                 let phone = encrypt.encrypt(this.ruleForm.phone)
@@ -366,6 +370,7 @@
                                    }
 
                                }else if(res.data.state === '0'){//密码过期
+                                    localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                     this.userValue = res.data.user.phone;
                                     this.passWordForm = true;
                                }
@@ -403,8 +408,12 @@
                     layer.load(1)
                     let userObj = JSON.parse(localStorage.getItem("LoginUser"));
                     this.passwordObj.id = userObj.id;
+                    let pawObj = JSON.parse(JSON.stringify(this.passwordObj))
+                    this.encrypt.setPublicKey('-----BEGIN PUBLIC KEY-----' + this.PUBLIC_KEY + '-----END PUBLIC KEY-----');
+                    pawObj.oldPassword = this.encrypt.encrypt(pawObj.oldPassword);
+                    pawObj.password = this.encrypt.encrypt(pawObj.password);
                     this.$nextTick(()=>{
-                        this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(this.passwordObj))
+                        this.$axios.post(this.$baseUrl+'/user/updatePasswordById.do',this.$qs.stringify(pawObj))
                             .then(res =>{
                                 layer.closeAll();
                                 if(res.data.success === "true"){

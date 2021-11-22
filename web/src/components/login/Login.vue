@@ -2,7 +2,7 @@
     <div class="login-wrap" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
 <!--        <el-button type="primary" @click="changeSystem">切换系统</el-button>-->
         <div class="ms-login">
-            <div class="ms-title"><img :src="systemObj.logo" alt=""></div>
+            <div class="ms-title"><img :src="systemObj.logo" alt=""><span style="position: relative;font-size: 12px;top: -30px;left: 5px;">V3.0</span></div>
 <!--            <div class="ms-title"><img src="../../../static/img/logo_qwd.png" alt=""></div>-->
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
@@ -11,7 +11,7 @@
                     </el-input>
                 </el-form-item>
                 <el-form-item prop="password">
-                    <el-input type="password" placeholder="密码" v-model="ruleForm.password">
+                    <el-input :type="passwordType" @focus="passwordType = 'password'" placeholder="密码" v-model="ruleForm.password" >
                         <el-button slot="prepend" icon="fa fa-lock" style="font-size: 18px;"></el-button>
                     </el-input>
                 </el-form-item>
@@ -47,7 +47,7 @@
                     <el-input v-model="passwordObj.oldPassword" type="password" placeholder="旧的密码"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <el-form-item label="新的密码:">
-                    <el-input v-model="passwordObj.password" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="passwordObj.password" type="password" :placeholder="paw_placeholder"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
                 <ul class="pass_set" v-if="passwordObj.password.length > 0">
                     <li id="strength_L" style="background-color: rgb(237, 62, 13);">弱</li>
@@ -55,7 +55,7 @@
                     <li id="strength_H" :style="mode > 2 ? {background:'#6ba001'}:{}">强</li>
                 </ul>
                 <el-form-item label="确认密码:">
-                    <el-input v-model="password2" type="password" placeholder="8-18位数字、字母、字符至少两者组合"  maxlength="18"  class="item"></el-input>
+                    <el-input v-model="password2" type="password" :placeholder="paw_placeholder"  maxlength="18"  class="item"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -70,7 +70,7 @@
     //import crypto from 'crypto'
     import vueCanvasNest from 'vue-canvas-nest'
     // let Base64 = require('js-base64').Base64;
-    import {checkStrong} from  '../../../static/js/common.js'
+    import {checkStrong,setPasswordComplex} from  '../../../static/js/common.js'
     export default {
         data(){
             return {
@@ -90,6 +90,7 @@
                     zIndex: 0,
                     count: 99,
                 },
+                passwordType:'text',
                 ruleForm: {
                     phone: '',
                     password: ''
@@ -104,12 +105,20 @@
                 },
                 passWordForm:false,
                 userValue:'',
-                passwordObj:{
+                passwordObj:{//修改密码 参数
                     oldPassword:'',
                     password:''
                 },
-                password2:'',
-                mode:0,
+                password2:'',//用于第二次填写密码校验
+                mode:0,//用于计算密码复杂度
+               /* pawObj:{//密码复杂度选项
+                    length:8,
+                    complex_number:true,
+                    complex_letter:true,
+                    complex_symbol:false,
+
+                }*/
+                paw_placeholder:'长度大于8位，数字与字母组合'
             }
         },
         watch:{
@@ -140,6 +149,10 @@
         },
         created(){
             this.getSystemObj();
+            //设置默认密码复杂度
+            this.getConfig()
+            // sessionStorage.setItem('passwordObj',JSON.stringify(this.pawObj));
+        //
         },
         mounted(){
             //判断是否为手机端
@@ -166,8 +179,55 @@
                 this.warningState = true;
             }
 
+            /* 清空浏览器缓存的数据登录密码 */
+            /* setTimeout(()=>{
+                alert('oo')
+                this.ruleForm = {
+                    phone: '',
+                    password: ''
+                }
+            },1000) */
+
         },
         methods: {
+            getConfig(){
+                this.$nextTick(()=>{
+                    this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/configuration/selectAll.do',this.$qs.stringify())
+                        .then(res=>{
+                            this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                let arr = obj.data;
+                                let length = '';
+                                let complexArr = []
+                                let diskObj={
+                                    disk_data_watermark:0,
+                                    disk_data_watermark_high:0
+                                }
+                                for (let i in arr){
+                                    if(arr[i].configuration_key === 'pwd_length'){
+                                        length = arr[i].configuration_value
+                                    }else if(arr[i].configuration_key === 'pwd_complex'){
+                                        complexArr = JSON.parse(arr[i].configuration_value)
+                                    }else if(arr[i].configuration_key === 'disk_data_watermark'){
+                                        diskObj.disk_data_watermark = arr[i].configuration_value
+                                    }else if(arr[i].configuration_key === 'disk_data_watermark_high'){
+                                        diskObj.disk_data_watermark_high = arr[i].configuration_value
+                                    }
+                                }
+                                sessionStorage.setItem('diskUsedSetting',JSON.stringify(diskObj))
+                                setPasswordComplex(length,complexArr)
+                                this.paw_placeholder = sessionStorage.getItem('pawComplex')
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
+            },
             //获取系统信息
             getSystemObj(){
                 this.$nextTick(()=>{
@@ -294,7 +354,17 @@
 
                                    }
                                    this.getLogConfig();
-                                   this.$router.push(this.systemObj.index);
+                                   /*涉密修改*/
+                                   if(res.data.user.phone === 'admin'){
+                                       this.$router.push(this.systemObj.index);
+                                   }else if(res.data.user.phone === 'audit'){
+                                       this.$router.push('auditLog_SR');
+                                   }else if(res.data.user.phone === 'useradmin'){
+                                       this.$router.push('userManage_SR');
+                                   }else{
+                                       this.$router.push(this.systemObj.index);
+                                   }
+
                                }else if(res.data.state === '0'){//密码过期
                                     this.userValue = res.data.user.phone;
                                     this.passWordForm = true;
@@ -323,11 +393,11 @@
                     layer.msg('请填写原来密码',{icon: 5});
                 }else if(this.passwordObj.password === ''){
                     layer.msg('未填写新的密码',{icon: 5});
-                }else if(this.mode < 2){
+                }/*else if(this.mode < 2){
                     layer.msg('密码格式不正确（8-18位数字、字母、字符至少两者组合）',{icon: 5});
                 }else if(this.passwordObj.password .length < 8 || this.passwordObj.password .length>18){
                     layer.msg('密码长度不正确(8-18位)',{icon: 5});
-                }else if(this.passwordObj.password  !== this.password2 ){
+                }*/else if(this.passwordObj.password  !== this.password2 ){
                     layer.msg('两次密码输入不一致',{icon: 5});
                 }else{
                     layer.load(1)

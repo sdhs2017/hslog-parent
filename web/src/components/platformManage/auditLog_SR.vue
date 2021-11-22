@@ -7,8 +7,8 @@
         <div class="audit-btn-wapper">
             <el-button type="primary" plain size="mini" title="备份数据" @click="backupLogs"><i class="el-icon-printer"></i>备份</el-button>
             <el-button type="success" plain size="mini" title="还原备份数据" @click="recoverLogs"><i class="el-icon-sort"></i>还原</el-button>
-            <el-button type="info" plain size="mini" title="清空" @click="emptyLogs"><i class="el-icon-delete"></i>清空</el-button>
-            <el-button type="danger" plain size="mini" title="删除" @click="removeLogs"><i class="el-icon-close"></i>删除</el-button>
+            <!--<el-button type="info" plain size="mini" title="清空" @click="emptyLogs"><i class="el-icon-delete"></i>清空</el-button>
+            <el-button type="danger" plain size="mini" title="删除" @click="removeLogs"><i class="el-icon-close"></i>删除</el-button>-->
             <el-button type="warning" plain size="mini" title="刷新" @click="repeatLogs"><i class="el-icon-refresh"></i>刷新</el-button>
         </div>
         <div class="audit-table-wapper" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
@@ -28,7 +28,7 @@
     import {dateFormat} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
-        name: "auditLog",
+        name: "auditLog_SR",
         data() {
             return {
                 loading:false,
@@ -188,7 +188,7 @@
                 obj.pageIndex = page;
                 obj.pageSize= this.pageSize;
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/note/selectByPage.do',this.$qs.stringify(obj))
+                    this.$axios.post(this.$baseUrl+'/note/selectByPage_Security.do',this.$qs.stringify(obj))
                         .then(res=>{
                             this.loading = false;
                             this.tableData = res.data[0].note[0];
@@ -250,7 +250,7 @@
                                     layer.msg(res.data.message,{icon: 5});
                                 }
                             })
-                            .catch(err=>{s
+                            .catch(err=>{
                                 layer.closeAll()
                                 layer.msg('备份失败',{icon: 5});
                             })

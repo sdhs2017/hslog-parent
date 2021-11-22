@@ -198,6 +198,28 @@
                                 this.thresholdText = "磁盘空间充足";
                                 $(".threshold").css("color","#1ab394");
                             }
+
+                            let diskObj = JSON.parse(sessionStorage.getItem('diskUsedSetting'));
+                            let diskUsed = Number(res.data.data_per.split('%')[0]);
+                            if(Number(diskObj.disk_data_watermark_high) <= diskUsed){
+                                layer.open({
+                                    content: '数据盘到达设置的阈值（已满），会对历史数据进行覆盖',
+                                    closeBtn: 0, //取消关闭按钮
+                                    yes: (index, layero)=>{
+                                        layer.close(index);
+                                        //next('/login');
+                                    }
+                                })
+                            }else if(Number(diskObj.disk_data_watermark) <= diskUsed){
+                                layer.open({
+                                    content: '数据盘到达设置的阈值（将满）',
+                                    closeBtn: 0, //取消关闭按钮
+                                    yes: (index, layero)=>{
+                                        layer.close(index);
+                                        //next('/login');
+                                    }
+                                })
+                            }
                         }
                     })
                     .catch((err) => {

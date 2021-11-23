@@ -2,7 +2,7 @@
     <div class="bottom">
         <div class="b-left"></div>
         <div class="b-right">
-            <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（阈值设置）</span> </div>
+            <div class="threshold">{{thresholdText}} <span class="set-rang" @click="setRang">（详情）</span> </div>
             <div class="systemIp">系统IP：<span style="color: #e4956d;">{{systemIp}}</span> <span class="set-rang" @click="editIpWapper = true">（修改IP）</span></div>
 <!--            <div class="backupConfig">备份时间：<span  @click="backupWapper = true">{{this.backupObj2.backupDate === '' ? '未设置' :this.backupObj2.backupDate}}</span></div>-->
             <div class="custonName" v-if="customName">单位名称：<span style="color: #e4956d;">{{customName}}</span></div>
@@ -11,19 +11,22 @@
             <div class="company"> 版权所有  © 2020-2021  山东九州信泰信息科技股份有限公司  </div>
 <!--            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>-->
         </div>
-        <el-dialog title="阈值设置" :visible.sync="diskUsedState" width="440px" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
-            <el-form>
-                <p style="color: #fff;">系统盘阈值大小：{{sysThresholdValue}}%</p>
-                <input type="range" v-model="sysThresholdValue" id="myRange1" style="width: 100%;" min = "0" step="1" max="100">
-                <p style="color: #fff;">数据盘阈值大小：{{dataThresholdValue}}%</p>
-                <input type="range" v-model="dataThresholdValue" id="myRange2" style="width: 100%;" min = "0" step="1" max="100">
-            </el-form>
+        <el-dialog title="阈值详情" :visible.sync="diskUsedState" width="440px" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <p style="color: #fff;">系统盘阈值大小：<b style="color: #e4956d;">{{sysThresholdValue}}%</b></p>
+            <p style="color: #fff;">数据盘阈值大小：<b style="color: #e4956d;">{{dataThresholdValue}}%</b></p>
+
+            <!-- <el-form>
+                 <p style="color: #fff;">系统盘阈值大小：{{sysThresholdValue}}%</p>
+                 <input type="range" v-model="sysThresholdValue" id="myRange1" style="width: 100%;" min = "0" step="1" max="100">
+                 <p style="color: #fff;">数据盘阈值大小：{{dataThresholdValue}}%</p>
+                 <input type="range" v-model="dataThresholdValue" id="myRange2" style="width: 100%;" min = "0" step="1" max="100">
+             </el-form>-->
             <p style="color: #fff;display: flex;justify-content: space-between;"><span>总空间 ：<b  style="color: #1ab394;">{{diskObj.sizeNum}}G</b></span> <span>已用空间 ： <b style="color: #e4956d;">{{diskObj.usedNum}}G</b></span></p>
             <div style="color: #fff;padding: 10px;background: #485b71;">
                 <p>系统盘 : <span style="color: #1ab394;">{{diskObj.sysAllDisk}}</span>(总) <span style="color: #e4956d;margin-left: 20px;">{{diskObj.sysUsedDisk}}</span>(已用)</p>
                 <p>数据盘 : <span style="color: #1ab394;">{{diskObj.dataAllDisk}}</span>(总) <span style="color: #e4956d;margin-left: 20px;">{{diskObj.dataUsedDisk}}</span>(已用)</p>
             </div>
-            <el-form ref="form" label-width="120px" label-position="left" style="border-top: 1px solid #485b71;margin-top: 10px;padding-top: 10px;">
+          <!--  <el-form ref="form" label-width="120px" label-position="left" style="border-top: 1px solid #485b71;margin-top: 10px;padding-top: 10px;">
                 <el-form-item label="数据批量采集">
                     <el-input v-model="es_bulk" size="mini" type="number" min="1"></el-input>
                 </el-form-item>
@@ -33,9 +36,9 @@
                     <el-input v-model="concurrent_requests" size="mini" type="number" min="1"></el-input>
                 </el-form-item>
             </el-form>
-            <p  style="color: #e4956d;border-top: 1px solid #485b71;">注：阈值修改会影响数据采集，请慎重选择。</p>
+            <p  style="color: #e4956d;border-top: 1px solid #485b71;">注：阈值修改会影响数据采集，请慎重选择。</p>-->
             <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="okBtn">确 定</el-button>
+                <el-button type="primary" @click="goToConfig">前往配置</el-button>
                 <el-button @click="diskUsedState = false">取 消</el-button>
             </div>
         </el-dialog>
@@ -184,6 +187,11 @@
                                 dataUsedDisk: res.data.data_used,//数据盘已用容量
                             };
                             this.thresholdText = '';
+
+                            let diskObj = JSON.parse(sessionStorage.getItem('diskUsedSetting'));
+                            let diskUsed = Number(res.data.data_per.split('%')[0]);
+
+
                             //判断阈值与实际使用大小
                             //console.log(this.sysThresholdValue)
                             if(this.sysThresholdValue <= Number(res.data.sys_per.split('%')[0])){
@@ -199,8 +207,7 @@
                                 $(".threshold").css("color","#1ab394");
                             }
 
-                            let diskObj = JSON.parse(sessionStorage.getItem('diskUsedSetting'));
-                            let diskUsed = Number(res.data.data_per.split('%')[0]);
+
                             if(Number(diskObj.disk_data_watermark_high) <= diskUsed){
                                 layer.open({
                                     content: '数据盘到达设置的阈值（已满），会对历史数据进行覆盖',
@@ -229,6 +236,8 @@
             /*设置阈值*/
             setRang(){
                 this.diskUsedState = true;
+                //获取磁盘数据
+               // this.getDiskUsed();
                 this.getEsBulk();
             },
             /*设置数据批量采集阈值*/
@@ -241,16 +250,13 @@
                             if(res.data.success === 'true'){
                                 let arr = res.data.data;
                                 for(let i in arr){
-                                    if(arr[i].configuration_key === 'disk_data_watermark'){//数据盘阈值
+                                    if(arr[i].configuration_key === 'disk_data_watermark'){
                                         this.dataThresholdValue = arr[i].configuration_value
-                                    }else if(arr[i].configuration_key === 'disk_system_watermark'){//系统盘阈值
+                                    }else if(arr[i].configuration_key === 'disk_system_watermark'){
                                         this.sysThresholdValue = arr[i].configuration_value
-                                    }else if(arr[i].configuration_key === 'es_bulk'){//数据采集
-                                        this.es_bulk = arr[i].configuration_value
-                                    }else if(arr[i].configuration_key === 'concurrent_requests'){//并发采集数
-                                        this.concurrent_requests = arr[i].configuration_value
                                     }
                                 }
+
                                 //获取磁盘数据
                                 this.getDiskUsed();
                             }else{
@@ -359,6 +365,11 @@
                             layer.msg('备份失败',{icon: 5});
                         })
                 })*/
+            },
+            //配置页面
+            goToConfig(){
+                this.diskUsedState = false;
+                this.$router.push('/systemConfig_SR');
             }
         }
     }

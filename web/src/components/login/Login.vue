@@ -216,6 +216,8 @@
                                         diskObj.disk_data_watermark = arr[i].configuration_value
                                     }else if(arr[i].configuration_key === 'disk_data_watermark_high'){
                                         diskObj.disk_data_watermark_high = arr[i].configuration_value
+                                    }else if(arr[i].configuration_key === 'disk_system_watermark'){
+                                        diskObj.disk_system_watermark = arr[i].configuration_value
                                     }
                                 }
                                 sessionStorage.setItem('diskUsedSetting',JSON.stringify(diskObj))
@@ -358,7 +360,7 @@
 
                                    }
                                    this.getLogConfig();
-                                   /*涉密修改*/
+                                  /* /!*涉密修改*!/
                                    if(res.data.user.phone === 'admin'){
                                        this.$router.push(this.systemObj.index);
                                    }else if(res.data.user.phone === 'audit'){
@@ -367,8 +369,8 @@
                                        this.$router.push('userManage_SR');
                                    }else{
                                        this.$router.push(this.systemObj.index);
-                                   }
-
+                                   }*/
+                                   this.$router.push(this.systemObj.index);
                                }else if(res.data.state === '0'){//密码过期
                                     localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                     this.userValue = res.data.user.phone;

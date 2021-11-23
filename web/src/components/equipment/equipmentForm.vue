@@ -69,6 +69,7 @@
                             <el-cascader
                                 :options="typeArr"
                                 v-model="form.type"
+                                @change="eqTypeChange"
                                 style="width: 100%;">
                             </el-cascader>
                         </el-form-item>
@@ -197,6 +198,16 @@
 <!--            <el-button type="primary" @click="()=>{this.$router.push({path:routerUrl})}">返回</el-button>-->
             <el-button type="info" @click="emptyData">清空</el-button>
         </div>
+
+        <el-dialog title="提示" :visible.sync="dialogState" width="440px">
+            <div style="color: #fff;">
+                防火墙、IPS要求日志内容格式满足“key=value 且以空格隔开”的格式。
+                例如：time="2021-06-17 11:17:45" IP=127.0.0.1
+            </div>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogState = false">确 定</el-button>
+            </div>
+        </el-dialog>
     </div>
 </template>
 
@@ -220,6 +231,7 @@
         },
         data(){
             return{
+                dialogState:false,//提示框状态
                 nameState:false,//name合法性
                 ipOrTypeState:false,//ip与日志类型合法性
                 saveState:false,
@@ -414,6 +426,12 @@
             /*清空数据*/
             emptyData(){
                 this.form = JSON.parse(this.defaultForm);
+            },
+            //资产类型改变
+            eqTypeChange(val){
+                if(val[1] == '0201' || val[1] == '0204'){//IPS 、 防火墙
+                    this.dialogState = true
+                }
             }
         }
     }

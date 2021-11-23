@@ -27,7 +27,10 @@
                         </div>-->
                         <div class="searchlogs-tools-right" style="float: right;">
                             <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="total"></el-pagination>
-                            <el-button v-if="exportBtn" type="primary" class="exportLogs" plain size="mini" @click="exportLogs">导出</el-button>
+                            <span v-if="exportBtn" >
+                                <el-button type="primary" v-if="$is_has('accurateSearch_exprotLog')" class="exportLogs" plain size="mini" @click="exportLogs('/log/exportLogList.do')">导出</el-button>
+                                <el-button type="primary" v-if="$is_has('accurateSearch_exprotLog_SR')" class="exportLogs" plain size="mini" @click="exportLogs('/log/exportLogListWithZip.do')">导出</el-button>
+                            </span>
                         </div>
                         <div class="searchlogs-tools-center"  style="float: right;">
                             检索到日志 <b class="totalLogs">{{allCounts}}</b> 条，最大展示
@@ -378,7 +381,7 @@
 
             },
             /*日志导出*/
-            exportLogs(){
+            exportLogs(url){
                 if(!this.exporting){
                     //查一遍数据
                     this.getLogsData(this.searchConditions,1);
@@ -410,7 +413,7 @@
                                 localStorage.setItem('exportLogs','true');
                                 //导出请求
                                 this.$nextTick(()=>{
-                                    this.$axios.post(this.$baseUrl+'/log/exportLogList.do',this.$qs.stringify(hsObj))
+                                    this.$axios.post(this.$baseUrl+ url,this.$qs.stringify(hsObj))
                                         .then((res)=>{
                                             //console.log(res.data[0].msg)
                                             if(res.data[0].state == 'false'){

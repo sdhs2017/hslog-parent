@@ -199,7 +199,7 @@
             <el-button type="info" @click="emptyData">清空</el-button>
         </div>
 
-        <el-dialog title="提示" :visible.sync="dialogState" width="440px">
+        <el-dialog title="提示" :visible.sync="dialogState" width="460px">
             <div style="color: #fff;">
                 防火墙、IPS要求日志内容格式满足“key=value 且以空格隔开”的格式。
                 例如：time="2021-06-17 11:17:45" IP=127.0.0.1

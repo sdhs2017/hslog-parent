@@ -34,6 +34,7 @@ if (process.env.NODE_ENV === 'development'){
     Vue.prototype.$baseUrl = '../hslog';
 }
 
+/*
 //获取权限btn
 axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
     .then((res)=>{
@@ -46,6 +47,7 @@ axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
     .catch(err=>{
         console.log(err)
     })
+*/
 
 axios.defaults.timeout = 120000;
 //axios拦截器

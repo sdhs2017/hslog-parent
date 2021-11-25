@@ -38,7 +38,7 @@
             </el-form>
             <p  style="color: #e4956d;border-top: 1px solid #485b71;">注：阈值修改会影响数据采集，请慎重选择。</p>-->
             <div slot="footer" class="dialog-footer">
-                <el-button type="primary" @click="goToConfig">前往配置</el-button>
+<!--                <el-button type="primary" @click="goToConfig">前往配置</el-button>-->
                 <el-button @click="diskUsedState = false">取 消</el-button>
             </div>
         </el-dialog>

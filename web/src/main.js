@@ -33,7 +33,7 @@ if (process.env.NODE_ENV === 'development'){
     //axios.defaults.baseURL = '../';
     Vue.prototype.$baseUrl = '../hslog';
 }
-
+let TimeoutDialogState = false;
 /*
 //获取权限btn
 axios.get(Vue.prototype.$baseUrl+'/menu/selectButtonListByUser.do',{})
@@ -78,6 +78,20 @@ axios.interceptors.response.use(data => {
        // Message.error({message: '权限不足,请联系管理员!'});
     }else if(err.response.status == undefined){
         layer.msg(err, {icon: 5});
+    }else if(err.response.status == 418){
+        if(!TimeoutDialogState){
+            layer.open({
+                content: '您的登陆信息已经超时，请重新登陆！',
+                closeBtn: 0, //取消关闭按钮
+                yes: (index, layero)=>{
+                    layer.close(index);
+                    TimeoutDialogState = true;
+                    router.push('/login')
+                }
+            })
+            TimeoutDialogState = true;
+        }
+
     }else{
         layer.msg('未知错误', {icon: 5});
        // Message.error({message: '未知错误!'});
@@ -197,7 +211,7 @@ router.beforeEach((to, from, next) => {
                }
            })
            .catch((err)=>{
-               layer.close(loading);
+               layer.close();
            })
    }else{
        next();

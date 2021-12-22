@@ -232,7 +232,7 @@
                     width:'',
                     formatData:(val)=>{return val.split('.')[0]}
                 },
-                {
+                /*{
                     prop:'tools',
                     label:'操作',
                     width:'',
@@ -300,7 +300,7 @@
                         }
                         return tipsHtml;
                     }
-                }
+                }*/
             ]
         },
         methods:{

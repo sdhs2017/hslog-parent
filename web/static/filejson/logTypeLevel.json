@@ -23,5 +23,9 @@
         "type":"file",
         "label": "file（文件）",
         "level":[]
+    },{
+        "type":"mysql",
+        "label": "mysql（数据库）",
+        "level":[]
     }
 ]

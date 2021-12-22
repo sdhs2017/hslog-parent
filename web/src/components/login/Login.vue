@@ -2,7 +2,7 @@
     <div class="login-wrap" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
 <!--        <el-button type="primary" @click="changeSystem">切换系统</el-button>-->
         <div class="ms-login">
-            <div class="ms-title"><img :src="systemObj.logo" alt=""><span style="position: relative;font-size: 12px;top: -30px;left: 5px;">V3.0</span></div>
+            <div class="ms-title"><img :src="systemObj.logo" alt=""><span style="position: relative;font-size: 12px;top: -30px;left: 5px;">{{systemObj.version}}</span></div>
 <!--            <div class="ms-title"><img src="../../../static/img/logo_qwd.png" alt=""></div>-->
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content" @submit.native.prevent>
                 <el-form-item prop="username">
@@ -216,6 +216,8 @@
                                         diskObj.disk_data_watermark = arr[i].configuration_value
                                     }else if(arr[i].configuration_key === 'disk_data_watermark_high'){
                                         diskObj.disk_data_watermark_high = arr[i].configuration_value
+                                    }else if(arr[i].configuration_key === 'disk_system_watermark'){
+                                        diskObj.disk_system_watermark = arr[i].configuration_value
                                     }
                                 }
                                 sessionStorage.setItem('diskUsedSetting',JSON.stringify(diskObj))
@@ -358,7 +360,20 @@
 
                                    }
                                    this.getLogConfig();
-                                   /*涉密修改*/
+
+                                   //获取权限btn
+                                   this.$axios.get(this.$baseUrl+'/menu/selectButtonListByUser.do',{})
+                                       .then((res)=>{
+                                           let arr = [];
+                                           for (let i in res.data){
+                                               arr.push(res.data[i].buttonID);
+                                           }
+                                           sessionStorage.setItem('btnArr',JSON.stringify(arr));
+                                       })
+                                       .catch(err=>{
+                                           console.log(err)
+                                       })
+                                  /* /!*涉密修改*!/
                                    if(res.data.user.phone === 'admin'){
                                        this.$router.push(this.systemObj.index);
                                    }else if(res.data.user.phone === 'audit'){
@@ -367,8 +382,8 @@
                                        this.$router.push('userManage_SR');
                                    }else{
                                        this.$router.push(this.systemObj.index);
-                                   }
-
+                                   }*/
+                                   this.$router.push(this.systemObj.index);
                                }else if(res.data.state === '0'){//密码过期
                                     localStorage.setItem("LoginUser", JSON.stringify(res.data.user));
                                     this.userValue = res.data.user.phone;

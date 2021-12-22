@@ -302,13 +302,13 @@ export default new Router({
                     path: '/controlCenter',
                     name:'controlCenter',
                     component: resolve => require(['../components/platformManage/controlCenter.vue'], resolve),
-                    meta: { title: '控制中心1' }
+                    meta: { title: '控制中心' }
                 },
                 {
                     path: '/controlCenter2',
                     name:'controlCenter2',
                     component: resolve => require(['../components/platformManage/controlCenter2.vue'], resolve),
-                    meta: { title: '控制中心2' }
+                    meta: { title: '控制中心' }
                 },
                 {
                     path: '/flowServiceManage',

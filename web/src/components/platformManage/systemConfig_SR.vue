@@ -24,7 +24,7 @@
                             <input type="range" v-model="config.disk_data_watermark_high"  size="mini" style="width: 100%;" min = "10" step="1" max="100">
                             <span>{{config.disk_data_watermark_high}}%</span>
                         </div>
-                        <p style="color: rgb(228, 149, 109);">注：数据盘到达设置的阈值（已满），会对历史数据进行覆盖。</p>
+<!--                        <p style="color: rgb(228, 149, 109);">注：数据盘到达设置的阈值（已满），会对历史数据进行覆盖。</p>-->
                     </el-form-item>
 
                     <el-form-item label="数据批量采集">

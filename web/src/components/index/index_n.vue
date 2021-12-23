@@ -650,6 +650,7 @@
             bus.$off('changeDateBar');
             bus.$off('changeDatePie');
             bus.$off('changeDateLine');
+            clearInterval(this.interval)
         },
         components:{
             vEcharts,

@@ -33,23 +33,23 @@
             })
         },
         methods:{
-          //添加资产
-          addEquipment(params){
-              this.$nextTick(()=>{
-                  this.$axios.post(this.$baseUrl+'/equipment/upsert.do',this.$qs.stringify(params))
-                      .then((res)=>{
-                          if(res.data.success == 'true'){
-                              layer.msg(res.data.message,{icon:1});
-                              this.$router.push({path:'/equipment'})
-                          }else{
-                              layer.msg(res.data.message,{icon:5});
-                          }
-                      })
-                      .catch((err)=>{
+            //添加资产
+            addEquipment(params){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/equipment/upsert.do',this.$qs.stringify(params))
+                        .then((res)=>{
+                            if(res.data.success == 'true'){
+                                layer.msg(res.data.message,{icon:1});
+                                this.$router.push({path:'/equipment'})
+                            }else{
+                                layer.msg(res.data.message,{icon:5});
+                            }
+                        })
+                        .catch((err)=>{
 
-                      })
-              })
-          }
+                        })
+                })
+            }
         },
         beforeDestroy(){
             bus.$off('addEquipment')

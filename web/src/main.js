@@ -79,6 +79,7 @@ axios.interceptors.response.use(data => {
     }else if(err.response.status == undefined){
         layer.msg(err, {icon: 5});
     }else if(err.response.status == 418){
+        console.log(TimeoutDialogState)
         if(!TimeoutDialogState){
             layer.open({
                 content: '您的登陆信息已经超时，请重新登陆！',
@@ -123,6 +124,7 @@ router.beforeEach((to, from, next) => {
        // let loading = layer.load(1,{
        //     shade: [0.8,'#000'] //0.1透明度的白色背景
        // })
+       TimeoutDialogState = false;
        axios.get(Vue.prototype.$baseUrl+'/user/checkLogin.do',{})
            .then((res)=>{
                // layer.close(loading);
@@ -214,6 +216,7 @@ router.beforeEach((to, from, next) => {
                layer.close();
            })
    }else{
+       TimeoutDialogState = true;
        next();
    }
 })

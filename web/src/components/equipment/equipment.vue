@@ -4,8 +4,8 @@
         <div class="top-title">资产列表
             <div class="equipment-tools">
                 <div class="equipemnt-tools-btns">
-                    <!--<el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
-                    <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>-->
+                    <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
+                    <el-button type="danger" size="mini" plain  @click="removeEquipment">删除资产</el-button>
                     <!--<el-button type="info" size="mini" plain ><a id="eqDownload" @click='downLoadEq'>模板下载</a></el-button>
                     <el-button type="warning" size="mini" plain @click="importEquipment()">资产导入</el-button>
                     <el-button type="primary" size="mini" plain @click="goToAddEquipment">添加资产</el-button>
@@ -47,7 +47,7 @@
 
 <script>
     import vSearchForm from '../common/BaseSearchForm';
-    import vBasetable from '../common/Basetable';
+    import vBasetable from '../common/Basetable2';
     import {jumpHtml} from "../../../static/js/common";
     import bus from '../common/bus';
     export default {
@@ -232,7 +232,7 @@
                     width:'',
                     formatData:(val)=>{return val.split('.')[0]}
                 },
-                /*{
+                {
                     prop:'tools',
                     label:'操作',
                     width:'',
@@ -244,7 +244,7 @@
                                 this.reviseEquipment(row,index)
                             }
                         },
-                        {
+                        /*{
                             icon:'el-icon-tickets',
                             text:'查看资产日志',
                             clickFun:(row,index)=>{
@@ -282,11 +282,11 @@
                             clickFun:(row,index)=>{
                                 this.theartAnalyse(row,index)
                             }
-                        }
+                        }*/
 
                     ]
                 },
-                {
+                /*{
                     prop:'threats',
                     label:'',
                     width:'70',
@@ -462,7 +462,7 @@
             },
             /*跳转到添加资产页面*/
             goToAddEquipment(){
-                this.$router.push({path:'addEquipment2'});
+                this.$router.push({path:'addEquipment'});
             },
             /*跳转到所有资产报表*/
             goToAllEcharts(){
@@ -470,7 +470,7 @@
             },
             /*删除资产*/
             removeEquipment(){
-                if(this.checkList.length === 0){
+                if(this.delectEquipmentIds == ''){
                     layer.msg('未选中任何资产',{icon: 5});
                 }else{
                     //询问框
@@ -478,17 +478,18 @@
                         btn: ['确定','取消'] //按钮
                     }, (index)=>{
                         layer.close(index);
-                        let delectEquipmentIds = ''
+                        /*let delectEquipmentIds = ''
                         for(let i in this.checkList){
                             delectEquipmentIds += this.checkList[i]+','
-                        }
+                        }*/
                         this.$nextTick(()=>{
-                            this.$axios.post(this.$baseUrl+'/equipment/delete.do',this.$qs.stringify({id:delectEquipmentIds}))
+                            this.$axios.post(this.$baseUrl+'/equipment/delete.do',this.$qs.stringify({id:this.delectEquipmentIds}))
                                 .then((res)=>{
                                     if(res.data.success == "true"){
                                         layer.msg("删除成功",{icon:1});
-                                        this.getData(this.searchConditions,1)
+                                        this.getEquipmentList(this.searchConditions,1)
                                         this.c_page = 1;
+                                        this.delectEquipmentIds = ''
                                     }else{
                                         layer.msg("删除失败",{icon:5});
                                     }
@@ -591,8 +592,15 @@
                 if(to.params.equipmentid !== undefined){
                     vm.selectEquipmentId = to.params.equipmentid;
                     vm.selectEquipment();
+                    vm.c_page = 1;
                 }else {
-                    vm.getEquipmentList(vm.searchConditions,1)
+                    if(vm.selectEquipmentId !== ''){
+                        vm.selectEquipment();
+                        vm.c_page = 1;
+                    }else{
+                        vm.getEquipmentList(vm.searchConditions,vm.c_page)
+                    }
+
                 }
 
             })

@@ -92,7 +92,7 @@ export default new Router({
                     path: '/addEquipment',
                     name:'addEquipment',
                     component: resolve => require(['../components/equipment/addEquipment.vue'], resolve),
-                    meta: { title: '添加虚拟资产' }
+                    meta: { title: '添加资产' }
                 },
                 {
                     path: '/reviseEquipment',

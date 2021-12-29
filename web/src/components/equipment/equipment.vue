@@ -507,7 +507,7 @@
             /*修改资产按钮*/
             reviseEquipment(rowData,index){
                 //跳转页面
-                jumpHtml('reviseEquipment2'+rowData.id,'equipment/reviseEquipment2.vue',{ name:rowData.name,id: rowData.id },'资产修改')
+                jumpHtml('reviseEquipment'+rowData.id,'equipment/reviseEquipment.vue',{ name:rowData.name,id: rowData.id },'资产修改')
             },
             /*查看资产日志*/
             equipmentLogs(rowData,index){

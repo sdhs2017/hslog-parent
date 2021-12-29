@@ -16,7 +16,7 @@
         data(){
             return{
                 busName:'',
-                routerUrl:'/equipment',
+                routerUrl:'/equipment2',
                 formData:{},
                 equipmentName:'',
                 equipmentId:''
@@ -25,24 +25,27 @@
         created(){
 
         },
+        beforeDestroy(){
+            bus.$off(this.busName)
+        },
         methods:{
             //添加资产
             reviseEquipment(params){
                 params.id = this.equipmentId;
-                 this.$nextTick(()=>{
-                      this.$axios.post(this.$baseUrl+'/equipment/upsert.do',this.$qs.stringify(params))
-                          .then((res)=>{
-                              if(res.data.success == 'true'){
-                                  layer.msg(res.data.message,{icon:1});
-                                  this.$router.push({path:'/equipment'})
-                              }else{
-                                  layer.msg(res.data.message,{icon:5});
-                              }
-                          })
-                          .catch((err)=>{
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/equipment/upsert.do',this.$qs.stringify(params))
+                        .then((res)=>{
+                            if(res.data.success == 'true'){
+                                layer.msg(res.data.message,{icon:1});
+                                this.$router.push({path:'/equipment'})
+                            }else{
+                                layer.msg(res.data.message,{icon:5});
+                            }
+                        })
+                        .catch((err)=>{
 
-                          })
-                  })
+                        })
+                })
             },
             /*获取资产信息*/
             getEquipmentData(){
@@ -61,7 +64,7 @@
         },
         watch:{
             '$route'(to,form){
-                  //console.log(to)
+                //console.log(to)
             },
             'equipmentId'(newV,oldV){
                 //监听保存按钮

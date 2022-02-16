@@ -47,6 +47,8 @@ public class start {
         collectorService.bulkProcessorInit();
         //4.tomcat重启时，需要重新启动告警模块的正在执行的计划任务
         iAlertService.initAlertQuartz();
+        //5.文件类日志缓存
+        FileLogCache.INSTANCE.init(fileLogService);
 
         //1.系统自带定时任务,延迟执行60s
 //        try{

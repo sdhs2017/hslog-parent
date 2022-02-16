@@ -17,7 +17,7 @@ public interface IFileLogService {
      * @param list 修改后的字段信息
      * @throws Exception
      */
-    public boolean reindex(List<FileLogField> list,String file_log_templateKey,String file_log_templateName) throws Exception;
+    public String reindex(List<FileLogField> list,String file_log_templateKey,String file_log_templateName) throws Exception;
     /**
      * 通过模板的key获取模板字段信息
      * @param file_log_templateKey

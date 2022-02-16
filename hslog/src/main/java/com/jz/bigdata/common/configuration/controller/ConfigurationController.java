@@ -41,52 +41,54 @@ public class ConfigurationController {
         Map<String, String[]> params = request.getParameterMap();
         List<Configuration> list = new ArrayList<>();
         //批量参数的处理
+        //涉密
+        // 可能进行参数有效性的后端验证
         for(Map.Entry<String,String[]> entity:params.entrySet()){
             Configuration configuration = new Configuration();
             configuration.setConfiguration_key(entity.getKey());
             configuration.setConfiguration_value(entity.getValue()[0]);//默认只取第一个的值
             list.add(configuration);
-            //涉密，增加对参数值有效性核对
-            switch(entity.getKey()){
-                case "disk_data_watermark":case "disk_data_watermark_high":case "disk_system_watermark":
-                    try{
-                        int value = Integer.parseInt(entity.getValue()[0]);
-                        if(!(value>0&&value<=100)){
-                            return Constant.failureMessage();
-                        }
-                    }catch(Exception e){
-                        log.error("参数错误");
-                        return Constant.failureMessage();
-                    }
-                break;
-                case "es_bulk" :case "es_storage_day" :case "pwd_expire_day" :case "pwd_length" :case "pwd_try" :case "session_timeout" :
-                    try{
-                        int value = Integer.parseInt(entity.getValue()[0]);
-                        if("es_bulk".equals(entity.getKey())&&!(value>0)){
-                            return Constant.failureMessage();
-                        }
-                        if("es_storage_day".equals(entity.getKey())&&!(value>90)){
-                            return Constant.failureMessage();
-                        }
-                        if("pwd_expire_day".equals(entity.getKey())&&!(value>0&&value<=7)){
-                            return Constant.failureMessage();
-                        }
-                        if("pwd_length".equals(entity.getKey())&&!(value>=8)){
-                            return Constant.failureMessage();
-                        }
-                        if("pwd_try".equals(entity.getKey())&&!(value>0&&value<=5)){
-                            return Constant.failureMessage();
-                        }
-                        if("session_timeout".equals(entity.getKey())&&!(value>0&&value<=10)){
-                            return Constant.failureMessage();
-                        }
-                    }catch(Exception e){
-                        log.error("参数错误");
-                    }
-                break;
-
-
-            }
+//            //涉密，增加对参数值有效性核对
+//            switch(entity.getKey()){
+//                case "disk_data_watermark":case "disk_data_watermark_high":case "disk_system_watermark":
+//                    try{
+//                        int value = Integer.parseInt(entity.getValue()[0]);
+//                        if(!(value>0&&value<=100)){
+//                            return Constant.failureMessage();
+//                        }
+//                    }catch(Exception e){
+//                        log.error("参数错误");
+//                        return Constant.failureMessage();
+//                    }
+//                break;
+//                case "es_bulk" :case "es_storage_day" :case "pwd_expire_day" :case "pwd_length" :case "pwd_try" :case "session_timeout" :
+//                    try{
+//                        int value = Integer.parseInt(entity.getValue()[0]);
+//                        if("es_bulk".equals(entity.getKey())&&!(value>0)){
+//                            return Constant.failureMessage();
+//                        }
+//                        if("es_storage_day".equals(entity.getKey())&&!(value>90)){
+//                            return Constant.failureMessage();
+//                        }
+//                        if("pwd_expire_day".equals(entity.getKey())&&!(value>0&&value<=7)){
+//                            return Constant.failureMessage();
+//                        }
+//                        if("pwd_length".equals(entity.getKey())&&!(value>=8)){
+//                            return Constant.failureMessage();
+//                        }
+//                        if("pwd_try".equals(entity.getKey())&&!(value>0&&value<=5)){
+//                            return Constant.failureMessage();
+//                        }
+//                        if("session_timeout".equals(entity.getKey())&&!(value>0&&value<=10)){
+//                            return Constant.failureMessage();
+//                        }
+//                    }catch(Exception e){
+//                        log.error("参数错误");
+//                    }
+//                break;
+//
+//
+//            }
         }
         try{
             int result = configurationService.update(list);

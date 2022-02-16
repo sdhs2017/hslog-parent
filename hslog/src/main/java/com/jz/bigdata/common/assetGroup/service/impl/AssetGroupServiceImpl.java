@@ -21,6 +21,7 @@ import com.jz.bigdata.common.assetGroup.entity.AssetGroupRelations;
 import com.jz.bigdata.common.assetGroup.service.IAssetGroupService;
 import com.jz.bigdata.common.equipment.dao.IEquipmentDao;
 import com.jz.bigdata.common.equipment.entity.Equipment;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import com.jz.bigdata.util.*;
@@ -265,7 +266,13 @@ public class AssetGroupServiceImpl implements IAssetGroupService {
 	@Override
 	public List<Map<String, String>> getDashboardsInfo(String asset_group_id) {
 		List<Map<String,String>> result = new ArrayList<>();
-		result.addAll(DashboardConfig.SIEM);//菜单第一项都是SIEM
+		//获取资产报表菜单 json对应的key
+		String equipment_chart_json_key = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.EQUIPMENT_CHART_JSON_KEY).toString();
+		//如果是带告警模块的
+		if(Constant.EQUIPMENT_CHART_ALERT.equals(equipment_chart_json_key)){
+			result.addAll(DashboardConfig.SIEM);
+		}
+		//result.addAll(DashboardConfig.SIEM);//菜单第一项都是SIEM
 		//通过资产组id获取对应的资产信息列表
 		List<Equipment> equipmentList = equipmentDao.getEquipmentListByAssetGroupId(asset_group_id);
 		//资产组对应资产id

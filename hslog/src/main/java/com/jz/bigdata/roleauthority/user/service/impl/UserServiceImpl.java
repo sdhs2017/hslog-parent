@@ -15,6 +15,7 @@ import javax.sql.DataSource;
 
 import com.jz.bigdata.common.configuration.dao.IConfigurationDao;
 import com.jz.bigdata.common.configuration.entity.Configuration;
+import com.jz.bigdata.common.configuration.service.IConfigurationService;
 import com.jz.bigdata.common.license.LicenseExtra;
 import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.menu.entity.Button;
@@ -101,7 +102,8 @@ public class UserServiceImpl implements IUserService {
 	private ConfigProperty configProperty;
 	@Resource
 	private IConfigurationDao configurationDao;
-
+	@Resource(name = "ConfigurationService")
+	private IConfigurationService configurationService;
 	@Resource(name ="RoleAuthorityProperty")
 	private RoleAuthorityProperty roleAuthorityProperty;
 	/**
@@ -519,6 +521,7 @@ public class UserServiceImpl implements IUserService {
 		verifyLicense.setParam("/verifyparam.properties");
 		LicenseContent licenseContent = verifyLicense.getLicenseContent();
 		if(licenseContent!=null){
+
 			//1.删除 系统表、菜单表、按钮表
 			userDao.deleteButtonMenuSystem();
 			//2.获取新的系统表、菜单表、按钮表、角色表
@@ -572,6 +575,8 @@ public class UserServiceImpl implements IUserService {
 					systemList.add(sys);
 				}
 			}
+
+
 			//3.插入新的系统表、菜单表、按钮表、角色表
 			userDao.insertSystemBatch(systemList);
 			userDao.insertMenuBatch(menuList);
@@ -601,6 +606,44 @@ public class UserServiceImpl implements IUserService {
 					userDao.insertUserRole(defaultUser.getId(),"master");
 				}
 			}
+			//configuration配置表要更新的内容列表
+			List<Configuration> confList = new ArrayList<>();
+			//流量模块需要更新configuration表的状态
+			Configuration configuration = new Configuration();
+			configuration.setConfiguration_key("has_packet");
+			//包含流量模块，设置为true，否则为false
+			if(product_type.indexOf(Constant.LICENSE_TYPE_PACKET)>=0){
+				configuration.setConfiguration_value("true");
+			}else{
+				configuration.setConfiguration_value("false");
+			}
+			confList.add(configuration);
+			//logo、首页、版本号信息
+			Configuration conf_logo = new Configuration();
+			conf_logo.setConfiguration_key(Constant.LOGO_PATH);
+			conf_logo.setConfiguration_value(customInfo.getLogo());
+			Configuration conf_version = new Configuration();
+			conf_version.setConfiguration_key(Constant.VERSION);
+			conf_version.setConfiguration_value(customInfo.getVersion());
+			Configuration conf_index_page = new Configuration();
+			conf_index_page.setConfiguration_key(Constant.INDEX_PAGE);
+			conf_index_page.setConfiguration_value(customInfo.getIndex());
+
+			confList.add(conf_logo);
+			confList.add(conf_version);
+			confList.add(conf_index_page);
+			//资产可用报表菜单
+			Configuration equipment_chart_json_key = new Configuration();
+			equipment_chart_json_key.setConfiguration_key(Constant.EQUIPMENT_CHART_JSON_KEY);
+			//产品是否包含告警模块
+			if(product_type.indexOf(Constant.LICENSE_TYPE_ALERT)>=0){
+				equipment_chart_json_key.setConfiguration_value(Constant.EQUIPMENT_CHART_ALERT);
+			}else{
+				equipment_chart_json_key.setConfiguration_value(Constant.EQUIPMENT_CHART_DEFAULT);
+			}
+			confList.add(equipment_chart_json_key);
+			configurationDao.update(confList);
+			ConfigurationCache.INSTANCE.init(configurationService);//更新缓存
 			return true;
 		}else{
 			//激活失败

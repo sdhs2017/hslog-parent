@@ -13,9 +13,12 @@ import javax.servlet.http.HttpSession;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Strings;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
+import com.jz.bigdata.roleauthority.system.service.ISystemService;
 import com.jz.bigdata.util.BASE64Util;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.POI.ReadExcel;
+import com.jz.bigdata.util.RoleAuthorityProperty;
 import com.sun.tools.internal.jxc.ap.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -65,6 +68,11 @@ public class EquipmentController {
 
 	@Value(value="classpath:equipmentVisual.json")
 	private org.springframework.core.io.Resource equipmentVisual;
+	@Resource(name="SystemService")
+	private ISystemService systemService;
+
+	@Resource(name ="RoleAuthorityProperty")
+	private RoleAuthorityProperty roleAuthorityProperty;
 	//日期格式
 	private static final DateTimeFormatter dtf_time = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -944,8 +952,18 @@ public class EquipmentController {
 	@DescribeLog(describe="获取资产可视化信息")
 	public String getEquipmentVisual(){
 		try{
-			String content = FileUtils.readFileToString(equipmentVisual.getFile(), "UTF-8");
-			return Constant.successData(content);
+			//String content = FileUtils.readFileToString(equipmentVisual.getFile(), "UTF-8");
+
+			//获取资产报表菜单 json对应的key
+			String equipment_chart_json_key = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.EQUIPMENT_CHART_JSON_KEY).toString();
+			//如果是带告警模块的
+			if(Constant.EQUIPMENT_CHART_ALERT.equals(equipment_chart_json_key)){
+				return Constant.successData(roleAuthorityProperty.getEquipment_chart_alert());
+			}else{
+				//其他情况
+				return Constant.successData(roleAuthorityProperty.getEquipment_chart_default());
+			}
+
 		}catch (Exception e){
 			return Constant.failureMessage("资产可视化信息获取失败！");
 		}

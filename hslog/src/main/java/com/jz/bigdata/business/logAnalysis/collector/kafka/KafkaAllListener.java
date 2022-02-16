@@ -309,7 +309,7 @@ public class KafkaAllListener {
                                     }
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    log.error("范式化失败 ，日志内容："+builder.toString());
+                                    log.warn("范式化失败 ，日志内容："+builder.toString());
                                     //System.out.println("范式化失败 ，日志内容："+builder.toString());
                                     continue;
                                 }
@@ -357,7 +357,7 @@ public class KafkaAllListener {
                         }
                     }catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -403,7 +403,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -431,7 +431,7 @@ public class KafkaAllListener {
                         }
                     }catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+log);
+                        log.warn("范式化失败 ，日志内容："+log);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -509,7 +509,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -556,7 +556,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -602,7 +602,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -655,7 +655,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }
@@ -708,7 +708,7 @@ public class KafkaAllListener {
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
-                        log.error("范式化失败 ，日志内容："+logs);
+                        log.warn("范式化失败 ，日志内容："+logs);
                         //System.out.println("范式化失败 ，日志内容："+log);
                         continue;
                     }

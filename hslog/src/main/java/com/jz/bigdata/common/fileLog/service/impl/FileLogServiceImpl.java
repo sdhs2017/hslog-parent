@@ -14,6 +14,7 @@ import com.jz.bigdata.common.start_execution.cache.FileLogCache;
 import com.jz.bigdata.util.ConfigProperty;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
+import org.elasticsearch.ElasticsearchParseException;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.script.Script;
@@ -55,7 +56,9 @@ public class FileLogServiceImpl implements IFileLogService {
     private IBIService ibiService;
     @Override
     @Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
-    public boolean reindex(List<FileLogField> newFieldList,String file_log_templateKey,String file_log_templateName) throws Exception {
+    public String reindex(List<FileLogField> newFieldList,String file_log_templateKey,String file_log_templateName) throws Exception {
+
+
         //1.停止filebeat
         collectorService.stopFileLogKafkaListener();
 
@@ -116,8 +119,8 @@ public class FileLogServiceImpl implements IFileLogService {
 
             }
         }
-        //template收尾处理
-        templateMapping.delete(templateMapping.length()-1,templateMapping.length());
+        //添加自定义字段 fields
+        templateMapping.append("\"fields\": {\"properties\": {\"equipmentid\": {\"type\": \"keyword\"},\"ip\": {\"type\": \"keyword\"}}}");
         templateMapping.append("}}");
         //3.创建template
         //template setting信息
@@ -194,15 +197,22 @@ public class FileLogServiceImpl implements IFileLogService {
                         commonDao.deleteIndices(source_index+"_tmp");
                         //第2-n个index出现异常时的回滚
                         restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
-                        return false;
+                        return Constant.failureMessage("更新失败！");
                     }else{
+                        //失败信息
+                        String failureMessage = null;
                         //4.字段信息变化带来的reindex
                         boolean result = false;
                         try{
                             //创建template
                             logService.initOfElasticsearch(template_name,template_name+"*",null,settingmap,templateMapping.toString());
                             result = commonDao.reindex(reindexScript,source_index,source_index+"_tmp");
-                        }catch(Exception e){
+                        }catch (ElasticsearchParseException e){
+                            if(e.getMessage().indexOf("Failed to parse content to map")>=0){
+                                failureMessage = "更新失败，字段名重复！";
+                            }
+                        }
+                        catch(Exception e){
                             log.error("reindex到新的index"+source_index+"失败："+e.getMessage());
                         }
                         //5.reindex是否成功
@@ -223,7 +233,7 @@ public class FileLogServiceImpl implements IFileLogService {
                                 commonDao.reindex(null,source_index,source_index+"_tmp");
                                 //第2-n个index出现异常时的回滚
                                 restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
-                                return false;
+                                return Constant.failureMessage(failureMessage==null?"更新失败！":failureMessage);
                             }else{
                                 //删除成功，不做任何操作
                             }
@@ -248,7 +258,7 @@ public class FileLogServiceImpl implements IFileLogService {
                             commonDao.deleteIndices(source_index+"_tmp");
                             //第2-n个index出现异常时的回滚
                             restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
-                            return false;
+                            return Constant.failureMessage(failureMessage==null?"更新失败！":failureMessage);
                         }
                     }
                 }else{
@@ -257,14 +267,14 @@ public class FileLogServiceImpl implements IFileLogService {
                     commonDao.updateIndexSettings(cancelOnlyReadSetting,source_index);
                     //第2-n个index出现异常时的回滚
                     restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
-                    return false;
+                    return Constant.failureMessage("更新失败！");
                 }
 
             }else{
                 log.error("index:"+source_index+"设置为只读失败！");
                 //第2-n个index出现异常时的回滚
                 restoreIndices(i,indices,newFieldList,oldFields,settingmap,template_name);
-                return false;
+                return Constant.failureMessage("更新失败！");
             }
 
         }
@@ -275,7 +285,7 @@ public class FileLogServiceImpl implements IFileLogService {
         //启动file-log beat
         collectorService.startFileLogKafkaListener();
         //无异常返回
-        return true;
+        return Constant.successMessage("更新成功！");
     }
 
     @Override
@@ -418,9 +428,11 @@ public class FileLogServiceImpl implements IFileLogService {
             }
             //生成script对象
             Script reindexScript = new Script(ScriptType.INLINE, "painless", scriptString.toString(), new HashMap<String, Object>());
-            //template收尾处理
-            oldMapping.delete(oldMapping.length()-1,oldMapping.length());
+            //template收尾处理，加上自定义资产标签字段
+            oldMapping.append("\"fields\": {\"properties\": {\"equipmentid\": {\"type\": \"keyword\"},\"ip\": {\"type\": \"keyword\"}}}");
             oldMapping.append("}}");
+//            oldMapping.delete(oldMapping.length()-1,oldMapping.length());
+//            oldMapping.append("}}");
             for(int j=0;j<i;j++){
                 String indexName = indices[j];
                 //reindex到临时index

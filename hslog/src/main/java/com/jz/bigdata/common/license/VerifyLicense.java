@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.Properties;
 import java.util.prefs.Preferences;
 
+import net.sf.json.JSONObject;
 import org.springframework.stereotype.Service;
 
 import de.schlichtherle.license.CipherParam;
@@ -59,6 +60,9 @@ public class VerifyLicense {
             File file = new File(getClass().getClassLoader().getResource(licPath).getFile());
             System.out.println(file.getAbsolutePath());
             licenseManager.install(file);
+            LicenseContent licenseContent  = licenseManager.verify();
+            System.out.println(licenseContent.getInfo());
+            System.out.println(JSONObject.fromObject(licenseContent.getExtra()));
             System.out.println("客户端安装证书成功!");
         } catch (Exception e) {
             e.printStackTrace();

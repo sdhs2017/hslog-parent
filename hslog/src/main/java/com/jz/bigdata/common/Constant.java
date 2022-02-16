@@ -210,6 +210,19 @@ public class Constant {
 	public static String SESSION_TIMEOUT = "session_timeout";
 	//configuration 配置项，IP黑名单-key
 	public static String IP_BLACK = "ip_black";
+	//configuration 配置项，是否包含流量模块
+	public static String HAS_PACKET = "has_packet";
+	//configuration 配置项，系统首页
+	public static String INDEX_PAGE = "index";
+	//configuration 配置项，logo路径
+	public static String LOGO_PATH = "logo";
+	//configuration 配置项，版本号
+	public static String VERSION = "version";
+	//configuration 配置项，资产对应的报表菜单，在配置文件中的key
+	public static String EQUIPMENT_CHART_JSON_KEY = "equipment_chart_json_key";
+	//资产对应报表菜单json在配置文件中的key /resource/database/mysql/roleauthority.properties
+	public static String EQUIPMENT_CHART_DEFAULT = "equipment_chart_default";//默认报表菜单
+	public static String EQUIPMENT_CHART_ALERT = "equipment_chart_alert";//有告警模块时的报表菜单
 	//beats的日期字段
 	public static String BEAT_DATE_FIELD = "@timestamp";
 	//系统日志对应的index名称
@@ -297,6 +310,15 @@ public class Constant {
 	 */
 	public static String COLLECTOR_START_AGENT_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startAgentKafkaListener";
 	/**
+	 * filelog开启采集URL
+	 */
+	public static String COLLECTOR_START_FILELOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startFileLogKafkaListener";
+	/**
+	 * 流量开启采集URL
+	 */
+	public static String COLLECTOR_START_PACKET_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.startPcap4jCollector";
+
+	/**
 	 * SYSLOG关闭采集URL
 	 */
 	public static String COLLECTOR_STOP_SYSLOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopSyslogKafkaListener";
@@ -304,6 +326,15 @@ public class Constant {
 	 * AGENT关闭采集URL
 	 */
 	public static String COLLECTOR_STOP_AGENT_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopAgentKafkaListener";
+	/**
+	 * filelog关闭采集URL
+	 */
+	public static String COLLECTOR_STOP_FILELOG_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopFileLogKafkaListener";
+	/**
+	 * 流量关闭采集URL
+	 */
+	public static String COLLECTOR_STOP_PACKET_PATH = "java.lang.String com.jz.bigdata.business.logAnalysis.collector.controller.CollectorController.stopPcap4jCollector";
+
 	/**
 	 * api数据接口
 	 */

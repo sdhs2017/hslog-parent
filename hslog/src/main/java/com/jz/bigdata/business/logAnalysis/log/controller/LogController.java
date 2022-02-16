@@ -1351,6 +1351,7 @@ public class LogController extends BaseController{
 		}
 
 	}
+
 	/**
 	 * 查询+导出至文件，放在服务器指定目录
 	 * @param request
@@ -1362,6 +1363,177 @@ public class LogController extends BaseController{
 	@RequestMapping(value="/exportLogList",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="导出查询的日志数据")
 	public String exportLogList(HttpServletRequest request,HttpSession session) {
+
+		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+		// 使用手机号作为导出的路径
+		Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
+
+
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+		// 返回結果
+		Map<String, Object> allmap= new HashMap<>();
+		ObjectMapper mapper = new ObjectMapper();
+		// 使用线程安全的map
+		Map<String, String> map = new ConcurrentHashMap<>();
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+		Object pageo = map.get("page");
+		Object sizeo = map.get("size");
+		Object exportSizeo = map.get("exportSize");
+
+		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
+			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
+		}
+
+		String starttime = null;
+		// 判断时间条件是否存在，存在将时间提出
+		if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
+			starttime = map.get("starttime");
+			map.remove("starttime");
+
+		}
+		String endtime = null;
+		if (map.get("endtime")!=null&&!map.get("endtime").equals("")){
+			endtime = map.get("endtime");
+			map.remove("endtime");
+		}
+		//参数为  是否完整范式化，false是未完整范式化，对应字段的值为false
+		if(map.get("normalization")!=null&&"false".equals(map.get("normalization"))){
+			// 只有选择范式化失败时，才能查询到范式化失败的数据，否则查询范式化正常的数据
+			map.put("fields.failure","true");
+		}else if(map.get("normalization")!=null&&"true".equals(map.get("normalization"))){
+			map.put("fields.failure","false");
+		}else{
+			//查全部，不需要添加条件
+		}
+		//删除原参数
+		map.remove("normalization");
+		map.remove("page");
+		map.remove("size");
+		map.remove("exportSize");
+
+		String exportSize = exportSizeo.toString();
+
+
+		Integer sizeInt = Integer.valueOf(exportSize);
+
+		//csv文件单个标签页存放数据条数
+		int sheetsizes = 10000;
+
+		// 获得需要创建的csv文件格式
+		int forsize = sizeInt/sheetsizes;
+		// 取余，获得需要导出的不满10000条数据
+		int modsize = sizeInt%sheetsizes;
+
+		// 导出状态默认值
+		int fileSize = 0;
+
+		Map<String, Object> resultmap = new HashMap<>();
+		// 根据文件数设置导出状态
+		if (forsize>0&&modsize>0) {
+			fileSize = forsize+1;
+			resultmap.put("state", "doing");
+			resultmap.put("value", "0-"+fileSize);
+			setExportProcess(JSONArray.fromObject(resultmap).toString());
+		}else if (forsize>0&&modsize==0) {
+			fileSize = forsize;
+			resultmap.put("state", "doing");
+			resultmap.put("value", "0-"+fileSize);
+			setExportProcess(JSONArray.fromObject(resultmap).toString());
+		}else {
+			resultmap.put("state", "doing");
+			resultmap.put("value", "0-1");
+			setExportProcess(JSONArray.fromObject(resultmap).toString());
+		}
+
+		try {
+			// 先到处每个sheet页10000条的数据
+			for(int i=1;i<=forsize;i++) {
+				// 构建新的page size ，size为10000条
+				String page = String.valueOf(i);
+				String size = String.valueOf(sheetsizes);
+
+				List<Map<String, Object>> list = logService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_index());
+
+
+				// 设置表格头
+				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容"};
+				List<Object> headList = Arrays.asList(head);
+				Date date = new Date();
+				// 过滤第一条，第一条数据为总数统计
+				list.remove(0);
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day), "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+
+				if (i==forsize&&modsize==0) {
+					resultmap.put("state", "finished");
+					resultmap.put("value", i+"-"+fileSize);
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}else {
+					resultmap.put("state", "doing");
+					resultmap.put("value", i+"-"+fileSize);
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}
+
+			}
+			// 导出不足10000条的剩余数据
+			if (modsize>0) {
+				// 构建新的page size ，size为modsize
+				String page = String.valueOf(forsize+1);
+				String size = String.valueOf(modsize);
+
+				List<Map<String, Object>> list  = logService.getLogListByBlend(map, starttime, endtime, page, size,  configProperty.getEs_index());
+
+
+				// 设置表格头
+				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容" };
+				List<Object> headList = Arrays.asList(head);
+
+
+				// 过滤第一条，第一条数据为总数统计
+				list.remove(0);
+				// 开始写入csv文件
+				CSVUtil.createCSVFile(headList, list, "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day), "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//  根据导出文件个数返回导出状态
+				if (forsize>0) {
+					resultmap.put("state", "finished");
+					resultmap.put("value", fileSize+"-"+fileSize);
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}else {
+					resultmap.put("state", "finished");
+					resultmap.put("value", "1-1");
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}
+			}
+			allmap.put("state", true);
+			allmap.put("msg", "日志导出成功");
+		} catch (Exception e) {
+			allmap.put("state", false);
+			allmap.put("msg", "日志导出失败");
+			e.printStackTrace();
+		}
+
+		String result = JSONArray.fromObject(allmap).toString();
+
+		return result;
+	}
+	/**
+	 * 查询+导出至文件，放在服务器指定目录
+	 * @param request
+	 * @author jiyourui
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/exportLogListWithZip",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="导出查询的日志数据")
+	public String exportLogListWithZip(HttpServletRequest request,HttpSession session) {
 
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		// 使用手机号作为导出的路径

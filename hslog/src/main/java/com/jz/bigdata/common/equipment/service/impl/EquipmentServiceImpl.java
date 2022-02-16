@@ -410,6 +410,17 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			esMap.put("fields.equipmentid", equipment.getId());
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
 			equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),equipment.getType(),esMap,starttime,endtime)+"");
+
+//			if(equipment.getLogType().equals("file")){
+//				equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),equipment.getType(),esMap,starttime,endtime)+"");
+//			}else{
+//				/**
+//				 * ECS的资产id改成fields.equipmentid
+//				 */
+//				esMap.put("fields.equipmentid", equipment.getId());
+//				equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),equipment.getType(),esMap,starttime,endtime)+"");
+//			}
+
 		}
 		// 数据添加到map
 		map.put("equipment", listEquipment);
@@ -449,12 +460,20 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		String endtime = LocalDateTime.now().format(dtf_time);
 		for(Map<String,String> equipment : listEquipment.get(0)) {
 			Map<String, String> esMap = new HashMap<>();
-			/**
-			 * ECS的资产id改成fields.equipmentid
-			 */
-			esMap.put("fields.equipmentid", equipment.get("id"));
+
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
-			equipment.put("log_count",getEquipmentLogCount(equipment.get("logType"),equipment.get("type"),esMap,starttime,endtime)+"");
+			//文件类资产单独处理
+			if(equipment.get("logType").equals("file")){
+				equipment.put("log_count",getEquipmentLogCount(equipment.get("logType"),equipment.get("type"),esMap,starttime,endtime)+"");
+			}else{
+				/**
+				 * ECS的资产id改成fields.equipmentid
+				 */
+				esMap.put("fields.equipmentid", equipment.get("id"));
+				equipment.put("log_count",getEquipmentLogCount(equipment.get("logType"),equipment.get("type"),esMap,starttime,endtime)+"");
+			}
+
+
 		}
 		// 数据添加到map
 		map.put("equipment", listEquipment.get(0));
@@ -475,7 +494,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 		//根据日志类型设置要查询的index
 		switch (logType){
 			case "file":
-				index = configProperty.getEs_file_index();
+				index = configProperty.getEs_filelog_pre()+"*";
 				break;
 			case "winlog":
 			case "syslog":

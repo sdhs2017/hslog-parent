@@ -219,9 +219,15 @@ public class CollectorController {
 	@DescribeLog(describe = "开启pcap4j抓取数据包")
 	public String startPcap4jCollector() throws InterruptedException {
 
+
 		System.out.println("-----------------------startPcap4jCollector-----------------");
 		Map<String, Object> map = new HashMap<>();
-
+		Object has_packet = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.HAS_PACKET);
+		if(has_packet==null||has_packet.toString().equals("false")){
+			map.put("state", false);
+			map.put("msg", "产品未激活流量模块！");
+			return JSONArray.fromObject(map).toString();
+		}
 		// 判断index是否存在，如果不存在提示执行初始化操作
 		if (!logService.checkOfIndexOrTemplate(configProperty.getEs_index())){
 			map.put("state", false);

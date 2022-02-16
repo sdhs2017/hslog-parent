@@ -50,11 +50,17 @@ public class FileLogController {
             boolean result = false;
             if("1".equals(updateState)){
                 result = fileLogService.updateTemplateName(file_log_templateKey,file_log_templateName);
+                if(result){
+                    return Constant.successMessage("更新成功！");
+                }else{
+                    return Constant.failureMessage("更新失败！");
+                }
             }else{
                 //将参数转化为对象
                 if(null!=templateInfo){
                     //参数包含多个FileLogFields对象
                     JSONArray json = JSONArray.fromObject(templateInfo);
+                    //TODO 字段重复判定
                     //遍历
                     for(Object beanObj:json.toArray()){
                         //转bean
@@ -69,14 +75,11 @@ public class FileLogController {
                 }else{
                     return Constant.failureMessage("参数异常！");
                 }
-                result = fileLogService.reindex(list,file_log_templateKey,file_log_templateName);
+                return fileLogService.reindex(list,file_log_templateKey,file_log_templateName);
+
 
             }
-            if(result){
-                return Constant.successMessage("更新成功！");
-            }else{
-                return Constant.failureMessage("更新失败！");
-            }
+
         }catch(Exception e){
             log.error("更新文件日志模板信息异常："+e.getMessage());
             return Constant.failureMessage("更新失败！");
@@ -109,7 +112,7 @@ public class FileLogController {
     public String getTemplateFields(HttpServletRequest request) {
         String templateKey = request.getParameter("file_log_templateKey");
         if(StringUtils.isNullOrEmpty(templateKey)){
-            return Constant.failureMessage("参数异常！");
+            return Constant.failureMessage("暂无数据！");
         }else{
             List<Map<String,String>> list = fileLogService.getTemplateFields(templateKey);
             return Constant.successData(JSONArray.fromObject(list).toString());

@@ -88,8 +88,8 @@ public class KafkaBeatsListener {
         try{
             for(ConsumerRecord<?, String> record:records){
                 request = new IndexRequest();
+                String logs = record.value();
                 try {
-                    String logs = record.value();
                     /**
                      * 将采集到的log转为jsonObject格式
                      */
@@ -644,11 +644,11 @@ public class KafkaBeatsListener {
 
                 }catch (NullPointerException e){
                     e.printStackTrace();
-                    log.error("kafka范式化：获取数据出现空指针情况");
+                    log.warn("kafka范式化：获取数据出现空指针情况");
                     continue;
                 }catch (Exception e){
                     e.printStackTrace();
-                    log.error("范式化失败！！！！");
+                    log.error("范式化失败:"+logs);
                     continue;
                 }
             }

@@ -56,7 +56,9 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 		//如果是登陆、注册、上传激活请求，获取公钥，获取产品信息放行,开启关闭agent/syslog采集，获取配置信息
  		if(handler.toString().indexOf(Constant.CONFIGURATION_INFO)>=0||handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.UPLOADPATH)>=0||handler.toString().indexOf(Constant.RSAKEYPATH)>=0||handler.toString().indexOf(Constant.PRODUCTPATH)>=0
 				||handler.toString().indexOf(Constant.COLLECTOR_START_SYSLOG_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_SYSLOG_PATH)>=0
-				||handler.toString().indexOf(Constant.COLLECTOR_START_AGENT_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_AGENT_PATH)>=0){
+				||handler.toString().indexOf(Constant.COLLECTOR_START_AGENT_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_AGENT_PATH)>=0
+				||handler.toString().indexOf(Constant.COLLECTOR_START_FILELOG_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_FILELOG_PATH)>=0
+				||handler.toString().indexOf(Constant.COLLECTOR_START_PACKET_PATH)>=0||handler.toString().indexOf(Constant.COLLECTOR_STOP_PACKET_PATH)>=0){
 //		if(handler.toString().indexOf(Constant.LOGINPATH)>=0||handler.toString().indexOf(Constant.REGISTERPATH)>=0||handler.toString().indexOf(Constant.uploadPATH)>=0||handler.toString().indexOf(Constant.APIPATH)>=0){
 			//退出登录，注册，上传不拦截
 			/**
@@ -160,6 +162,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 				//admin 访问大部分功能
 
 				//获取用户角色
+				/*
+				涉密写死内容，用来对不同角色用户的访问进行限制，
 				Object roleid = session.getAttribute(Constant.SESSION_USERROLE);
 				if(roleid!=null){
 					String role = roleid.toString();
@@ -195,6 +199,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 						return true;
 					}
 				}
+				**/
+
 				//是否有权限
 				/**
 				 * TODO
@@ -224,6 +230,8 @@ public class AuthInterceptor extends HandlerInterceptorAdapter {
 				//无权限
 			}else{
 				response.setContentType("text/html;charset=utf-8");
+				//特殊的响应状态码，以此来判断是否session已过期。过期后，前端提示，跳转登录页面。
+				response.setStatus(418);
 				PrintWriter out = response.getWriter();
 //    			JSONObject jsStr = JSONObject.parseObject("{msg:您没有权限}");
 //    			JSONArray array=JSONArray.fromObject("{msg:您没有权限}");

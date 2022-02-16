@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.business.logAnalysis.ecs.cn2en.Cn2En;
 import com.jz.bigdata.business.logAnalysis.log.LogType;
+import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.common.fileLog.dao.IFileLogDao;
@@ -76,8 +77,11 @@ public class KafkaFileLogListener {
                     }
 
                     //判断IP是否在虚拟资产中
-                    //TODO 目前资产对外都是通过虚拟资产功能进行录入，逻辑资产还未体现。后续资产的判定条件还会根据资产关联性进行调整。
-                    if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+
+                    //3.0资产识别，打上资产标签
+                    //判断是否在已识别资产里————日志类型可识别
+                    equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress + LogType.LOGTYPE_FILE);
+                    if (equipment!=null) {
 
                         //获取日志类型
                         String beat_type;
@@ -93,7 +97,7 @@ public class KafkaFileLogListener {
                             String[] strArr = message.trim().split(",(?=([^\\\"]*\\\"[^\\\"]*\\\")*[^\\\"]*$)",-1);
 
                             //组装将要写入ES的数据
-                            Map<String,String> dataMap = new HashMap<>();
+                            Map<String,Object> dataMap = new HashMap<>();
                             //系统自带日期字段，默认值为当前时间
                             dataMap.put("@timestamp",dtf_time.format(LocalDateTime.now()));
                             //查看该数据是否在字段信息中
@@ -103,7 +107,7 @@ public class KafkaFileLogListener {
                                 //字段信息中，第一个为日期字段，不参于与数据的对应
                                 for(int i=1;i<fieldList.size();i++){
                                     //字段为timestamp字段
-                                    if(fieldList.get(i).getFile_log_is_timestamp().equals("true")){
+                                    if("true".equals(fieldList.get(i).getFile_log_is_timestamp())){
                                         //将该日期字段写入到timestamp
                                         dataMap.put("@timestamp",dtf_time.format(LocalDateTime.parse(strArr[i-1].replaceAll("\"",""),DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
                                     }
@@ -130,7 +134,13 @@ public class KafkaFileLogListener {
                             }
                             //获取当前月份
                             String year_month = dtf_fileLog.format(LocalDateTime.now());
-
+                            //添加资产信息 id
+                            Map<String,String> fieldsMap = new HashMap<>();
+                            fieldsMap.put("equipmentid",equipment.getId());
+                            fieldsMap.put("ip",equipment.getIp());
+                            fieldsMap.put("quipmentname",equipment.getName());
+                            dataMap.put("fields",fieldsMap);
+                            //写入ES
                             request.index((configProperty.getEs_filelog_pre()+templateKey+"_"+year_month).toLowerCase());
                             request.source(JSONObject.fromObject(dataMap).toString(), XContentType.JSON);
                             logCurdDao.bulkProcessor_add(request);

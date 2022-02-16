@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component("RoleAuthorityProperty")
 @Configuration
 public class RoleAuthorityProperty {
-    // 操作系统的用户名（elsearch）
+
     @Value("#{roleauthority.logMenus}")
     private String logMenus;
     @Value("#{roleauthority.packetMenus}")
@@ -38,6 +38,26 @@ public class RoleAuthorityProperty {
     private String defaultUsers;
     @Value("#{roleauthority.roles}")
     private String roles;
+    @Value("#{roleauthority.equipment_chart_default}")
+    private String equipment_chart_default;
+    @Value("#{roleauthority.equipment_chart_alert}")
+    private String equipment_chart_alert;
+
+    public String getEquipment_chart_default() {
+        return equipment_chart_default;
+    }
+
+    public void setEquipment_chart_default(String equipment_chart_default) {
+        this.equipment_chart_default = equipment_chart_default;
+    }
+
+    public String getEquipment_chart_alert() {
+        return equipment_chart_alert;
+    }
+
+    public void setEquipment_chart_alert(String equipment_chart_alert) {
+        this.equipment_chart_alert = equipment_chart_alert;
+    }
 
     public String getRoles() {
         return roles;

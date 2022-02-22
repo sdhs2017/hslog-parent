@@ -601,6 +601,21 @@ export default new Router({
                     component: resolve => require(['../components/dataSource/tabManage.vue'], resolve),
                     meta: { title: '发现规则配置' }
                 },
+                /* **********产品检测*************** */
+                {
+                    path: '/controlCenter_n_t',
+                    name:'controlCenter_n_t',
+                    component: resolve => require(['../components/platformManage/controlCenter_n_t.vue'], resolve),
+                    meta: { title: '控制中心' }
+                },
+                {
+                    path: '/eventSearch2_t',
+                    name:'eventSearch2_t',
+                    component: resolve => require(['../components/eventManage/eventSearch2_t.vue'], resolve),
+                    meta: { title: '事件检索' }
+                },
+                /* **********产品检测*************** */
+
                 /* **********涉密*************** */
                 {
                     path: 'systemConfig_SR',

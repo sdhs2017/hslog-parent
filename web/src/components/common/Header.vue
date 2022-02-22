@@ -385,7 +385,36 @@
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/equipment/selectRisk.do','')
                         .then(res=>{
-                            this.bellArr = res.data
+                            this.bellArr = res.data;
+                            /* *******产品监测 修改******** */
+                            this.bellArr.forEach((item=>{
+                                let _that = this;
+                                let Mes = ''
+                                if(item.high_risk !== 0 && item.moderate_risk == 0){
+                                    Mes += '存在高危事件，'
+                                }
+                                if(item.moderate_risk !== 0 && item.high_risk == 0){
+                                    Mes += '存在中危事件，'
+                                }
+                                if(item.moderate_risk !== 0 && item.high_risk !== 0){
+                                    Mes += '存在高危、中危事件，'
+                                }
+                                this.$notify({
+                                    title: item.name,
+                                    message:`${Mes}点击查看`,
+                                    duration: 0,
+                                    customClass:'NotificationCursorClass',
+                                    offset: 30,
+                                    type: 'warning',
+                                    onClick(){
+                                        setTimeout(()=>{
+                                            this.close()
+                                        },5000)
+                                        _that.goToThreat(item)
+                                    }
+                                });
+                            }))
+                            /*******************/
                         })
                         .catch(err=>{
 
@@ -398,6 +427,23 @@
                     this.$axios.post(this.$baseUrl+'/alert/getAlertFireCount.do',this.$qs.stringify(this.alertParam ))
                         .then(res=>{
                             this.alertCount = Number(res.data.message)
+                            /* *******产品监测 修改******** */
+                            if(this.alertCount !== 0){
+                                let _that = this;
+                                this.$notify({
+                                    title: `最近${this.$store.state.beforeDay}天`,
+                                    message: `发生告警数为${this.alertCount}，点击查看`,
+                                    duration: 0,
+                                    customClass:'NotificationCursorClass',
+                                    offset: 30,
+                                    type: 'warning',
+                                    onClick(){
+                                        this.close()
+                                        _that.goToAlert()
+                                    }
+                                });
+                            }
+                            /*******************/
                         })
                         .catch(err=>{
 
@@ -508,6 +554,9 @@
     }
 </script>
 <style scoped>
+    /deep/ .cursorClass{
+        cursor: pointer;
+    }
     .header {
         position: relative;
         box-sizing: border-box;

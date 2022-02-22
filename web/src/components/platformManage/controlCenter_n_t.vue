@@ -123,13 +123,13 @@
             </span>
         </el-dialog>
         <el-dialog
-            title="还原备份"
+            title="恢复备份"
             :visible.sync="recoverDialogVisible"
             width="600px"
         >
             <div style="height: 400px;overflow: auto">
                 <el-radio-group v-model="recoverChecked">
-                    <el-radio v-for="(item,i) in listArr" :label="item.label" :key="item.label" style="margin-bottom: 10px"></el-radio>
+                    <el-radio v-for="(item,i) in listArr" :label="item.value" :key="item.label" style="margin-bottom: 10px">{{item.label}}</el-radio>
                 </el-radio-group>
             </div>
             <span slot="footer" class="dialog-footer">
@@ -467,14 +467,15 @@
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 this.listArr = [];
-                                obj.data.forEach((item)=>{
+                                /*obj.data.forEach((item)=>{
                                     let obj = {
                                         value:item,
                                         label:item
                                     }
                                     this.listArr.push(obj)
 
-                                })
+                                })*/
+                                this.listArr = obj.data;
                                 console.log(this.listArr)
                                 this.recoverDialogVisible = true;
                             }else{

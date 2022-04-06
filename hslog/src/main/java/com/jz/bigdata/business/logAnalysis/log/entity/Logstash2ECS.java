@@ -577,7 +577,14 @@ public class Logstash2ECS {
         return this;
         //return JSON.toJSON(this).toString();
     }
-    public Logstash2ECS build(JsonObject jsonObject){
+
+    /**
+     * 将日志范式化后的json对象转化成ecs格式
+     * @param jsonObject  日志json对象
+     * @param logType 日志类型
+     * @return
+     */
+    public Logstash2ECS build(JsonObject jsonObject,String logType){
 
         //log.level
         Log log = new Log();
@@ -610,11 +617,14 @@ public class Logstash2ECS {
         //agent.type
         Agent agent = new Agent();
 
-        if(jsonObject.get("type")!=null){
-            agent.setType("system-syslog".equals(jsonObject.get("type").getAsString())?"syslog":jsonObject.get("type").getAsString());
-        }else{
-            //不做处理
-        }
+//        if(jsonObject.get("type")!=null){
+//            agent.setType("system-syslog".equals(jsonObject.get("type").getAsString())?"syslog":jsonObject.get("type").getAsString());
+//        }else{
+//            //不做处理
+//        }
+        //日志类型
+        agent.setType(logType);
+
         this.setAgent(agent);
         //host.hostname
         Host host = new Host();
@@ -908,7 +918,7 @@ public class Logstash2ECS {
         String log = "{\"@version\":\"1\",\"@timestamp\":\"2021-05-19T21:40:41.395Z\",\"tags\":[\"_grokparsefailure_sysloginput\"],\"priority\":0,\"host\":\"172.16.1.2\",\"facility_label\":\"kernel\",\"severity\":0,\"facility\":0,\"type\":\"system-syslog\",\"message\":\"<86>sshd[1919]: Failed password for invalid user nobody from 185.217.1.246 port 1927 ssh2\",\"severity_label\":\"Emergency\"}";
         JsonElement jsonElement = new JsonParser().parse(log);
         JsonObject jsonObject= jsonElement.getAsJsonObject();
-        Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
+        //Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
         System.out.println("111");
     }
 }

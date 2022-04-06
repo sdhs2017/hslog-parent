@@ -13,6 +13,7 @@ import com.jz.bigdata.roleauthority.user.dao.IUserDao;
 import com.jz.bigdata.roleauthority.user.entity.User;
 import com.jz.bigdata.util.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,8 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
-
+	@Resource(name = "LogTypeConfig")
+	private LogTypeConfig logTypeConfig;
 	@Resource(name="logService")
 	private IlogService logService;
 
@@ -361,6 +363,15 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			 * ECS的资产id改成fields.equipmentid
 			 */
 			esMap.put("fields.equipmentid", equipment_tmp.getId());
+			//获取日志类型后端值与前端显示文字的对应关系
+			String logTypeToWeb = logTypeConfig.getLogTypeToWebMap().get(equipment_tmp.getLogType());
+			//如果有对应关系，将日志类型改为对应后的值
+			if(StringUtils.isNotEmpty(logTypeToWeb)){
+				equipment_tmp.setLogTypeLabel(logTypeToWeb);
+			}else{
+				//如果没有  显示数据库中logtype的值
+				equipment_tmp.setLogTypeLabel(equipment_tmp.getLogType());
+			}
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
 			equipment_tmp.setLog_count(getEquipmentLogCount(equipment_tmp.getLogType(),equipment_tmp.getType(),esMap,starttime,endtime)+"");
 
@@ -370,12 +381,12 @@ public class EquipmentServiceImpl implements IEquipmentService {
 
 	/**
 	 * 分页查询数据
-	 * @param hostName
-	 * @param name
-	 * @param ip
-	 * @param logType
-	 * @param pageIndex
-	 * @param pageSize
+	 * @param hostName 主机名
+	 * @param name 资产名称
+	 * @param ip IP地址
+	 * @param logType 日志类型
+	 * @param pageIndex 分页下标
+	 * @param pageSize 每页条数
 	 * @param session
 	 * @param asset_group_id 资产组id
 	 * @return
@@ -410,6 +421,15 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			esMap.put("fields.equipmentid", equipment.getId());
 			//esMap.put("fields.failure","true");//资产显示页面也需要显示未范式化的资产
 			equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),equipment.getType(),esMap,starttime,endtime)+"");
+			//获取日志类型后端值与前端显示文字的对应关系
+			String logTypeToWeb = logTypeConfig.getLogTypeToWebMap().get(equipment.getLogType());
+			//如果有对应关系，将日志类型改为对应后的值
+			if(StringUtils.isNotEmpty(logTypeToWeb)){
+				equipment.setLogTypeLabel(logTypeToWeb);
+			}else{
+				//如果没有  显示数据库中logtype的值
+				equipment.setLogTypeLabel(equipment.getLogType());
+			}
 
 //			if(equipment.getLogType().equals("file")){
 //				equipment.setLog_count(getEquipmentLogCount(equipment.getLogType(),equipment.getType(),esMap,starttime,endtime)+"");
@@ -496,7 +516,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			case "file":
 				index = configProperty.getEs_filelog_pre()+"*";
 				break;
-			case "winlog":
+			case "winlogbeat":
 			case "syslog":
 				//syslog类型  对于防火墙和IPS类型资产进行单独处理
 				if(equipment_type.equals(Constant.EQUIPMENT_TYPE_IPS_CODE)){
@@ -509,14 +529,18 @@ public class EquipmentServiceImpl implements IEquipmentService {
 					index = configProperty.getEs_index();
 				}
 				break;
-			case "metric":
+			case "metricbeat":
 				index = configProperty.getEs_metric_index();
 				break;
-			case "packet":
+			case "packetbeat":
 				index = configProperty.getEs_packet_index();
 				break;
 			case "mysql":
 				index = Constant.MYSQL_AUDIT_INDEX_NAME;
+				break;
+			case "dns":
+			case "dhcp":
+				index = configProperty.getEs_index();
 				break;
 			default:
 				//其他类型，日志量为0

@@ -110,14 +110,14 @@ public class ServiceInfoController {
 
 	/**
 	 * @param request
-	 * @param page
-	 * @return 分页测试例子
+	 * @return 分页查询服务列表
 	 */
 	@ResponseBody
 //	@RequestMapping("/selectPage")
 	@RequestMapping(value="/selectPage.do", produces = "application/json; charset=utf-8")
-	@DescribeLog(describe="分页查询资产")
+	@DescribeLog(describe="分页查询服务列表")
 	public String selectPage(HttpServletRequest request,HttpSession session) {
+		//参数获取
 		String name=request.getParameter("name");
 		String ip=request.getParameter("ip");
 		String port=request.getParameter("port");

@@ -47,7 +47,8 @@ public class EcsWinlogController {
 
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
-
+    @Resource(name = "LogTypeConfig")
+    private LogTypeConfig logTypeConfig;
     @Resource(name ="SafeStrategyService")
     private ISafeStrategyService safeStrategyService;
 
@@ -142,8 +143,8 @@ public class EcsWinlogController {
 
         String result = JSONArray.fromObject(map).toString();
         String replace=result.replace("\\\\005", "<br/>");
-
-        return replace;
+        //日志类型处理，ES中存储的值要替换为前端要显示的值
+        return StringUtils.LogTypeTransformForESLog(replace,logTypeConfig.getLogTypeToWebMap());
     }
 
     /**
@@ -156,18 +157,19 @@ public class EcsWinlogController {
     @RequestMapping(value="/getLogListByBlend",produces = "application/json; charset=utf-8")
     @DescribeLog(describe="精确查询日志数据")
     public String getLogListByBlend(HttpServletRequest request,HttpSession session) {
-        // receive parameter
+        // 获取用户角色
         Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
-        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
 
+        String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
         ObjectMapper mapper = new ObjectMapper();
         Map<String, String> map = new ConcurrentHashMap<String, String>();
         try {
+            //参数范式化
             map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        //分页参数处理
         Object pageo = map.get("page");
         Object sizeo = map.get("size");
         map.remove("page");
@@ -215,14 +217,15 @@ public class EcsWinlogController {
             allmap.put("list",null);
             return JSONArray.fromObject(allmap).toString();
         }
-
+        //组装返回数据
         allmap = list.get(0);
         list.remove(0);
         allmap.put("list", list);
         String result = JSONArray.fromObject(allmap).toString();
-        String replace=result.replace("\\\\005", "<br/>");
-
-        return replace;
+        //换行符处理
+        String replacedResult=result.replace("\\\\005", "<br/>");
+        //日志类型处理，ES中存储的值要替换为前端要显示的值
+        return StringUtils.LogTypeTransformForESLog(replacedResult,logTypeConfig.getLogTypeToWebMap());
     }
 
     /**
@@ -297,8 +300,8 @@ public class EcsWinlogController {
 
         String result = JSONArray.fromObject(allmap).toString();
         String replace=result.replace("\\\\005", "<br/>");
-
-        return replace;
+        //日志类型处理，ES中存储的值要替换为前端要显示的值
+        return StringUtils.LogTypeTransformForESLog(replace,logTypeConfig.getLogTypeToWebMap());
     }
 
     /**

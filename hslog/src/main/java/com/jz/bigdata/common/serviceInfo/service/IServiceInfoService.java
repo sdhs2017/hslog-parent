@@ -25,7 +25,21 @@ public interface IServiceInfoService {
 	int delete(String[] ids);
 
 	int updateById(ServiceInfo serviceInfo);
-	
+
+	/**
+	 * 查询服务列表数据
+	 * @param name 服务名称
+	 * @param ip ip地址
+	 * @param port 端口
+	 * @param protocol 协议
+	 * @param url 地址
+	 * @param relativeUrl 相对路径
+	 * @param complementState 补全状态
+	 * @param state 是否启用
+	 * @param pageIndex 分页下标
+	 * @param pageSize 每页条数
+	 * @return
+	 */
 	String selectAllByPage(String name,String ip,String port,String protocol,
 			String url,String relativeUrl,int complementState,int state, int pageIndex, int pageSize);
 	

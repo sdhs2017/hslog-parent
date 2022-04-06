@@ -28,6 +28,9 @@ import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.util.HsData;
+import com.jz.bigdata.util.LogTypeConfig;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
@@ -78,6 +81,9 @@ public class LogServiceImpl implements IlogService {
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
+
+	@Resource(name = "LogTypeConfig")
+	private LogTypeConfig logTypeConfig;
 
 	@Resource(name = "AlarmService")
 	private IAlarmService alarmService;
@@ -1150,6 +1156,7 @@ public class LogServiceImpl implements IlogService {
 
 	@Override
 	public List<Map<String, Object>> getListByMap(Map<String, String> map, String starttime, String endtime, String page, String size, String[] types, String... indices) throws Exception {
+		//处理分页信息
 		Integer fromInt = 0;
 		Integer sizeInt = 10;
 		long count = 0;
@@ -1159,13 +1166,13 @@ public class LogServiceImpl implements IlogService {
 		}
 
 		List<Map<String, Object>> list = new ArrayList<>();
-		//日志总量
+		//日志总量 cout
 		count = logSearchDao.getCount(map,starttime,endtime,types,indices);
 		Map<String, Object> mapcount = new HashMap<String,Object>();
 		mapcount.put("count", count);
 
 		list.add(mapcount);
-
+		//日志信息列表
 		list.addAll(logSearchDao.getListByMap(map,starttime,endtime,fromInt,sizeInt,types,indices));
 		return list;
 	}
@@ -1707,6 +1714,7 @@ public class LogServiceImpl implements IlogService {
 	}
 	@Override
 	public List<Map<String, Object>> getLogListByBlend(Map<String, String> map, String starttime, String endtime, String page, String size, String... indices) throws Exception {
+		//分页信息
 		Integer fromInt = 0;
 		Integer sizeInt = 10;
 		long count = 0;
@@ -1722,7 +1730,7 @@ public class LogServiceImpl implements IlogService {
 		mapcount.put("count", count);
 
 		list.add(mapcount);
-
+		//日志列表信息
 		list.addAll(ecsSearchDao.getLogListByMap(map,starttime,endtime,fromInt,sizeInt,indices));
 
 		return list;
@@ -1731,4 +1739,141 @@ public class LogServiceImpl implements IlogService {
 	public long getCount(Map<String, String> map, String starttime, String endtime, String... indices) throws Exception {
 		return ecsSearchDao.getCount(map, starttime, endtime, indices);
 	}
+
+	@Override
+	public List<Map<String,String>> getLogTypeInfo(String pageType) throws Exception {
+		List<Map<String,String>> result = new ArrayList<>();
+		//日志类型下拉框
+		String logTypeComboxInfo = null;
+		//根据不同类型返回不同的 日志类型列表
+		switch(pageType){
+			//资产概览页面
+			case "equipment":
+				//获取页面需要加载的日志类型标识 eg:syslog,winlog
+				logTypeComboxInfo = logTypeConfig.getLogTypeEquipment();
+				break;
+
+			case "search"://精确查询页面
+				logTypeComboxInfo = logTypeConfig.getLogTypeSearch();
+				break;
+			case "event"://事件关联查询页面
+				logTypeComboxInfo = logTypeConfig.getLogTypeEvent();
+				break;
+		}
+		//处理配置文件中的数据，范式化
+		String[] logTypeComboxInfoArray = logTypeComboxInfo.split(",");
+		//遍历
+		for(String comboxInfo:logTypeComboxInfoArray){
+			String[] comboxInfoArray = comboxInfo.split(":");
+			Map<String,String> comboxInfoMap = new HashMap<>();
+			comboxInfoMap.put("value",comboxInfoArray[0]);
+			comboxInfoMap.put("label",comboxInfoArray[1]);
+			result.add(comboxInfoMap);
+		}
+		return result;
+	}
+
+	@Override
+	public Set<String> getLogLevelByLogType(String logType) throws Exception {
+		Set<String> result = new HashSet<>();
+		//支持多个logtype。以逗号隔开
+		String[] logTypeArray = logType.split(",");
+		//遍历
+		for(String logTypeStr:logTypeArray){
+			String loglevelStr = "";
+			//根据不同的日志类型获取对应的日志级别 数据
+			if(logTypeStr.equals(logTypeConfig.getLogType_syslog())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_syslog()))){
+				loglevelStr = logTypeConfig.getLogLevel_Syslog();
+			}else if(logTypeStr.equals(logTypeConfig.getLogType_winlog())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_winlog()))){
+				loglevelStr = logTypeConfig.getLogLevel_winlog();
+			}else if(logTypeStr.equals(logTypeConfig.getLogType_dns())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_dns()))){
+				loglevelStr = logTypeConfig.getLogLevel_DNS();
+			}else if(logTypeStr.equals(logTypeConfig.getLogType_dhcp())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_dhcp()))){
+				loglevelStr = logTypeConfig.getLogLevel_DHCP();
+			}else{
+				//不选择日志类型，默认使用syslog的日志级别
+				loglevelStr = logTypeConfig.getLogLevel_Syslog();
+			}
+			//将数据写入结果集，通过set进行去重
+			String[] logLevelArray = loglevelStr.split(",");
+			for(String logLevel:logLevelArray){
+				result.add(logLevel);
+			}
+		}
+
+		return result;
+	}
+
+	@Override
+	public List<TableHead> getTableHeadByLogType(String logType) throws Exception {
+		List<TableHead> result = new ArrayList<>();
+		String tableHeadStr = "";
+		//根据不同的日志类型获取对应的table 列信息
+		if(logType.equals(logTypeConfig.getLogType_syslog())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_syslog()))){
+			tableHeadStr = logTypeConfig.getTableHead_syslog();
+		}else if(logType.equals(logTypeConfig.getLogType_winlog())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_winlog()))){
+			tableHeadStr = logTypeConfig.getTableHead_winlog();
+		}else if(logType.equals(logTypeConfig.getLogType_packet())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_packet()))){
+			tableHeadStr = logTypeConfig.getTableHead_packet();
+		}else if(logType.equals(logTypeConfig.getLogType_metric())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_metric()))){
+			tableHeadStr = logTypeConfig.getTableHead_metric();
+		}else if(logType.equals(logTypeConfig.getLogType_file())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_file()))){
+			tableHeadStr = logTypeConfig.getTableHead_file();
+		}else if(logType.equals(logTypeConfig.getLogType_mysql())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_mysql()))){
+			tableHeadStr = logTypeConfig.getTableHead_mysql();
+		}else if(logType.equals(logTypeConfig.getLogType_dns())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_dns()))){
+			tableHeadStr = logTypeConfig.getTableHead_dns();
+		}else if(logType.equals(logTypeConfig.getLogType_dhcp())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_dhcp()))){
+			tableHeadStr = logTypeConfig.getTableHead_dhcp();
+		}else{
+			//不属于以上类型，返回默认值
+		}
+		//范式化，转成bean
+		String[] tableHeadArray = tableHeadStr.split(";");
+		for(String tableHeadInfo:tableHeadArray){
+			String[] tableHeadInfoArray = tableHeadInfo.split(",");
+			//判断拆分后能切割成3个，对应tablehead的三个属性
+			if(tableHeadInfoArray.length==3){
+				TableHead th = new TableHead();
+				th.setProp(tableHeadInfoArray[0]);
+				th.setLabel(tableHeadInfoArray[1]);
+				th.setWidth(tableHeadInfoArray[2]);
+				result.add(th);
+			}
+		}
+		return result;
+	}
+
+	@Override
+	public String[] getFormDetailByLogType(String logType) throws Exception {
+
+		String formDetailStr = "";
+		//根据不同的日志类型获取对应的form 字段信息
+		if(logType.equals(logTypeConfig.getLogType_syslog())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_syslog()))){
+			formDetailStr = logTypeConfig.getFormDetails_syslog();
+		}else if(logType.equals(logTypeConfig.getLogType_winlog())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_winlog()))){
+			formDetailStr = logTypeConfig.getFormDetails_winlog();
+		}else if(logType.equals(logTypeConfig.getLogType_packet())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_packet()))){
+			formDetailStr = logTypeConfig.getFormDetails_packet();
+		}else if(logType.equals(logTypeConfig.getLogType_metric())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_metric()))){
+			formDetailStr = logTypeConfig.getFormDetails_metric();
+		}else if(logType.equals(logTypeConfig.getLogType_file())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_file()))){
+			formDetailStr = logTypeConfig.getFormDetails_file();
+		}else if(logType.equals(logTypeConfig.getLogType_mysql())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_mysql()))){
+			formDetailStr = logTypeConfig.getFormDetails_mysql();
+		}else if(logType.equals(logTypeConfig.getLogType_dns())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_dns()))){
+			formDetailStr = logTypeConfig.getFormDetails_dns();
+		}else if(logType.equals(logTypeConfig.getLogType_dhcp())||logType.equals(logTypeConfig.getLogTypeToWebMap().get(logTypeConfig.getLogType_dhcp()))){
+			formDetailStr = logTypeConfig.getFormDetails_dhcp();
+		}else if(logType.equals("event")){
+			//事件查询页面单独处理
+			formDetailStr = logTypeConfig.getFormDetails_event();
+		}else{
+			//不属于以上类型，返回默认值
+		}
+		//格式化数据，转成前端可识别
+		String[] formDetailArray = formDetailStr.split(",");
+		return formDetailArray;
+	}
+
 }

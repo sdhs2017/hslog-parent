@@ -44,6 +44,17 @@ public class Equipment {
 	// 用户角色
 	private String roleNames;
 
+	//日志类型转换后
+	private String logTypeLabel;
+
+	public String getLogTypeLabel() {
+		return logTypeLabel;
+	}
+
+	public void setLogTypeLabel(String logTypeLabel) {
+		this.logTypeLabel = logTypeLabel;
+	}
+
 	public String getPhone() {
 		return phone;
 	}

@@ -51,7 +51,8 @@ public class EcsCommonController {
 
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
-
+    @Resource(name = "LogTypeConfig")
+    private LogTypeConfig logTypeConfig;
     @Resource(name ="SafeStrategyService")
     private ISafeStrategyService safeStrategyService;
 
@@ -131,6 +132,7 @@ public class EcsCommonController {
             long count = 0;
             Map<String, String> errorParam = new HashMap<>();
             errorParam.putAll(params.getQueryMap());
+            //日志级别为error
             errorParam.put("log.level", "error");
             //获取用户角色信息
             Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
@@ -139,6 +141,7 @@ public class EcsCommonController {
                 errorParam.put(ContextRoles.ECS_USERID,session.getAttribute(Constant.SESSION_USERID).toString());
             }
             count = ecsService.getCount(errorParam, null, null, configProperty.getEs_index());
+            //组装返回数据
             resultMap.put("indiceserror", count);
         } catch (Exception e) {
             log.error("查询error日志数：失败！");
@@ -341,13 +344,13 @@ public class EcsCommonController {
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, String> map = new ConcurrentHashMap<>();
-
+        //参数转map
         try {
             map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //System.out.println(map);
+        //分页
         Object pageo = map.get("page");
         Object sizeo = map.get("size");
 
@@ -397,7 +400,22 @@ public class EcsCommonController {
         if(map.get("agent.type")!=null&&"".equals(map.get("agent.type"))) {
             map.remove("agent.type");
         }
-
+        //事件类型，服务于销售许可证产品检测
+        String eventLevel = map.get("eventLevel");
+        if(eventLevel!=null&&!"".equals(eventLevel)) {
+            switch(eventLevel){
+                case "low":
+                    map.put("log.level","debug,information,notice,warning");
+                    break;
+                case "medium":
+                    map.put("log.level","error,critical");
+                    break;
+                case "high":
+                    map.put("log.level","alert,emergency");
+                    break;
+            }
+            map.remove("eventLevel");
+        }
         List<Map<String, Object>> list = new ArrayList<>();
 
         try {
@@ -407,16 +425,16 @@ public class EcsCommonController {
             log.error(e.getMessage());
             e.printStackTrace();
         }
-
+        //组装返回数据
         Map<String, Object> allmap = new HashMap<>();
         allmap = list.get(0);
         list.remove(0);
         allmap.put("list", list);
 
         String result = JSONArray.fromObject(allmap).toString();
-        String replace=result.replace("\\\\005", "<br/>");
-
-        return replace;
+        String replacedResult=result.replace("\\\\005", "<br/>");
+        //日志类型处理，ES中存储的值要替换为前端要显示的值
+        return StringUtils.LogTypeTransformForESLog(replacedResult,logTypeConfig.getLogTypeToWebMap());
     }
 
     /**
@@ -619,7 +637,8 @@ public class EcsCommonController {
         String result = JSONArray.fromObject(allmap).toString();
         String replace=result.replace("\\\\005", "<br/>");
         log.info("资产日志：查询成功");
-        return replace;
+        //日志类型处理，ES中存储的值要替换为前端要显示的值
+        return StringUtils.LogTypeTransformForESLog(replace,logTypeConfig.getLogTypeToWebMap());
     }
     /**
      * 精确查询日志事件（数据格式:ecs）

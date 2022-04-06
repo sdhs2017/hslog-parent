@@ -72,7 +72,7 @@ public class FileLogServiceImpl implements IFileLogService {
         String oldTemplateMapping = null;
         //原字段信息
         List<FileLogField> oldFields = new ArrayList<>();
-
+        //要更新的字段不为空
         if(newFieldList!=null&&newFieldList.size()>0){
             //组装template名称,必须全小写
             template_name = (configProperty.getEs_filelog_pre()+newFieldList.get(0).getFile_log_templateKey()+"_").toLowerCase();
@@ -279,7 +279,7 @@ public class FileLogServiceImpl implements IFileLogService {
 
         }
 
-        //5.判断更新是否成功，更新数据库,上面代码未return，证明执行成功
+
         //实现事务，先删除再insert
         updateFieldsList(newFieldList,file_log_templateKey);
         //启动file-log beat

@@ -26,7 +26,18 @@ public interface INoteService {
 	
 	int restore();
 
-	
+	/**
+	 *
+	 * @param startTime 起始时间
+	 * @param endTime 截止时间
+	 * @param account 账号
+	 * @param userName 用户名
+	 * @param departmentName 部门
+	 * @param ip ip地址
+	 * @param pageIndex 第几页
+	 * @param pageSize 每页条数
+	 * @return
+	 */
 	String selectByPage(String startTime,String endTime,String account,String userName,String departmentName,String ip,int pageIndex,int pageSize);
 
 	/**

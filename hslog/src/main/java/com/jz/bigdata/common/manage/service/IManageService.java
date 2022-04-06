@@ -1,5 +1,9 @@
 package com.jz.bigdata.common.manage.service;
 
+import org.elasticsearch.snapshots.SnapshotInfo;
+
+import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public interface IManageService {
@@ -48,4 +52,57 @@ public interface IManageService {
 	 * @return
 	 */
 	public String updateRisk();
+	/**
+	 * 关闭索引
+	 * @param indices 索引名称
+	 * @return
+	 *
+	 */
+	public boolean closeIndex(String...indices)  ;
+
+	/**
+	 * 开启索引
+	 * @param indices 索引名称
+	 * @return
+	 *
+	 */
+	public boolean openIndex(String... indices) ;
+	/*
+	 * 创建快照备份策略
+	 * @param indices 要进行快照备份的索引名称
+	 * @param policy_id 策略id
+	 * @param name 快照名称
+	 * @param schedule 定时器，cron表达式
+	 * @param repository 备份仓库名称
+	 * @return
+	 */
+	public boolean createSLMPolicy(String indices,String policy_id,String name,String schedule,String repository);
+
+	/**
+	 * 执行快照策略，
+	 * 返回执行后的第一个快照名称
+	 * @param policy_id 快照策略ID
+	 */
+	public boolean executeSLMPolicy(String policy_id) ;
+
+	/**
+	 * 根据策略id删除快照策略
+	 * @param policy_id 快照策略ID
+	 * @return
+	 */
+	public boolean deleteSLMPolicy(String policy_id) ;
+	/**
+	 * 根据存储仓库获取所有快照的列表
+	 * @param repositoryName 存储仓库名称
+	 * @return 快照列表
+	 */
+	public List<Map<String,String>> getSnapListByPolicyId(String repositoryName);
+
+	/**
+	 * 还原快照
+	 * @param repositoryName 存储仓库名称
+	 * @param snapshotName 快照名称
+	 * @return
+	 */
+	public boolean restoreSnapshot(String repositoryName,String snapshotName);
 }

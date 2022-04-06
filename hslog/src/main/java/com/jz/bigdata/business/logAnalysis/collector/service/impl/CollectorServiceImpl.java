@@ -434,6 +434,7 @@ public class CollectorServiceImpl implements ICollectorService{
         };
 		
 		try {
+			//创建线程并启动
 			pcap4jCollector = new Pcap4jCollector(configProperty.getPcap4j_network(),handle,listener);
 			futureTask = new FutureTask<>(pcap4jCollector);
 
@@ -606,7 +607,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	@Override
 	public String stopAgentKafkaListener() {
 		try{
-			//判断监听容器是否启动，未启动则将其启动
+			//判断监听容器是否启动，启动则将其关闭
 			if (registry.getListenerContainer(topic_beats).isRunning()) {
 				registry.getListenerContainer(topic_beats).stop();
 			}else{
@@ -659,7 +660,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	@Override
 	public String stopSyslogKafkaListener() {
 		try{
-			//判断监听容器是否启动，未启动则将其启动
+			//判断监听容器是否启动，如已启动则将其关闭
 			if (registry.getListenerContainer(topic_all).isRunning()) {
 				registry.getListenerContainer(topic_all).stop();
 			}else{
@@ -708,7 +709,7 @@ public class CollectorServiceImpl implements ICollectorService{
 	@Override
 	public String stopFileLogKafkaListener() {
 		try{
-			//判断监听容器是否启动，未启动则将其启动
+			//判断监听容器是否启动，启动则将其关闭
 			if (registry.getListenerContainer(topic_filelog).isRunning()) {
 				registry.getListenerContainer(topic_filelog).stop();
 			}else{

@@ -15,6 +15,8 @@ public interface IFileLogService {
     /**
      *
      * @param list 修改后的字段信息
+     * @param file_log_templateKey
+     * @param file_log_templateName
      * @throws Exception
      */
     public String reindex(List<FileLogField> list,String file_log_templateKey,String file_log_templateName) throws Exception;

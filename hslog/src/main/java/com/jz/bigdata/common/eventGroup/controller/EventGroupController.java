@@ -85,6 +85,7 @@ public class EventGroupController {
 	@DescribeLog(describe="查询单个事件组详情")
 	public String getEventGroupInfoById(HttpServletRequest request,EventGroup eventGroup, HttpSession session){
 		try{
+			//事件组id
 			String event_group_id = request.getParameter("event_group_id");
 			EventGroup result = eventGroupService.getEventGroupInfoById(event_group_id);
 			return Constant.successData(JSONObject.toJSON(result).toString());
@@ -120,7 +121,7 @@ public class EventGroupController {
 	 * @param request
 	 * @param eventGroup
 	 * @param session
-	 * @return 修改资产组
+	 * @return 修改事件组
 	 */
 	@ResponseBody
 	@RequestMapping(value="/update.do", produces = "application/json; charset=utf-8")

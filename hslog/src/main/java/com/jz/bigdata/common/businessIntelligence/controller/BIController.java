@@ -420,6 +420,7 @@ public class BIController {
                     return Constant.failureMessage("标题名称重复，请修改！");
                 }
             }
+            //根据角色设置可编辑/删除权限
             if("master".equals(session.getAttribute(Constant.SESSION_USERNAME).toString())){
                 dashboard.setEditable(false);
                 dashboard.setDeletable(false);
@@ -428,6 +429,7 @@ public class BIController {
                 dashboard.setDeletable(true);
             }
             //dashboard.setId(UUID.randomUUID().toString());
+            //保存
             DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,configProperty.getEs_hsdata_index());
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");

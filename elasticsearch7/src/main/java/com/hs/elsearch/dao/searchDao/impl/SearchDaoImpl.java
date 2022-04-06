@@ -221,7 +221,7 @@ public class SearchDaoImpl implements ISearchDao {
             //是否启用
             if(filter.isEnable()){
                 //保证值不为空，value或者  时间范围中的  起始截止时间
-                if(!StringUtils.isNullOrEmpty(filter.getValue())||!StringUtils.isNullOrEmpty(filter.getStart())||!StringUtils.isNullOrEmpty(filter.getEnd())||ElasticConstant.OP_EXISTS.equals(filter.getOperator())){
+                if(!StringUtils.isNullOrEmpty(filter.getValue())||(filter.getValues()!=null&&filter.getValues().length>0)||!StringUtils.isNullOrEmpty(filter.getStart())||!StringUtils.isNullOrEmpty(filter.getEnd())||ElasticConstant.OP_EXISTS.equals(filter.getOperator())){
                     switch(filter.getOperator()){
                         case ElasticConstant.ALERT_OP_IS:
                             boolQueryBuilder.filter(QueryBuilders.termQuery(filter.getField(),filter.getValue()));

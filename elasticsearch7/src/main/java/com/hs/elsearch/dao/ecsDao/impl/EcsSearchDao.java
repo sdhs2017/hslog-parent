@@ -69,7 +69,11 @@ public class EcsSearchDao implements IEcsSearchDao {
         if (starttime != null && !starttime.equals("") && endtime != null && !endtime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime).lte(endtime));
             //存在时间范围时，添加对index的处理
-            indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
+            //文件类日志其index命名规则与其他资产不同，不需要进行index的处理
+            if(!(Arrays.toString(indices).indexOf("hsfile")>=0)){
+                indices = HSDateUtil.dateArea2Indices(starttime,endtime,indices);
+            }
+
         } else if (starttime != null && !starttime.equals("")) {
             boolQueryBuilder.must(QueryBuilders.rangeQuery(ECS_DATE_FIELD).format("yyyy-MM-dd HH:mm:ss").gte(starttime));
         } else if (endtime != null && !endtime.equals("")) {

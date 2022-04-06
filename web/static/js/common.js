@@ -379,6 +379,25 @@ function decrypt (msg){
     return decryptMsg
 }
 
+/*
+* 获取日志类型
+*
+* */
+async function getLogType(param) {
+    // console.log(Vue.prototype.$baseUrl)
+    axios.post(Vue.prototype.$baseUrl+'/log/getLogTypeComboxByPage.do',Vue.prototype.$qs.stringify({
+        pageType:param
+    }))
+        .then((res)=>{
+            let arr = res.data.data;
+            console.log(arr)
+            return res.data
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+}
+
 export {
     downloadToPDF,
     checkStrong,
@@ -395,5 +414,6 @@ export {
     changeEchartsTooltip,
     encrypt,
     decrypt,
-    setPasswordComplex
+    setPasswordComplex,
+    getLogType
 }

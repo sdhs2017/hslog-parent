@@ -124,16 +124,7 @@
                 total:0,
                 eventGroup:[],
                 eventList:[],
-                logTypeOpt:[{
-                    label:'全部',
-                    value:''
-                },{
-                    label:'syslog',
-                    value:'syslog'
-                },{
-                    label:'window(日志)',
-                    value:'winlogbeat'
-                }],
+                logTypeOpt:[],
                 tableHead:[
                     {
                         prop:'@timestamp',
@@ -257,6 +248,7 @@
         created(){
             this.getEventGroup('');
             this.getEventList();
+            this.getLogType();
             //定义七天时间范围
             let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
             let startTime= new Date();
@@ -299,6 +291,24 @@
         }
         },
         methods:{
+            //获得日志类型
+            getLogType(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/log/getLogTypeComboxByPage.do',this.$qs.stringify({
+                        pageType:'event'
+                    }))
+                        .then((res)=>{
+                            this.logTypeOpt.push({value:'',label:'全部'});
+                            for (let i in  res.data.data) {
+                                this.logTypeOpt.push( res.data.data[i]);
+                            }
+                        })
+                        .catch((err)=>{
+                            console.log(err)
+                        })
+                })
+            },
+
             /*刷新*/
             refreshEvent(){
                 this.getEventGroup();

@@ -156,7 +156,10 @@
                     ]
                 }
             ]
+            //日志类型
             this.getLogType();
+            //日志级别
+            this.setLogLevel('');
             //定义七天时间范围
             let endTime = dateFormat('yyyy-mm-dd HH:MM:SS',new Date());
             let startTime= new Date();
@@ -265,13 +268,11 @@
             bus.$on('logTypeChange',(params)=>{
                 //默认多选或者不选 显示syslog的日志级别
                 let type ='syslog';
-                //判断选中是否只是一个
-                if(params.length === 1){
-                   type = params[0]
-                }
-                //设置日志级别
-                this.setLogLevel(type)
 
+                //设置日志级别
+                let logTypeStr = ''
+                logTypeStr = params.join(',')
+                this.setLogLevel(logTypeStr)
             })
             //获取本地是否有导出任务
             //有
@@ -377,20 +378,14 @@
             //获得日志类型
             getLogType(){
                 this.$nextTick(()=>{
-                    this.$axios.get('static/filejson/logTypeLevel2.json',{})
+                    this.$axios.post(this.$baseUrl+'/log/getLogTypeComboxByPage.do',this.$qs.stringify({
+                        pageType:'search'
+                    }))
                         .then((res)=>{
-                            this.logBaseJson = res.data;
                             // this.logType.push({value:'',label:'全部'});
-                            for(let i=0;i<res.data.length; i++){
-                                let obj = {
-                                    value:res.data[i].type,
-                                    label:res.data[i].type
-                                };
-                                this.logType.push(obj);
-
+                            for (let i in  res.data.data) {
+                                this.logType.push( res.data.data[i]);
                             }
-                            //设置日志级别  默认显示syslog日志级别
-                            this.setLogLevel('syslog')
                         })
                         .catch((err)=>{
                             console.log(err)
@@ -399,19 +394,31 @@
             },
             /*改变日志级别*/
             setLogLevel(logType){
-                this.logLevel.length = 0;
-                this.levelVal = '';
-                for(let i =0;i<this.logBaseJson.length;i++){
-                    if(this.logBaseJson[i].type == logType){
-                        for(let j=0;j< this.logBaseJson[i].level.length;j++){
-                            let obj = {
-                                value:this.logBaseJson[i].level[j],
-                                label:this.logBaseJson[i].level[j]
-                            };
-                            this.logLevel.push(obj);
-                        }
-                    }
-                }
+                this.$nextTick(()=>{
+                    // this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/log/getLogLevelByLogType.do',this.$qs.stringify({
+                        logType:logType
+                    }))
+                        .then(res=>{
+                            //this.loading = false;
+                            let obj = res.data;
+
+                            if(obj.success == 'true'){
+                                this.logLevel = []
+                                for (let i=0;i < obj.data.length;i++){
+                                    this.$set(this.logLevel,i,obj.data[i])
+                                    //this.logLevel.push(obj.data[i])
+                                }
+                                this.formConditionsArr[2].options = this.logLevel
+
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
+                        })
+                })
             },
             /*获取导出日志进度*/
             updataProgressValue(){

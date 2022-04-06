@@ -51,7 +51,7 @@
 <!--                        <i v-else class="el-icon-s-data go_metric" title="查看资产报表" @click="equipmentEcharts(i)"></i>-->
                     </div>
                     <div class="eq-inf">
-                        <span class="eq-logtype">{{i.logType}}</span>
+                        <span class="eq-logtype">{{i.logTypeLabel}}</span>
                         <span class="eq-ip">{{i.ip}}</span>
                         <span class="eq-more" @mouseenter="spanMouseenter($event)" @mouseleave="spanMouseleave($event)">
                             <i class="el-icon-arrow-right"></i>
@@ -59,7 +59,7 @@
                         <ul class="inf-ul">
                             <li class="inf-logtype">
                                 <div class="inf-tit">日志类型：</div>
-                                <div class="inf-val">{{i.logType}}</div>
+                                <div class="inf-val">{{i.logTypeLabel}}</div>
                             </li>
                             <li class="inf-ip">
                                 <div class="inf-tit">IP地址：</div>
@@ -168,7 +168,7 @@
                     ip:'',
                     logType:''
                 },
-                logBaseJson:[],
+                logBaseJson:{},
                 logType:[],
                 typeArr:[],
                 selectEquipmentId:'',//日志页面跳转过来的资产id
@@ -249,6 +249,22 @@
             /*获得日志类型*/
             getLogType(){
                 this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/log/getLogTypeComboxByPage.do',this.$qs.stringify({
+                        pageType:'equipment'
+                    }))
+                        .then((res)=>{
+                            this.logType.push({value:'',label:'全部'});
+                            for (let i in  res.data.data) {
+                                this.logType.push( res.data.data[i]);
+                            }
+                        })
+                        .catch((err)=>{
+                            console.log(err)
+                        })
+                })
+            },
+            /*getLogType(){
+                this.$nextTick(()=>{
                     this.$axios.get('static/filejson/logTypeLevel.json',{})
                         .then((res)=>{
                             this.logBaseJson = res.data;
@@ -260,17 +276,17 @@
                                 };
                                 this.logType.push(obj);
                             }
-                            /*临时*/
+                            /!*临时*!/
                             // this.logType.push({value:'mysql',label:'mysql(数据库)'})
-                           /* this.logType.push({value:'oracle',label:'oracle(数据库)'})
-                            this.logType.push({value:'sqlserver',label:'sqlserver(数据库)'})*/
+                           /!* this.logType.push({value:'oracle',label:'oracle(数据库)'})
+                            this.logType.push({value:'sqlserver',label:'sqlserver(数据库)'})*!/
                             // console.log(this.logType)
                         })
                         .catch((err)=>{
                             console.log(err)
                         })
                 })
-            },
+            },*/
             /*获得资产类型数据*/
             getEquipmentType(data){
                 this.$nextTick(()=>{
@@ -443,7 +459,7 @@
                 //跳转页面
                 jumpHtml('reviseEquipment2'+rowData.id,'equipment/reviseEquipment2.vue',{ name:rowData.name,id: rowData.id },'资产修改')
             },
-            /*查看资产图表*/
+            /*查看资产图表*/  // 未使用
             equipmentEcharts(rowData,index){
                 /*正常*/
                 /* let logType = rowData.logType;
@@ -451,30 +467,30 @@
                 /*临时*/
                 //判断资产日志类型
                 let logType = rowData.logType;
-                if(logType === 'syslog'){
-                    if(rowData.type === "安全-IPS"){//IPS
+                if(logType == 'syslog'){
+                    if(rowData.type == "安全-IPS"){//IPS
                         jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'6BWBQXoBW9kPociCM55N',type:'EQedit',conType:'Chart' },'查看')
                         return;
-                    }else if(rowData.type === "安全-防火墙"){
+                    }else if(rowData.type == "安全-防火墙"){
                         jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'yhN4QXoBW9kPociCBM9u',type:'EQedit',conType:'Chart' },'查看')
                         return;
                     }
                     //跳转页面
                     jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
 
-                }else if(logType === 'winlog' || logType === 'winlogbeat'){
+                }else if(logType == 'winlog' || logType == 'winlogbeat'){
                     //跳转页面
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
-                }else if(logType === 'metric'){
+                }else if(logType == 'metric'){
                     jumpHtml('equipmentDashboard'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'指标数据统计',eid: rowData.id,id:'y_qMB3IBmkPMjFRE7O-_',type:'EQedit' },'查看')
-                }else if(logType === 'packet'){
+                }else if(logType == 'packet'){
                     jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'5ukeWHoBW9kPociCdCo7',type:'EQedit',conType:'Chart' },'查看')
                     return;
-                }else if(logType === 'mysql'){
+                }else if(logType == 'mysql'){
                     jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:'ES8HYHoBW9kPociCqddN',type:'EQedit',conType:'Chart' },'查看')
                     return;
                 }else{
-                    layer.msg(`${logType} 类型资产暂无报表`,{icon:5})
+                    layer.msg(`${rowData.logTypeLabel} 类型资产暂无图表`,{icon:5})
                 }
             },
             /**/
@@ -502,7 +518,7 @@
                 //跳转页面
                 jumpHtml('equipmentLogs2'+rowData.id,'logsManage/equipmentLogs2.vue',{ name:rowData.name,id: rowData.id ,logType:rowData.logType},'日志')
             },
-            /*获取资产图表*/
+            /*获取资产图表   未用*/
             getEquipmentCharts(i){
                 if(i.logType === 'metric' || i.logType === 'packet' || i.logType === 'syslog' || i.logType === 'winlog' || i.logType ==='winlogbeat'){
                     this.$nextTick(()=>{
@@ -525,7 +541,8 @@
                             })
                     })
                 }else{
-                    layer.msg(`${i.logType} 类型资产暂无报表`,{icon:5})
+                    console.log('ssssssssssssss')
+                    layer.msg(`${i.logType} 类型资产暂无图表`,{icon:5})
                 }
 
             },
@@ -586,7 +603,7 @@
                         }
                     }
                 }else{
-                    layer.msg(`${rowData.logType} 类型资产暂无报表`,{icon:5})
+                    layer.msg(`${rowData.logTypeLabel} 类型资产暂无报表`,{icon:5})
                 }
             },
             /*获取本地缓存的chart url路径*/
@@ -603,7 +620,7 @@
                         this.eqChartList = logTypeObj.default;
                     }
                 }else{
-                    layer.msg(`${rowData.logType} 类型资产暂无图表`,{icon:5})
+                    layer.msg(`${rowData.logTypeLabel} 类型资产暂无图表`,{icon:5})
                 }
 
             },
@@ -617,7 +634,7 @@
                     jumpHtml('equipmentSIEM'+rowData.id,'equipment/equipmentSIEM.vue',{ name:rowData.name,id: rowData.id,type:rowData.oldType},'（SIEM）')
                 }else if(type === 'syslog'){
                     jumpHtml('syslogEquipmentEcharts'+rowData.id,'equipment/syslogEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
-                }else if(type === 'winlog'){
+                }else if(type === 'winlogbeat'){
                     jumpHtml('winEquipmentEcharts'+rowData.id,'equipment/winEquipmentEcharts.vue',{ name:rowData.name,id: rowData.id },'统计')
                 }else if(type === 'dashboard'){
                     jumpHtml('equipmentDashboardChart'+rowData.id,'dashboard/dashboard.vue',{ name:rowData.name+'统计',eid: rowData.id,id:dId,type:'EQedit',conType:'Chart' },'查看')

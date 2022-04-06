@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <el-form ref="form" label-width="100px" class="equipment-form">
             <el-row>
                 <el-col :span="12">
@@ -231,10 +231,12 @@
         },
         data(){
             return{
+                loading:false,
                 dialogState:false,//提示框状态
                 nameState:false,//name合法性
                 ipOrTypeState:false,//ip与日志类型合法性
                 saveState:false,
+                logBaseJson:{},//日志配置信息
                 form:{
                     name:'',//资产名称
                     ip:'',//资产Ip
@@ -309,10 +311,10 @@
                     }
                     params.name = this.form.name;
                     this.$nextTick(()=>{
-                        layer.load(1);
+                        this.loading = true;
                         this.$axios.post(this.$baseUrl+'/equipment/checkNameUnique.do',this.$qs.stringify(params))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 let obj = res.data;
                                 if(obj.success !== 'true'){
                                     layer.msg(obj.message,{icon:5})
@@ -322,7 +324,7 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                             })
                     })
                 }
@@ -337,10 +339,10 @@
                     params.ip = this.form.ip;
                     params.logType = this.form.logType;
                     this.$nextTick(()=>{
-                        layer.load(1);
+                        this.loading = true;
                         this.$axios.post(this.$baseUrl+'/equipment/checkIpAndLogTypeUnique.do',this.$qs.stringify(params))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.loading = false;
                                 let obj = res.data;
                                 if(obj.success !== 'true'){
                                     layer.msg(obj.message,{icon:5})
@@ -350,14 +352,28 @@
                                 }
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
-
+                                this.loading = false;
                             })
                     })
                 }
             },
             /*获得日志类型*/
             getLogType(){
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/log/getLogTypeComboxByPage.do',this.$qs.stringify({
+                        pageType:'equipment'
+                    }))
+                        .then((res)=>{
+                            for (let i in  res.data.data) {
+                                this.logTypeArr.push( res.data.data[i]);
+                            }
+                        })
+                        .catch((err)=>{
+                            console.log(err)
+                        })
+                })
+            },
+            /*getLogType(){
                 this.$nextTick(()=>{
                     this.$axios.get('static/filejson/logTypeLevel.json',{})
                         .then((res)=>{
@@ -375,7 +391,7 @@
                             console.log(err)
                         })
                 })
-            },
+            },*/
             /*获得资产类型数据*/
             getEquipmentType(){
                 this.$nextTick(()=>{

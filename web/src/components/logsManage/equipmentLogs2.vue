@@ -212,18 +212,19 @@
             ]
             //鼠标拖选
             //this.mouseSelectText();
+            this.getLogLevel()
         },
         methods:{
             /*获取资产信息*/
             getEquipmentData(){
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/equipment/selectEquipment.do',this.$qs.stringify({id:this.equipmentId}))
+                    this.$axios.post(this.$baseUrl+'/equipment/selectEquipmentByLogTypeTransform.do',this.$qs.stringify({id:this.equipmentId}))
                         .then((res)=>{
                             this.equipmentData = res.data;
                             this.logType = this.equipmentData[0].logType;
-                            if (this.logType === 'winlog'){
+                            /*if (this.logType === 'winlog'){
                                 this.logType = 'winlogbeat'
-                            }
+                            }*/
                         })
                         .catch((err)=>{
                             //layer.close(loading);
@@ -243,7 +244,96 @@
                 })
             },
             /*设置日志配置*/
-            setLogConfig(logType){
+            setLogConfig(){
+                //设置日志级别
+                this.$nextTick(()=>{
+                    //layer.load(1);
+                    this.$axios.post(this.$baseUrl+'/log/getTableHeadByLogType.do',this.$qs.stringify({
+                        logType:this.$route.query.logType
+                    }))
+                        .then(res=>{
+                            layer.closeAll('loading');
+                            //设置表头
+                            let headerArr = res.data.data;
+                            //判断对应日志是否存在表头
+                            if(headerArr.length === 0){//不存在 设置默认
+                                headerArr = [{
+                                    "prop":"@timestamp",
+                                    "label":"时间",
+                                    "width":"150"
+                                },
+                                    {
+                                        "prop":"fields.ip",
+                                        "label":"IP",
+                                        "width":"125"
+                                    },
+                                    {
+                                        "prop":"message",
+                                        "label":"日志内容",
+                                        "width":""
+                                    }]
+                            }
+                            headerArr.push({
+                                prop:'tools',
+                                label:'操作',
+                                width:'60',
+                                btns:[
+                                    {
+                                        icon:'el-icon-tickets',
+                                        text:'查看详情',
+                                        btnType: 'readDetails',
+                                        clickFun:(row,index)=> {
+                                            //console.log(this.layerObj)
+                                            if(row.agent.type === 'filebeat'){
+                                                row.agent.type = 'file';
+                                            }
+                                            this.layerObj.layerState = true;
+                                            this.layerObj.detailData = row;
+                                        }
+                                    },
+                                    {
+                                        icon:'el-icon-circle-close',
+                                        text:'删除',
+                                        btnType: 'removeItem',
+                                        clickFun:(row,index)=>{
+                                            this.$refs.logContent.removeParams([row])
+                                        }
+                                    }
+                                ]
+                            })
+                            this.tableHead = headerArr;
+                        })
+                        .catch(err=>{
+                            layer.closeAll('loading');
+
+                        })
+                })
+
+            },
+            /*获取日志级别*/
+            getLogLevel(){
+                this.$nextTick(()=>{
+                   // this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/log/getLogLevelByLogType.do',this.$qs.stringify({
+                        logType:this.$route.query.logType
+                    }))
+                        .then(res=>{
+                            //this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                for (let i in obj.data){
+                                    this.logLevel.push(obj.data[i])
+                                }
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.loading = false;
+                        })
+                })
+            },
+            /*setLogConfig(logType){
                 //设置日志级别
                 //console.log(logType);
                 this.$nextTick(()=>{
@@ -318,7 +408,7 @@
                         })
                 })
 
-            },
+            },*/
             /*鼠标拖选文本*/
             mouseSelectText(){
                 let that = this

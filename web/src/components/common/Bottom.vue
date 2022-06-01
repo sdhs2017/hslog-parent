@@ -8,7 +8,7 @@
             <div class="custonName" v-if="customName">单位名称：<span style="color: #e4956d;">{{customName}}</span></div>
             <div class="licenseDueTime" v-if="licenseDueTime">证书到期时间：<span style="color: #e4956d;">{{licenseDueTime}}</span></div>
 
-            <div class="company"> 版权所有  © 2020-2021  山东九州信泰信息科技股份有限公司  </div>
+            <div class="company"> 版权所有  © 2021-2022  山东九州信泰信息科技股份有限公司  </div>
 <!--            <div class="company"> 版权所有  © 2020-2021  山东汇数信息科技有限公司  </div>-->
         </div>
         <el-dialog title="阈值详情" :visible.sync="diskUsedState" width="440px" v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">

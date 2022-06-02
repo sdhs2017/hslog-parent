@@ -18,9 +18,14 @@
             <!--<el-button  type="primary" size="mini" plain @click="drawerState = true" >添加自定义图表</el-button>
             <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>-->
+
+<!--            <el-button type="primary" size="mini" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;" @click="setImgBase64">导出</el-button>-->
+
+
             <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  class="update-btn" v-if="updateBtn"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
             <el-button  type="primary" v-else size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
+
             <div class="date-wapper"><!--<date-layout  :busName="busName" :refresh="refresh"></date-layout>-->
                 <dateLayout :busName="busName" :defaultVal = "defaultVal" :refresh="refresh"></dateLayout>
             </div>
@@ -341,9 +346,11 @@
             </div>
             <div class="asset-condition-con" v-else>
                 <div class="asset-condition-tit">
-                    <i class="el-icon-circle-close" @click.stop="closeAssetList" ></i>
+                    <i class="el-icon-arrow-right" title="收起" @click.stop="closeAssetList" ></i>
                     <span class="">资产</span>
-                    <span></span>
+                    <span  style="cursor: pointer;font-size: 14px;position: relative;">
+                        <i v-if="this.assetList.length !== 0 && !this.$route.query.eid " title="重新设置资产条件" class="el-icon-s-tools" @click.stop="setAssetConditionState = true"></i>
+                    </span>
                 </div>
                 <div class="asset-condition-list" v-if="this.assetList.length === 0">
                     <div style="margin: 10px;text-align: center;margin-top: 50px;">暂未设置任何资产条件</div>
@@ -864,6 +871,8 @@
                     let arr = setChartParam(obj);
                     this.sysChartParams = arr[0];
                 }
+
+
             })
             //表格详情 监听
             bus.$on(this.dashboardTableDetailName,(str)=>{
@@ -899,6 +908,7 @@
             bus.$on(this.busQueryName,(str)=>{
                 this.isUpdate(str)
             })
+
 
         },
         beforeDestroy(){
@@ -942,6 +952,59 @@
             }
         },
         methods:{
+            setImgBase64(){
+                console.log(this.layout)
+                let tableArr = [];
+                for(let i in this.layout){
+                    if(this.layout[i].chartType == 'table'){
+                       let obj = {}
+                       obj.visual_id = this.layout[i].eId;
+                       obj.tableHeader = this.layout[i].opt.tableHead;
+                       obj.tableData = this.layout[i].opt.tableData;
+                        tableArr.push(obj)
+                    }
+                }
+
+                this.allLoading = true;
+                let imgBase64Str = '';
+                let opt2 ={
+                    type:'png',
+                    pixelRatio:5,
+                    backgroundColor:'#303e4e',
+                }
+
+                for(let i in this.echartsArr){
+                    let et = this.echartsArr[i];
+                   // console.log()
+                     imgBase64Str += et.getDataURL(opt2) + '@'
+                }
+
+
+                //console.log(obj)
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/BI/createReport.do',this.$qs.stringify({
+                        base64_images:imgBase64Str,
+                        tables:JSON.stringify(tableArr)
+                    }))
+                        .then(res=>{
+                            this.allLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                             this.allLoading = false;
+                        })
+                })
+            },
+            /*清空选择的资产*/
+            removeAsset(){
+                this.checkedAsset = [];
+                this.assetList = [];
+            },
             /*显示已选资产*/
             /*获取资产组*/
             getAssetGroup(){

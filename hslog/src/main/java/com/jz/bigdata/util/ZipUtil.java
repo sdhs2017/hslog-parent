@@ -1,5 +1,6 @@
 package com.jz.bigdata.util;
 
+import com.google.common.base.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
@@ -35,7 +36,9 @@ public class ZipUtil {
             parameters.setEncryptFiles( true );
             parameters.setEncryptionMethod(Zip4jConstants.ENC_METHOD_AES);
             parameters.setAesKeyStrength(Zip4jConstants.AES_STRENGTH_256);
-            parameters.setPassword(password);
+            if(!Strings.isNullOrEmpty(password)){
+                parameters.setPassword(password);
+            }
             // 要打包的文件夹
             File currentFile = new File(srcFilePath);
             File[] fs = currentFile.listFiles();

@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Resource;
 import javax.enterprise.inject.Default;
@@ -124,5 +126,24 @@ public class StringUtils {
 			result = result.replace("\"type\":\""+entry.getKey()+"\"","\"type\":\""+entry.getValue()+"\"");
 		}
 		return result;
+	}
+
+	/**
+	 * 通过@! @标签，对文本内容进行正则匹配，并返回@!与@之间的内容标签中的内容
+	 * @param text 要匹配的文本
+	 */
+	public static Matcher StringPatternWithAtLabel(String text){
+		Pattern pattern = Pattern.compile("(?<=@!).*?(?=@)");
+		Matcher matcher = pattern.matcher(text);
+		return matcher;
+
+	}
+
+	public static void main(String[] args) {
+		Pattern pattern = Pattern.compile("(?<=@!).*?(?=@)");
+		Matcher matcher = pattern.matcher("本月共采集日志数@!LogCount@条，其中error日志数有@!LogErrorCount@条。");
+		while(matcher.find()){
+			System.out.println(matcher.group(0)); // 遍历所有匹配到字符串并打印
+		}
 	}
 }

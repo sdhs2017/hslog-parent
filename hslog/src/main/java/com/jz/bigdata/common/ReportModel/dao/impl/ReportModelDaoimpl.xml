@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jz.bigdata.common.ReportModel.dao.IReportModelDao">
+	<!-- 返回结果设置 -->
+	<resultMap id="ReportModelInfoResultMap"
+			   type="com.jz.bigdata.common.ReportModel.entity.ReportModelInfo">
+		<id column="reportModelInfoID" jdbcType="VARCHAR" property="reportModelInfoID" />
+		<result column="reportModelID" jdbcType="VARCHAR" property="reportModelID" />
+		<result column="parentID" jdbcType="VARCHAR" property="parentID" />
+		<result column="orderCode" jdbcType="INTEGER" property="orderCode" />
+		<result column="contentType" jdbcType="VARCHAR" property="contentType" />
+		<result column="content" jdbcType="VARCHAR" property="content" />
+		<result column="bold" jdbcType="INTEGER" property="bold" />
+		<result column="alignment" jdbcType="INTEGER" property="alignment" />
+		<result column="fontSize" jdbcType="INTEGER" property="fontSize" />
+		<result column="state" jdbcType="INTEGER" property="state" />
+		<result column="remark" jdbcType="VARCHAR" property="remark" />
+		<result column="spacingBefore" jdbcType="INTEGER" property="spacingBefore" />
+		<result column="imageName" jdbcType="VARCHAR" property="imageName" />
+		<result column="tableName" jdbcType="VARCHAR" property="tableName" />
+		<result column="titleLevel" jdbcType="INTEGER" property="titleLevel" />
+
+	</resultMap>
+	<resultMap id="ReportModelResultMap"
+			   type="com.jz.bigdata.common.ReportModel.entity.ReportModel">
+		<id column="reportModelID" jdbcType="VARCHAR" property="reportModelID" />
+		<result column="reportModelName" jdbcType="VARCHAR" property="reportModelName" />
+		<result column="reportModelType" jdbcType="VARCHAR" property="reportModelType" />
+		<result column="reportModelExplain" jdbcType="VARCHAR" property="reportModelExplain" />
+		<result column="state" jdbcType="INTEGER" property="state" />
+		<result column="reportModelHeader" jdbcType="VARCHAR" property="reportModelHeader" />
+		<result column="reportModelFooter" jdbcType="VARCHAR" property="reportModelFooter" />
+		<result column="dashboardID" jdbcType="VARCHAR" property="dashboardID" />
+	</resultMap>
+	<resultMap id="ReportModelDataResultMap"
+			   type="com.jz.bigdata.common.ReportModel.entity.ReportModelData">
+		<id column="reportModelDataKey" jdbcType="VARCHAR" property="reportModelDataKey" />
+		<result column="reportModelDataType" jdbcType="VARCHAR" property="reportModelDataType" />
+		<result column="content" jdbcType="VARCHAR" property="content" />
+		<result column="dataGetFields" jdbcType="VARCHAR" property="dataGetFields" />
+	</resultMap>
+	<select id="getReportModelInfoListByParentIDAndReportModelID" parameterType="java.lang.String" resultMap="ReportModelInfoResultMap">
+		select reportModelInfoID,reportModelID,parentID,orderCode,contentType,content,bold,alignment,
+		fontSize,state,remark,spacingBefore,imageName,tableName,titleLevel
+		from ReportModelInfo where parentID=#{parentID,jdbcType=VARCHAR} and reportModelID=#{reportModelID,jdbcType=VARCHAR} order by orderCode
+	</select>
+	<select id="getReportModelByReportModelID" parameterType="java.lang.String" resultMap="ReportModelResultMap">
+		select reportModelID,reportModelName,reportModelType,reportModelExplain,reportModelHeader,reportModelFooter,dashboardID,state
+		from ReportModel where reportModelID = #{reportModelID,jdbcType=VARCHAR}
+	</select>
+	<select id="getReportModelInfoByReportModelInfoID" parameterType="java.lang.String" resultMap="ReportModelInfoResultMap">
+		select reportModelInfoID,reportModelID,parentID,orderCode,contentType,content,bold,alignment,
+		fontSize,state,remark,spacingBefore,imageName,tableName,titleLevel
+		from ReportModelInfo where reportModelInfoID = #{reportModelInfoID,jdbcType=VARCHAR}
+	</select>
+	<select id="getReportModelByDashboardIDAndType" parameterType="com.jz.bigdata.common.ReportModel.entity.ReportModel" resultMap="ReportModelResultMap">
+		select reportModelID,reportModelName,reportModelType,reportModelExplain,reportModelHeader,reportModelFooter,dashboardID,state
+		from ReportModel  where dashboardID = #{dashboardID} and reportModelType=#{reportModelType}
+	</select>
+	<select id="getReportModelDataByKey" parameterType="java.lang.String" resultMap="ReportModelDataResultMap">
+		select reportModelDataKey,reportModelDataType,content,dataGetFields
+		from ReportModelData where ReportModelDataKey = #{ReportModelDataKey,jdbcType=VARCHAR}
+	</select>
+	<select id="getReportModelCount">
+		select count(1) as count
+		from ReportModel
+		where 1=1
+		<if test="reportModelName != null and reportModelName !=''">
+			and reportModelName LIKE
+			CONCAT('%',
+			#{reportModelName}, '%')
+		</if>
+		<if test="reportModelType != null and reportModelType !='' ">
+			and reportModelType = #{reportModelType,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<select id="getReportModelListByPage" parameterType="java.lang.String" resultMap="ReportModelResultMap">
+		select reportModelID,reportModelName,reportModelType,reportModelExplain,dashboardID,state
+		from ReportModel
+		where 1=1
+		<if test="reportModelName != null and reportModelName !=''">
+		 	and reportModelName LIKE
+			CONCAT('%',
+			#{reportModelName}, '%')
+		</if>
+		<if test="reportModelType != null and reportModelType !='' ">
+			and reportModelType = #{reportModelType,jdbcType=VARCHAR}
+		</if>
+		limit #{startRecord},#{pageSize}
+	</select>
+	<update id="updateReportModelByReportModelID" parameterType="com.jz.bigdata.common.ReportModel.entity.ReportModel">
+		update ReportModel
+		<set>
+			<if test="reportModelName != null">
+				reportModelName = #{reportModelName,jdbcType=VARCHAR},
+			</if>
+			<if test="reportModelType != null">
+				reportModelType = #{reportModelType,jdbcType=VARCHAR},
+			</if>
+			<if test="reportModelExplain != null">
+				reportModelExplain = #{reportModelExplain,jdbcType=VARCHAR},
+			</if>
+			<if test="reportModelHeader != null">
+				reportModelHeader = #{reportModelHeader,jdbcType=VARCHAR},
+			</if>
+			<if test="reportModelFooter != null">
+				reportModelFooter = #{reportModelFooter,jdbcType=VARCHAR},
+			</if>
+			<if test="dashboardID != null">
+				dashboardID = #{dashboardID,jdbcType=VARCHAR},
+			</if>
+			<if test="state != null">
+				state = #{state,jdbcType=INTEGER},
+			</if>
+		</set>
+		where reportModelID = #{reportModelID,jdbcType=VARCHAR}
+
+	</update>
+	<update id="updateReportModelHeaderAndFooterByReportModelID" parameterType="com.jz.bigdata.common.ReportModel.entity.ReportModel">
+		update ReportModel
+		<set>
+			<if test="reportModelHeader != null">
+				reportModelHeader = #{reportModelHeader,jdbcType=VARCHAR},
+			</if>
+			<if test="reportModelFooter != null">
+				reportModelFooter = #{reportModelFooter,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where reportModelID = #{reportModelID,jdbcType=VARCHAR}
+
+	</update>
+
+	<update id="updateReportModelInfoByReportModelInfoID" parameterType="com.jz.bigdata.common.ReportModel.entity.ReportModelInfo">
+		update ReportModelInfo
+		<set>
+
+			<if test="reportModelID != null">
+				reportModelID = #{reportModelID,jdbcType=VARCHAR},
+			</if>
+			<if test="parentID != null">
+				parentID = #{parentID,jdbcType=VARCHAR},
+			</if>
+			<if test="orderCode != null">
+				orderCode = #{orderCode,jdbcType=INTEGER},
+			</if>
+			<if test="contentType != null">
+				contentType = #{contentType,jdbcType=VARCHAR},
+			</if>
+			<if test="content != null">
+				content = #{content,jdbcType=VARCHAR},
+			</if>
+			<if test="bold != null">
+				bold = #{bold,jdbcType=INTEGER},
+			</if>
+			<if test="alignment != null">
+				alignment = #{alignment,jdbcType=INTEGER},
+			</if>
+			<if test="orderCode != null">
+				fontSize = #{fontSize,jdbcType=INTEGER},
+			</if>
+			<if test="spacingBefore != null">
+				spacingBefore = #{spacingBefore,jdbcType=INTEGER},
+			</if>
+			<if test="remark != null">
+				remark = #{remark,jdbcType=VARCHAR},
+			</if>
+			<if test="state != null">
+				state = #{state,jdbcType=VARCHAR},
+			</if>
+			<if test="titleLevel != null">
+				titleLevel = #{titleLevel,jdbcType=VARCHAR},
+			</if>
+			<if test="tableName != null">
+				tableName = #{tableName,jdbcType=VARCHAR},
+			</if>
+			<if test="imageName != null">
+				imageName = #{imageName,jdbcType=VARCHAR},
+			</if>
+		</set>
+		where reportModelInfoID = #{reportModelInfoID,jdbcType=VARCHAR}
+
+	</update>
+	<select id="getReportModelInfoByReportModelID" parameterType="java.lang.String" resultMap="ReportModelInfoResultMap">
+		select reportModelInfoID,reportModelID,parentID,orderCode,contentType,
+		<!-- 这样无法返回一个list bean 估计是拦截器导致的(case when contentType='image' then imageName when contentType='table' then tableName else content end) as content,-->
+		content,
+		bold,alignment,fontSize,state,remark,spacingBefore,imageName,tableName,titleLevel
+		from ReportModelInfo where reportModelID = #{reportModelID,jdbcType=VARCHAR}
+	</select>
+
+	<select id="getReportModelListByDashboardID"  parameterType="java.lang.String" resultMap="ReportModelResultMap">
+		select reportModelID,reportModelName,reportModelType,reportModelExplain,dashboardID,state
+		from ReportModel
+		where dashboardID=#{dashboardID,jdbcType=VARCHAR}
+	</select>
+
+	<update id="updateTreeColumns" parameterType="java.lang.String" >
+		update ReportModelInfo
+		set parentID=#{parentID,jdbcType=VARCHAR} , orderCode=#{orderCode,jdbcType=INTEGER}
+		where reportModelInfoID=#{reportModelInfoID,jdbcType=VARCHAR}
+	</update>
+	<update id="batchUpdateTreeInfo" parameterType="java.util.List">
+		<foreach close="" collection="list" index="index" item="item"
+				 open="" separator=";">
+			update ReportModelInfo
+			set parentID=#{item.parentID,jdbcType=VARCHAR} , orderCode=#{item.orderCode,jdbcType=INTEGER}
+			<where>
+				reportModelInfoID=#{item.reportModelInfoID,jdbcType=VARCHAR}
+			</where>
+		</foreach>
+	</update>
+	<insert id="insertReportModelInfo" parameterType="com.jz.bigdata.common.ReportModel.entity.ReportModelInfo">
+		insert into ReportModelInfo (reportModelInfoID,reportModelID,parentID,orderCode,content,contentType,bold,alignment,
+		fontSize,spacingBefore)
+		values (#{reportModelInfoID,jdbcType=VARCHAR},#{reportModelID,jdbcType=VARCHAR},#{parentID,jdbcType=VARCHAR},#{orderCode,jdbcType=INTEGER}
+		,#{content,jdbcType=VARCHAR},#{contentType,jdbcType=VARCHAR},#{bold,jdbcType=INTEGER},#{alignment,jdbcType=INTEGER}
+		,#{fontSize,jdbcType=INTEGER},#{spacingBefore,jdbcType=INTEGER})
+	</insert>
+
+	<insert id="batchInsertReportModelInfo" parameterType="java.util.List">
+		<foreach close="" collection="list" index="index" item="item"
+				 open="" separator=";">
+			insert into ReportModelInfo (reportModelInfoID,reportModelID,parentID,orderCode,content,contentType,bold,alignment,
+			fontSize,spacingBefore,imageName,tableName,titleLevel)
+			values (#{item.reportModelInfoID,jdbcType=VARCHAR},#{item.reportModelID,jdbcType=VARCHAR},#{item.parentID,jdbcType=VARCHAR}
+			,#{item.orderCode,jdbcType=INTEGER},#{item.content,jdbcType=VARCHAR},#{item.contentType,jdbcType=VARCHAR}
+			,#{item.bold,jdbcType=INTEGER},#{item.alignment,jdbcType=INTEGER},#{item.fontSize,jdbcType=INTEGER}
+			,#{item.spacingBefore,jdbcType=INTEGER},#{item.imageName,jdbcType=VARCHAR},#{item.tableName,jdbcType=VARCHAR}
+			,#{item.titleLevel,jdbcType=INTEGER})
+		</foreach>
+	</insert>
+
+	<delete id="deleteReportModelInfo" parameterType="java.lang.String">
+		delete from ReportModelInfo where reportModelInfoID=#{reportModelInfoID,jdbcType=VARCHAR};
+	</delete>
+	<insert id="saveReportModel" parameterType="com.jz.bigdata.common.ReportModel.entity.ReportModel">
+		insert into ReportModel (reportModelID,reportModelName,reportModelType,reportModelExplain,state,reportModelHeader,reportModelFooter,dashboardID)
+		values (#{reportModelID,jdbcType=VARCHAR},#{reportModelName,jdbcType=VARCHAR},#{reportModelType,jdbcType=VARCHAR},
+		#{reportModelExplain,jdbcType=VARCHAR},#{state,jdbcType=INTEGER},#{reportModelHeader,jdbcType=VARCHAR},
+		#{reportModelFooter,jdbcType=VARCHAR},#{dashboardID,jdbcType=VARCHAR})
+	</insert>
+	<delete id="deleteReportModel" parameterType="java.lang.String">
+		delete from ReportModel where reportModelID=#{reportModelID,jdbcType=VARCHAR};
+		delete from ReportModelInfo where reportModelID=#{reportModelID,jdbcType=VARCHAR};
+	</delete>
+</mapper>

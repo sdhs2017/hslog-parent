@@ -516,7 +516,7 @@ public class EquipmentServiceImpl implements IEquipmentService {
 			case "file":
 				index = configProperty.getEs_filelog_pre()+"*";
 				break;
-			case "winlogbeat":
+			case "winlog":
 			case "syslog":
 				//syslog类型  对于防火墙和IPS类型资产进行单独处理
 				if(equipment_type.equals(Constant.EQUIPMENT_TYPE_IPS_CODE)){

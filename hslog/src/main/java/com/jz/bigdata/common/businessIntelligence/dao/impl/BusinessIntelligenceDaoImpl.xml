@@ -15,7 +15,7 @@
     <select id="showColumns" parameterType="java.lang.String" resultType="java.util.Map">
        SELECT column_name as `value`,data_type,column_comment as label
         FROM INFORMATION_SCHEMA.COLUMNS
-        where table_name=#{tableName}
+        where table_name=#{tableName} and TABLE_SCHEMA='jzLogAnalysis'
     </select>
 
 

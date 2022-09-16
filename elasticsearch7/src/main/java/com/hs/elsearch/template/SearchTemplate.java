@@ -17,6 +17,7 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
+import org.elasticsearch.search.rescore.RescorerBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.IOException;
@@ -235,6 +236,7 @@ public class SearchTemplate {
         if (from>=0&&size>=0){
             sourceBuilder.from(from).size(size);
         }
+
         searchRequest.source(sourceBuilder);
 
         SearchResponse response = restHighLevelClient.search(searchRequest,RequestOptions.DEFAULT);
@@ -243,7 +245,47 @@ public class SearchTemplate {
 
         return getListBySearchHit(searchHits);
     }
+    /**
+     * 通过查询体（QueryBuilder）获取数据（带排序功能）
+     * 带有排序的分页查询，带有高亮
+     * @param queryBuilder 查询体
+     * @param rescorerBuilder 重新打分设置
+     * @param sortBuilder 排序设置
+     * @param highlightBuilder 高亮内容设置
+     * @param from 翻页
+     * @param size 每页数据条数
+     * @param indices
+     * @return
+     */
+    public List<Map<String, Object>> getListByBuilder(QueryBuilder queryBuilder, RescorerBuilder rescorerBuilder, SortBuilder sortBuilder, HighlightBuilder highlightBuilder, int from, int size, String... indices) throws Exception {
 
+        SearchRequest searchRequest = new SearchRequest(indices);
+
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        if (queryBuilder!=null){
+            sourceBuilder.query(queryBuilder);
+        }
+        if (sortBuilder!=null){
+            sourceBuilder.sort(sortBuilder);
+        }
+        if (highlightBuilder!=null){
+            sourceBuilder.highlighter(highlightBuilder);
+        }
+        if (from>=0&&size>=0){
+            sourceBuilder.from(from).size(size);
+        }
+        if(rescorerBuilder!=null){
+            sourceBuilder.addRescorer(rescorerBuilder);
+        }
+
+        searchRequest.source(sourceBuilder);
+
+        SearchResponse response = restHighLevelClient.search(searchRequest,RequestOptions.DEFAULT);
+
+        SearchHits searchHits = response.getHits();
+
+        return getListBySearchHit(searchHits);
+    }
     /**
      * 通过查询体（QueryBuilder）获取数据（带排序功能）
      * 带有排序的分页查询

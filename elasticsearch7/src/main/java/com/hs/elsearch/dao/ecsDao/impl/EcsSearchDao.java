@@ -20,6 +20,9 @@ import org.elasticsearch.search.aggregations.bucket.histogram.ExtendedBounds;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.rescore.QueryRescorerBuilder;
+import org.elasticsearch.search.rescore.Rescorer;
+import org.elasticsearch.search.rescore.RescorerBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
 import org.elasticsearch.search.sort.SortBuilders;
 import org.elasticsearch.search.sort.SortOrder;
@@ -119,7 +122,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                    }
                    boolQueryBuilder.must(eventboolQueryBuilder);
                }else if(entry.getKey().equals("message")){//日志内容模糊查询
-                   boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message",entry.getValue()));
+                   boolQueryBuilder.must(QueryBuilders.matchQuery("message",entry.getValue()));
                }else{
                     // 不分词精确查询
                     boolQueryBuilder.must(QueryBuilders.termQuery(entry.getKey(), entry.getValue()));
@@ -142,7 +145,7 @@ public class EcsSearchDao implements IEcsSearchDao {
         // 构建查询体
         BoolQueryBuilder QueryBuilder = QueryBuilders.boolQuery();
         // 短语匹配
-        BoolQueryBuilder matchphraseQuery = QueryBuilders.boolQuery();
+        BoolQueryBuilder matchQuery = QueryBuilders.boolQuery();
         long matchCount = 0;
         // 多字段匹配
         BoolQueryBuilder multiQuery = QueryBuilders.boolQuery();
@@ -200,11 +203,18 @@ public class EcsSearchDao implements IEcsSearchDao {
              */
 
             if (content.contains(" ") || (content.matches("^[a-zA-Z]*") ? content.length() > 15 : content.length() > 3)) {
+                /*
                 MatchPhraseQueryBuilder matchPhraseQueryBuilder = QueryBuilders.matchPhraseQuery(ECS_MATCHPHRASE_FIELD, content);
+                //TODO matchPhraseQueryBuilder.slop()
                 matchphraseQuery.must(matchPhraseQueryBuilder);
                 matchphraseQuery.must(otherQueryBuilder);
                 matchphraseQuery.must(dateQueryBuilder);
-                matchCount = searchTemplate.getCountByQuery(matchphraseQuery, indices);
+                 */
+                MatchQueryBuilder matchQueryBuilder = QueryBuilders.matchQuery(ECS_MATCHPHRASE_FIELD,content);
+                matchQuery.must(matchQueryBuilder);
+                matchQuery.must(otherQueryBuilder);
+                matchQuery.must(dateQueryBuilder);
+                matchCount = searchTemplate.getCountByQuery(matchQuery, indices);
             } else {
                 /**
                  * 查询内容与多字段匹配方式
@@ -241,7 +251,13 @@ public class EcsSearchDao implements IEcsSearchDao {
                  * 短语匹配内容不为0时执行短语匹配的查询并返回内容
                  */
                 count = matchCount;
-                list = searchTemplate.getListByBuilder(matchphraseQuery, sortBuilder, highlightBuilder, page, size, indices);
+                //对查询结果打分优化
+                MatchPhraseQueryBuilder matchPhraseQueryBuilder = QueryBuilders.matchPhraseQuery(ECS_MATCHPHRASE_FIELD, content);
+                matchPhraseQueryBuilder.slop(50);//基本能覆盖大部分内容。
+                RescorerBuilder rescorerBuilder = new QueryRescorerBuilder(matchPhraseQueryBuilder);
+                rescorerBuilder.windowSize(65);//每页13条，5页内容
+                //使用rescore后，无法再使用sort进行排序
+                list = searchTemplate.getListByBuilder(matchQuery, rescorerBuilder,null, highlightBuilder, page, size, indices);
             } else if (mutliCount > 0) {
                 /**
                  * 多字段查询内容不为0时执行多字段的查询并返回内容
@@ -320,7 +336,7 @@ public class EcsSearchDao implements IEcsSearchDao {
                     }
                     boolQueryBuilder.must(eventboolQueryBuilder);
                 }else if(entry.getKey().equals("message")){//日志内容模糊查询
-                    boolQueryBuilder.must(QueryBuilders.matchPhraseQuery("message",entry.getValue()));
+                    boolQueryBuilder.must(QueryBuilders.matchQuery("message",entry.getValue()));
                     // 构建高亮体，指定包含查询条件的所有列都高亮
                     highlightBuilder = new HighlightBuilder().field("message").requireFieldMatch(false);
                     //highlightBuilder.preTags("<span style=\"color:red\">");

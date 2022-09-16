@@ -635,6 +635,12 @@ export default new Router({
                     component: resolve => require(['../components/userManage/userManage_SR.vue'], resolve),
                     meta: { title: '用户管理' }
                 },
+                {
+                    path: '/reportModelManage',
+                    name:'reportModel',
+                    component: resolve => require(['../components/reportManage/reportModel.vue'], resolve),
+                    meta: { title: '报告模板' }
+                },
                 /* **********涉密*************** */
                 /*{
                     path: '/test',

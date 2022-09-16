@@ -177,7 +177,7 @@
             //检索条件
             this.formConditionsArr = [
                 {
-                    label:'事件范围',
+                    label:'时间范围',
                     type:'datetimerange',
                     itemType:'',
                     paramName:'time',
@@ -445,6 +445,15 @@
                                 layer.msg('导出成功',{icon:1});
                                 //删除本地保存的导出任务
                                 localStorage.removeItem('exportLogs');
+                                //下载到本地
+                                const link = document.createElement("a"); //自己创建的a标签
+                                let url = this.$baseUrl+'/log/logFileDownload.do';
+                                link.href = url;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+
                             }else{ //导出未完成 更新进度
                                 this.progressVal = res.data[0].value;
                             }

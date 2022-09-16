@@ -2,8 +2,8 @@
     <div class="content-bg" v-loading="allLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
         <div class="top-title" style="position: relative;padding-left: 10px;">
             <div class="tit-zz" v-if="this.htmlTitle.substr(0,2) == '查看'"></div>
-            <el-dropdown  trigger="click">
-                <el-button type="primary" size="mini" plain>
+            <el-dropdown  trigger="click" v-if="this.htmlTitle.substr(0,2) !== '查看'">
+                <el-button type="primary" size="mini" plain >
                     添加<i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
                 <el-dropdown-menu slot="dropdown">
@@ -19,10 +19,11 @@
             <el-button  type="primary" size="mini" plain @click="sysDrawerState = true" >添加预设图表</el-button>
             <el-button  type="primary" size="mini" plain @click="wordsState = true; wordType = 'add'" >添加文字</el-button>-->
 
-<!--            <el-button type="primary" size="mini" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;" @click="setImgBase64">导出</el-button>-->
+            <el-button type="primary" size="mini" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;" @click="exportModelBtn()" v-if="$is_has('dashboard_exportModel')">导出</el-button>
 
+<!--            <el-button type="info" size="mini" style="position: relative;z-index: 101;" plain ><a id="wordDownload" @click='downLoadWord'>下载</a></el-button>-->
 
-            <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
+            <el-button  type="success" size="mini" plain @click="dialogFormVisible = true" v-if="this.htmlTitle.substr(0,2) !== '查看'" style="float: right;margin-right: 10px;margin-top: 10px;">保存</el-button>
             <el-button  class="update-btn" v-if="updateBtn"  type="success" size="mini"  @click="updateChart" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">更新</el-button>
             <el-button  type="primary" v-else size="mini" plain @click="refreshDashboard" style="float: right;margin-right: 5px;margin-top: 10px;position: relative;z-index: 101;">刷新</el-button>
 
@@ -338,6 +339,24 @@
                 <el-button type="primary" @click="setAssetCondition">确 定</el-button>
             </div>
         </el-dialog>
+
+
+        <!--导出-->
+        <el-dialog title="导出设置" :visible.sync="exportVisible" width="400px" v-loading="exportDialogLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
+            <p style="color: #fff;margin-bottom: 10px;">选择导出类型：</p>
+            <el-form>
+                <el-select v-model="exportDateType" placeholder="请选择" >
+                    <el-option v-for="(item,i) in exportModelTypeOpt" :label="item.label" :key="i" :value="item.value"></el-option>
+                   <!-- <el-option key="day" label="日报" value="day"></el-option>
+                    <el-option key="week" label="周报" value="week"></el-option>
+                    <el-option key="month" label="月报" value="month"></el-option>-->
+                </el-select>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="exportVisible = false">取 消</el-button>
+                <el-button type="primary" :disabled="exportDateType ? false : 'disabled' " @click="exportBtn" >确 定</el-button>
+            </div>
+        </el-dialog>
         <!--资产-->
         <div class="asset-condition-box" @click="showAssetList"  @mousedown="move" ref="assetConditionBox" v-loading="ballLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <div class="asset-condition-con asset-ball" v-if="eqDialogState === 'ball'">
@@ -420,7 +439,7 @@
     import vBasetable from '../common/Basetable2';
     import tableDetail from '../dashboard/tableDetail'
     import bus from '../common/bus';
-    import {dateFormat,jumpHtml,setChartParam,changeEchartsTooltip} from "../../../static/js/common";
+    import {dateFormat,jumpHtml,setChartParam,changeEchartsTooltip,getBtn} from "../../../static/js/common";
     import allComps from '../charts/index'
     const echarts = require('echarts');
     //特殊表格id
@@ -593,6 +612,8 @@
                 ],
                 //图表集合  存储echarts名称 用于自适应大小
                 echartsArr:{},
+                //已加载完成的图表个数
+                finishCount:0,
                 //当前图表计数
                 chartsCount:0,
                 //系统预设右边栏
@@ -773,9 +794,17 @@
                 asset_group_ids:'',
                 //用于保存选中的资产
                 asset_ids:'',
+                //导出 弹窗状态
+                exportVisible:false,
+                exportDialogLoading:false,
+                //导出报表模板类型
+                exportDateType:'',
+                exportModelTypeOpt:[],
+
             }
         },
         created(){
+            getBtn();
             //设置 资产表过滤条件
             let asset_ids = sessionStorage.getItem(this.$route.query.eid);
             this.setFilterTable(JSON.parse(asset_ids))
@@ -858,6 +887,7 @@
             this.getChartsList()
             //监听时间改变事件
             bus.$on(this.busName,(obj)=>{
+                this.defaultVal = obj;
                 this.dateArr = new Object();
                 this.dateArr = setChartParam(obj)[0];
                 this.intervalObj = setChartParam(obj)[1];
@@ -952,20 +982,115 @@
             }
         },
         methods:{
-            setImgBase64(){
-                console.log(this.layout)
+            exportBtn(){
+                let dateParam = ''
+                if(this.exportDateType === 'day'){
+                    dateParam = '1-daying'
+                }else if(this.exportDateType === 'week'){
+                    dateParam = '1-weeking'
+                }else if(this.exportDateType === 'month'){
+                    dateParam = '1-monthing'
+                }
+                //设置时间为 今天
+                this.defaultVal.lastVal = dateParam
+                this.defaultVal.commonlyVal = dateParam
+                this.dateArr.last= dateParam
+                this.exportDialogLoading = true;
+                //加载数据
+                this.refreshData()
+            },
+
+            //监听导出弹窗变化
+            exportModelBtn(){
+                this.$nextTick(()=>{
+                    this.allLoading = true;
+                    this.$axios.post(this.$baseUrl+'/reportModel/getReportModelsByDashboardID.do',this.$qs.stringify({
+                        dashboardID:this.dashboardId
+                    }))
+                        .then(res=>{
+                            this.allLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                this.exportModelTypeOpt = obj.data;
+                                this.exportVisible = true;
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.allLoading = false;
+                        })
+                })
+            },
+            //导出为word
+            exportWord(){
+                this.allLoading = true;
+                //表格
                 let tableArr = [];
-                for(let i in this.layout){
-                    if(this.layout[i].chartType == 'table'){
-                       let obj = {}
-                       obj.visual_id = this.layout[i].eId;
-                       obj.tableHeader = this.layout[i].opt.tableHead;
-                       obj.tableData = this.layout[i].opt.tableData;
-                        tableArr.push(obj)
+                //图表
+                let imgBase64Arr = [];
+                //metric
+                let metricArr = [];
+                //base64  转换参数
+                let opt2 ={
+                    type:'png',
+                    pixelRatio:5,//像素
+                    backgroundColor:'#303e4e',
+                }
+                //循环 填充表格 图表 数据
+                for(let index in this.layout){
+                    if(this.layout[index].chartType == 'table'){
+                       let obj = {};
+                       obj.visual_id = this.layout[index].eId;
+                       obj.tableHeader = this.layout[index].opt.tableHead;
+                       obj.tableData = this.layout[index].opt.tableData;
+                       tableArr.push(obj)
+                    }else if(this.layout[index].chartType == 'line' || this.layout[index].chartType == 'bar' || this.layout[index].chartType == 'pie'){
+                        let obj = {};
+                        obj.visual_id = this.layout[index].eId;
+                        obj.base64 = this.echartsArr[this.layout[index].i].getDataURL(opt2);
+                        imgBase64Arr.push(obj)
+                    }else if(this.layout[index].chartType == 'metric'){
+                        let obj = {};
+                        obj.visual_id = this.layout[index].eId;
+                        obj.value = this.layout[index].opt.dataset;
+                        metricArr.push(obj);
                     }
                 }
 
-                this.allLoading = true;
+                this.exportVisible = false;
+                this.exportDialogLoading = false;
+                this.$nextTick(()=>{
+                    this.$axios.post(this.$baseUrl+'/reportModel/CreateReport.do',this.$qs.stringify({
+                        base64_images:JSON.stringify(imgBase64Arr),
+                        tables:JSON.stringify(tableArr),
+                        dashboardID:this.dashboardId,
+                        reportModelType:this.exportDateType,
+                        metrics:JSON.stringify(metricArr),
+                        last:this.dateArr.last
+                    }))
+                        .then(res=>{
+                            this.allLoading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                layer.msg(obj.message,{icon:1});
+                                const link = document.createElement("a"); //自己创建的a标签
+                                let url = this.$baseUrl+'/reportModel/reportDownload.do';
+                                link.href = url;
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                window.URL.revokeObjectURL(url);
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.allLoading = false;
+                        })
+                })
+
+                /*this.allLoading = true;
                 let imgBase64Str = '';
                 let opt2 ={
                     type:'png',
@@ -998,7 +1123,7 @@
                         .catch(err=>{
                              this.allLoading = false;
                         })
-                })
+                })*/
             },
             /*清空选择的资产*/
             removeAsset(){
@@ -1383,7 +1508,7 @@
                     isSaveAs:true,
                     asset_group_ids:this.asset_group_ids,
                     asset_ids:this.asset_ids,
-                    params:JSON.stringify({filters_dashboard:this.filters}),
+                    params:JSON.stringify({filters_dashboard:this.filters,dateLayout:this.defaultVal,date_params:this.dateArr}),
                     option:JSON.stringify(layoutObj),
                 }
                 //判断是否是修改图表
@@ -1484,6 +1609,7 @@
             },
             /*刷新数据*/
             refreshData(){
+                this.finishCount = 0;
                 this.loading = true;
                 //获取数据
                 for(let i in this.layout){
@@ -1564,10 +1690,17 @@
                                 //赋值
                                 if(obj.data.params){
                                     this.filters = JSON.parse(obj.data.params).filters_dashboard;
+                                    //过滤  参数
                                     if(this.filters.length === 0){
                                         this.defaultFilter = []
                                     }else{
                                         this.defaultFilter = JSON.parse(JSON.parse(obj.data.params).filters_dashboard);
+                                    }
+                                    //时间 参数
+                                    if(JSON.parse(obj.data.params).dateLayout){
+                                        this.defaultVal = JSON.parse(obj.data.params).dateLayout;
+                                        this.dateArr = JSON.parse(obj.data.params).date_params;
+                                        // console.log(this.defaultVal)
                                     }
                                 }
                                 //资产条件
@@ -2181,6 +2314,8 @@
                         window.addEventListener("resize",()=>{
                             this.echartsArr[obj.i].resize();
                         });
+
+                        this.finishCount++
                     }
 
                     $(document.getElementById(obj.i)).next().css("display","none")
@@ -2231,6 +2366,19 @@
 
         },
         watch:{
+
+            //监听加载完成图表的个数
+            'finishCount'(){
+                //判断是导出操作  并且 所有的图表都已经加载完成
+                if(this.exportVisible && this.finishCount === Object.keys(this.echartsArr).length){
+                    //console.log('ddddddd');
+                    setTimeout(()=>{
+                        this.exportWord()
+                    },1000)
+
+                }
+            },
+            /*资产条件弹窗*/
             'setAssetConditionState'(){
                 //弹窗开启
                 if(this.setAssetConditionState){

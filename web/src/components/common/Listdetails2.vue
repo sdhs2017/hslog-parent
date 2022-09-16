@@ -61,14 +61,20 @@
             // }
             //获取数据详情列表
             this.$nextTick(()=>{
-                this.$axios.get('static/filejson/log-event_config.json',{})
+                let logtype = '';
+                //判断详情类型
+                if(this.detailsData.type === 'eventDetail'){//事件
+                    logtype = 'event'
+                }else{//日志
+                    logtype = this.detailsData.agent.type
+                }
+                this.$axios.post(this.$baseUrl+'/log/getFormDetailByLogType.do',this.$qs.stringify({
+                    logType:logtype
+                }))
                     .then((res)=>{
                         let obj = res.data;
-                        if(this.detailsData.type === 'eventDetail'){
-                            this.listArr = obj.event[this.detailsData.type].detailsListArr;
-                        }else{
-                           this.listArr = obj.log[this.detailsData.agent.type].detailsListArr;
-                        }
+                        this.listArr = obj.data;
+                       // console.log(res.data)
                         this.$nextTick(()=>{
                             this.createDetails();
                         })

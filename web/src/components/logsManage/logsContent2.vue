@@ -28,7 +28,8 @@
                         <div class="searchlogs-tools-right" style="float: right;">
                             <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="total"></el-pagination>
                             <span v-if="exportBtn" >
-                                <el-button type="primary" v-if="$is_has('accurateSearch_exprotLog')" class="exportLogs" plain size="mini" @click="exportLogs('/log/exportLogList.do')">导出</el-button>
+                                <el-button type="primary" v-if="$is_has('accurateSearch_exprotLog')" class="exportLogs" plain size="mini" @click="exportLogs('/log/exportLogWithZip.do')">导出</el-button>
+                                <!--涉密修改-->
                                 <el-button type="primary" v-if="$is_has('accurateSearch_exprotLog_SR')" class="exportLogs" plain size="mini" @click="exportLogs('/log/exportLogListWithZip.do')">导出</el-button>
                             </span>
                         </div>

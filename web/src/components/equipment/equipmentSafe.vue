@@ -451,7 +451,7 @@
                         obj.label = this.syslogEventObj[i];
                         this.eventTypeArr.push(obj);
                     }
-                }else if(this.logType === 'winlog'){
+                }else if(this.logType === 'winlogbeat'){
                     for(let i in this.winlogEventObj){
                         let obj = {};
                         obj.value = i;

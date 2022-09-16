@@ -201,7 +201,7 @@
 
                 },
                 {
-                    prop:'logType',
+                    prop:'logTypeLabel',
                     label:'日志类型',
                     width:''
                 },
@@ -330,16 +330,13 @@
             /*获得日志类型*/
             getLogType(){
                 this.$nextTick(()=>{
-                    this.$axios.get('static/filejson/logTypeLevel.json',{})
+                    this.$axios.post(this.$baseUrl+'/log/getLogTypeComboxByPage.do',this.$qs.stringify({
+                        pageType:'equipment'
+                    }))
                         .then((res)=>{
-                            this.logBaseJson = res.data;
                             this.logType.push({value:'',label:'全部'});
-                            for(let i=0;i<res.data.length; i++){
-                                let obj = {
-                                    value:res.data[i].type,
-                                    label:res.data[i].label
-                                };
-                                this.logType.push(obj);
+                            for (let i in  res.data.data) {
+                                this.logType.push( res.data.data[i]);
                             }
                         })
                         .catch((err)=>{

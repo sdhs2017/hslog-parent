@@ -474,3 +474,10 @@
 .el-select-dropdown__item{
     opacity: 1;
 }
+/*Notification*/
+.NotificationCursorClass{
+    cursor: pointer;
+}
+.NotificationCursorClass:hover{
+    background: #fff5e7;
+}

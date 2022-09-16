@@ -387,7 +387,7 @@
                         .then(res=>{
                             this.bellArr = res.data;
                             /* *******产品监测 修改******** */
-                            this.bellArr.forEach((item=>{
+                            /*this.bellArr.forEach((item=>{
                                 let _that = this;
                                 let Mes = ''
                                 if(item.high_risk !== 0 && item.moderate_risk == 0){
@@ -413,7 +413,7 @@
                                         _that.goToThreat(item)
                                     }
                                 });
-                            }))
+                            }))*/
                             /*******************/
                         })
                         .catch(err=>{
@@ -428,7 +428,7 @@
                         .then(res=>{
                             this.alertCount = Number(res.data.message)
                             /* *******产品监测 修改******** */
-                            if(this.alertCount !== 0){
+                            /*if(this.alertCount !== 0){
                                 let _that = this;
                                 this.$notify({
                                     title: `最近${this.$store.state.beforeDay}天`,
@@ -442,7 +442,7 @@
                                         _that.goToAlert()
                                     }
                                 });
-                            }
+                            }*/
                             /*******************/
                         })
                         .catch(err=>{

@@ -207,6 +207,7 @@
                     'event.action':''
                 },
                 saveCondition:{},
+                logLevel:[],
             }
         },
         created(){
@@ -252,7 +253,7 @@
             getEquipmentData(){
                 this.loading1 = true;
                 this.$nextTick(()=>{
-                    this.$axios.post(this.$baseUrl+'/equipment/selectEquipment.do',this.$qs.stringify({id:this.equipmentId}))
+                    this.$axios.post(this.$baseUrl+'/equipment/selectEquipmentByLogTypeTransform.do',this.$qs.stringify({id:this.equipmentId}))
                         .then((res)=>{
                             this.loading1 = false;
                             //时间类型处理
@@ -292,9 +293,33 @@
                             res.data[0].type = type;
                             this.logType =  res.data[0].logType;
                             this.equipmentData = res.data;
+                            this.getLogLevel();
                         })
                         .catch((err)=>{
                             this.loading1 = false;
+                        })
+                })
+            },
+            /*获取日志级别*/
+            getLogLevel(){
+                this.$nextTick(()=>{
+                    // this.loading = true;
+                    this.$axios.post(this.$baseUrl+'/log/getLogLevelByLogType.do',this.$qs.stringify({
+                        logType: this.logType
+                    }))
+                        .then(res=>{
+                            //this.loading = false;
+                            let obj = res.data;
+                            if(obj.success == 'true'){
+                                for (let i in obj.data){
+                                    this.logLevel.push(obj.data[i])
+                                }
+                            }else{
+                                layer.msg(obj.message,{icon:5})
+                            }
+                        })
+                        .catch(err=>{
+                            this.loading = false;
                         })
                 })
             },

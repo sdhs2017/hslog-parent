@@ -1,0 +1,17 @@
+[
+    {
+        "value": "03",
+        "label": "主机",
+        "children": [
+
+            {
+                "value": "0301",
+                "label": "Windows"
+            },
+            {
+                "value": "0302",
+                "label": "Linux"
+            }
+        ]
+    }
+]

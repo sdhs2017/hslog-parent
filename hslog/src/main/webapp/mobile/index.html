@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,user-scalable=no,minimum-scale=1,maximum-scale=1"><title>安全运维数据平台</title><link rel="shortcut icon" type=image/x-icon href=static/img/favicon.ico><link rel=stylesheet href=static/css/element.css><style>@font-face{font-family:electronicFont;src:url(static/css/DS-DIGIT.TTF)}
+      html,body{
+        padding: 0;
+        margin: 0;
+        font-size: 100px;
+        color: #a3b9ec;
+      }
+      ul,li{
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      /*element-ui样式自定义*/
+      .el-message__icon{
+        font-size: 1rem;
+      }
+      .el-input--small .el-input__inner{
+        background: 0;
+        border: 1px solid #185bff;
+        color: #5bc0de;
+        -webkit-border-radius: 0;
+        -moz-border-radius: 0;
+        border-radius: 0;
+      }</style><link href=./static/css/app.98c0ce3d7aac8793b777c5b72d5f455d.css rel=stylesheet></head><body><div id=app></div><script src=static/js/jquery-2.1.0.js></script><script>$(document).ready(function() {
+        // put all your jQuery goodness in here.
+        function adjust() {
+          // 设计稿宽度是960px
+          var scale = $('body').width() / 960;
+          $('html').css('font-size', 100 * scale + 'px');
+        }
+        // 进入、刷新页面时执行函数，调整根字体
+        adjust();
+        //视口大小调整时执行函数，调整根字体
+        // 目测游戏内置页面用不到，用户不会产生resize事件
+        $(window).resize(function() {
+          adjust();
+        });
+      });</script><script type=text/javascript src=./static/js/manifest.79bfa4132761558733e1.js></script><script type=text/javascript src=./static/js/vendor.413845ec4ef0e71a772d.js></script><script type=text/javascript src=./static/js/app.d5d93ee8dd47cd9dc25b.js></script></body></html>

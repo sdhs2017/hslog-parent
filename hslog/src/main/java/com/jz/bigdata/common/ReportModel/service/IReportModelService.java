@@ -20,11 +20,11 @@ public interface IReportModelService {
 	 * @param metrics 指标
 	 * @param dashboardID 仪表板ID
 	 * @param reportModelType 报告类型（日报、周报、月报）
-	 * @param last 事件范围
+	 * @param searchConditions 查询参数（时间范围）
 	 * @return 生成的报告文件的路径path
 	 * @throws Exception
 	 */
-	String createReport(String images, String tables, String metrics, String dashboardID, String reportModelType,String last ) throws Exception;
+	String createReport(String images, String tables, String metrics, String dashboardID, String reportModelType,SearchConditions searchConditions) throws Exception;
 	/**
 	 * 查询报告模板列表
 	 * @param startRecord 开始行

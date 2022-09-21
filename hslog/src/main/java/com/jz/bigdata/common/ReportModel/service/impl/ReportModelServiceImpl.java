@@ -89,7 +89,7 @@ public class ReportModelServiceImpl implements IReportModelService {
 	private static final DateTimeFormatter dtf_simple = DateTimeFormatter.ofPattern(simple);
 
 	@Override
-	public String createReport(String images, String tables, String metrics,String dashboardID,String reportModelType,String last) throws Exception {
+	public String createReport(String images, String tables, String metrics,String dashboardID,String reportModelType,SearchConditions searchConditions) throws Exception {
 
 		//对参数进行格式化，参数都可以转成json
 		JSONArray imagesArray = JSONArray.fromObject(images);
@@ -113,17 +113,12 @@ public class ReportModelServiceImpl implements IReportModelService {
 				doc.open();
 				//写入word
 				//页眉写入时间范围
-				Map<String,String> timeArea = HttpRequestUtil.getStartEndTimeByLast(last);
+
 				StringBuffer timeAreaAppend = new StringBuffer();//要添加到页眉的内容
 				timeAreaAppend.append(" ");
-				if(reportModelType.equals("day")){
-					timeAreaAppend.append(timeArea.get("starttime").substring(0,10));
-				}else{
-					timeAreaAppend.append(timeArea.get("starttime").substring(0,10));
-					timeAreaAppend.append(" ~ ");
-					timeAreaAppend.append(timeArea.get("endtime").substring(0,10));
-
-				}
+				timeAreaAppend.append(searchConditions.getStartTime());
+				timeAreaAppend.append(" ~ ");
+				timeAreaAppend.append(searchConditions.getEndTime());
 				Itext2wordUtil.insertHeaderFooter(doc,sto,reportModel.getReportModelHeader()+timeAreaAppend,reportModel.getReportModelFooter());
 
 				//根据报告ID获取报告详情信息

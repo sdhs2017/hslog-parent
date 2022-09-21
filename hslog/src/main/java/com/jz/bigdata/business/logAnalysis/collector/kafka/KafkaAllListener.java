@@ -15,6 +15,7 @@ import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -23,6 +24,7 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.TopicPartition;
 import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.support.Acknowledgment;
 
@@ -43,7 +45,6 @@ public class KafkaAllListener {
 
     public static final String REGEX = "lineStartRegex";
     public static final String DEFAULT_REGEX = "^ java.|^   at";
-
     // log4j日志信息过滤条件
     private Pattern facility_pattern = Pattern.compile("local3:");
     private Pattern pattern = Pattern.compile(DEFAULT_REGEX);
@@ -75,6 +76,8 @@ public class KafkaAllListener {
     //filebeat
     private Pattern filebeatpattern = Pattern.compile("\"logtype\":\"app_*");
     private Pattern logstashSyslogPattern = Pattern.compile("\"type\":\"system-syslog\"");
+    //20220915 filebeat接syslog后，范式化结果的标识
+    private Pattern filebeatSyslogPattern = Pattern.compile("\"type\":\"syslog\"");
 
     //logstash 发送的syslog对应winlogbeat，声明index
     private String logstashIndexName ;
@@ -113,7 +116,10 @@ public class KafkaAllListener {
     private Asset asset;//逻辑资产
     private String json;
     private StringBuilder builder;
+
     @KafkaListener(id = "all",group = "jd-group",topics = "all", containerFactory = "kafkaListenerContainerFactory")
+//    @KafkaListener(id = "all",group = "jd-group",topicPartitions =
+//            { @TopicPartition(topic = "filebeat_all", partitions = { "0" })}, containerFactory = "kafkaListenerContainerFactory")
     public void kafkaListenBatch(List<ConsumerRecord<?, String>> records, Acknowledgment ack){
         IndexRequest request;
         try{
@@ -152,7 +158,88 @@ public class KafkaAllListener {
                 Matcher filebeatmatcher = filebeatpattern.matcher(logs);
                 //logstash syslog
                 Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(logs);
+                //filebeat syslog
+                Matcher filebeatSyslogMatcher = filebeatSyslogPattern.matcher(logs);
+
+                //TODO filebeat input syslog 范式化后的日志处理
+//                if(filebeatSyslogMatcher.find()){
+//                    try{
+//                        logType = logTypeConfig.getLogType_dns();
+//                        /**
+//                         * 将采集到的log转为jsonObject格式
+//                         */
+//                        JsonElement jsonElement = new JsonParser().parse(logs);
+//                        JsonObject jsonObject= jsonElement.getAsJsonObject();
+//                        //处理IP地址
+//                        // "log": {
+//                        //        "source": {
+//                        //            "address": "192.168.200.202:30640"
+//                        //        }
+//                        //    }
+//                        ipadress = jsonObject.getAsJsonObject("log").getAsJsonObject("source").get("address").getAsString();
+//                        ipadress = ipadress.split(":")[0];
+//                        //IP是否在虚拟资产中
+//                        if (AssetCache.INSTANCE.getIpAddressSet().contains(ipadress)) {
+//                            equipment = AssetCache.INSTANCE.getEquipmentMap().get(ipadress+logType);
+//
+//                            if(jsonObject.get("@timestamp").getAsString()!=null){
+//                                dateTime = DateTime.parse(jsonObject.get("@timestamp").getAsString(), dtf);
+//                                //20220913 在代码层面处理时间+8小时，代替logstash filter
+//                                dateTime = dateTime.plusHours(8);
+//                                //20220913 将日志信息重新写入json数据中
+//                                jsonObject.addProperty("@timestamp",dateTime.toString(dtf));
+//                            }else{
+//                                dateTime = DateTime.now();
+//                            }
+//                            //资产标签
+//                            JsonObject fields = new JsonObject();
+//                            fields.addProperty("userid",equipment.getUserId());
+//                            fields.addProperty("deptid",equipment.getDepartmentId());
+//                            fields.addProperty("equipmentname",equipment.getName());
+//                            fields.addProperty("equipmentid",equipment.getId());
+//                            fields.addProperty("ip",equipment.getIp());
+//                            //范式化是否成功的标识,先写死
+//                            fields.addProperty("failure",false);
+//                            jsonObject.add("fields",fields);
+//
+//                            //日志类型 agent.type = syslog
+//                            JsonObject agent = new JsonObject();
+//                            agent.addProperty("type","syslog");
+//                            jsonObject.add("agent",agent);
+//
+//
+//                            //日志级别
+//                            String logLevel_code = jsonObject.getAsJsonObject("event").get("severity").getAsString();
+//                            String logLevel = NumberUtils.isNumber(logLevel_code)?Constant.SYSLOG_SEVERITY.get(Integer.parseInt(logLevel_code)):"";
+//                            jsonObject.getAsJsonObject("log").addProperty("level",logLevel);
+//
+//                            // 判断syslog的module是否为空，不为空的情况下索引名称拼接module字段信息
+//                            module = jsonObject.get("module")==null?"":jsonObject.get("module").getAsString();
+//                            if(!Strings.isNullOrEmpty(module)){
+//                                logstashIndexName = "winlogbeat-"+module+"-"+ dateTime.toString("yyyy.MM.dd");
+//                            }else {
+//                                // module信息为空的情况下使用标准索引名称
+//                                logstashIndexName = "winlogbeat-"+ dateTime.toString("yyyy.MM.dd");
+//                            }
+//                            //System.out.print("--------------4-------------------");
+//                            request.index(logstashIndexName);
+//                            request.source(jsonObject.toString(), XContentType.JSON);
+//                            //logCurdDao.bulkProcessor_add(request);
+//                        }else{
+//                            //System.out.println("11");
+//                        }
+//                    }catch (Exception e){
+//                        //e.printStackTrace();
+//                        log.error("范式化失败 :"+e.getMessage());
+//                        log.error("日志内容："+logs);
+//                        continue;
+//                    }
+//
+//
+//
+//                }else
                 //确认是logstash范式化后的数据
+                //TODO 根据IP地址找如果只能找到一台资产  直接使用资产的日志类型 如果找到两个以上 资产  再根据日志类型判断
                 if(logstashSyslogMatcher.find()){
                     //明确日志类型
                     //首先是判断是不是dns日志
@@ -197,6 +284,10 @@ public class KafkaAllListener {
 
                             if(logstash2ECS.getTimestamp()!=null){
                                 dateTime = DateTime.parse(logstash2ECS.getTimestamp().toString(), dtf);
+                                //20220913 在代码层面处理时间+8小时，代替logstash filter
+                                dateTime = dateTime.plusHours(8);
+                                //20220913 将日志信息重新写入json数据中
+                                logstash2ECS.setTimestamp(dateTime.toString(dtf));
                             }else{
                                 dateTime = DateTime.now();
                             }
@@ -272,6 +363,7 @@ public class KafkaAllListener {
                         continue;
                     }
                 }
+
                 //log4j日志信息
                 else if (facility_matcher.find()) {
                     logType = LogType.LOGTYPE_LOG4J;
@@ -282,7 +374,9 @@ public class KafkaAllListener {
                         Matcher m = pattern.matcher(logs.replace(logleft, ""));
                         //判断是否符合正则表达式 如果符合，表明这是一条开始数据
                         if(m.find()) {
+                            System.out.print("--log4j:"+logleft);
                             logs = logs.replace(logleft, "");
+                            System.out.print("--log4j---end:"+logs);
                             //添加数据
                             builder.append(" \\005 "+log);
                         }else {
@@ -738,6 +832,7 @@ public class KafkaAllListener {
             }
 
         }catch(Exception e){
+
             e.printStackTrace();
             log.error("kafka—beats消费数据处理异常："+e.getMessage());
         }

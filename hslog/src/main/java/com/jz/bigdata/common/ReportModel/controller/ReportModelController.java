@@ -20,6 +20,7 @@ import com.jz.bigdata.common.ReportModel.entity.ReportModelInfo;
 import com.jz.bigdata.common.ReportModel.service.IReportModelService;
 import com.jz.bigdata.util.*;
 import com.jz.bigdata.util.HSTree.HSTree;
+import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import org.joda.time.DateTime;
@@ -59,9 +60,17 @@ public class ReportModelController {
 		String metrics = request.getParameter("metrics");//指标
 		String dashboardID = request.getParameter("dashboardID");//仪表板ID
 		String reportModelType = request.getParameter("reportModelType");//报告模板类型
-		String last = request.getParameter("last");//仪表板时间控件的值，用来计算持续时间
+//		String last = request.getParameter("last");//仪表板时间控件的值，用来计算持续时间
+//		String starttime = request.getParameter("starttime");
+//		String endtime = request.getParameter("endtime");
+		//获取时间范围
+		SearchConditions searchConditions = HttpRequestUtil.getSearchConditionsByRequest_time(request);
+		//时间范围参数异常
+		if(!Strings.isNullOrEmpty(searchConditions.getErrorInfo())){
+			return Constant.failureMessage(searchConditions.getErrorInfo());
+		}
 		try{
-			String	result = this.reportModelService.createReport(base64_images,tables,metrics,dashboardID,reportModelType,last);
+			String	result = this.reportModelService.createReport(base64_images,tables,metrics,dashboardID,reportModelType,searchConditions);
 			//如果文件正常生成
 			if(result.isEmpty()){
 				return Constant.failureMessage("报告生成失败！");

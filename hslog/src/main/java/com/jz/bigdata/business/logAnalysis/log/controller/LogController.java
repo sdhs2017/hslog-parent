@@ -31,6 +31,7 @@ import com.jz.bigdata.util.POI.ReadExcel;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.apache.commons.io.FileUtils;
+import org.codehaus.jackson.map.ser.std.ScalarSerializerBase;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -79,6 +80,8 @@ public class LogController extends BaseController{
 
 	@Resource(name ="configProperty")
 	private ConfigProperty configProperty;
+	@Resource(name = "LogTypeConfig")
+	private LogTypeConfig logTypeConfig;
 
 	@Resource(name ="SafeStrategyService")
 	private ISafeStrategyService safeStrategyService;
@@ -305,6 +308,11 @@ public class LogController extends BaseController{
 //		}
 //
 //	}
+
+	/**
+	 * ES数据初始化
+	 * @return
+	 */
 	@ResponseBody
 	@RequestMapping(value="/createIndexAndMapping4Beats",produces = "application/json; charset=utf-8")
 	@DescribeLog(describe="初始化数据结构")
@@ -389,7 +397,7 @@ public class LogController extends BaseController{
 			}
 
 
-
+			//初始化各种beat的template
 			logService.initOfElasticsearch("auditbeat-","auditbeat-*",null,settingmap,beatTemplate.getAuditBeatTemplate());
 			logService.initOfElasticsearch("winlogbeat-","winlogbeat-*",null,settingmap,beatTemplate.getWinlogBeatTemplate());
 			logService.initOfElasticsearch("packetbeat-","packetbeat-*",null,settingmap,beatTemplate.getPacketBeatTemplate());
@@ -2598,7 +2606,9 @@ public class LogController extends BaseController{
 		Metric metric = new Metric("count",Constant.BEAT_DATE_FIELD,"日志数");
 		params.getMetricList().add(metric);
 		try{
+			//获取数据
 			Map<String, Object> result = logService.getMultiAggregationDataSet(params);
+			//返回
 			return Constant.successData(JSONArray.fromObject(result).toString()) ;
 		}catch(Exception e){
 			log.error("统计各时间段的日志数据量"+e.getMessage());
@@ -2817,7 +2827,7 @@ public class LogController extends BaseController{
 		// receive parameter
 		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
 		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
-
+		//参数转Map
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, String> map = new ConcurrentHashMap<String, String>();
 		try {
@@ -2825,7 +2835,7 @@ public class LogController extends BaseController{
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		//分页参数
 		Object pageo = map.get("page");
 		Object sizeo = map.get("size");
 		map.remove("page");
@@ -2856,17 +2866,108 @@ public class LogController extends BaseController{
 			allmap.put("list",null);
 			return JSONArray.fromObject(allmap).toString();
 		}
-
+		//组装返回数据
 		allmap = list.get(0);
 		list.remove(0);
 		allmap.put("list", list);
 		String result = JSONArray.fromObject(allmap).toString();
 		String replace=result.replace("\\\\005", "<br/>");
 
-		return replace;
+		//日志类型处理，ES中存储的值要替换为前端要显示的值
+		return StringUtils.LogTypeTransformForESLog(replace,logTypeConfig.getLogTypeToWebMap());
 	}
+	/**
+	 * 根据不同页面获取日志类型combox
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getLogTypeComboxByPage",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="根据不同页面获取日志类型combox")
+	public String getLogTypeComboxByPage(HttpServletRequest request,HttpSession session) {
+		//参数，页面类型：资产概览页面、精确查询页面、事件关联查询页面
+		String pageType = request.getParameter("pageType");
+		try{
+			List<Map<String, String>> result = logService.getLogTypeInfo(pageType);
+			return Constant.successData(JSONArray.fromObject(result).toString());
+		}catch (Exception e){
+			log.error("获取日志类型配置信息异常："+e.getMessage());
+			return Constant.failureMessage("获取日志类型配置信息异常");
+		}
 
+	}
+	/**
+	 * 根据日志类型获取对应的日志级别
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getLogLevelByLogType",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="根据日志类型获取对应的日志级别")
+	public String getLogLevelByLogType(HttpServletRequest request,HttpSession session) {
+		//日志类型，支持多个，内容以逗号隔开
+		String logType = request.getParameter("logType");
+		try{
+			Set<String> result = logService.getLogLevelByLogType(logType);
+			List<Map<String,String>> comboboxResult = new ArrayList<>();
+			//遍历，组装成combobox可用格式
+			for(String set:result){
+				Map<String,String> row = new HashMap<>();
+				row.put("label",set);
+				row.put("value",set);
+				comboboxResult.add(row);
+			}
+			return Constant.successData(JSONArray.fromObject(comboboxResult).toString());
+		}catch (Exception e){
+			log.error("根据日志类型获取对应的日志级别异常："+e.getMessage());
+			return Constant.failureMessage("根据日志类型获取对应的日志级别异常");
+		}
 
+	}
+	/**
+	 * 根据日志类型获取对应的table的列信息
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getTableHeadByLogType",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="根据日志类型获取对应的table的列信息")
+	public String getTableHeadByLogType(HttpServletRequest request,HttpSession session) {
+		//日志类型
+		String logType = request.getParameter("logType");
+		try{
+			List<TableHead> result = logService.getTableHeadByLogType(logType);
+			return Constant.successData(JSONArray.fromObject(result).toString());
+		}catch (Exception e){
+			log.error("根据日志类型获取对应的table的列信息异常："+e.getMessage());
+			return Constant.failureMessage("根据日志类型获取对应的table的列信息异常");
+		}
+
+	}
+	/**
+	 * 根据日志类型获取对应的form的字段信息
+	 * @param request
+	 * @param session
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/getFormDetailByLogType",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="根据日志类型获取对应的form的字段信息")
+	public String getFormDetailByLogType(HttpServletRequest request,HttpSession session) {
+		//日志类型
+		String logType = request.getParameter("logType");
+		try{
+			String[] result = logService.getFormDetailByLogType(logType);
+			return Constant.successData(JSONArray.fromObject(result).toString());
+		}catch (Exception e){
+			log.error("根据日志类型获取对应的form的字段信息异常："+e.getMessage());
+			return Constant.failureMessage("根据日志类型获取对应的form的字段信息异常");
+		}
+
+	}
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		System.out.println(new Syslog().toMapping());

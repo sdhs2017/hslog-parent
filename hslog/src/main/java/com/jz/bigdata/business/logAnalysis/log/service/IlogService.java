@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.hs.elsearch.entity.VisualParam;
+import com.jz.bigdata.business.logAnalysis.log.entity.TableHead;
 import org.elasticsearch.action.DocWriteResponse;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
@@ -549,5 +550,36 @@ public interface IlogService {
 	 * @return
 	 */
 	public long getCount(Map<String, String> map, String starttime,String endtime, String... indices) throws Exception;
+
+	/**
+	 * 根据不同页面获取日志类型combox
+	 * @param type 类型，按照前端页面实际情况分类：资产概览页面、精确查询页面、事件关联查询页面
+	 * @return
+	 * @throws Exception
+	 */
+	public List<Map<String,String>> getLogTypeInfo(String type) throws Exception;
+	/**
+	 * 根据日志类型获取对应的日志级别
+	 * @param logType 日志类型,支持多个，内容以逗号隔开
+	 * @return
+	 * @throws Exception
+	 */
+	public Set<String> getLogLevelByLogType(String logType) throws Exception;
+
+	/**
+	 * 根据日志类型获取对应的table 列信息
+	 * @param logType 日志类型
+	 * @return
+	 * @throws Exception
+	 */
+	public List<TableHead> getTableHeadByLogType(String logType) throws Exception;
+
+	/**
+	 * 根据日志类型获取对应的form的字段信息
+	 * @param logType 日志类型
+	 * @return
+	 * @throws Exception
+	 */
+	public String[] getFormDetailByLogType(String logType) throws Exception;
 
 }

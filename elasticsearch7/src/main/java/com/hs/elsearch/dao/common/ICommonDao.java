@@ -3,6 +3,7 @@ package com.hs.elsearch.dao.common;
 import com.hs.elsearch.entity.HttpRequestParams;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.snapshots.SnapshotInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -69,4 +70,62 @@ public interface ICommonDao {
      * @throws Exception
      */
     public boolean indexExists(String... indices) throws Exception;
+    /**
+     * 关闭索引
+     * @param indices 索引名称
+     * @return
+     * @throws Exception
+     *
+     */
+    public boolean closeIndex(String...indices) throws Exception ;
+
+    /**
+     * 开启索引
+     * @param indices 索引名称
+     * @return
+     * @throws Exception
+     *
+     */
+    public boolean openIndex(String... indices) throws Exception;
+    /*
+     * 创建快照备份策略
+     * @param indices 要进行快照备份的索引名称
+     * @param policy_id 策略id
+     * @param name 快照名称
+     * @param schedule 定时器，cron表达式
+     * @param repository 备份仓库名称
+     * @return
+     */
+    public boolean createSLMPolicy(String indices,String policy_id,String name,String schedule,String repository) throws IOException;
+
+    /**
+     * 执行快照策略，直接调用，没有返回true/false，能否执行应该是在创建时就已经进行的检测验证。
+     * 返回执行后的第一个快照名称
+     * @param policy_id 快照策略ID
+     * @throws IOException
+     */
+    public String executeSLMPolicy(String policy_id) throws IOException;
+
+    /**
+     * 根据策略id删除快照策略
+     * @param policy_id 快照策略ID
+     * @return
+     */
+    public boolean deleteSLMPolicy(String policy_id) throws IOException;
+    /**
+     * 根据存储仓库获取所有快照的列表
+     * @param repositoryName 存储仓库名称
+     * @return 快照列表
+     * @throws IOException
+     */
+    public List<SnapshotInfo> getSnapListByPolicyId(String repositoryName) throws IOException;
+
+    /**
+     * 还原快照
+     * @param repositoryName 存储仓库名称
+     * @param snapshotName 快照名称
+     * @return
+     * @throws IOException
+     */
+    public boolean restoreSnapshot(String repositoryName,String snapshotName) throws IOException;
 }

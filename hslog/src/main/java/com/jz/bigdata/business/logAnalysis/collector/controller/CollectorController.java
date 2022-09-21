@@ -222,7 +222,9 @@ public class CollectorController {
 
 		System.out.println("-----------------------startPcap4jCollector-----------------");
 		Map<String, Object> map = new HashMap<>();
+		//获取数据库中的配置信息
 		Object has_packet = ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent(Constant.HAS_PACKET);
+		//判断是否存在流量模块
 		if(has_packet==null||has_packet.toString().equals("false")){
 			map.put("state", false);
 			map.put("msg", "产品未激活流量模块！");
@@ -496,7 +498,9 @@ public class CollectorController {
 			 *更新资产、全局配置缓存信息
 			 */
 			AssetCache.INSTANCE.init(equipmentService,assetService);
+			//全局配置信息初始化
 			ConfigurationCache.INSTANCE.init(configurationService);
+			//开启
 			return collectorService.startSyslogKafkaListener();
 		}catch (Exception e){
 			log.error("Syslog采集器开启失败"+e.getMessage());

@@ -28,6 +28,7 @@ import java.util.Map;
  * @date: 2018/6/21 15:58
  * @description kafka 消费者配置
  */
+//通过注解的方式设置为自启动
 @Configuration
 @EnableKafka
 public class KafkaConfig {

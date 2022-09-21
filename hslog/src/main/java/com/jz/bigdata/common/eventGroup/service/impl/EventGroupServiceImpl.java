@@ -81,13 +81,16 @@ public class EventGroupServiceImpl implements IEventGroupService {
 	@Override
 	@Transactional(propagation= Propagation.REQUIRED,rollbackFor= Exception.class)
 	public boolean delete(String event_group_id) {
+		//删除事件组信息
 		eventGroupDao.deleteEventGroup(event_group_id);
+		//删除事件组关系表
 		eventGroupDao.deleteEventGroupRelations(event_group_id);
 		return true;
 	}
 
 	@Override
 	public EventGroup getEventGroupInfoById(String event_group_id) {
+		//查询数据库中的事件组信息，确保事件组信息
 		EventGroup eventGroup = eventGroupDao.selectEventGroupInfoById(event_group_id);
 		if(null!=eventGroup){
 			//组装事件信息id，前端加载使用
@@ -108,6 +111,7 @@ public class EventGroupServiceImpl implements IEventGroupService {
 			eventGroup.setWinlog_event_ids( winlog_event_ids.toArray());
 			return eventGroup;
 		}else{
+			//如果id对应的事件组不存在，返回空数据
 			return new EventGroup();
 		}
 	}

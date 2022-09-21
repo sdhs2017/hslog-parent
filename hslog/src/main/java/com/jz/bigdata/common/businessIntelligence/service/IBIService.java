@@ -18,8 +18,8 @@ public interface IBIService {
 
     /**
      * 通过X轴的聚合方式获取对应的field
-     * @param templateName
-     * @param indexName
+     * @param templateName 模板名称
+     * @param indexName 索引名称
      * @param agg 聚合方式
      * @return
      */

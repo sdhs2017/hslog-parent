@@ -490,7 +490,7 @@ public class HttpRequestUtil {
     }
 
     /**
-     * 根据参数获取事件范围
+     * 根据参数获取时间范围，主要处理可视化部分的时间控件
      * @param request
      * @return
      */
@@ -780,7 +780,6 @@ public class HttpRequestUtil {
             return map;
         }
     }
-
     /**
      * 根据请求参数获取起始和截至时间
      * @param request 请求对象

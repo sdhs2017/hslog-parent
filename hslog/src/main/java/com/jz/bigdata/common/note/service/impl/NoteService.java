@@ -103,16 +103,17 @@ public class NoteService implements INoteService {
 	 */
 	@Override
 	public int backup() {
+		//是否有已备份的表
 		List<Note> name=noteDao.tableName();
 		
 //		获取总数集合
 //		listName=(List) name.get(0);
 //		System.out.println(listName.get(0));
-	
+		//如果已有备份表，删除
 		if(name.size()>0){
 			noteDao.dropTable();
 		}
-		
+		//备份
 		return noteDao.backup();
 	}
 
@@ -125,12 +126,12 @@ public class NoteService implements INoteService {
 	 */
 	@Override
 	public int restore() {
-		
+		//确认是否有备份表
 		List<Note> name=noteDao.tableName();
 		int num=0;
 		if(name.size()>0){
 			//涉密
-			//将备份后的表
+			//将备份后的表进行增量还原，即只还原当前表中不存在的数据
 			noteDao.restore_security();
 			num=1;
 			//noteDao.dropTableNote();

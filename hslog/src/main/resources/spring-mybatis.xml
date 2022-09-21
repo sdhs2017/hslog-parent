@@ -653,6 +653,18 @@
 			</array>
 		</property>
 	</bean>
+	<!-- 数据源-标签管理 -->
+	<bean id="ReportModelSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="logDataSource"/>
+		<!-- 自动扫描mapping.xml文件 -->
+		<property name="mapperLocations" value="classpath*:com/jz/bigdata/common/ReportModel/**/*.xml"></property>
+
+		<property name="plugins">
+			<array>
+				<bean class="com.jz.bigdata.util.MapInterceptor"/>
+			</array>
+		</property>
+	</bean>
 	<!-- <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer"> 
 	   <property name="basePackage" value="com.business.mapper"/>  
 	</bean> -->
@@ -836,6 +848,11 @@
 		<property name="basePackage" value="com.jz.bigdata.business.data_sec_govern.label"/>
 		<property name="sqlSessionFactoryBeanName" value="DSGLabelSqlSessionFactory"></property>
 	</bean>
+	<!--报告模板 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.jz.bigdata.common.ReportModel"/>
+		<property name="sqlSessionFactoryBeanName" value="ReportModelSqlSessionFactory"></property>
+	</bean>
 	<!-- es spring官方封装测试 -->
 	<!-- 远程机器 -->
 	<!-- 
@@ -909,7 +926,7 @@
 	<bean id="elasticsearch" class="com.hs.elsearch.client.RestHighClient7">
 		<property name="elasticsearchbean">
 			<map>
-				<entry key="es_ip" value="xxx.xxx.xxx.xxx"/>
+				<entry key="es_ip" value="192.168.200.200"/>
 				<entry key="es_port" value="9200"/>
 				<entry key="es_user" value="elastic"/>
 				<entry key="es_password" value="hsdata.123"/>
@@ -996,7 +1013,16 @@
 		<!-- 设置编码格式 -->
 		<property name="fileEncoding" value="UTF-8"></property>
 	</bean>
-
+	<bean id="logTypeConfig" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+		<property name="locations">
+			<!-- 这里是PropertiesFactoryBean类，它也有个locations属性，也是接收一个数组，跟上面一样  -->
+			<list>
+				<value>classpath:logTypeConfig.properties</value>
+			</list>
+		</property>
+		<!-- 设置编码格式 -->
+		<property name="fileEncoding" value="UTF-8"></property>
+	</bean>
 	<!--  计划任务 及cache初始化    -->
 	<bean id="start_execution" class="com.jz.bigdata.common.start_execution.start" scope="singleton" init-method="init"></bean>
 	<bean id="BasicJobsStart" class="com.jz.bigdata.common.start_execution.task.BasicJobsStart" scope="singleton" init-method="start"></bean>

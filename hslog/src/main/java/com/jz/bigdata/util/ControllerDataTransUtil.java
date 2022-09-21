@@ -53,7 +53,7 @@ public class ControllerDataTransUtil {
 
     /**
      * 将数据转化为轮询动态折线图所需要的数据,去掉第一个和最后一个点
-     * @param oldResult
+     * @param oldResult 处理前数据
      * @return
      */
     public static LinkedHashMap<String,ArrayList<Map<String,Object>>> convertToDynamicLineData(Map<String, Object> oldResult){

@@ -581,7 +581,7 @@ public class FlowController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
+            //分页
             Object pageo = map.get("page");
             Object sizeo = map.get("size");
             map.remove("page");
@@ -589,7 +589,7 @@ public class FlowController {
 
             String page = pageo.toString();
             String size = sizeo.toString();
-
+            //起始/截止时间
             String starttime = "";
             if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
                 starttime = map.get("starttime");
@@ -853,8 +853,9 @@ public class FlowController {
         Map<String,String> timeMap = getStartEndTime(request);
         //String starttime = request.getParameter("startTime");
         //String endtime = request.getParameter("endTime");
-
+        //目的地址
         String ipv4_dst_addr = request.getParameter("ipv4_dst_addr");
+        //应用协议
         String application_layer_protocol = request.getParameter("application_layer_protocol");
 
         Map<String, String> map = new HashMap<String, String>();
@@ -2355,7 +2356,9 @@ public class FlowController {
     @RequestMapping("/getMap")
     @DescribeLog(describe="首页地图地球-展示流量的流向")
     public String getMap(HttpServletRequest request) {
+        //index
         String index = configProperty.getEs_flow_index();
+        //聚合参数
         String [] groupfields = {"src_addr_city.raw","dst_addr_city.raw"};
         String [] types = {"defaultpacket"};
         List<List<Map<String, Object>>> list = new ArrayList<>();

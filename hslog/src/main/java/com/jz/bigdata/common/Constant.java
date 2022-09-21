@@ -72,6 +72,15 @@ public class Constant {
 		EQUIPMENT_TYPE_EN.put("0407","应用-Sqlserver");
 		EQUIPMENT_TYPE_EN.put("0408","应用-Db2");
 	}
+	/**
+	 * 报告模板类型 中英文对照，日报day、周报week、月报month
+	 */
+	public static Map<String,String> REPORT_MODEL_TYPE = new HashMap<>();
+	static{
+		REPORT_MODEL_TYPE.put("day","日报");
+		REPORT_MODEL_TYPE.put("week","周报");
+		REPORT_MODEL_TYPE.put("month","月报");
+	}
 	//操作管理员角色id
 	public static final String USER_ROLE_OPERATION_MANAGER = "manager";
 	//filebeat file_type = db 文件类型=数据库
@@ -123,6 +132,19 @@ public class Constant {
 		level4.put("value","4");
 		DATA_SOURCE_METADATA_FIELD_SensitiveLevel.add(level4);
 	}
+	//日志级别与数字的对应关系
+	public final static Map<Integer, String> SYSLOG_SEVERITY = new HashMap<>();
+	static{
+		SYSLOG_SEVERITY.put(0, "emergency"); 		//system is unusable
+		SYSLOG_SEVERITY.put(1, "alert");	 		//action must be taken immediately
+		SYSLOG_SEVERITY.put(2, "critical");	 		//critical conditions
+		SYSLOG_SEVERITY.put(3, "error");			//error conditions
+		SYSLOG_SEVERITY.put(4, "warning");			//warning conditions
+		SYSLOG_SEVERITY.put(5, "notice");			//normal but significant condition
+		SYSLOG_SEVERITY.put(6, "information");	//informational messages
+		SYSLOG_SEVERITY.put(7, "debug");			//debug-level messages
+	}
+
 	/**
 	 * 数据源-元数据-表格分类
 	 */
@@ -186,6 +208,7 @@ public class Constant {
 		windows.put("value","0301");
 		EVENT_TYPE.add(windows);
 	}
+
 	//批量提交数
 	public static String ES_BULK_NAME = "es_bulk";
 	//ES bulk提交 线程数

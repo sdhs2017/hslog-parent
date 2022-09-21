@@ -240,9 +240,11 @@ public class UserServiceImpl implements IUserService {
 		if(ip_black!=null&&ip_black.toString().indexOf(ip)>=0){
 			return Constant.failureMessage("IP被限制登录！");
 		}
+		//java.lang.System.out.print("--1---");
 		//user.setPassword(MD5.EncoderByMd5(user.getPassword()));
 		//通过账号和密码查询用户信息
 		User _user = userDao.selectByPhonePwd(user);
+		//java.lang.System.out.print("--1---"+JSONObject.fromObject(_user).toString());
 		Map<String,Object> map =new HashMap<String,Object>();
 		//首页，用于登录成功后的跳转
 		map.put("homepage",configProperty.getHomepage_url());
@@ -252,6 +254,7 @@ public class UserServiceImpl implements IUserService {
 		Boolean vresult = verifyLicense.verify();
 		//证书是否存在
 		if (vresult) {
+			//java.lang.System.out.print("---2--");
 			//获取证书中的信息（客户名称以及到期时间）
 			LicenseContent licenseContent = verifyLicense.getLicenseContent();
 			DateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -261,6 +264,7 @@ public class UserServiceImpl implements IUserService {
 			map.put("custom_name",extra.getCustom_name());
 			//是否有账号密码都匹配的账号信息
 			if(_user!=null){
+				//java.lang.System.out.print("-------3----");
 				//状态值为2 账号停用
 				if(_user.getState()==2){
 					map.put("success", "false");

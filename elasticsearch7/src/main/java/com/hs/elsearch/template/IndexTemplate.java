@@ -5,6 +5,10 @@ import org.elasticsearch.action.admin.cluster.repositories.delete.DeleteReposito
 import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesRequest;
 import org.elasticsearch.action.admin.cluster.repositories.get.GetRepositoriesResponse;
 import org.elasticsearch.action.admin.cluster.repositories.put.PutRepositoryRequest;
+import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsRequest;
+import org.elasticsearch.action.admin.cluster.snapshots.get.GetSnapshotsResponse;
+import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotRequest;
+import org.elasticsearch.action.admin.cluster.snapshots.restore.RestoreSnapshotResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeRequest;
 import org.elasticsearch.action.admin.indices.forcemerge.ForceMergeResponse;
@@ -22,6 +26,7 @@ import org.elasticsearch.client.core.CountRequest;
 import org.elasticsearch.client.core.CountResponse;
 import org.elasticsearch.client.indexlifecycle.*;
 import org.elasticsearch.client.indices.*;
+import org.elasticsearch.client.slm.*;
 import org.elasticsearch.client.tasks.TaskSubmissionResponse;
 import org.elasticsearch.cluster.metadata.MappingMetaData;
 import org.elasticsearch.cluster.metadata.RepositoryMetaData;
@@ -38,6 +43,7 @@ import org.elasticsearch.index.reindex.ReindexRequest;
 import org.elasticsearch.index.reindex.ReindexRequestBuilder;
 import org.elasticsearch.repositories.fs.FsRepository;
 import org.elasticsearch.script.Script;
+import org.elasticsearch.snapshots.SnapshotInfo;
 
 import java.io.IOException;
 import java.util.*;
@@ -644,5 +650,107 @@ public class IndexTemplate {
         boolean acknowledged = updateSettingsResponse.isAcknowledged();
 
         return acknowledged;
+    }
+
+    /**
+     * 创建快照备份策略
+     *PUT _slm/policy/nightly-snapshots
+     * {
+     *   "schedule": "0 30 1 * * ?",
+     *   "name": "<nightly-snap-{now/d}>",
+     *   "repository": "my_repository",
+     *   "config": {
+     *     "indices": "*",
+     *     "include_global_state": true
+     *   },
+     *   "retention": {
+     *     "expire_after": "30d",
+     *     "min_count": 5,
+     *     "max_count": 50
+     *   }
+     * }
+     * @param indices 要进行快照备份的索引名称
+     * @param policy_id 策略id
+     * @param name 快照名称
+     * @param schedule 定时器，cron表达式
+     * @param repository 备份仓库名称
+     * @return
+     */
+    public boolean createSLMPolicy(String indices,String policy_id,String name,String schedule,String repository) throws IOException {
+        //配置要进行快照备份的索引名称
+        Map<String, Object> config = new HashMap<>();
+        config.put("indices", indices);
+        //retention 默认30天过期删除，(最小5  最大50个快照???存疑)
+        SnapshotRetentionConfiguration retention =
+                new SnapshotRetentionConfiguration(TimeValue.timeValueDays(30), 5, 50);
+        SnapshotLifecyclePolicy policy = new SnapshotLifecyclePolicy(
+                policy_id, name, schedule,
+                repository, config, retention);
+        //执行创建
+        PutSnapshotLifecyclePolicyRequest request =
+                new PutSnapshotLifecyclePolicyRequest(policy);
+        org.elasticsearch.client.core.AcknowledgedResponse resp = restHighLevelClient.indexLifecycle()
+                .putSnapshotLifecyclePolicy(request, RequestOptions.DEFAULT);
+        boolean acknowledged = resp.isAcknowledged();
+        return acknowledged;
+    }
+
+    /**
+     * 执行快照策略，直接调用，没有返回true/false，能否执行应该是在创建时就已经进行的检测验证。
+     * 返回执行后的第一个快照名称
+     * @param policy_id 快照策略ID
+     * @throws IOException
+     */
+    public String executeSLMPolicy(String policy_id) throws IOException {
+        GetSnapshotLifecyclePolicyRequest getRequest =
+                new GetSnapshotLifecyclePolicyRequest(policy_id);
+        GetSnapshotLifecyclePolicyResponse getResponse =
+                restHighLevelClient.indexLifecycle()
+                        .getSnapshotLifecyclePolicy(getRequest,
+                                RequestOptions.DEFAULT);
+        String snapshot_name = getResponse.getPolicies().get(policy_id).getName();
+        return snapshot_name;
+    }
+
+    /**
+     * 根据策略id删除快照策略
+     * @param policy_id 快照策略ID
+     * @return
+     */
+    public boolean deleteSLMPolicy(String policy_id) throws IOException {
+        DeleteSnapshotLifecyclePolicyRequest deleteRequest =
+                new DeleteSnapshotLifecyclePolicyRequest(policy_id);
+        org.elasticsearch.client.core.AcknowledgedResponse deleteResp = restHighLevelClient.indexLifecycle()
+                .deleteSnapshotLifecyclePolicy(deleteRequest, RequestOptions.DEFAULT);
+        boolean deleteAcknowledged = deleteResp.isAcknowledged();
+        return deleteAcknowledged;
+    }
+
+    /**
+     * 根据存储仓库获取所有快照的列表
+     * @param repositoryName 存储仓库名称
+     * @return 快照列表
+     * @throws IOException
+     */
+    public List<SnapshotInfo> getSnapListByPolicyId(String repositoryName) throws IOException {
+        GetSnapshotsRequest request = new GetSnapshotsRequest();
+        request.repository(repositoryName);
+        GetSnapshotsResponse response = restHighLevelClient.snapshot().get(request, RequestOptions.DEFAULT);
+        List<SnapshotInfo> snapshotsInfos = response.getSnapshots();
+        return snapshotsInfos;
+    }
+
+    /**
+     * 还原快照
+     * @param repositoryName 存储仓库名称
+     * @param snapshotName 快照名称
+     * @return
+     * @throws IOException
+     */
+    public boolean restoreSnapshot(String repositoryName,String snapshotName) throws IOException {
+        RestoreSnapshotRequest request = new RestoreSnapshotRequest(repositoryName, snapshotName);
+        RestoreSnapshotResponse response = restHighLevelClient.snapshot().restore(request, RequestOptions.DEFAULT);
+        //没有报错直接返回true。验证过程中发现执行成功了，返回值中也没有任何相关内容表示
+        return true;
     }
 }

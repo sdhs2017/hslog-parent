@@ -182,6 +182,37 @@ public class ConfigProperty {
 	@Value("#{prop.product_info}")
 	private String product_info;
 
+	@Value("#{prop.kafka_topic_syslog}")
+	private String kafka_topic_syslog;
+	@Value("#{prop.kafka_topic_beats}")
+	private String kafka_topic_beats;
+	@Value("#{prop.kafka_topic_file}")
+	private String kafka_topic_file;
+
+	public String getKafka_topic_syslog() {
+		return kafka_topic_syslog;
+	}
+
+	public void setKafka_topic_syslog(String kafka_topic_syslog) {
+		this.kafka_topic_syslog = kafka_topic_syslog;
+	}
+
+	public String getKafka_topic_beats() {
+		return kafka_topic_beats;
+	}
+
+	public void setKafka_topic_beats(String kafka_topic_beats) {
+		this.kafka_topic_beats = kafka_topic_beats;
+	}
+
+	public String getKafka_topic_file() {
+		return kafka_topic_file;
+	}
+
+	public void setKafka_topic_file(String kafka_topic_file) {
+		this.kafka_topic_file = kafka_topic_file;
+	}
+
 	public String getProduct_info() {
 		return product_info;
 	}

@@ -15,13 +15,12 @@ import com.google.common.base.Strings;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
 import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.system.service.ISystemService;
-import com.jz.bigdata.util.BASE64Util;
-import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.*;
 import com.jz.bigdata.util.POI.ReadExcel;
-import com.jz.bigdata.util.RoleAuthorityProperty;
 import com.sun.tools.internal.jxc.ap.Const;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,7 +40,6 @@ import com.jz.bigdata.common.equipment.service.IEquipmentService;
 import com.jz.bigdata.components.kafka.logAnalysis.SysLogKafkaConsumer;
 //import com.jz.bigdata.framework.spring.es.elasticsearch.ClientTemplate;
 //import com.hs.elsearch.template.bak.ClientTemplate;
-import com.jz.bigdata.util.DescribeLog;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -65,7 +63,8 @@ public class EquipmentController {
 
 	@Resource(name = "configProperty")
 	private ConfigProperty configProperty;
-
+	@Resource(name = "LogTypeConfig")
+	private LogTypeConfig logTypeConfig;
 	@Value(value="classpath:equipmentVisual.json")
 	private org.springframework.core.io.Resource equipmentVisual;
 	@Resource(name="SystemService")
@@ -283,6 +282,33 @@ public class EquipmentController {
 	}
 	/**
 	 * @param request
+	 * @param equipment
+	 * @return
+	 * 查询单个资产实体，并对日志类型进行替换
+	 */
+	@ResponseBody
+//	@RequestMapping("/selectEquipment")
+	@RequestMapping(value="/selectEquipmentByLogTypeTransform.do", produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="查询单个资产")
+	public List<Equipment> selectEquipmentByLogTypeTransform(HttpServletRequest request, Equipment equipment) {
+		List<Equipment> list= null;
+		try {
+			list = this.equipmentService.selectEquipment(equipment);
+			for(Equipment _equipment:list){
+				//获取日志类型后端值与前端显示文字的对应关系
+				String logTypeToWeb = logTypeConfig.getLogTypeToWebMap().get(_equipment.getLogType());
+				//如果有对应关系，将日志类型改为对应后的值
+				if(StringUtils.isNotEmpty(logTypeToWeb)){
+					_equipment.setLogType(logTypeToWeb);
+				}
+			}
+		} catch (Exception e) {
+			log.error("查询单个资产：失败"+e.getMessage());
+		}
+		return list;
+	}
+	/**
+	 * @param request
 	 * @return 获取资产列表,dashboard 设置资产/资产组 ，点击资产组后加载不包含在资产组中的资产
 	 */
 	@ResponseBody
@@ -328,7 +354,7 @@ public class EquipmentController {
 	/**
 	 * @param request
 	 * @param session
-	 * @return 分页测试例子
+	 * @return 分页查询资产
 	 */
 	@ResponseBody
 //	@RequestMapping("/selectPage")
@@ -667,7 +693,7 @@ public class EquipmentController {
 	@RequestMapping(value="insertEquipmentUpload")
 	@DescribeLog(describe="资产文件上传并导入到数据库")
 	public String insertEquipmentUpload(MultipartHttpServletRequest request,HttpSession session) {
-
+		//文件名称
 		Iterator<String> fileNames = request.getFileNames();
 		String filePath ="";
 		while (fileNames.hasNext()) {
@@ -740,6 +766,7 @@ public class EquipmentController {
 
 		List<List<String>> equipments = null;
 		try {
+			//获取文件中的数据
 			equipments = readExcel.getExcelInfo(filePath);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -751,6 +778,7 @@ public class EquipmentController {
             return Constant.failureMessage("导入失败，资产清单中资产数超过了单节点支撑的300台资产，实际资产数为"+equipments.size());
         }
 		List<Equipment> equipmentList = new ArrayList<>();
+        //遍历文件中的资产数据
 		for (List<String> list : equipments){
 			Equipment equipment =new Equipment();
 			// 资产名称

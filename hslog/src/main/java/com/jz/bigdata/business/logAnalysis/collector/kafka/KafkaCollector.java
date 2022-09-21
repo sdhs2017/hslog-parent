@@ -356,7 +356,7 @@ public class KafkaCollector implements Runnable {
 							JsonElement jsonElement = new JsonParser().parse(log);
 							JsonObject jsonObject= jsonElement.getAsJsonObject();
 							//-----转成ecs
-							Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
+							Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject,logType);
 							/**
 							 * 判断tags确认logstash对syslog的日志范式化是否成功
 							 */

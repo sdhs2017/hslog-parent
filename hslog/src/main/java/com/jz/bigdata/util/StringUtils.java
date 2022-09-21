@@ -4,7 +4,10 @@ import java.io.UnsupportedEncodingException;
 import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.annotation.Resource;
 import javax.enterprise.inject.Default;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.annotation.XmlType;
@@ -23,7 +26,6 @@ import com.github.abel533.echarts.Option;
  * 处理String字符串的类
  */
 public class StringUtils {
-	
 	/**
 	 * @param ids 以逗号分隔的id,id,id,
 	 * @return 带上单引号'id','id','id',''
@@ -110,5 +112,38 @@ public class StringUtils {
 			e.printStackTrace();
 		}
 		return agg;
+	}
+
+	/**
+	 * 对es日志数据中查询出来的日志数据中，带有日志类型的内容，进行转换，保证前端显示
+	 * @param result 要返回的结果
+	 * @param logTypeToWeb 配置文件中的对应关系
+	 * @return
+	 */
+	public static String LogTypeTransformForESLog(String result,Map<String,String> logTypeToWeb){
+		for(Map.Entry<String, String> entry: logTypeToWeb.entrySet()){
+			//日志类型在返回的数据中存在的特征为 "type":"winlogbeat",需要将winlogbeat替换成winlog  类似的还有packetbeat、metricbeat
+			result = result.replace("\"type\":\""+entry.getKey()+"\"","\"type\":\""+entry.getValue()+"\"");
+		}
+		return result;
+	}
+
+	/**
+	 * 通过@! @标签，对文本内容进行正则匹配，并返回@!与@之间的内容标签中的内容
+	 * @param text 要匹配的文本
+	 */
+	public static Matcher StringPatternWithAtLabel(String text){
+		Pattern pattern = Pattern.compile("(?<=@!).*?(?=@)");
+		Matcher matcher = pattern.matcher(text);
+		return matcher;
+
+	}
+
+	public static void main(String[] args) {
+		Pattern pattern = Pattern.compile("(?<=@!).*?(?=@)");
+		Matcher matcher = pattern.matcher("本月共采集日志数@!LogCount@条，其中error日志数有@!LogErrorCount@条。");
+		while(matcher.find()){
+			System.out.println(matcher.group(0)); // 遍历所有匹配到字符串并打印
+		}
 	}
 }

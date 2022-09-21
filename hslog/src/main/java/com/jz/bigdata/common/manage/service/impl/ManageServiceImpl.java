@@ -14,14 +14,19 @@ import java.util.regex.Pattern;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 
+import com.hs.elsearch.dao.common.ICommonDao;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.util.ExecuteCmd;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.avro.generic.GenericData;
 import org.apache.commons.lang.ArrayUtils;
 import org.elasticsearch.ElasticsearchStatusException;
+import org.elasticsearch.snapshots.SnapshotInfo;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +44,7 @@ import net.sf.json.JSONArray;
  * manageService主要承担与服务器的交互命令以及定时任务的业务
  */
 @Service(value="manageService")
+@Slf4j
 public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -56,7 +62,8 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
 
     @Resource(name = "logService")
     private LogServiceImpl logService;
-
+    @Autowired
+    protected ICommonDao commonDao;
     @Override
     public Map<String, String> getDiskUsage(String user,String passwd,String host) {
 
@@ -314,6 +321,94 @@ public class ManageServiceImpl extends QuartzJobBean implements IManageService {
         map.put("state", true);
         map.put("msg", "定时任务执行完成！");
         return JSONArray.fromObject(map).toString();
+    }
+
+    @Override
+    public boolean closeIndex(String... indices){
+        try{
+            return commonDao.closeIndex(indices);
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean openIndex(String... indices) {
+        try{
+            return commonDao.openIndex(indices);
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean createSLMPolicy(String indices, String policy_id, String name, String schedule, String repository)  {
+        try{
+            return commonDao.createSLMPolicy(indices,policy_id,name,schedule,repository);
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
+
+    }
+
+    @Override
+    public boolean executeSLMPolicy(String policy_id) {
+        try{
+            String snapshotName = commonDao.executeSLMPolicy(policy_id);
+            if(snapshotName!=null){
+                return true;
+            }else{
+                return false;
+            }
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deleteSLMPolicy(String policy_id)  {
+        try{
+            return commonDao.deleteSLMPolicy(policy_id);
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
+    }
+
+    @Override
+    public List<Map<String,String>> getSnapListByPolicyId(String repositoryName) {
+        List<Map<String,String>> snapshotList = new ArrayList<>();
+
+        try{
+            List<SnapshotInfo> list = commonDao.getSnapListByPolicyId(repositoryName);
+            for (SnapshotInfo info:list){
+                Map<String,String> row = new HashMap<>();
+                if(info.snapshotId().getName().indexOf("snapshot-winlogbeat")>=0){
+                    row.put("label",info.snapshotId().getName().substring(0,39));
+                    row.put("value",info.snapshotId().getName());
+                    snapshotList.add(row);
+                }
+
+
+            }
+        }catch (Exception e){
+            log.error(e.getMessage());
+        }
+        return snapshotList;
+    }
+
+    @Override
+    public boolean restoreSnapshot(String repositoryName, String snapshotName)  {
+        try{
+            return commonDao.restoreSnapshot(repositoryName,snapshotName);
+        }catch (Exception e){
+            log.error(e.getMessage());
+            return false;
+        }
     }
 
     /**

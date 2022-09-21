@@ -7,18 +7,17 @@ import com.hs.elsearch.util.ErrorInfoException;
 import com.hs.elsearch.util.MappingField;
 import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.common.businessIntelligence.entity.Dashboard;
-import com.jz.bigdata.common.businessIntelligence.entity.HSData;
 import com.jz.bigdata.common.businessIntelligence.entity.SqlSearchConditions;
 import com.jz.bigdata.common.businessIntelligence.entity.Visualization;
 import com.jz.bigdata.common.businessIntelligence.service.IBIService;
 import com.jz.bigdata.util.ConfigProperty;
 import com.jz.bigdata.util.DescribeLog;
 import com.jz.bigdata.util.HttpRequestUtil;
+import com.jz.bigdata.util.outPrint.javaExportDoc.Itext2wordUtil;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.log4j.Logger;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.action.DocWriteResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -420,6 +419,7 @@ public class BIController {
                     return Constant.failureMessage("标题名称重复，请修改！");
                 }
             }
+            //根据角色设置可编辑/删除权限
             if("master".equals(session.getAttribute(Constant.SESSION_USERNAME).toString())){
                 dashboard.setEditable(false);
                 dashboard.setDeletable(false);
@@ -428,6 +428,7 @@ public class BIController {
                 dashboard.setDeletable(true);
             }
             //dashboard.setId(UUID.randomUUID().toString());
+            //保存
             DocWriteResponse.Result result = iBIService.saveDashboard(dashboard,configProperty.getEs_hsdata_index());
             if (result == DocWriteResponse.Result.CREATED) {
                 return Constant.successMessage("数据保存成功");
@@ -756,6 +757,28 @@ public class BIController {
         } catch (Exception e) {
             log.error("获取详情失败！"+e.getMessage());
             return Constant.failureMessage("获取数据详情失败");
+        }
+    }
+    /**
+     * 生成报告书测试
+     * @param request
+     * @return
+     */
+    @ResponseBody
+    @RequestMapping(value="/createReport", produces = "application/json; charset=utf-8")
+    @DescribeLog(describe = "生成报告书测试")
+    public String createReport(HttpServletRequest request){
+        try{
+            StringBuffer base64_images = new StringBuffer();
+            base64_images.append(request.getParameter("base64_images"));
+            String base64str = base64_images.toString();
+            String[] array = base64str.split("@");
+            Itext2wordUtil.createReportDemo(array);
+            return Constant.successMessage();
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error(e.getMessage());
+            return Constant.failureMessage();
         }
     }
 }

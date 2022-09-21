@@ -13,7 +13,7 @@ import com.jz.bigdata.common.eventGroup.entity.EventGroup;
 public interface IEventGroupService {
 	/**
 	 * 添加资产组
-	 * @param eventGroup
+	 * @param eventGroup 事件组对象
 	 * @param session
 	 * @return
 	 */

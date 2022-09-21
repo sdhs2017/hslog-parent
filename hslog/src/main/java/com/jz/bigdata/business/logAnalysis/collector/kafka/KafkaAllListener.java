@@ -9,10 +9,12 @@ import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.common.asset.entity.Asset;
 import com.jz.bigdata.common.equipment.entity.Equipment;
 import com.jz.bigdata.util.ConfigProperty;
+import com.jz.bigdata.util.LogTypeConfig;
 import com.jz.bigdata.util.SyslogUtil;
 import com.mysql.jdbc.StringUtils;
 import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.json.JSONObject;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.common.xcontent.XContentType;
@@ -32,6 +34,8 @@ import java.util.regex.Pattern;
 public class KafkaAllListener {
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
+    @Resource(name ="LogTypeConfig")
+    private LogTypeConfig logTypeConfig;
     @Autowired
     protected ILogCrudDao logCurdDao;
     @Autowired
@@ -60,10 +64,14 @@ public class KafkaAllListener {
     // netflow日志
     private Pattern netflowpattern = Pattern.compile("\"type\":\"netflow\"");
     private Pattern netflow1pattern = Pattern.compile("\"type\" => \"netflow\"");
-    // DNS日志
+    // DNS日志-old 这个匹配是针对原始日志信息
     private Pattern dnspattern = Pattern.compile("\\s+named");
-    //dhcp
+    //经过logstash范式化后的 dns日志的特征值
+    private Pattern logstashDnsPattern = Pattern.compile("\"program\":\"named\"");
+    //dhcp-old 这个匹配是针对原始日志信息
     private Pattern dhcppattern = Pattern.compile("\\s+dhcpd:");
+    //经过logstash范式化后的 dns日志的特征值
+    private Pattern logstashDhcpPattern = Pattern.compile("\"program\":\"dhcpd\"");
     //filebeat
     private Pattern filebeatpattern = Pattern.compile("\"logtype\":\"app_*");
     private Pattern logstashSyslogPattern = Pattern.compile("\"type\":\"system-syslog\"");
@@ -136,14 +144,27 @@ public class KafkaAllListener {
                 Matcher netflow1matcher = netflow1pattern.matcher(logs);
                 // DNS日志
                 Matcher dnsmatcher = dnspattern.matcher(logs);
+                Matcher logstashdnsmatcher = logstashDnsPattern.matcher(logs);
                 //dhcp
                 Matcher dhcpmatcher = dhcppattern.matcher(logs);
+                Matcher logstashdhcpmatcher = logstashDhcpPattern.matcher(logs);
                 //filebeat
                 Matcher filebeatmatcher = filebeatpattern.matcher(logs);
                 //logstash syslog
                 Matcher logstashSyslogMatcher = logstashSyslogPattern.matcher(logs);
+                //确认是logstash范式化后的数据
                 if(logstashSyslogMatcher.find()){
-                    logType = LogType.LOGTYPE_SYSLOG;
+                    //明确日志类型
+                    //首先是判断是不是dns日志
+                    if(logstashdnsmatcher.find()){
+                        logType = logTypeConfig.getLogType_dns();
+                    }else if(logstashdhcpmatcher.find()){
+                        //dhcp日志
+                        logType = logTypeConfig.getLogType_dhcp();
+                    }else{
+                        //其他情况都默认为syslog日志
+                        logType = logTypeConfig.getLogType_syslog();
+                    }
                     try{
                         /**
                          * 将采集到的log转为jsonObject格式
@@ -151,7 +172,7 @@ public class KafkaAllListener {
                         JsonElement jsonElement = new JsonParser().parse(logs);
                         JsonObject jsonObject= jsonElement.getAsJsonObject();
                         //-----转成ecs
-                        Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject);
+                        Logstash2ECS logstash2ECS = new Logstash2ECS().build(jsonObject,logType);
                         /**
                          * 判断tags确认logstash对syslog的日志范式化是否成功
                          */
@@ -190,7 +211,7 @@ public class KafkaAllListener {
                             }
                             //判断资产是否为空，打上资产标签
                             if (equipment!=null) {
-                                //如果资产类型是否是防火墙
+                                //如果资产类型是否是  安全-防火墙 或 安全-IPS
                                 if(Constant.EQUIPMENT_TYPE_FIREWALL_CODE.equals(equipment.getType())||Constant.EQUIPMENT_TYPE_IPS_CODE.equals(equipment.getType())){
                                     //处理防火墙、IPS数据的逻辑，返回ES提交对象
                                     SyslogUtil.SyslogHandler(jsonObject,equipment,request);

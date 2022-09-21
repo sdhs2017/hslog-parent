@@ -6,7 +6,6 @@ import com.hs.elsearch.entity.*;
 import com.hs.elsearch.template.SearchTemplate;
 import com.hs.elsearch.util.ElasticConstant;
 import com.hs.elsearch.util.HSDateUtil;
-import com.sun.tools.javac.code.Attribute;
 import joptsimple.internal.Strings;
 import net.sf.json.JSONArray;
 import org.apache.commons.collections.map.LinkedMap;
@@ -846,7 +845,7 @@ public class BIDaoImpl implements IBIDao {
 
     /**
      * 嵌套聚合
-     * @param params
+     * @param params 图表参数
      * @return
      * @throws Exception
      */

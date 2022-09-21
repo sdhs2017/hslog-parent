@@ -188,7 +188,9 @@ public class AlertServiceImpl implements IAlertService {
     @Override
     public boolean stopQuartz(String alert_id) throws Exception {
         Scheduler scheduler = schedulerFactoryBean.getScheduler();
+        //获取计划任务
         JobKey jobKey = JobKey.jobKey(alert_id, Constant.QUARTZ_JOB_GROUP);
+        //如果存在，停止
         if(scheduler.checkExists(jobKey)){
             scheduler.pauseJob(jobKey);
         }
@@ -203,6 +205,7 @@ public class AlertServiceImpl implements IAlertService {
     @Override
     public boolean startQuartz(String alert_id){
         Scheduler scheduler = schedulerFactoryBean.getScheduler();
+        //获取该告警对应的计划任务
         JobKey jobKey = JobKey.jobKey(alert_id, Constant.QUARTZ_JOB_GROUP);
         try{
             //如果存在，重新启动
@@ -307,6 +310,7 @@ public class AlertServiceImpl implements IAlertService {
         }else{
             return false;
         }
+        //任务
         JobDetail jobDetail = JobBuilder.newJob(AlertJob.class)
                 .withDescription("告警定时任务")
                 .withIdentity(alert.getAlert_id(), Constant.QUARTZ_JOB_GROUP)
@@ -314,7 +318,7 @@ public class AlertServiceImpl implements IAlertService {
                 .build();
 
         CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(cronExpress).withMisfireHandlingInstructionDoNothing();
-
+        //触发器
         Trigger trigger = TriggerBuilder.newTrigger()
                 .forJob(jobDetail)
                 .withSchedule(cronScheduleBuilder)
@@ -324,6 +328,7 @@ public class AlertServiceImpl implements IAlertService {
             if(!scheduler.checkExists(JobKey.jobKey(alert.getAlert_id(),Constant.QUARTZ_JOB_GROUP))){
                 scheduler.scheduleJob(jobDetail,trigger);
             }
+            //启动
             scheduler.start();
             return true;
         } catch (SchedulerException e) {

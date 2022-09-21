@@ -36,14 +36,23 @@ public class FileLogController {
     private IFileLogService fileLogService;
     @Resource(name ="configProperty")
     private ConfigProperty configProperty;
+
+    /**
+     *更新文件日志模板信息（字段信息）
+     * @param request
+     * @return
+     */
     @ResponseBody
     @RequestMapping(value="/updateTemplateInfo.do", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="更新文件日志模板信息")
     public String updateTemplateInfo(HttpServletRequest request) {
         try{
             List<FileLogField> list = new ArrayList<>();
+            //字段信息
             String templateInfo = request.getParameter("file_log_fields");
+            //模板显示名称
             String file_log_templateName = request.getParameter("file_log_templateName");
+            //模板的key
             String file_log_templateKey = request.getParameter("file_log_templateKey");
             //更新状态，1为只改file_log_templateName（模板名称），2为改了字段信息（不管模板名称改不改）
             String updateState = request.getParameter("updateState");
@@ -85,6 +94,12 @@ public class FileLogController {
             return Constant.failureMessage("更新失败！");
         }
     }
+
+    /**
+     * 获取文件类日志模板数据
+     * @param request
+     * @return
+     */
     @ResponseBody
     @RequestMapping(value="/getFileLogTemplateList.do", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取文件日志模板列表")
@@ -92,6 +107,12 @@ public class FileLogController {
         List<FileLogField> list = fileLogService.getTemplateList();
         return Constant.successData(JSONArray.fromObject(list).toString());
     }
+
+    /**
+     * 文件类日志模板字段详情查询
+     * @param request
+     * @return
+     */
     @ResponseBody
     @RequestMapping(value="/getFileLogTemplateFields.do", produces = "application/json; charset=utf-8")
     @DescribeLog(describe="获取文件日志模板下的字段信息")

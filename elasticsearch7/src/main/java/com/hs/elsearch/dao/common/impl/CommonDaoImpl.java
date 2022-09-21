@@ -14,6 +14,7 @@ import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.aggregations.bucket.histogram.DateHistogramInterval;
 import org.elasticsearch.search.aggregations.bucket.histogram.Histogram;
+import org.elasticsearch.snapshots.SnapshotInfo;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -110,5 +111,40 @@ public class CommonDaoImpl implements ICommonDao {
     @Override
     public boolean indexExists(String... indices) throws Exception {
         return indexTemplate.indexExists(indices);
+    }
+
+    @Override
+    public boolean closeIndex(String... indices) throws Exception {
+        return indexTemplate.closeIndex(indices);
+    }
+
+    @Override
+    public boolean openIndex(String... indices) throws Exception {
+        return indexTemplate.openIndex(indices);
+    }
+
+    @Override
+    public boolean createSLMPolicy(String indices, String policy_id, String name, String schedule, String repository) throws IOException {
+        return indexTemplate.createSLMPolicy(indices,policy_id,name,schedule,repository);
+    }
+
+    @Override
+    public String executeSLMPolicy(String policy_id) throws IOException {
+        return indexTemplate.executeSLMPolicy(policy_id);
+    }
+
+    @Override
+    public boolean deleteSLMPolicy(String policy_id) throws IOException {
+        return indexTemplate.deleteSLMPolicy(policy_id);
+    }
+
+    @Override
+    public List<SnapshotInfo> getSnapListByPolicyId(String repositoryName) throws IOException {
+        return indexTemplate.getSnapListByPolicyId(repositoryName);
+    }
+
+    @Override
+    public boolean restoreSnapshot(String repositoryName, String snapshotName) throws IOException {
+        return indexTemplate.restoreSnapshot(repositoryName,snapshotName);
     }
 }

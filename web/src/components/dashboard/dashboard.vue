@@ -612,6 +612,10 @@
                 ],
                 //图表集合  存储echarts名称 用于自适应大小
                 echartsArr:{},
+                //用于标记第一次查询请求完成状态
+                firstGetStrState:false,
+                //总图表个数
+                allChartsCount:0,
                 //已加载完成的图表个数
                 finishCount:0,
                 //当前图表计数
@@ -982,8 +986,9 @@
             }
         },
         methods:{
+            //弹窗里的导出确定按钮
             exportBtn(){
-                let dateParam = ''
+                /*let dateParam = ''
                 if(this.exportDateType === 'day'){
                     dateParam = '1-daying'
                 }else if(this.exportDateType === 'week'){
@@ -997,11 +1002,42 @@
                 this.dateArr.last= dateParam
                 this.exportDialogLoading = true;
                 //加载数据
-                this.refreshData()
+                this.refreshData()*/
+
+                this.exportDialogLoading = true;
+                this.exportWord();
             },
 
             //监听导出弹窗变化
             exportModelBtn(){
+                //判断数据是否全部加载完成
+                if(this.firstGetStrState && (this.finishCount === this.allChartsCount)){//未完成
+                    this.$nextTick(()=>{
+                        this.exportDialogLoading = true;
+                         this.allLoading = true;
+                         this.$axios.post(this.$baseUrl+'/reportModel/getReportModelsByDashboardID.do',this.$qs.stringify({
+                             dashboardID:this.dashboardId
+                         }))
+                             .then(res=>{
+                                 this.allLoading = false;
+                                 this.exportDialogLoading =false;
+                                 let obj = res.data;
+                                 if(obj.success == 'true'){
+                                     this.exportModelTypeOpt = obj.data;
+                                     this.exportVisible = true;
+                                 }else{
+                                     layer.msg(obj.message,{icon:5})
+                                 }
+                             })
+                             .catch(err=>{
+                                 this.allLoading = false;
+                             })
+                     })
+                }else {
+                    layer.msg('数据还未全部加载完，请稍后再试!',{icon:5})
+
+                }
+/*
                 this.$nextTick(()=>{
                     this.allLoading = true;
                     this.$axios.post(this.$baseUrl+'/reportModel/getReportModelsByDashboardID.do',this.$qs.stringify({
@@ -1021,6 +1057,7 @@
                             this.allLoading = false;
                         })
                 })
+                */
             },
             //导出为word
             exportWord(){
@@ -1058,8 +1095,8 @@
                     }
                 }
 
-                this.exportVisible = false;
-                this.exportDialogLoading = false;
+
+
                 this.$nextTick(()=>{
                     this.$axios.post(this.$baseUrl+'/reportModel/CreateReport.do',this.$qs.stringify({
                         base64_images:JSON.stringify(imgBase64Arr),
@@ -1067,10 +1104,14 @@
                         dashboardID:this.dashboardId,
                         reportModelType:this.exportDateType,
                         metrics:JSON.stringify(metricArr),
-                        last:this.dateArr.last
+                        last:this.dateArr.last,
+                        starttime:this.dateArr.starttime,
+                        endtime:this.dateArr.endtime,
                     }))
                         .then(res=>{
                             this.allLoading = false;
+                            this.exportDialogLoading = false;
+                            this.exportVisible = false;
                             let obj = res.data;
                             if(obj.success == 'true'){
                                 layer.msg(obj.message,{icon:1});
@@ -1675,6 +1716,9 @@
             },
             /*获取dashboard数据*/
             getDashboardData(){
+                //设置请求完成状态为false
+                this.firstGetStrState = false;
+                this.allChartsCount = 0;
                 this.$nextTick(()=>{
                    this.allLoading = true;
                     this.$axios.post(this.$baseUrl+'/BI/getDashboardById.do',this.$qs.stringify({
@@ -1735,8 +1779,14 @@
                                         this.layout = option;
                                         this.$nextTick(()=>{
                                             //获取echart结构数据
+                                            this.firstGetStrState = true;
                                             for(let i in this.layout){
                                                 this.chartsCount = i;
+                                                if(this.layout[i].chartType === 'bar' || this.layout[i].chartType === 'line' || this.layout[i].chartType === 'pie'){
+                                                    this.allChartsCount ++
+                                                }
+
+
                                                 //判断是否是文字块、系统预设报表还是自定义报表  自定义报表需要获取图表结构
                                                 if(this.layout[i].chartType !== 'text' && this.layout[i].chartType !== 'systemChart'){
                                                     this.getEchartsConstruction(this.layout[i])
@@ -2370,13 +2420,13 @@
             //监听加载完成图表的个数
             'finishCount'(){
                 //判断是导出操作  并且 所有的图表都已经加载完成
-                if(this.exportVisible && this.finishCount === Object.keys(this.echartsArr).length){
+                /*if(this.exportVisible && this.finishCount === Object.keys(this.echartsArr).length){
                     //console.log('ddddddd');
                     setTimeout(()=>{
                         this.exportWord()
                     },1000)
 
-                }
+                }*/
             },
             /*资产条件弹窗*/
             'setAssetConditionState'(){

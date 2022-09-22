@@ -13,6 +13,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Strings;
 import com.google.gson.*;
 import com.hs.elsearch.dao.logDao.ILogCrudDao;
@@ -35,6 +37,7 @@ import org.codehaus.jackson.map.ser.std.ScalarSerializerBase;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.client.indices.IndexTemplateMetaData;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.interceptor.TransactionAspectSupport;
@@ -102,7 +105,11 @@ public class LogController extends BaseController{
 	protected ISearchService searchService;
 
 
-
+	//cache 存放生成的文件路径 . key ：用户名-2022-06-02 18(时)，value 文件全路径
+	private Cache<String,String> logFileCache = Caffeine.newBuilder()
+			.maximumSize(100)//最大条数，
+			//.expireAfterWrite(99999, TimeUnit.DAYS)//过期时间，不设置则不会过期
+			.build();
 	private String exportProcess = "[{\"state\":\"finished\",\"value\":\"1-1\"}]";
 	//json处理全局对象
 	private final Gson gson = new GsonBuilder().create();
@@ -1533,7 +1540,7 @@ public class LogController extends BaseController{
 		return result;
 	}
 	/**
-	 * 查询+导出至文件，放在服务器指定目录
+	 * 查询+导出至文件，放在服务器指定目录,涉密专用，
 	 * @param request
 	 * @author jiyourui
 	 * @return
@@ -1719,8 +1726,263 @@ public class LogController extends BaseController{
 
 		return result;
 	}
+	/**
+	 * 查询+导出至文件，放在服务器指定目录，并写入缓存，为下载做准备
+	 * @param request
+	 * @author jiyourui
+	 * @return
+	 */
+	@ResponseBody
+	@RequestMapping(value="/exportLogWithZip",produces = "application/json; charset=utf-8")
+	@DescribeLog(describe="导出查询的日志数据")
+	public String exportLogWithZip(HttpServletRequest request,HttpSession session) {
+
+		Object userrole = session.getAttribute(Constant.SESSION_USERROLE);
+		// 使用手机号作为导出的路径
+		Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
 
 
+		String hsData = request.getParameter(ContextFront.DATA_CONDITIONS);
+		// 返回結果
+		Map<String, Object> allmap= new HashMap<>();
+		ObjectMapper mapper = new ObjectMapper();
+		// 使用线程安全的map
+		Map<String, String> map = new ConcurrentHashMap<>();
+		try {
+			map = MapUtil.removeMapEmptyValue(mapper.readValue(hsData, Map.class));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+		Object pageo = map.get("page");
+		Object sizeo = map.get("size");
+		Object exportSizeo = map.get("exportSize");
+
+		// 管理员角色为1，判断是否是管理员角色，如果是不需要补充条件，如果不是添加用户id条件，获取该用户权限下的数据
+		if (userrole.equals(ContextRoles.MANAGEMENT)) {
+			map.put("userid",session.getAttribute(Constant.SESSION_USERID).toString());
+		}
+
+		String starttime = null;
+		// 判断时间条件是否存在，存在将时间提出
+		if (map.get("starttime")!=null&&!map.get("starttime").equals("")) {
+			starttime = map.get("starttime");
+			map.remove("starttime");
+
+		}
+		String endtime = null;
+		if (map.get("endtime")!=null&&!map.get("endtime").equals("")){
+			endtime = map.get("endtime");
+			map.remove("endtime");
+		}
+		//参数为  是否完整范式化，false是未完整范式化，对应字段的值为false
+		if(map.get("normalization")!=null&&"false".equals(map.get("normalization"))){
+			// 只有选择范式化失败时，才能查询到范式化失败的数据，否则查询范式化正常的数据
+			map.put("fields.failure","true");
+		}else if(map.get("normalization")!=null&&"true".equals(map.get("normalization"))){
+			map.put("fields.failure","false");
+		}else{
+			//查全部，不需要添加条件
+		}
+		//删除原参数
+		map.remove("normalization");
+		map.remove("page");
+		map.remove("size");
+		map.remove("exportSize");
+
+		String exportSize = exportSizeo.toString();
+
+
+		Integer sizeInt = Integer.valueOf(exportSize);
+
+		//csv文件单个标签页存放数据条数
+		int sheetsizes = 10000;
+
+		// 获得需要创建的csv文件格式
+		int forsize = sizeInt/sheetsizes;
+		// 取余，获得需要导出的不满10000条数据
+		int modsize = sizeInt%sheetsizes;
+
+		// 导出状态默认值
+		int fileSize = 0;
+
+		Map<String, Object> resultmap = new HashMap<>();
+		// 根据文件数设置导出状态
+		if (forsize>0&&modsize>0) {
+			fileSize = forsize+1;
+			resultmap.put("state", "doing");
+			resultmap.put("value", "0-"+fileSize);
+			setExportProcess(JSONArray.fromObject(resultmap).toString());
+		}else if (forsize>0&&modsize==0) {
+			fileSize = forsize;
+			resultmap.put("state", "doing");
+			resultmap.put("value", "0-"+fileSize);
+			setExportProcess(JSONArray.fromObject(resultmap).toString());
+		}else {
+			resultmap.put("state", "doing");
+			resultmap.put("value", "0-1");
+			setExportProcess(JSONArray.fromObject(resultmap).toString());
+		}
+		//csv文件导出路径
+		String outputPath = "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+LocalDateTime.now().format(dtf_day);
+		try {
+			// 先到处每个sheet页10000条的数据
+			for(int i=1;i<=forsize;i++) {
+				// 构建新的page size ，size为10000条
+				String page = String.valueOf(i);
+				String size = String.valueOf(sheetsizes);
+
+				List<Map<String, Object>> list = logService.getLogListByBlend(map, starttime, endtime, page, size, configProperty.getEs_index());
+
+
+				// 设置表格头
+				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容"};
+				List<Object> headList = Arrays.asList(head);
+				Date date = new Date();
+				// 过滤第一条，第一条数据为总数统计
+				list.remove(0);
+				CSVUtil.createCSVFile(headList, list, outputPath, "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+
+				if (i==forsize&&modsize==0) {
+					resultmap.put("state", "finished");
+					resultmap.put("value", i+"-"+fileSize);
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}else {
+					resultmap.put("state", "doing");
+					resultmap.put("value", i+"-"+fileSize);
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}
+
+			}
+			// 导出不足10000条的剩余数据
+			if (modsize>0) {
+				// 构建新的page size ，size为modsize
+				String page = String.valueOf(forsize+1);
+				String size = String.valueOf(modsize);
+
+				List<Map<String, Object>> list  = logService.getLogListByBlend(map, starttime, endtime, page, size,  configProperty.getEs_index());
+
+
+				// 设置表格头
+				Object[] head = {"时间", "日志类型", "日志级别", "资产名称", "资产IP", "日志内容" };
+				List<Object> headList = Arrays.asList(head);
+
+
+				// 过滤第一条，第一条数据为总数统计
+				list.remove(0);
+				// 开始写入csv文件
+				CSVUtil.createCSVFile(headList, list, outputPath, "exportlog"+LocalDateTime.now().format(dtf_time_file),null);
+				//CSVUtil.createCSVFile(headList, list, "D:\\"+File.separator+"exportfile"+File.separator+userphone+File.separator+dateformat.format(date), "exportlog"+timeformat.format(date),null);
+				//  根据导出文件个数返回导出状态
+				if (forsize>0) {
+					resultmap.put("state", "finished");
+					resultmap.put("value", fileSize+"-"+fileSize);
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}else {
+					resultmap.put("state", "finished");
+					resultmap.put("value", "1-1");
+					setExportProcess(JSONArray.fromObject(resultmap).toString());
+				}
+			}
+			allmap.put("state", true);
+			allmap.put("msg", "日志导出成功");
+		} catch (Exception e) {
+			allmap.put("state", false);
+			allmap.put("msg", "日志导出失败");
+			e.printStackTrace();
+		}
+		String zipFilePathName = "/home"+File.separator+"exportfile"+File.separator+userphone+File.separator+"exportlog"+LocalDateTime.now().format(dtf_time_file)+".zip";
+		boolean zipResult = ZipUtil.zipFilesAndEncrypt(outputPath,zipFilePathName,Constant.ZIP_PASS);
+		if(zipResult){
+			//压缩包成功生成，删除相关文件
+			File currentFile = new File(outputPath);
+
+			if(currentFile.isDirectory()){
+				try{
+					FileUtils.deleteDirectory(currentFile);
+				}catch (Exception e){
+					log.error("删除文件夹失败："+outputPath);
+				}
+
+			}
+		}
+		//将要下载的文件写入缓存，等待下载请求调用
+		logFileCache.put(userphone+"-"+DateTime.now().toString("yyyy-MM-dd HH"),zipFilePathName);
+		String result = JSONArray.fromObject(allmap).toString();
+		return result;
+	}
+	@RequestMapping(value="/logFileDownload.do")
+	@DescribeLog(describe="日志文件下载")
+	public String logFileDownload( HttpServletResponse response,HttpSession session) {
+		try{
+			// 使用手机号作为导出的路径
+			Object userphone = session.getAttribute(Constant.SESSION_USERACCOUNT);
+			String file = logFileCache.getIfPresent(userphone+"-"+DateTime.now().toString("yyyy-MM-dd HH"));
+			//能获取到文件
+			if(file!=null){
+				File f = new File(file);
+				if (f.exists()) {
+					//设置响应类型 word
+					response.setContentType("application/octet-stream");
+
+					//设置Content-Disposition，设置attachment，浏览器会激活文件下载框；filename指定下载后默认保存的文件名
+					//不设置Content-Disposition的话，文件会在浏览器内打卡，比如txt、img文件
+					//为了解决中文名称乱码问题，浏览器下载的文件名 eg:资产列表2021-01-01
+					String downloadFileName = f.getName();
+					downloadFileName = new String(downloadFileName.getBytes("UTF-8"), "iso-8859-1");
+					response.addHeader("Content-Disposition", "attachment; filename="+downloadFileName);
+
+					FileInputStream fis = null;
+					BufferedInputStream bis = null;
+					// if using Java 7, use try-with-resources
+					try {
+						fis = new FileInputStream(file);
+						bis = new BufferedInputStream(fis);
+						byte[] buffer = new byte[1024];
+						OutputStream os = response.getOutputStream();
+
+						int i = bis.read(buffer);
+						while (i != -1) {
+							os.write(buffer, 0, i);
+							i = bis.read(buffer);
+						}
+					} catch (IOException ex) {
+						log.error(ex.getMessage());
+						return Constant.failureMessage("日志文件下载失败！");
+						// do something,
+						// probably forward to an Error page
+					} finally {
+						//关闭流
+						if (bis != null) {
+							try {
+								bis.close();
+							} catch (IOException e) {
+							}
+						}
+						if (fis != null) {
+							try {
+								fis.close();
+							} catch (IOException e) {
+							}
+						}
+					}
+					//开始下载不需要提示
+					return null;
+				}else{
+					//缓存路径存在，但文件未真实找到
+					return Constant.failureMessage("未找到日志导出文件！");
+				}
+			}else{
+				//缓存找不到文件路径
+				return Constant.failureMessage("未找到日志导出文件！");
+			}
+		}catch (Exception e){
+			log.error(e.getMessage());
+			return Constant.failureMessage("日志文件下载失败！");
+		}
+	}
 	public String Callback() {
 
 		return null;

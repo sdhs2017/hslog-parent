@@ -4,7 +4,7 @@
         <div class="role-btn">
             <el-button type="primary" size="mini" plain title="添加" @click="addRoleBtn"><i class="el-icon-lx-add"></i>添加</el-button>
         </div>
-        <div class="role-wapper">
+        <div class="role-wapper" v-loading="allLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <v-basetable  :tableHead="roleTableHead" :tableData="roleTableData" ></v-basetable>
         </div>
 
@@ -25,7 +25,7 @@
         </el-dialog>
 
         <!--配置-->
-        <el-dialog title="配置" :visible.sync="settingState" width="540px" height="600px">
+        <el-dialog title="配置" :visible.sync="settingState" width="540px" height="600px"  v-loading="dialogLoading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-steps :active="active" simple>
                 <el-step title="添加菜单 1" icon="el-icon-edit"></el-step>
                 <el-step title="添加按钮 2" icon="el-icon-edit"></el-step>
@@ -37,15 +37,17 @@
                     default-expand-all
                     show-checkbox
                     node-key="id"
+                    :default-checked-keys="firstCheckedArr"
                     :props="firstProps">
                 </el-tree>
             </div>
-            <div class="seting-wapper" v-if="active == 1">
+            <div class="seting-wapper" v-if="active == 1" >
                 <el-tree
                     ref="secondTree"
                     :data="secondTreeData"
                     default-expand-all
                     show-checkbox
+                    :default-checked-keys="secondCheckedArr"
                     node-key="id"
                     :props="firstProps">
                 </el-tree>
@@ -67,6 +69,8 @@
         name: "roleManage",
         data() {
             return {
+                allLoading:false,
+                dialogLoading:false,
                 //角色弹窗状态
                 roleState:false,
                 settingState:false,
@@ -105,10 +109,10 @@
                                     this.roleState = true;
                                     this.resiveRoleId = rowData.id;
                                     this.$nextTick(()=>{
-                                        layer.load(1);
+                                        this.allLoading = true
                                         this.$axios.post(this.$baseUrl+'/role/getEntity.do',this.$qs.stringify({id:this.resiveRoleId}))
                                             .then(res=>{
-                                                layer.closeAll('loading');
+                                                this.allLoading = false
                                                 this.roleParams = {
                                                     role_name : res.data.role_name,
                                                     note:res.data.note
@@ -116,7 +120,7 @@
 
                                             })
                                             .catch(err=>{
-                                                layer.closeAll('loading');
+                                                this.allLoading = false
                                                 layer.msg('获取信息失败',{icon:5})
                                             })
                                     })
@@ -139,14 +143,17 @@
                                     this.settingState = true;
                                     this.resiveRoleId = rowData.id;
                                     this.$nextTick(()=>{
-                                        layer.load(1);
-                                        this.$axios.post(this.$baseUrl+'/menu/selectSystemMenu.do','')
+                                        this.dialogLoading = true;
+                                        this.$axios.post(this.$baseUrl+'/menu/selectSystemMenu.do',this.$qs.stringify({
+                                            roleid: rowData.id
+                                        }))
                                             .then(res=>{
-                                                layer.closeAll('loading');
-                                                this.firstTreeData = res.data;
+                                                this.dialogLoading = false;
+                                                this.firstTreeData = res.data.systemMenu;
+                                                this.firstCheckedArr =  res.data.menuButtonIds;
                                             })
                                             .catch(err=>{
-                                                layer.closeAll('loading');
+                                                this.allLoading = false;
                                                 layer.msg('获取信息失败',{icon:5})
                                             })
                                     })
@@ -166,13 +173,21 @@
                         "note":'操作员权限'
                     },*/
                 ],
+                //当前
                 active:0,
+                //菜单树
                 firstTreeData:[],
+                //菜单树结构
                 firstProps:{
                     children: 'menus',
                     label: 'menuName'
                 },
+                //选中的菜单
+                firstCheckedArr:[],
+                //按钮树
                 secondTreeData:[],
+                //选中的按钮
+                secondCheckedArr:[],
                 menuIds:''
             }
         },
@@ -183,14 +198,14 @@
             /*获取角色列表数据*/
             getRoleData(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.allLoading = true;
                     this.$axios.post(this.$baseUrl+'/role/selectAllRole.do','')
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.allLoading = false;
                             this.roleTableData = res.data;
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.allLoading = false;
 
                         })
                 })
@@ -207,10 +222,10 @@
             /*添加角色*/
             addRole(){
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.allLoading = true;
                     this.$axios.post(this.$baseUrl+'/role/upsert.do',this.$qs.stringify(this.roleParams))
                         .then(res=>{
-                            layer.closeAll('loading');
+                            this.allLoading = true;
                             if(res.data.success ==='true'){
                                 layer.msg('添加成功',{icon:1})
                                 //关闭弹窗
@@ -223,7 +238,7 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.allLoading = true;
 
                         })
                 })
@@ -258,11 +273,11 @@
                 layer.confirm('您确定删除么？', {
                     btn: ['确定','取消'] //按钮
                 }, (index)=>{
-                    layer.load(1)
+                    this.allLoading = true;
                     this.$nextTick(()=>{
                         this.$axios.post(this.$baseUrl+'/role/delete.do',this.$qs.stringify({id:id}))
                             .then(res =>{
-                                layer.closeAll()
+                                this.allLoading = true;
                                 if(res.data.success === 'true'){
                                     layer.msg('删除成功',{icon:1})
                                     //刷新树结构
@@ -273,7 +288,7 @@
                                 }
                             })
                             .catch(err =>{
-                                layer.closeAll()
+                                this.allLoading = true;
                             })
 
                     })
@@ -285,6 +300,7 @@
                 //获取选中的节点
                 let checkedArr = this.$refs.firstTree.getCheckedKeys();
                 let halfCheckedArr = this.$refs.firstTree.getHalfCheckedKeys();
+
                 //判断合法性
                 if(checkedArr.length > 0 || halfCheckedArr.length > 0){
                     let ids = '';
@@ -295,20 +311,29 @@
                         ids += halfCheckedArr[i] +','
                     }
                     this.menuIds = ids;
-
+                    //拼接选中的菜单 用于回显
+                    /*this.firstCheckedArr = [];
+                    this.firstCheckedArr = checkedArr.concat(halfCheckedArr);
+                    console.log(this.firstCheckedArr)*/
+                    this.firstCheckedArr = checkedArr
                     //发送请求 获取下一级数据
                     this.$nextTick(()=>{
-                        layer.load(1);
-                        this.$axios.post(this.$baseUrl+'/menu/selectSystemMenuByIDs.do',this.$qs.stringify({ids:ids}))
+                        this.dialogLoading = true;
+                        this.$axios.post(this.$baseUrl+'/menu/selectSystemMenuByIDs.do',this.$qs.stringify({
+                            ids:ids,
+                            roleid : this.resiveRoleId,
+                        }))
                             .then(res=>{
-                                layer.closeAll('loading');
+                                this.dialogLoading = false;
                                 //填充数据
-                                this.secondTreeData = res.data;
+                                //this.secondTreeData = res.data;
+                                this.secondTreeData = res.data.systemMenu;
+                                this.secondCheckedArr =  res.data.menuButtonIds;
                                 //跳到下一级
                                 this.active = 1;
                             })
                             .catch(err=>{
-                                layer.closeAll('loading');
+                                this.dialogLoading = false;
 
                             })
                     })
@@ -330,7 +355,7 @@
                     ids += halfCheckedArr[i] +','
                 }
                 this.$nextTick(()=>{
-                    layer.load(1);
+                    this.dialogLoading = true;
                     this.$axios.post(this.$baseUrl+'/menu/upsertMenuButton.do',this.$qs.stringify({
                         roleID : this.resiveRoleId,
                         buttonIds : ids,
@@ -338,7 +363,7 @@
                     }))
                         .then(res=>{
                             this.settingState = false;
-                            layer.closeAll('loading');
+                            this.dialogLoading = false;
                             if(res.data.success === 'true'){
                                 layer.msg('配置成功',{icon:1});
 
@@ -347,7 +372,7 @@
                             }
                         })
                         .catch(err=>{
-                            layer.closeAll('loading');
+                            this.dialogLoading = false;
 
                         })
                 })

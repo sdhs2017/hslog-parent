@@ -1,13 +1,12 @@
 package com.jz.bigdata.roleauthority.menu.service.impl;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import javax.annotation.Resource;
 
 import com.alibaba.fastjson.JSON;
 import com.jz.bigdata.roleauthority.menu.entity.Button;
+import com.jz.bigdata.roleauthority.menu.entity.RoleMenuButton;
 import com.jz.bigdata.util.MapUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -163,21 +162,47 @@ public class MenuServiceImpl implements IMenuService {
 	}
 
 	@Override
-	public String selectSystemMenu() {
+	public List<Menu> selectSystemMenu() {
 		List<List<Menu>> list =menuDao.selectSystemMenu();
 		//拦截器处理时对于多结果返回进行了处理，该功能只有一个结果，因此使用get(0)
 		TreeBuilder treeBuilder = new TreeBuilder(list.get(0));
-		String menuTree=treeBuilder.buildJSONTree();
-		return menuTree;
+
+//		String menuTree=treeBuilder.buildJSONTree();
+//		return menuTree;
+		return treeBuilder.buildTree();
+
+
 	}
 
 	@Override
-	public String selectSystemMenuByIDs(List<String> ids) {
+	public List<String> selectMenuIdsByRoleId(String roleid) {
+		//根据roleid获取到所有的菜单id
+		List<RoleMenuButton> roleList = menuDao.selectMenuByRoleId(roleid);
+		List<String> menuIds = new ArrayList<>();
+		for(RoleMenuButton roleMenuButton:roleList){
+			menuIds.add(roleMenuButton.getFk_menuAndButon_id());
+		}
+		return menuIds;
+	}
+
+	@Override
+	public List<String> selectButtonIdsByRoleId(String roleid) {
+		//根据roleid获取到所有的按钮id
+		List<RoleMenuButton> roleList = menuDao.selectButtonByRoleId(roleid);
+		List<String> buttonIds = new ArrayList<>();
+		for(RoleMenuButton roleMenuButton:roleList){
+			buttonIds.add(roleMenuButton.getFk_menuAndButon_id());
+		}
+		return buttonIds;
+	}
+
+
+	@Override
+	public List<Menu> selectSystemMenuByIDs(List<String> ids) {
 		List<List<Menu>> list =menuDao.selectSystemMenuByIDs(ids);
 		//拦截器处理时对于多结果返回进行了处理，该功能只有一个结果，因此使用get(0)
 		TreeBuilder treeBuilder = new TreeBuilder(list.get(0));
-		String menuTree=treeBuilder.buildJSONTree();
-		return menuTree;
+		return treeBuilder.buildTree();
 	}
 
 

@@ -21,6 +21,11 @@
 		<result column="buttonID" jdbcType="VARCHAR" property="buttonID" />
 		<result column="pk_menu_id" jdbcType="INTEGER" property="pk_menu_id" />
 	</resultMap>
+	<resultMap id="RoleMenuButtonResultMap"
+			   type="com.jz.bigdata.roleauthority.menu.entity.RoleMenuButton">
+		<result column="fk_menuAndButon_id" jdbcType="VARCHAR" property="fk_menuAndButon_id" />
+		<result column="fk_roleid" jdbcType="VARCHAR" property="fk_roleid" />
+	</resultMap>
 
 	<!-- 查询字段设置可重复调用 -->
 	<!-- id,name:部门名称,level:部门层级,superiorId:上级id, -->
@@ -219,5 +224,15 @@
 
 	<select id="selectExistParentMenuById" parameterType="java.lang.String">
 		select count(1) as num from HS_Menu where id=#{id} and (superiorid is null or superiorid='')
+	</select>
+	<select id="selectMenuByRoleId" parameterType="java.lang.String" resultMap="RoleMenuButtonResultMap">
+		select fk_menuAndButon_id,fk_roleid from HS_RoleMenuButton
+		left join HS_Menu on HS_Menu.id=HS_RoleMenuButton.fk_menuAndButon_id
+		where HS_Menu.id is not null and HS_Menu.url!='' and fk_roleid=#{roleid}
+	</select>
+	<select id="selectButtonByRoleId" parameterType="java.lang.String" resultMap="RoleMenuButtonResultMap">
+		select fk_menuAndButon_id,fk_roleid from HS_RoleMenuButton
+		left join HS_Button on HS_Button.id=HS_RoleMenuButton.fk_menuAndButon_id
+		where HS_Button.id is not null and fk_roleid=#{roleid}
 	</select>
 </mapper>

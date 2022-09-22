@@ -4,6 +4,8 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.jz.bigdata.roleauthority.menu.entity.Button;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +19,7 @@ import com.jz.bigdata.common.Constant;
 import com.jz.bigdata.roleauthority.menu.service.IMenuService;
 import com.jz.bigdata.util.DescribeLog;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author shichengyu
@@ -58,7 +58,15 @@ public class MenuController {
 	@DescribeLog(describe="获取系统及菜单tree")
 	public String selectSystemMenu(HttpServletRequest request){
 		try{
-			return menuService.selectSystemMenu();
+			//获取角色id
+			String roleid = request.getParameter("roleid");
+			List<String> menuIds = menuService.selectMenuIdsByRoleId(roleid);
+
+			List<Menu> systemMenu = menuService.selectSystemMenu();
+			Map<String,Object> result = new HashMap<>();
+			result.put("systemMenu",systemMenu);
+			result.put("menuButtonIds",menuIds);
+			return JSONObject.toJSON(result).toString();
 		}catch(Exception e){
 			log.error(""+e.getMessage());
 			return Constant.failureMessage("获取系统及菜单tree失败！");
@@ -149,8 +157,14 @@ public class MenuController {
 	public String selectSystemMenuByIDs(HttpServletRequest request){
 		try{
 			String ids = request.getParameter("ids");
+			String roleid = request.getParameter("roleid");
 			List<String> idList = Arrays.asList(ids.split(","));
-			return menuService.selectSystemMenuByIDs(idList);
+			List<String> buttonIds = menuService.selectButtonIdsByRoleId(roleid);
+			List<Menu> menuList = menuService.selectSystemMenuByIDs(idList);
+			Map<String,Object> result = new HashMap<>();
+			result.put("systemMenu",menuList);
+			result.put("menuButtonIds",buttonIds);
+			return JSONObject.toJSON(result).toString();
 		}catch(Exception e){
 			log.error(""+e.getMessage());
 			return Constant.failureMessage("获取菜单按钮信息失败！");

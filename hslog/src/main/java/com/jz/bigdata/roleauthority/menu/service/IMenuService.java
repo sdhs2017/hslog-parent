@@ -18,8 +18,22 @@ public interface IMenuService {
 	Boolean delete(String id);
 	List<Menu> selectMenuBySysID(String systemID);
 	Menu getEntity(String id);
-	String selectSystemMenu();
-	String selectSystemMenuByIDs(List<String> ids);
+
+
+	List<Menu> selectSystemMenu();
+	/**
+	 * 获取角色已配置菜单的id
+	 * @param roleid 角色id
+	 * @return
+	 */
+	List<String> selectMenuIdsByRoleId(String roleid);
+	/**
+	 * 获取角色已配置 按钮的id
+	 * @param roleid 角色id
+	 * @return
+	 */
+	List<String> selectButtonIdsByRoleId(String roleid);
+	List<Menu> selectSystemMenuByIDs(List<String> ids);
 	Boolean upsertMenuButton(String roleID,String ids);
 	List<Button> selectButtonListByUser(String userID);
 }

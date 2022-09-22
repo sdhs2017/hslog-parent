@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.jz.bigdata.roleauthority.menu.entity.Button;
 import com.jz.bigdata.roleauthority.menu.entity.Menu;
+import com.jz.bigdata.roleauthority.menu.entity.RoleMenuButton;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.ibatis.annotations.Param;
 
@@ -48,4 +49,17 @@ public interface IMenuDao {
 	List<Button> selectButtonListByUser(@Param("userID")String userID);
 
 	List<List<Map<String,Object>>> selectExistParentMenuById(@Param("id")String id);
+
+	/**
+	 * 根据角色id获取其已配置的菜单id
+	 * @param roleid
+	 * @return
+	 */
+	List<RoleMenuButton> selectMenuByRoleId(@Param("roleid")String roleid);
+	/**
+	 * 根据角色id获取其已配置的按钮id
+	 * @param roleid
+	 * @return
+	 */
+	List<RoleMenuButton> selectButtonByRoleId(@Param("roleid")String roleid);
 }

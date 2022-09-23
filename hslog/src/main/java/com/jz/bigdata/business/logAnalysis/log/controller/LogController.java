@@ -25,6 +25,7 @@ import com.jz.bigdata.common.start_execution.cache.AssetCache;
 import com.jz.bigdata.business.logAnalysis.log.entity.*;
 import com.jz.bigdata.common.asset.service.IAssetService;
 import com.jz.bigdata.common.businessIntelligence.entity.HSData;
+import com.jz.bigdata.common.start_execution.cache.ConfigurationCache;
 import com.jz.bigdata.roleauthority.user.service.IUserService;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfNet;
 import com.jz.bigdata.business.logAnalysis.log.mappingbean.MappingOfSyslog;
@@ -338,7 +339,7 @@ public class LogController extends BaseController{
 			// 索引副本数，副本数有助于提高查询效率，前提是有相对应的elasticsearch节点
 			settingmap.put("index.number_of_replicas", configProperty.getEs_number_of_replicas());
 			// 索引的生命周期管理
-			settingmap.put("index.lifecycle.name", "hs_policy");
+			settingmap.put("index.lifecycle.name", configProperty.getEs_ilm_policy());
 			// 默认1000，数据字段过多，需要调整配置
 			settingmap.put("mapping.total_fields.limit", configProperty.getEs_mapping_total_fields_limit());
 			// elasticsearch7 版本初始化template
@@ -447,7 +448,8 @@ public class LogController extends BaseController{
 			 * 初始化工作三：在初始化过程中创建index的生命周期
 			 */
 			try {
-				Boolean LifeCycleResult = logService.createLifeCycle("hs_policy",Long.parseLong(configProperty.getEs_days_of_log_storage()));
+				Long es_storage_day = Long.parseLong(ConfigurationCache.INSTANCE.getConfigurationCache().getIfPresent("es_storage_day").toString());
+				Boolean LifeCycleResult = logService.createLifeCycle(configProperty.getEs_ilm_policy(),es_storage_day);
 				if (!LifeCycleResult){
 					map.put("state", false);
 					map.put("msg", "创建index生命周期失败！");

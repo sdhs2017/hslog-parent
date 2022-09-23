@@ -15,12 +15,16 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 远程调用Linux shell 命令
  *
  * @author jiyourui
  */
+
+@Slf4j
+
 public class ResourceUsage {
 
 
@@ -36,28 +40,24 @@ public class ResourceUsage {
      * @return isConnect
      * @throws JSchException JSchException
      */
-    private static boolean connect(String user, String passwd, String host) {
+    private static void connect(String user, String passwd, String host) throws JSchException{
         JSch jsch = new JSch();
-        try {
-            session = jsch.getSession(user, host, 22);
-            session.setPassword(passwd);
 
-            java.util.Properties config = new java.util.Properties();
-            config.put("StrictHostKeyChecking", "no");
-            session.setConfig(config);
+        session = jsch.getSession(user, host, 22);
+        session.setPassword(passwd);
 
-            session.connect();
-        } catch (JSchException e) {
-            System.out.println("connect error !");
-            return false;
-        }
-        return true;
+        java.util.Properties config = new java.util.Properties();
+        config.put("StrictHostKeyChecking", "no");
+        session.setConfig(config);
+
+        session.connect();
+
     }
 
     /**
      * 远程连接Linux 服务器 执行相关的命令
      *
-     * @param commands 执行的脚本
+     * @param command 执行的脚本
      * @param user     远程连接的用户名
      * @param passwd   远程连接的密码
      * @param host     远程连接的主机IP
@@ -65,12 +65,17 @@ public class ResourceUsage {
      */
     public static Map<String, String> runDistanceShell(String command, String user, String passwd, String host) {
     	Map<String, String> map = new HashMap<>();
-    	
-        if (!connect(user, passwd, host)) {
-        	map.put("error", "服务器连接失败！");
+
+        try {
+            connect(user, passwd, host);
+
+        } catch (JSchException e) {
+            String error = "服务器连接失败！";
+            map.put("error", error);
+            log.error(error);
             return map;
         }
-        
+
         StringBuilder stringBuffer;
 
         BufferedReader reader = null;

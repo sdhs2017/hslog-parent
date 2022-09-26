@@ -44,6 +44,12 @@ export default new Router({
             meta: { title: '自述文件' },
             children:[
                 {
+                    path: '/accurateSearch_dns',
+                    name:'accurateSearch_dns',
+                    component: resolve => require(['../components/logsManage/accurateSearch_dns.vue'], resolve),
+                    meta: { title: 'DNS日志查询' }
+                },
+                {
                     path: '/index_n',
                     name:'index_n',
                     component: resolve => require(['../components/index/index_n.vue'], resolve),

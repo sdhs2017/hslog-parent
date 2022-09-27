@@ -219,10 +219,12 @@ li,ol{
     overflow: auto!important;
     border: 1px solid #303e4e!important;
 }
+
 .layui-layer-dialog .layui-layer-content{
     color: #000!important;
 }
 .layui-layer-page .layui-layer-content{
+    background: rgb(26,36,47)!important;
     overflow-y: auto!important;
 }
 .layui-layer-page .layui-layer-content > form{

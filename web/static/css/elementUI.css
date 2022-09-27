@@ -481,3 +481,9 @@
 .NotificationCursorClass:hover{
     background: #fff5e7;
 }
+
+
+
+.el-table__body tr.hover-row.current-row>td, .el-table__body tr.hover-row.el-table__row--striped.current-row>td, .el-table__body tr.hover-row.el-table__row--striped>td, .el-table__body tr.hover-row>td {
+    background-color: #5a7494!important;
+}

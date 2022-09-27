@@ -44,6 +44,18 @@ export default new Router({
             meta: { title: '自述文件' },
             children:[
                 {
+                    path: '/dnsSearchTest',
+                    name:'dnsSearchTest',
+                    component: resolve => require(['../components/logsManage/dnsSearchTest.vue'], resolve),
+                    meta: { title: 'DNS日志查询' }
+                },
+                {
+                    path: '/dnsSearch',
+                    name:'dnsSearch',
+                    component: resolve => require(['../components/logsManage/dnsSearch.vue'], resolve),
+                    meta: { title: 'DNS日志查询' }
+                },
+                {
                     path: '/accurateSearch_dns',
                     name:'accurateSearch_dns',
                     component: resolve => require(['../components/logsManage/accurateSearch_dns.vue'], resolve),

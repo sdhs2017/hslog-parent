@@ -1,9 +1,6 @@
 <template>
     <div class="content-bg">
         <div class="top-title">DNS精确查询
-            <div class="equipemnt-tools-btns">
-
-            </div>
         </div>
 
         <!---查询框 -->
@@ -13,17 +10,19 @@
         <div class="content-wapper">
             <v-logscontent2 :searchConditions="searchConditions" :tableHead="tableHead" :searchUrl="searchUrl" :layerObj="layerObj" ref="logContent" :moreDeleteBtn="true"></v-logscontent2>
         </div>
-        <div>
-            <div id="con" ref="con">
-                <!--<div class="qwe">{{this.detailsData}}</div>-->
-                <ul class="details-list-wapper">
-                    <li v-for="(obj,index) in formDetailColumns" :key="index">
-                        <el-row>
-                            <el-col :span="6"><div class="grid-content bg-purple details-list-name">{{obj.label}}:</div></el-col>
-                            <el-col :span="18"><div class="grid-content bg-purple-light details-list-val" v-html="dataChange(formDetailData,obj.prop)"></div></el-col>
-                        </el-row>
-                    </li>
-                </ul>
+        <div v-if="this.layerObj.formDetailsState">
+            <div>
+                <div id="con" ref="con">
+                    <!--<div class="qwe">{{this.de tailsData}}</div>-->
+                    <ul class="details-list-wapper">
+                        <li v-for="(obj,index) in formDetailColumns" :key="index">
+                            <el-row>
+                                <el-col :span="6"><div class="grid-content bg-purple details-list-name">{{obj.label}}:</div></el-col>
+                                <el-col :span="18"><div class="grid-content bg-purple-light details-list-val" v-html="dataChange(layerObj.formDetailsData,obj.prop)"></div></el-col>
+                            </el-row>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -36,11 +35,6 @@
     import {dateFormat} from "../../../static/js/common";
     export default {
         name: "dnsSearch",
-        props:{
-            formDetailData:{
-                type:Object
-            }
-        },
         data(){
             return{
                 formConditionsArr:[],//查询条件
@@ -158,7 +152,23 @@
             bus.$on(this.dnsSearchBusName,(params)=>{
                 this.searchConditions = params;
             })
-
+            //查看详情需要显示的字段
+            this.formDetailColumns=[{
+                label:'时间',
+                prop:'@timestamp'
+            },{
+                label:'日志级别',
+                prop:'log.level'
+            },{
+                label:'资产名称',
+                prop:'fields.equipmentname'
+            },{
+                label:'IP',
+                prop:'fields.ip'
+            },{
+                label:'message',
+                prop:'log.level'
+            }]
             //表头
             this.tableHead = [
                 {
@@ -217,20 +227,19 @@
                                 //console.log(this.layerObj)
                                 //this.layerObj.layerState = true;
                                 //this.layerObj.detailData = row;
-                                this.formDetailColumns=[{
-                                    label:'时间',
-                                    prop:'@timestamp'
-                                },{
-                                    label:'日志级别',
-                                    prop:'log.level'
-                                }]
+                                this.layerObj.formDetailsState = true;
                                 this.layerObj.formDetailsData = row;
-                                layer.open({
-                                    type:'1',
-                                    title:'日志详情',
-                                    area:['620px','520px'],
-                                    content:$('#con').html()
+                                //等待页面元素刷新完毕再执行里面的操作
+                                this.$nextTick(()=>{
+
+                                    layer.open({
+                                        type:'1',
+                                        title:'日志详情',
+                                        area:['620px','520px'],
+                                        content:$('#con').html()
+                                    })
                                 })
+
                             }
                         },
                         {
@@ -277,14 +286,15 @@
                 })
             },
             //数据处理
-            dataChange(formDetailData,index){
-                let arr = index.split('.');
+            dataChange(formDetailData,prop){
+                console.info(formDetailData);
+                console.info(prop);
+                let arr = prop.split('.');
                 let currentData = formDetailData;
-                console.info(formDetailData)
-                console.info(index)
                 for (let i in arr){
                     currentData = currentData[arr[i]];
                 }
+                console.info(currentData);
                 return  currentData;
             },
         },
@@ -436,5 +446,10 @@
         padding-bottom: 10px;
         line-height: 20px;
         word-break: break-all;
+    }
+    .layui-layer .layui-layer-content{
+        background: rgb(26,36,47)!important;
+        overflow: auto!important;
+        border: 1px solid #303e4e!important;
     }
 </style>

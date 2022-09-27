@@ -7,9 +7,11 @@
         <div class="search-wapper">
             <v-search-form :formItem="formConditionsArr" :busName="dnsSearchBusName"></v-search-form>
         </div>
+        <!---表格 table-->
         <div class="content-wapper">
             <v-logscontent2 :searchConditions="searchConditions" :tableHead="tableHead" :searchUrl="searchUrl" :layerObj="layerObj" ref="logContent" :moreDeleteBtn="true"></v-logscontent2>
         </div>
+        <!---查看详情 -->
         <div v-if="this.layerObj.formDetailsState">
             <div>
                 <div id="con" ref="con">
@@ -40,7 +42,6 @@
                 formConditionsArr:[],//查询条件
                 logType:[],//日志类型
                 logLevel:[],//日志级别
-                levelVal:'',//级别内容
                 dnsSearchBusName:'dnsSearchButton',//查询按钮命名，用于事件绑定
                 searchConditions:{},
                 tableHead:[],//表头列
@@ -287,14 +288,14 @@
             },
             //数据处理
             dataChange(formDetailData,prop){
-                console.info(formDetailData);
-                console.info(prop);
+                // console.info(formDetailData);
+                // console.info(prop);
                 let arr = prop.split('.');
                 let currentData = formDetailData;
                 for (let i in arr){
                     currentData = currentData[arr[i]];
                 }
-                console.info(currentData);
+                // console.info(currentData);
                 return  currentData;
             },
         },

@@ -1,8 +1,11 @@
 <template>
     <div class="content-bg">
+        <!-- tab页内左上角小标题-->
         <div class="top-title">DNS精确查询</div>
         <div class="search-wapper">
+            <!-- 查询框 -->
             <el-form :inline="true" onsubmit="return false" class="demo-form-inline conditions-wapper" >
+                <!--  时间框，timeArea 变量绑定时间范围，返回数据为数组格式-->
                 <div style="width: 384px;">
                     <span class="input-lable">日期范围</span>
                     <el-date-picker
@@ -18,12 +21,15 @@
                     </el-date-picker>
                 </div>
                 <div >
+                    <!-- 普通输入框，绑定searchCondition对象的fields.ip字段， 对于a.b这种带特殊字符的key  需要用[]方式-->
                     <span class="input-lable">IP地址</span>
                     <span> <el-input size="mini" v-model="searchCondition['fields.ip']" placeholder="请输入内容"></el-input></span>
                 </div>
                 <div >
+                    <!-- 多选下拉框  multiple 绑定变量selectedLogLevel 选择时触发事件logLevelSelectChange -->
                     <span class="input-lable">日志级别</span>
                     <el-select class="multiple-width" multiple collapse-tags v-model="selectedLogLevel" placeholder="请选择"  size="mini" @change="logLevelSelectChange">
+                        <!--下拉框中的数据加载是通过v-for 标签遍历logLevel变量（数组） 进行组装-->
                         <el-option
                             v-for="op in logLevel"
                             :key="op.value"
@@ -33,32 +39,25 @@
                     </el-select>
                 </div>
                 <div>
+                    <!-- 查询框，type为elementUI内置样式，绑定点击事件logSearch，参数为当前页吗，默认第一页-->
                     <el-button type="primary"  size="mini" @click="logSearch(1)">查询</el-button>
                 </div>
             </el-form>
         </div>
         <div v-loading="loading"  element-loading-background="rgba(48, 62, 78, 0.5)">
             <el-row :gutter="10">
-<!--                <el-col :span="4">-->
-<!--                    <div class="content-left-wapper">-->
-<!--                        <div class="history-title">检索历史</div>-->
-<!--                        <ul class="history-content">-->
-<!--                            <li v-for="(item,index) in historySearchArr" :key="index" @click="historyListClick(item)" :title="JSON.stringify(item)">-->
-<!--                                <span v-for="(kn,index) in item" v-if="kn.length > 0 && index !=='size' && index !=='id' && index !=='page'">{{kn}},</span>-->
-<!--                            </li>-->
-<!--                        </ul>-->
-<!--                    </div>-->
-<!--                </el-col>-->
                 <el-col :span="24">
                     <div class="content-right-wapper">
                         <div class="searchlogs-tools">
                             <el-button type="danger" plain size="mini" style="background: 0;margin: 10px 3px;" @click="moreDelete" >删除</el-button>
                             <div class="searchlogs-tools-right" style="float: right;">
+                                <!--分页 绑定事件handleCurrentChange，点击分页时触发 绑定当前页c_page，绑定每页条数size，绑定总数total，自动通过total 和size计算，显示分页信息-->
                                 <el-pagination background layout="prev, pager, next" @current-change="handleCurrentChange" :current-page.sync="c_page" :page-size="size" :total="total"></el-pagination>
                             </div>
                             <div class="searchlogs-tools-center"  style="float: right;">
                                 检索到日志 <b class="totalLogs">{{allCounts}}</b> 条，最大展示
-                                <el-select v-model="selectVal" placeholder="请选择" size="mini" style="width: 84px;" @change="seletChange" class="maxSelect">
+                                <el-select v-model="selectVal" placeholder="请选择" size="mini" style="width: 84px;" @change="selectChange" class="maxSelect">
+                                    <!--最大展示条数下拉框，通过遍历变量selectOption进行组装-->
                                     <el-option
                                         v-for="item in selectOption"
                                         :key="item.value"
@@ -69,11 +68,16 @@
                             </div>
 
                         </div>
+                        <!--表格定义，绑定tableData变量，通过对该变量赋值，自动加载显示数据
+                        stripe：隔行显示的样式
+                        绑定选择框事件handleSelectionChange，点击时触发事件，组装已选择的行信息，为后面删除数据组装参数
+                        -->
                         <el-table
                             :data="tableData"
                             stripe
                             @selection-change="handleSelectionChange"
                             style="width: 100%;boder:0;">
+                            <!-- 选择框 -->
                             <el-table-column
                                 type="selection"
                                 width="55">
@@ -106,6 +110,7 @@
                             <el-table-column
                                 label="操作"
                                 width="100">
+                                <!-- slot-scope="scope" + scope.row 可以实现传递当前行的数据-->
                                 <template slot-scope="scope">
                                     <el-button @click="itemCheck(scope.row)" type="text" size="small">查看</el-button>
                                     <el-button @click="itemDelete(scope.row)" type="text" size="small">删除</el-button>
@@ -116,12 +121,14 @@
                 </el-col>
             </el-row>
         </div>
-        <div style="display: none">
-            <div v-if="this.layerObj.formDetailsState">
+        <!--弹窗（查看详情）-->
+        <div style="display: none"><!-- 不显示该信息，保证layer.open时，该html不会显示在页面-->
+            <div v-if="this.layerObj.formDetailsState"> <!--判断该变量的值，true时显示，false不显示-->
                 <div>
-                    <div id="con" ref="con">
+                    <div id="con" ref="con"><!--id用来下面通过$("#con") 获取对象-->
                         <!--<div class="qwe">{{this.de tailsData}}</div>-->
                         <ul class="details-list-wapper">
+                            <!--遍历变量formDetailColumns数组，组装要显示的内容-->
                             <li v-for="(obj,index) in formDetailColumns" :key="index">
                                 <el-row>
                                     <el-col :span="6"><div class="grid-content bg-purple details-list-name">{{obj.label}}:</div></el-col>
@@ -143,24 +150,24 @@
         data(){
             return{
 
-                searchCondition:{
-                    starttime:'',
-                    endtime:'',
-                    'fields.ip':'',
-                    'log.level':''
+                searchCondition:{//查询数据时的变量，类型为对象， 以K/V的方式存储，在查询时，JSON.string 方法将该变量转成参数
+                    starttime:'',//起始时间
+                    endtime:'',//截止时间
+                    'fields.ip':'',//IP地址
+                    'log.level':''//日志类型
                 },
-                timeArea:[],//时间范围，数组
+                timeArea:[],//时间范围，数组，与时间控件绑定
                 logLevel:[],//下拉框所有元素
-                selectedLogLevel:[],
+                selectedLogLevel:[],//下拉框已选择的元素
                 loading:false,//table 加载提示
                 moreDeleteArr:[],//要删除的日志id
                 total:0,//总条数 （用于分页）
                 c_page:1,//当前高亮页码
                 size:10,//默认每页的显示的条数
-                page:1,
+                page:1,//默认第一页
                 allCounts:0,//总条数 （用于记录）
                 tableData:[],//表格数据
-                selectOption:[ //下拉框数据
+                selectOption:[ //最大展示条数，下拉框数据
                     {
                         value:100000,
                         label:'10万'
@@ -191,11 +198,11 @@
                     formDetailsData:{},//弹窗数据
                     formDetailsState:false//弹窗状态
                 },
-                formDetailColumns:[],
+                formDetailColumns:[],//弹窗表单的数据生命
             }
         },
         created(){
-            this.setLogLevel('syslog');
+            this.setLogLevel('syslog');//日志级别，通过日志类型发送请求获取，后面可以以此实现下拉框的联动
             //查看详情需要显示的字段
             this.formDetailColumns=[{
                 label:'时间',
@@ -217,56 +224,50 @@
         methods:{
             /*改变日志级别*/
             setLogLevel(logType){
+                //保证数据已加载完
                 this.$nextTick(()=>{
-                    // this.loading = true;
                     this.$axios.post(this.$baseUrl+'/log/getLogLevelByLogType.do',this.$qs.stringify({
                         logType:logType
                     }))
                         .then(res=>{
-                            //this.loading = false;
                             let obj = res.data;
-
+                            //请求返回成功
                             if(obj.success == 'true'){
-                                this.logLevel = []
+                                this.logLevel = []//清空
                                 for (let i=0;i < obj.data.length;i++){
+                                    //遍历data元素，依次写入logLevel数组中
                                     this.$set(this.logLevel,i,obj.data[i])
-                                    //this.logLevel.push(obj.data[i])
                                 }
-                                //this.formConditionsArr[2].options = this.logLevel
 
                             }else{
                                 layer.msg(obj.message,{icon:5})
                             }
                         })
                         .catch(err=>{
+                            //出现异常时，清除加载提示框
                             this.loading = false;
                         })
                 })
             },
+            //查询数据，参数为当前页码
             logSearch(currentPage){
                 this.$nextTick(()=> {
-                    this.loading = true;
-                    this.searchCondition.page=currentPage;
-                    this.searchCondition.size=this.size;
+                    this.loading = true;//显示加载提示
+                    this.searchCondition.page=currentPage;//当前页写入参数中
+                    this.searchCondition.size=this.size;//每页条数写入参数中
                     this.$axios.post(this.$baseUrl + '/ecsWinlog/getLogListByBlend.do', this.$qs.stringify({
-                        hsData:JSON.stringify(this.searchCondition)
+                        hsData:JSON.stringify(this.searchCondition)//参数
                     }))
                         .then(res=>{
-                            this.loading = false;
-                            let logsData = res.data[0].list;
-                            /*logsData.forEach(item =>{
-                                item.equipmentname =  '<a class="goToEquipment">'+item.equipmentname+'</a>'
-                            })*/
+                            this.loading = false;//请求返回，隐藏加载提示
                             //填充表格数据
-                            this.tableData = logsData;
-                            //this.currentPageLogs = res.data[0].list;
-                            //检索发起的请求
-
+                            this.tableData = res.data[0].list;
+                            //日志总条数
                             this.allCounts = res.data[0].count;
-                            //填充分页数据
-                            if(this.allCounts >100000){
-                                this.total = 100000;
-                            }else{
+                            //如果查询出的数据大于最大显示条数，将最大显示条数赋值给total，让分页信息按照最大显示条数计算分页数
+                            if(this.allCounts >this.selectVal){
+                                this.total = this.selectVal;
+                            }else{//否则就用查询出的数据计算
                                 this.total = this.allCounts;
                             }
                         })
@@ -275,14 +276,16 @@
                         })
                 })
             },
+            //时间控件点击时，触发该事件，将起始和截止时间赋值给参数对象
             dateAreaChange(){
                 this.searchCondition.starttime=this.timeArea[0];
                 this.searchCondition.endtime=this.timeArea[1];
             },
+            //选择日志级别下拉框时触发该事件
             logLevelSelectChange(){
                 //先清空
                 this.searchCondition['log.level']='';
-                //累加
+                //累加组装参数，以逗号分割
                 this.selectedLogLevel.forEach((item)=>{
                     this.searchCondition['log.level'] +=item+',';
                 })
@@ -331,7 +334,7 @@
 
             },
             /*下拉框改变函数*/
-            seletChange(selVal){
+            selectChange(selVal){
                 //判断所选的展示条数
                 if(selVal < this.allCounts){
                     this.total = selVal;
@@ -368,7 +371,9 @@
                     }
                 }
             },
+            //table的checkbox点选时触发
             handleSelectionChange(val){
+                //清空参数
                 this.moreDeleteArr = [];
                 //遍历选中项
                 for(let i=0;i<val.length;i++){
@@ -376,11 +381,15 @@
                     obj.index = val[i].index;
                     obj.type = val[i].type;
                     obj.id = val[i].id;
+                    //将选中行 组装后的数据放入变量moreDeleteArr数组中，后面点击删除按钮时，使用该变量作为参数
                     this.moreDeleteArr.push(obj)
                 }
             },
+            //查看按钮点击触发
             itemCheck(row){
+                //设置状态true，使弹窗html生成
                 this.layerObj.formDetailsState = true;
+                //将每行的数据传给该变量
                 this.layerObj.formDetailsData = row;
                 //等待页面元素刷新完毕再执行里面的操作
                 this.$nextTick(()=>{
@@ -389,12 +398,14 @@
                         title:'日志详情',
                         area:['620px','520px'],
                         content:$('#con').html(),
+                        // end 点击弹窗右上角 关闭按钮时触发
                         end:()=>{//箭头函数，保证可以使用this
                             this.layerObj.formDetailsState = false;
                         }
                     })
                 })
             },
+            //每行数据后面的删除按钮触发事件 row：每行的数据
             itemDelete(row){
                 //组装后端传参需要的数据格式
                 let array = [];
@@ -408,9 +419,13 @@
 
             },
             //查看按钮后的数据处理
+            // formDetailData：每行信息的数据
+            //prop：要显示的字段key
             dataChange(formDetailData,prop){
+                //eg： fields.ip
                 let arr = prop.split('.');
                 let currentData = formDetailData;
+                //遍历后一层一层的向里获取值
                 for (let i in arr){
                     currentData = currentData[arr[i]];
                 }
